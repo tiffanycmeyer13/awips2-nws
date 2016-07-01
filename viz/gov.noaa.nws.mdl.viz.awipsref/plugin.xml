@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+    <extension
+         point="com.raytheon.viz.ui.contextualMenu">
+          <contextualMenu
+            actionClass="gov.noaa.nws.mdl.viz.awipsref.AWIPSRefAction"
+            name="Reference on Product"
+            sortID="997">
+          </contextualMenu>
+    </extension>
+ </plugin>
