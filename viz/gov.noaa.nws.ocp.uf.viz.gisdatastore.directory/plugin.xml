@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="com.raytheon.uf.viz.gisdatastore.gisDataStore">
+      <gisDataStore
+            class="gov.noaa.nws.ocp.uf.viz.gisdatastore.directory.GeoJSONDirectoryDataStorePlugin"
+            name="GIS File (GeoJSON)">
+      </gisDataStore>
+   </extension>
+
+</plugin>

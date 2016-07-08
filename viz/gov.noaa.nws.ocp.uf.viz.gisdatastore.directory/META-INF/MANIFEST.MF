@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: GeoJSON support for DataStoreResource
+Bundle-SymbolicName: gov.noaa.nws.ocp.uf.viz.gisdatastore.directory;singleton:=true
+Bundle-Version: 1.16.0.qualifier
+Bundle-Activator: gov.noaa.nws.ocp.uf.viz.gisdatastore.directory.Activator
+Bundle-Vendor: NWS
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.geotools,
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.viz.gisdatastore,
+ com.raytheon.uf.viz.core,
+ com.raytheon.viz.core,
+ com.raytheon.viz.ui,
+ com.raytheon.uf.common.util,
+ com.raytheon.uf.viz.core.maps;bundle-version="1.0.0",
+ gov.noaa.nws.ocp.common.geojson;bundle-version="1.16.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Export-Package: gov.noaa.nws.ocp.uf.viz.gisdatastore.directory.rsc
+Bundle-ClassPath: gov.noaa.nws.ocp.uf.viz.gisdatastore.directory.jar
+
