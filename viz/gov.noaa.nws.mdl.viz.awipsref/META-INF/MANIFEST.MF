@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: AWIPS Reference
+Bundle-SymbolicName: gov.noaa.nws.mdl.viz.awipsref;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: SPoRT/NWS MDL
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.eclipse.core.runtime,
+ org.eclipse.ui,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.geospatial,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.colormap,
+ com.raytheon.uf.viz.core,
+ com.raytheon.uf.viz.core.rsc,
+ com.raytheon.uf.viz.core.maps,
+ com.raytheon.viz.ui,
+ org.apache.commons.lang,
+ com.raytheon.uf.viz.d2d.core,
+ com.raytheon.uf.viz.d2d.ui
+Import-Package: com.raytheon.viz.core.imagery,
+ com.raytheon.viz.core.rsc
