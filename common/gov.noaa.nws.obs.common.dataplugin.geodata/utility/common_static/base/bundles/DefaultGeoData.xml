@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        Default bundle for data displayed through the DBGeo Plugin (querying by "source" and "product" DB Columns). 
+    -->
+    <!-- TOWRdocs Description
+        File defines the custom query mappings and constraints used to query to Postgres database to return corresponding GeoDataRecords.
+
+        The query constraints are defined in each <mapping> bean :
+
+            key : The corresponding database column to query against
+            constraintValue : The constraint value to place on the query
+            constraintType : The Postgres constraint to place on the query (i.e. >, <, =, etc.)
+    -->
+    <!-- TOWRdocs Status
+        File will be new in baseline 16.4.1 release.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<bundle>
+    <displayList>
+        <displays xsi:type="d2DMapRenderableDisplay" density="1.0"
+            magnification="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true" />
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true" />
+                    <resourceData xsi:type="geoDataResourceData"
+                        isUpdatingOnMetadataOnly="false"
+                        isRequeryNecessaryOnTimeMatch="true">
+                        <binOffset posOffset="600" negOffset="0"
+                            virtualOffset="0" />
+                        <metadataMap>
+                            <mapping key="pluginName">
+                                <constraint constraintValue="geodata"
+                                    constraintType="EQUALS" />
+                            </mapping>
+                            <mapping key="source">
+                                <constraint constraintValue="${source}"
+                                    constraintType="EQUALS" />
+                            </mapping>
+                            <mapping key="product">
+                                <constraint constraintValue="${product}"
+                                    constraintType="EQUALS" />
+                            </mapping>
+                        </metadataMap>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+    </displayList>
+</bundle>
+

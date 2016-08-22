@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        The EDEX distributions file for the DBGeo/GeoData Decoder.
+    -->
+    <!-- TOWRdocs Description
+        This file defines the filename patterns (via regular expressions)
+        that will be ingested and decoded via the DBGeo plugin/decoder.
+        Any filename ingested that includes a pattern defined below will run through
+        the DBGeo/GeoData Decoder.
+    -->
+    <!-- TOWRdocs Status
+        This file will be new in the AWIPS II 16.4.1 baseline.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<requestPatterns xmlns:ns2="group">
+
+    <!-- VIIRS Active Fires -->
+    <regex>^AF_v1r0_npp_s\d{15}_e\d{15}_c\d{15}.nc$</regex>
+
+    <!-- JASON Wave Altimetry -->
+    <regex>^JA2_OPN_2PdS\d{3}_\d{3}_\d{8}_\d{6}_\d{8}_\d{6}.nc$</regex>
+
+</requestPatterns>

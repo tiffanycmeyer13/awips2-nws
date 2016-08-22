@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        The descriptions file that defines a list of ProductDescription(s) for
+        the DBGeo Decoder to decoder against.
+    -->
+    <!-- TOWRdocs Description
+        This file contains multiple ProductDescription definitions relating to the DBGeo
+        (GeoData) plugin. It is used to populate a single GeoData ProductDescription instance,
+        which is then decoded to generate GeoDataRecords. Essentially this file provides the 
+        framework for mapping NetCDF-4 Variables or Attributes, as well as user-defined values,
+        to GeoDataRecord fields. 
+
+        <description> - Signifies the beginning of a new ProductDescription
+            "name" : The string name of the description (for debug)
+
+        <debug> - Option allows you to specify whether or not errors (specific to that <description>)
+            That are caught in the Decoder are logged in the ingest log file. This entry is useful
+            for gathering more information as to why a specific <description> will not generate
+            valid GeoDataRecord(s). 
+
+        <source> - Describes the source of the product (instrument, etc.).
+
+        <product> - Name of the product.
+
+        <lat> - The NetCDF Variable that corresponds to the array of Latitude observations
+                you are interested in.
+        <lon> - The NetCDF Variable that corresponds to the array of Longitude observations
+                you are interested in.
+
+        <geomType> - The type(s) of the Geometries contained in the file (Point, Line, Polygon, etc.). 
+
+        <geomOffset> -  The index into the lat/lon arrays where each Geometry item begins.
+
+        <geomNels> - The number of lat/lon pairs (starting at the index from geomOffset) that each Geometry contains.
+
+        <dataTime> - The time of observation of each Geometry in the file (in seconds since a defined epoch).
+
+           "epoch" - The string (must be of form "yyyy-MM-dd HH:mm:ss") that represents
+                the epoch that the dataTimes in this file are based on
+           "units" - Default, but required field. This should always be "SECONDS", as the
+                dataTime variables/attributes/values are most often set as seconds from the
+                dataEpoch
+
+           <variable name="varName" /> - Use the <variable> bean when the values for observation time
+                are stored in a NetCDF Variable (array) within the file.
+
+           <attribute name="attName" /> - Use the <attribute> bean when the value for observation time
+                is stored as a Global Attribute in the NetCDF File (i.e. if the observation time is uniform).
+
+           <value value="value" /> - Use this entry if ALL observations are uniformly sampled at 
+                The same observation time (i.e. a single "dataTime" for the file), and if the observation time
+                is not present as a Global Attribute in the NetCDF file. 
+
+        <atts> - Contains the list of Geometry-related information, which are NetCDF Variable/Attribute/Values.
+
+            <geomAtt> - Signifies a new Geometry-related piece of trivia.
+
+        NOTE : The following may be described as a NetCDF Variable or Attribute, or user-defined 
+            (and constant for all Geometries in the file) Value:
+
+                <source>
+                <product>
+                <geomType>
+                <geomOffset>
+                <geomNels
+                <geomAtt>
+                <dataTime>
+
+            This is done by declaring the corresponding Variable/Attribute/Value <bean>
+
+            NetCDF Variable : <variable name="NAME-OF-NETCDF-VAR" />
+            NetCDF Attribute : <attribute name="NAME-OF-NETCDF-ATT" />
+            Constant Value : <value value="VALUE" />
+
+    -->
+    <!-- TOWRdocs Status
+        This file will be new in the baseline 16.4.1
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<geodataProductDescriptions>
+
+    <description name="JASON Altimetry">
+        <debug>true</debug>
+        <source>
+            <attribute name="source" />
+        </source>
+        <product>
+            <value value="JASON Altimetry" />
+        </product>
+        <lat name="lat" />
+        <lon name="lon" />
+        <geomType>
+            <value value="0" />
+        </geomType>
+        <geomOffset>
+            <value value="1" />
+        </geomOffset>
+        <geomNels>
+            <value value="1" />
+        </geomNels>
+
+        <atts>
+            <geomAtt>
+                <variable name="swh_ku" />
+            </geomAtt>
+            <geomAtt>
+                <variable name="ssha" />
+            </geomAtt>
+        </atts>
+
+        <dataTime>
+            <epochOffsetRefTime epoch="2000-01-01 00:00:00" units="SECONDS">
+                <variable name="time" />
+            </epochOffsetRefTime>
+        </dataTime>
+    </description>
+
+</geodataProductDescriptions>

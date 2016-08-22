@@ -1,0 +1,36 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+
+    <!-- TOWRdocs Header
+        The Spring XML file defining common beans used throughout other DBGeo Spring XML files.
+    -->
+    <!-- TOWRdocs Description
+        This file contains the definitions of various Spring beans that mirror Java classes, fields,
+        etc. in the DBGeo plugin. In this file specifically, the plugin name properties are mapped
+        to their respective classes, and the geodata "plugin" itself is registered to the AWIPS II 
+        plugin registry.
+    -->
+    <!-- TOWRdocs Status
+        This file is new to the baseline with the delivery of the DBGeo (DCS 19064) plugin. It is 
+        expected to be included in AWIPS II 16.4.1 baseline.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+    <bean id="geodataPluginName" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="geodata" />
+    </bean>
+
+    <bean id="geodataProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+        <property name="pluginName" ref="geodataPluginName" />
+        <property name="pluginFQN" value="gov.noaa.nws.obs.common.dataplugin.geodata" />
+        <property name="record" value="gov.noaa.nws.obs.common.dataplugin.geodata.GeoDataRecord" />
+    </bean>
+
+    <bean factory-bean="pluginRegistry" factory-method="register">
+        <constructor-arg ref="geodataPluginName" />
+        <constructor-arg ref="geodataProperties" />
+    </bean>
+</beans>
