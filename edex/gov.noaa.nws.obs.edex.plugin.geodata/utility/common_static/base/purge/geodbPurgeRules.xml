@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        Defining the default Purge Rules for the DBGeo Plugin
+    -->
+    <!-- TOWRdocs Description
+        This file defines the default rules for purging GeoDataRecords
+        out of "geodata" table in the Postgres Database. The default rule
+        determines the 20 most recent versions (values) of each to keep, 
+        and then purges any GeoDataRecords whose values do not satisfy the 
+        purge rule. 
+    -->
+    <!-- TOWRdocs Status
+        File will be new in baseline 16.4.1 release.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<purgeRuleSet>
+    <key>source</key>
+    <key>product</key>
+    <defaultRule>
+        <versionsToKeep>20</versionsToKeep>
+    </defaultRule>
+</purgeRuleSet>

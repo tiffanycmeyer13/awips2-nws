@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        DBGeo menu index file.
+    -->
+    <!-- TOWRdocs Description
+        File that provides menu indexes to DBGeo bundles. This file defines the point in 
+        the menu AWIPS II CAVE menus to install the bundle items defined in the "fileName" attribute.
+    -->
+    <!-- TOWRdocs Status
+        File will be new in baseline 16.4.1 release.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<menuContributionFile>
+
+    <include installTo="menu:obs?after=LocalData" fileName="menus/geodata/baseGeoData.xml">
+    </include>
+
+</menuContributionFile>
+
