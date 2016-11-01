@@ -1,0 +1,14 @@
+<plugin>
+ <extension
+         point="com.raytheon.uf.viz.core.resource">
+      <resource
+            class="gov.noaa.nws.obs.viz.geodata.rsc.GeoDataResource"
+            name="GeoData"
+            renderingOrderId="PLOT"
+            recordClass="gov.noaa.nws.obs.common.dataplugin.geodata.GeoDataRecord"
+            resourceType="PLAN_VIEW"/>
+
+   </extension>
+
+
+</plugin>

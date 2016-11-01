@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        The DBGeo sub-menu items file (sorted by product).
+    -->
+    <!-- TOWRdocs Description
+        This file adds bundle entries to the menu index defined in geodata-index.xml.
+        The file also sets up the query mappings for each bundle, formatting the query from the 
+        "source" and "product" values of entries in the database. 
+    -->
+    <!-- TOWRdocs Status
+        File that will be new in baseline 16.4.1 release.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <!--  JASON Altimetry -->
+    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml"
+        menuText="JASON Waveheight" id="jasonwaveheight.resource">
+        <substitute key="source" value="radar altimeter" />
+        <substitute key="product" value="JASON Altimetry" />
+    </contribute>
+
+    <!-- Active Fires -->
+    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml"
+        menuText="VIIRS Active Fires" id="activefires.resouce">
+        <substitute key="source" value="VIIRS" />
+        <substitute key="product" value="Active Fires" />
+    </contribute>
+
+</menuTemplate>

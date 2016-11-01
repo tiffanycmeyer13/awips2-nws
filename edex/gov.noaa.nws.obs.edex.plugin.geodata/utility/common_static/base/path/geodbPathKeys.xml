@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+    <!-- TOWRdocs Header
+        Set of the persistentPathKeys related to the DBGeo plug-in.
+    -->
+    <!-- TOWRdocs Description
+        File defines the list of keys used to construct the HDF5 directory path (if the plugin reaches that point).
+    -->
+    <!-- TOWRdocs Status
+        File will be new in baseline 16.4.1 release.
+    -->
+    <!-- TOWRdocs POC
+        Matt Comerford
+    -->
+
+<pathKeySet>
+    <pathKey>
+        <key>source</key>
+        <order>0</order>
+    </pathKey>
+    <pathKey>
+        <key>product</key>
+        <order>1</order>
+    </pathKey>
+</pathKeySet>
