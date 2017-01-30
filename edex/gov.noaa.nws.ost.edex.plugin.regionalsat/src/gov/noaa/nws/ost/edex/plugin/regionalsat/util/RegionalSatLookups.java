@@ -32,18 +32,21 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 /**
- * The RegionalSatLookups class is responsible for making the lookup parameters configurable.
- * Using map objects to contain the parameters removes the dependency on database schema changes,
- * since these parameters are only used during ingesting and storing the data. Looking up values
- * for PhysicalElements, CreatingEntities and Source parameters are supported.
+ * The RegionalSatLookups class is responsible for making the lookup parameters
+ * configurable. Using map objects to contain the parameters removes the
+ * dependency on database schema changes, since these parameters are only used
+ * during ingesting and storing the data. Looking up values for
+ * PhysicalElements, CreatingEntities and Source parameters are supported.
  * 
- * This class is based on the com.raytheon.uf.edex.plugin.satellite.mcidas.McidasSatelliteLookups
- * class
+ * This class is based on the
+ * com.raytheon.uf.edex.plugin.satellite.mcidas.McidasSatelliteLookups class
  * 
- * The xml configuration files are in the utility/edex_static/base/satellite/regionalsat directory.
- * The configuration file names are creatingEntities.xml, physicalelements.xml and source.xml.
+ * The xml configuration files are in the
+ * utility/common_static/base/satellite/regionalsat directory. The configuration
+ * file names are creatingEntities.xml, physicalelements.xml and source.xml.
  * 
  * The creatingEntities file contains the following:
+ * 
  * <pre>
  * <creatingEntities>
  *	<map>
@@ -60,6 +63,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * </pre>
  * 
  * The physicalElements files contains the folloowing:
+ * 
  * <pre>
  * <physicalElements>
  *	<map>
@@ -94,6 +98,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * </pre>
  * 
  * The source files contains the following:
+ * 
  * <pre>
  * <source>
  *	<map>
@@ -108,7 +113,8 @@ import com.raytheon.uf.common.status.UFStatus;
  *                   
  * date          Ticket#     Engineer    Description
  * -----------  ----------  ----------- --------------------------
- * 7/15/11                      tk    	Initial Creation                          
+ * 7/15/11                      tk    	Initial Creation
+ * 1/30/17       #28634       jburks    Changed localization to common_static
  * 
  * </pre>
  * 
@@ -118,35 +124,40 @@ import com.raytheon.uf.common.status.UFStatus;
 
 public class RegionalSatLookups {
     private static final IUFStatusHandler theHandler = UFStatus
-        .getHandler(RegionalSatLookups.class);
+            .getHandler(RegionalSatLookups.class);
+
     private static final String LOOKUP_DIR = "satellite/regionalsat";
-    
+
     public static class PhysicalElementKey {
         public PhysicalElementKey() {
         }
-        
+
         public PhysicalElementKey(String name, String channel) {
             this.satName = name;
             this.channel = channel;
         }
-        
-        @XmlAttribute(name="satName") public String satName;
-        @XmlAttribute(name="channel") public String channel;
-        
+
+        @XmlAttribute(name = "satName")
+        public String satName;
+
+        @XmlAttribute(name = "channel")
+        public String channel;
+
         @Override
         public int hashCode() {
             return satName.hashCode() + channel.hashCode();
         }
+
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof PhysicalElementKey)
-                return satName.equals(((PhysicalElementKey) obj).satName) &&
-                channel.equals(((PhysicalElementKey) obj).channel);
+                return satName.equals(((PhysicalElementKey) obj).satName)
+                        && channel.equals(((PhysicalElementKey) obj).channel);
             else
                 return false;
         }
     }
-    
+
     public static class PhysicalElementValue {
         public PhysicalElementValue() {
         }
@@ -156,30 +167,34 @@ public class RegionalSatLookups {
             this.units = units;
         }
 
-        @XmlAttribute public String name;
-        @XmlAttribute public String units;
+        @XmlAttribute
+        public String name;
+
+        @XmlAttribute
+        public String units;
     }
-    
+
     @XmlAccessorType(XmlAccessType.NONE)
-    public static abstract class AbstractLookup<K,V> {        
+    public static abstract class AbstractLookup<K, V> {
         public abstract Map<K, V> getMap();
     }
-    
+
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class PhysicalElements extends AbstractLookup<PhysicalElementKey, PhysicalElementValue> {
-        public HashMap<PhysicalElementKey, PhysicalElementValue> map = 
-            new HashMap<RegionalSatLookups.PhysicalElementKey, PhysicalElementValue>();
+    public static class PhysicalElements
+            extends AbstractLookup<PhysicalElementKey, PhysicalElementValue> {
+        public HashMap<PhysicalElementKey, PhysicalElementValue> map = new HashMap<RegionalSatLookups.PhysicalElementKey, PhysicalElementValue>();
 
         @Override
         public Map<PhysicalElementKey, PhysicalElementValue> getMap() {
             return map;
         }
     }
-    
+
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class CreatingEntities extends AbstractLookup<String, String> {
+    public static class CreatingEntities
+            extends AbstractLookup<String, String> {
         public HashMap<String, String> map = new HashMap<String, String>();
 
         @Override
@@ -198,9 +213,11 @@ public class RegionalSatLookups {
             return map;
         }
     }
-    
+
     private PhysicalElements physicalElementLookup;
+
     private CreatingEntities creatingEntityLookup;
+
     private Source sourceLookup;
 
     public RegionalSatLookups() {
@@ -216,15 +233,20 @@ public class RegionalSatLookups {
         JAXBContext context = JAXBContext.newInstance(PhysicalElements.class,
                 CreatingEntities.class, Source.class);
         Unmarshaller u = context.createUnmarshaller();
-        physicalElementLookup = load(new PhysicalElements(), "physicalElements.xml", u);
-        creatingEntityLookup = load(new CreatingEntities(), "creatingEntities.xml", u);
+        physicalElementLookup = load(new PhysicalElements(),
+                "physicalElements.xml", u);
+        creatingEntityLookup = load(new CreatingEntities(),
+                "creatingEntities.xml", u);
         sourceLookup = load(new Source(), "source.xml", u);
     }
-    
-    private static <T extends AbstractLookup<K,V>, K, V> T load(T combinedLookup, String fileName, Unmarshaller u) throws Exception {
+
+    private static <T extends AbstractLookup<K, V>, K, V> T load(
+            T combinedLookup, String fileName, Unmarshaller u)
+                    throws Exception {
         IPathManager pm = PathManagerFactory.getPathManager();
-        
-        List<LocalizationContext> contexts = Arrays.asList(pm.getLocalSearchHierarchy(LocalizationType.EDEX_STATIC));
+        // Localization located in common_static
+        List<LocalizationContext> contexts = Arrays.asList(
+                pm.getLocalSearchHierarchy(LocalizationType.COMMON_STATIC));
         Collections.reverse(contexts);
         for (LocalizationContext ctx : contexts) {
             File f = pm.getFile(ctx, LOOKUP_DIR + File.separator + fileName);
@@ -232,40 +254,46 @@ public class RegionalSatLookups {
                 try {
                     @SuppressWarnings("unchecked")
                     T lookup = (T) u.unmarshal(f);
-                    if (! combinedLookup.getClass().isAssignableFrom(lookup.getClass())) {
-                        throw new Exception(String.format("file contains %s' expected %s",
+                    if (!combinedLookup.getClass()
+                            .isAssignableFrom(lookup.getClass())) {
+                        throw new Exception(String.format(
+                                "file contains %s' expected %s",
                                 lookup.getClass(), combinedLookup.getClass()));
                     }
                     combinedLookup.getMap().putAll(lookup.getMap());
                 } catch (Exception e) {
-                    theHandler.error(String.format("%s: %s", f, e.getMessage()), e);
+                    theHandler.error(String.format("%s: %s", f, e.getMessage()),
+                            e);
                 }
             }
         }
         return combinedLookup;
     }
-    
+
     /**
-     * Returns a PhysicalElementValue object for the given
-     * parameters
+     * Returns a PhysicalElementValue object for the given parameters
      * 
-     * @param String name - satellite name
+     * @param String
+     *            name - satellite name
      * 
-     * @param String channel
-     *  
+     * @param String
+     *            channel
+     * 
      * @return A PhysicalElementValue object with the given values
      * @throws Exception
      *             If errors occur during generation of the coverage object
      */
-    public PhysicalElementValue getPhysicalElement(String name, String channel) {
-        return physicalElementLookup.map.get(
-                new PhysicalElementKey(name, channel));
+    public PhysicalElementValue getPhysicalElement(String name,
+            String channel) {
+        return physicalElementLookup.map
+                .get(new PhysicalElementKey(name, channel));
     }
-    
+
     /**
      * Returns a String object for the given parameter
      * 
-     * @param String name - satellite name
+     * @param String
+     *            name - satellite name
      * 
      * @return A String object with the given values
      * @throws Exception
@@ -274,11 +302,12 @@ public class RegionalSatLookups {
     public String getCreatingEntity(String name) {
         return creatingEntityLookup.map.get(name);
     }
-    
+
     /**
      * Returns a String object for the given parameter
      * 
-     * @param String name - source name
+     * @param String
+     *            name - source name
      * 
      * @return A String object with the given values
      * @throws Exception
@@ -289,13 +318,13 @@ public class RegionalSatLookups {
     }
 
     private static RegionalSatLookups instance;
-    
+
     public static synchronized RegionalSatLookups getInstance() {
         if (instance == null)
             instance = new RegionalSatLookups();
         return instance;
     }
-    
+
     public static synchronized void reload() {
         instance = new RegionalSatLookups();
     }
