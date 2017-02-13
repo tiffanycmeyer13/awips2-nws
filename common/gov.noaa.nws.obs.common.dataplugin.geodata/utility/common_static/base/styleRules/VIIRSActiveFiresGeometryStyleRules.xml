@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
+    <!-- 
+        This is an incremental override file, indicating that the files
+        at different localization levels will be combined. 
+    -->
     <!-- TOWRdocs Header
         The various Styling Rules defined for Geometries.
     -->
@@ -112,7 +115,6 @@
     <!-- TOWRdocs POC
         Matt Comerford
     -->
-
 <styleRuleset>
 
     <!-- Active Fires -->
@@ -139,11 +141,9 @@
             <lineColorFloatAtt>
                 <name>Fire Pixels/FP_confidence</name>
             </lineColorFloatAtt>
-
             <minPointMag>1.0</minPointMag>
             <maxPointMag>3.0</maxPointMag>
             <pointDisplay>DISC</pointDisplay>
-
             <attributeConvert>
                 <dataName>Fire Pixels/FP_power</dataName>
                 <dataUnits>MW</dataUnits>
@@ -158,9 +158,7 @@
             </attributeConvert>
 
             <!-- /GeometryPreferences -->
-
             <defaultColormap>Sat/GOESR-L2/VTRSB</defaultColormap>
-
             <range scale="LINEAR">
                 <minValue>0</minValue>
                 <maxValue>100</maxValue>
@@ -173,14 +171,10 @@
             <samplePrefs>
                 <formatString>%.3f</formatString>
             </samplePrefs>
-
-            <displayLegend>VIIRS Active Fires - scale: (Power, MW),
-                color: (Confidence)
+            <displayLegend>VIIRS Active Fires - scale: (Power, MW), color: (Confidence)
             </displayLegend>
             <displayUnits label="%">%</displayUnits>
             <displayFlags></displayFlags>
-
         </geometryStyle>
     </styleRule>
-
 </styleRuleset>
