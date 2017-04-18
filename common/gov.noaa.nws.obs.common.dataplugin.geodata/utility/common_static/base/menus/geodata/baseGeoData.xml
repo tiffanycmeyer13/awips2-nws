@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
+    <!-- 
+        This is an absolute override file, indicating that a higher priority 
+        version of the file will completely replace a lower priority version
+        of the file. 
+    -->
     <!-- TOWRdocs Header
         The DBGeo sub-menu items file (sorted by product).
     -->
@@ -14,21 +18,17 @@
     <!-- TOWRdocs POC
         Matt Comerford
     -->
-
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <!--  JASON Altimetry -->
-    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml"
-        menuText="JASON Waveheight" id="jasonwaveheight.resource">
+    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml" menuText="JASON Waveheight" id="jasonwaveheight.resource">
         <substitute key="source" value="radar altimeter" />
         <substitute key="product" value="JASON Altimetry" />
     </contribute>
 
     <!-- Active Fires -->
-    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml"
-        menuText="VIIRS Active Fires" id="activefires.resouce">
+    <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml" menuText="VIIRS Active Fires" id="activefires.resouce">
         <substitute key="source" value="VIIRS" />
         <substitute key="product" value="Active Fires" />
     </contribute>
-
 </menuTemplate>
