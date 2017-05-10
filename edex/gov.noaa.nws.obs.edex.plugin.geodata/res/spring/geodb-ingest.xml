@@ -1,16 +1,16 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-  http://www.springframework.org/schema/beans/spring-beans.xsd
-  http://camel.apache.org/schema/spring
-  http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://camel.apache.org/schema/spring
+    http://camel.apache.org/schema/spring/camel-spring.xsd">
 
     <!-- TOWRdocs Header
         The Spring XML file that defines EDEX ingest route and various beans that
         go with the DBGeo/GeoData EDEX plug-in
     -->
     <!-- TOWRdocs Description
-        This file contains the definitions of Spring beans that map to Java classes, 
+        This file contains the definitions of Spring beans that map to Java classes,
         fields, etc. as they pertain the EDEX ingest of DBGeo/GeoData files.
 
         This file specifically:
@@ -22,15 +22,15 @@
             - Defines the Camel Context
             - Sets up the ingest route through EDEX (starting at the <route> element)
 
-            Note: The ingest route is a list of methods that are executed serially during the ingest 
-                process. For instance, in the route defined below, a matching file is 
+            Note: The ingest route is a list of methods that are executed serially during the ingest
+                process. For instance, in the route defined below, a matching file is
 
                     - read into a byte array
                     - stripped of the WMO header (if it exists) and returned as a File instance
                     - run through the GeoDataDecoder
     -->
     <!-- TOWRdocs Status
-        This file is new to the baseline with the delivery of the DBGeo (DCS 19064) plugin. It is 
+        This file is new to the baseline with the delivery of the DBGeo (DCS 19064) plugin. It is
         expected to be included in AWIPS II 16.4.1 baseline.
     -->
     <!-- TOWRdocs POC
