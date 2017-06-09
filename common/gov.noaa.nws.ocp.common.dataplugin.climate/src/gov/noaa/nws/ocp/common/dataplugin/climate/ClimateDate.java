@@ -52,6 +52,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 05 MAY 2017  33104      amoore     Add month-day constructor.
  * 10 MAY 2017  33104      amoore     Address Find Bugs issue about static date formats.
  * 11 MAY 2017  33104      amoore     More Find Bugs minor issues.
+ * 16 JUN 2017  35182      amoore     Add util Date and SQL date as possible construction objects.
  * </pre>
  * 
  * @author xzhang
@@ -166,28 +167,72 @@ public class ClimateDate {
     }
 
     /**
-     * Construct from the given Date.
+     * Construct from util Date.
      * 
      * @param iDate
      */
     public ClimateDate(Date iDate) {
-        Calendar cal = TimeUtil.newCalendar();
-        cal.setTime(iDate);
-        setDateFromCalendar(cal);
+        setDateFromDate(iDate);
     }
 
     /**
-     * Construct from an object. If the object is null or not a String, then set
-     * data to missing.
+     * Construct from sql Date.
+     * 
+     * @param iDate
+     */
+    public ClimateDate(java.sql.Date iDate) {
+        setDateFromDate(iDate);
+    }
+
+    /**
+     * Set date from sql Date object.
+     * 
+     * @param iDate
+     */
+    public void setDateFromDate(java.sql.Date iDate) {
+        setDateFromCalendar(TimeUtil.newCalendar(iDate.getTime()));
+    }
+
+    /**
+     * @param iDate
+     * @return instance based on date.
+     */
+    public static ClimateDate parseFullDateFromDate(java.sql.Date iDate) {
+        ClimateDate date = new ClimateDate();
+        date.setDateFromDate(iDate);
+        return date;
+    }
+
+    /**
+     * Set date from util Date object
+     * 
+     * @param iDate
+     */
+    public void setDateFromDate(Date iDate) {
+        setDateFromCalendar(TimeUtil.newCalendar(iDate));
+    }
+
+    /**
+     * @param iDate
+     * @return instance based on date.
+     */
+    public static ClimateDate parseFullDateFromDate(Date iDate) {
+        ClimateDate date = new ClimateDate();
+        date.setDateFromDate(iDate);
+        return date;
+    }
+
+    /**
+     * Construct from an object. If the object is null, or not a String, or not
+     * a util Date, or not an sql Date, then set data to missing.
      * 
      * @param iDateObject
      */
     public ClimateDate(Object iDateObject) {
-        if (iDateObject == null || !(iDateObject instanceof String)) {
-            logger.warn("Invalid object [" + iDateObject
-                    + "] will not be parsed into a Date.");
+        if (iDateObject == null) {
+            logger.warn("Null object will not be parsed into a Date.");
             setDataToMissing();
-        } else {
+        } else if (iDateObject instanceof String) {
             try {
                 ClimateDate newDate = parseFullDateFromString(
                         (String) iDateObject);
@@ -197,6 +242,15 @@ public class ClimateDate {
                         + iDateObject + "]");
                 setDataToMissing();
             }
+        } else if (iDateObject instanceof Date) {
+            setDateFromDate((Date) iDateObject);
+        } else if (iDateObject instanceof java.sql.Date) {
+            setDateFromDate((java.sql.Date) iDateObject);
+        } else {
+            logger.warn("Invalid object: [" + iDateObject + "] of type: ["
+                    + iDateObject.getClass()
+                    + "] will not be parsed into a Date.");
+            setDataToMissing();
         }
     }
 

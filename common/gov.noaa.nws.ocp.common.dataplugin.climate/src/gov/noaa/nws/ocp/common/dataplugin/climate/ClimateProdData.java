@@ -248,11 +248,11 @@ public class ClimateProdData {
     }
 
     /**
-     * getNwrProdusts
+     * getNwrProducts
      * 
      * @return
      */
-    public Map<String, ClimateProduct> getNwrProdusts() {
+    public Map<String, ClimateProduct> getNwrProducts() {
         return nwrProd.getProdData();
     }
 
@@ -272,11 +272,11 @@ public class ClimateProdData {
     }
 
     /**
-     * getNwwsProdusts
+     * getNwwsProducts
      * 
      * @return
      */
-    public Map<String, ClimateProduct> getNwwsProdusts() {
+    public Map<String, ClimateProduct> getNwwsProducts() {
         return nwwsProd.getProdData();
     }
 

@@ -22,6 +22,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 10 MAY 2017  33532      pwang       Initial creation
+ * 02 JUN 2017  34777      amoore      Remove unnecessary static field.
  * </pre>
  *
  * @author pwang
@@ -30,8 +31,6 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 @DynamicSerialize
 public class ClimateProdGenerateSessionDataForView
         implements Comparable<ClimateProdGenerateSessionDataForView> {
-
-    private static final long serialVersionUID = 3L;
 
     @Column(nullable = false)
     @DynamicSerializeElement

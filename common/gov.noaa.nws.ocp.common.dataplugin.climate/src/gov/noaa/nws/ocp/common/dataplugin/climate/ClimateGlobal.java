@@ -36,6 +36,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 19 DEC 2016  20955      amoore      Move default preferences to common location.
  * 22 FEB 2017  28609      amoore      Address TODOs. Fix comments.
  * 23 FEB 2017  29416      wkwock      Added displayWait and reviewWait.
+ * 02 JUN 2017  34783      pwang       Added allowAutoSend and other two flags
  * </pre>
  * 
  * @author xzhang
@@ -156,12 +157,38 @@ public class ClimateGlobal {
      */
     @DynamicSerializeElement
     private int displayWait = DEFAULT_DISPLAY_WAIT;
-    
+
     /**
      * Review wait in minutes.
      */
     @DynamicSerializeElement
     private int reviewWait = DEFAULT_REVIEW_WAIT;
+
+    /**
+     * For cron jobs, determine if the products should be automatically send to
+     * NWR and NWWS if no user response
+     */
+    @DynamicSerializeElement
+    private boolean allowAutoSend = true;
+
+    /**
+     * Determine NWR products should be copied to pending or ready directory in
+     * NWRWave
+     */
+    @DynamicSerializeElement
+    private String copyNWRTo = "pending";
+
+    /**
+     * Determine if climate products should be sent to NWRWave / NWWS
+     */
+    @DynamicSerializeElement
+    private boolean allowDisseminate = true;
+
+    /**
+     * Empty constructor.
+     */
+    public ClimateGlobal() {
+    }
     
     public int getDisplayWait() {
         return displayWait;
@@ -177,12 +204,6 @@ public class ClimateGlobal {
 
     public void setReviewWait(int reviewWait) {
         this.reviewWait = reviewWait;
-    }
-
-    /**
-     * Empty constructor.
-     */
-    public ClimateGlobal() {
     }
 
     public ClimateTime getValidIm() {
@@ -319,6 +340,30 @@ public class ClimateGlobal {
 
     public void setS1(float s1) {
         this.s1 = s1;
+    }
+
+    public boolean isAllowAutoSend() {
+        return allowAutoSend;
+    }
+
+    public void setAllowAutoSend(boolean allowAutoSend) {
+        this.allowAutoSend = allowAutoSend;
+    }
+
+    public String getCopyNWRTo() {
+        return copyNWRTo;
+    }
+
+    public void setCopyNWRTo(String copyNWRTo) {
+        this.copyNWRTo = copyNWRTo;
+    }
+
+    public boolean isAllowDisseminate() {
+        return allowDisseminate;
+    }
+
+    public void setAllowDisseminate(boolean allowDisseminate) {
+        this.allowDisseminate = allowDisseminate;
     }
 
     public void setValidIm(String property) {

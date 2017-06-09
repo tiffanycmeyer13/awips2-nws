@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="gov.noaa.nws.ocp.viz.climate.feature"
+      label="Climate tools Feature"
+      version="1.16.0.qualifier"
+      provider-name="NWS">
+
+   <description url="http://www.example.com/description">
+      [Enter Feature Description here.]
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      [Enter Copyright Description here.]
+   </copyright>
+
+   <license url="http://www.example.com/license">
+      [Enter License Description here.]
+   </license>
+
+   <requires>
+      <import feature="com.raytheon.uf.common.base.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.base.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.core.feature" version="1.0.0.qualifier"/>
+   </requires>
+
+   <plugin
+         id="gov.noaa.nws.ocp.common.dataplugin.climate"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.common.climate"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.display"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.f6builder"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.configparams"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.initClimate"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.perspective"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.qualitycontrol"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.setupclimate"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.common.localization.climate"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.climate.review"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+         
+</feature>

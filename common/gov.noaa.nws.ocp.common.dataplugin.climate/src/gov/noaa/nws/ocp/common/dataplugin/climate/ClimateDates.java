@@ -52,6 +52,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * 10 MAY 2017  33104      amoore      Address Find Bugs issue about static date formats.
  * 11 MAY 2017  33104      amoore      More Find Bugs minor issues.
  * 23 MAY 2017  33104      amoore      Fix duplicate logging.
+ * 15 JUN 2017  35185      amoore      Add {@link #isMissing()}.
  * </pre>
  * 
  * @author xzhang
@@ -508,5 +509,15 @@ public class ClimateDates {
     public static SimpleDateFormat getFullDateHourFormat() {
         return new SimpleDateFormat("yyyy" + ClimateDate.DATE_SEPARATOR + "MM"
                 + ClimateDate.DATE_SEPARATOR + "dd HH");
+    }
+
+    /**
+     * @return true if all fields are either null or missing all data.
+     */
+    public boolean isMissing() {
+        return ((start == null || start.isMissing())
+                && (end == null || end.isMissing())
+                && (startTime == null || startTime.isMissing())
+                && (endTime == null || endTime.isMissing()));
     }
 }

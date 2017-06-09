@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EDEX Common Climate
+Bundle-SymbolicName: gov.noaa.nws.ocp.edex.common.climate
+Bundle-Version: 1.16.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-Vendor: NWS
+Require-Bundle: com.raytheon.uf.common.status;visibility:=reexport,
+ com.raytheon.uf.edex.database,
+ gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
+ com.raytheon.uf.common.util
+Export-Package: gov.noaa.nws.ocp.edex.common.climate.dao,
+ gov.noaa.nws.ocp.edex.common.climate.dataaccess,
+ gov.noaa.nws.ocp.edex.common.climate.util

@@ -43,6 +43,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 19 APR 2017  33104      amoore      Create {@link Timestamp} instance from Climate objects.
  * 03 MAY 2017  33104      amoore      Address FindBugs.
  * 16 MAY 2017  33104      amoore      Add float comparison method.
+ * 15 JUN 2017  35184      amoore      Fix issue with resultant wind calculations where wind sums
+ *                                     were not scaled down by number of observed hours.
+ * 16 JUN 2017  35185      amoore      Move List comparison to Period Dialog, as that is the only user.
  * </pre>
  * 
  * @author amoore
@@ -825,34 +828,6 @@ public final class ClimateUtilities {
     }
 
     /**
-     * Check if the two given lists are equal up to the given capacity (not
-     * necessarily equal for all elements).
-     * 
-     * @param iCapacity
-     * @param iFirstList
-     * @param iSecondList
-     * @return true if equal, false otherwise.
-     */
-    public static boolean isListsEqualUpToCapacity(int iCapacity,
-            java.util.List<?> iFirstList, java.util.List<?> iSecondList) {
-        // check if they are both at or above the dialog capacity, or
-        // the same length
-        if ((iFirstList.size() < iCapacity || iSecondList.size() < iCapacity)
-                && iFirstList.size() != iSecondList.size()) {
-            return false;
-        }
-        // check if the lists match up to the smaller of the
-        // given capacity and the lists' capacities
-        for (int i = 0; i < iCapacity && i < iFirstList.size()
-                && i < iSecondList.size(); i++) {
-            if (!iFirstList.get(i).equals(iSecondList.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Rewritten as helper method from build_p_resultant_wind.f and
      * build_resultant_wind.f.
      * 
@@ -865,7 +840,7 @@ public final class ClimateUtilities {
      */
     public static ClimateWind buildResultantWind(double sumX, double sumY,
             int numObsHours) {
-        if (numObsHours < 0 || numObsHours == ParameterFormatClimate.MISSING
+        if (numObsHours <= 0 || numObsHours == ParameterFormatClimate.MISSING
                 || sumX == ParameterFormatClimate.MISSING_SPEED
                 || sumY == ParameterFormatClimate.MISSING_SPEED) {
             return ClimateWind.getMissingClimateWind();
@@ -874,8 +849,11 @@ public final class ClimateUtilities {
 
             // valid values
             // resultant wind uses simple pythagorean theorem calculation
-            double precision = 0.0000001;
+            // scale by hours
+            sumX /= numObsHours;
+            sumY /= numObsHours;
 
+            double precision = 0.0000001;
             // only add the precision if a value = 0
             if (sumX == 0) {
                 sumX += precision;
