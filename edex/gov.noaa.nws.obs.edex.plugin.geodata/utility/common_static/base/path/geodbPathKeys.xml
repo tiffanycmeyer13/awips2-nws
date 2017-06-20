@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
+    <!--
+        This is an absolute override file, indicating that a higher priority
+        version of the file will completely replace a lower priority version
+        of the file.
+    -->
     <!-- TOWRdocs Header
         Set of the persistentPathKeys related to the DBGeo plug-in.
     -->
@@ -12,7 +16,6 @@
     <!-- TOWRdocs POC
         Matt Comerford
     -->
-
 <pathKeySet>
     <pathKey>
         <key>source</key>

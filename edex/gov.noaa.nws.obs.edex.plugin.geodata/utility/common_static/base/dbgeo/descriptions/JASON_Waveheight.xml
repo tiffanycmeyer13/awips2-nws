@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
+    <!-- 
+        This is an absolute override file, indicating that a higher priority 
+        version of the file will completely replace a lower priority version
+        of the file. 
+    -->
     <!-- TOWRdocs Header
         The descriptions file that defines a list of ProductDescription(s) for
         the DBGeo Decoder to decoder against.
@@ -80,9 +84,7 @@
     <!-- TOWRdocs POC
         Matt Comerford
     -->
-
 <geodataProductDescriptions>
-
     <description name="JASON Altimetry">
         <debug>true</debug>
         <source>
@@ -102,7 +104,6 @@
         <geomNels>
             <value value="1" />
         </geomNels>
-
         <atts>
             <geomAtt>
                 <variable name="swh_ku" />
@@ -111,12 +112,10 @@
                 <variable name="ssha" />
             </geomAtt>
         </atts>
-
         <dataTime>
             <epochOffsetRefTime epoch="2000-01-01 00:00:00" units="SECONDS">
                 <variable name="time" />
             </epochOffsetRefTime>
         </dataTime>
     </description>
-
 </geodataProductDescriptions>

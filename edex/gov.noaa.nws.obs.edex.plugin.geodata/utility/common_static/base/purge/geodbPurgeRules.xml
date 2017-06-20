@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
+    <!-- 
+        This is an absolute override file, indicating that a higher priority 
+        version of the file will completely replace a lower priority version
+        of the file. 
+    -->
     <!-- TOWRdocs Header
         Defining the default Purge Rules for the DBGeo Plugin
     -->
@@ -16,7 +20,6 @@
     <!-- TOWRdocs POC
         Matt Comerford
     -->
-
 <purgeRuleSet>
     <key>source</key>
     <key>product</key>
