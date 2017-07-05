@@ -12,6 +12,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import com.raytheon.uf.common.localization.IPathManager;
+import com.raytheon.uf.common.localization.LocalizationContext;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
+import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
@@ -37,6 +42,12 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 15 MAR 2017  30162      amoore      Move out of DAO package, since this does not use database.
  * 02 Jun 2017  34788      pwang       add allowAutoSend, copyNWRTo, allowDisseminate
  * 19 JUN 2017  33104      amoore      Address review comments.
+ * 07 AUG 2017  36783      amoore      Globalday properties file should be a localization file,
+ *                                     so that EDEX clusters are consistent. Move to localization
+ *                                     plugin. Globalday config was not reading and saving from
+ *                                     the same place.
+ * 18 AUG 2017  37104      amoore      Add IFPS office name and timezone.
+ * 22 AUG 2017  37240      amoore      Add new settings to saving.
  * </pre>
  * 
  * @author xzhang
@@ -47,16 +58,26 @@ public class ClimateGlobalConfiguration {
     /** The logger */
     private final static IUFStatusHandler logger = UFStatus
             .getHandler(ClimateGlobalConfiguration.class);
+    /**
+     * Location of Global Day properties.
+     */
+    private static final String GLOBAL_DAY_FILE = "climate/globalDay.properties";
 
     /**
      * @return global configuration values; can be null.
      */
-    public ClimateGlobal getGlobal() {
+    public static ClimateGlobal getGlobal() {
         ClimateGlobal global = new ClimateGlobal();
         Properties prop = new Properties();
 
-        try (InputStream input = new FileInputStream(
-                ClimateDataAccessConfiguration.GLOBAL_DAY_FILE)) {
+        IPathManager pm = PathManagerFactory.getPathManager();
+
+        LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
+                LocalizationLevel.BASE);
+
+        File globalFile = pm.getFile(lc, GLOBAL_DAY_FILE);
+
+        try (InputStream input = new FileInputStream(globalFile)) {
             prop.load(input);
 
             global.setUseValidIm(
@@ -97,6 +118,8 @@ public class ClimateGlobalConfiguration {
             global.setAllowDisseminate(
                     prop.getProperty("climate.allowDisseminate")
                             .equalsIgnoreCase("true") ? true : false);
+            global.setOfficeName(prop.getProperty("climate.siteofficename"));
+            global.setTimezone(prop.getProperty("climate.sitetimezone"));
 
         } catch (FileNotFoundException e) {
             logger.error(
@@ -122,14 +145,18 @@ public class ClimateGlobalConfiguration {
      *            settings to save
      * @return status indicator
      */
-    public int saveGlobal(ClimateGlobal global) {
+    public static int saveGlobal(ClimateGlobal global) {
         int status = 0;
         Properties prop = new Properties();
 
-        try {
-            File globalDayPath = new File(
-                    ClimateDataAccessConfiguration.DATA_LOCATION);
+        IPathManager pm = PathManagerFactory.getPathManager();
 
+        LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
+                LocalizationLevel.BASE);
+
+        File globalDayPath = pm.getFile(lc, GLOBAL_DAY_FILE);
+
+        try {
             if (!globalDayPath.exists()) {
                 if (!globalDayPath.mkdirs()) {
                     logger.error("The file: [" + globalDayPath.getAbsolutePath()
@@ -140,8 +167,7 @@ public class ClimateGlobalConfiguration {
                 }
             }
 
-            try (OutputStream output = new FileOutputStream(
-                    ClimateDataAccessConfiguration.GLOBAL_DAY_FILE)) {
+            try (OutputStream output = new FileOutputStream(globalDayPath)) {
                 // set the properties value
                 prop.setProperty("climate.useValidIm",
                         global.isUseValidIm() ? "T" : "F");
@@ -177,6 +203,9 @@ public class ClimateGlobalConfiguration {
                 prop.setProperty("climate.copyNWRTo", global.getCopyNWRTo());
                 prop.setProperty("climate.allowDisseminate",
                         global.isAllowDisseminate() ? "true" : "false");
+                prop.setProperty("climate.siteofficename",
+                        global.getOfficeName());
+                prop.setProperty("climate.sitetimezone", global.getTimezone());
 
                 // save properties
                 prop.store(output, null);

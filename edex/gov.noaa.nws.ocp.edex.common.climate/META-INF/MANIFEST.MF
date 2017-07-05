@@ -8,7 +8,8 @@ Bundle-Vendor: NWS
 Require-Bundle: com.raytheon.uf.common.status;visibility:=reexport,
  com.raytheon.uf.edex.database,
  gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
- com.raytheon.uf.common.util
+ com.raytheon.uf.common.util,
+ com.raytheon.uf.common.localization
 Export-Package: gov.noaa.nws.ocp.edex.common.climate.dao,
  gov.noaa.nws.ocp.edex.common.climate.dataaccess,
  gov.noaa.nws.ocp.edex.common.climate.util

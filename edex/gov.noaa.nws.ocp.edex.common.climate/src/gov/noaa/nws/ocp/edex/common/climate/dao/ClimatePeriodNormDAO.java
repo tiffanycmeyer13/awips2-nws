@@ -15,8 +15,6 @@ import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
-import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDayNorm;
-import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodClimo;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
@@ -28,53 +26,28 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * Implementations converted from SUBROUTINES under
  * adapt/climate/lib/src/climate_db_utils
  * 
+ * Period norms.
+ * 
  * <pre>
  * 
  * SOFTWARE HISTORY
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Nov 12, 2015            xzhang      Initial creation
- * MAY 23 2016  18384      amoore      Fix Daily Display SQL query
- * 07 JUL 2016  16962      amoore      Fix Daily Display SQL query
- * 13 JUL 2016  20414      amoore      Cleaning up DAO's C-structure implementation.
- * 20 JUL 2016  20591      amoore      Expect and handle some null values in sumHisHeat query.
- * 19 AUG 2016  20753      amoore      EDEX common utils consolidation and cleanup.
- * 01 OCT 2016  20635      wkwock      Add method deleteClimateDayRecord and getAvailableDayOfYear
- * 14 OCT 2016  20536      wkwock      Add updateClimateDayRecordNoMissing
- * 25 NOV 2016  20636      wpaintsil   Add compareUpdateDailyRecords and compareUpdatePeriodRecords
- * 19 DEC 2016  27015      amoore      Backend cleanup.
- * 22 DEC 2016  20772      amoore      Move max days per month array to Climate Norm DAO, since
- *                                     that is the only applicable place for it. Some code cleanup.
- * 27 DEC 2016  22450      amoore      Fix query bug.
- * 12 JAN 2017  26411      wkwock      Added saveClimateDayRecord method
- * 26 JAN 2017  27017      amoore      Fixed null pointer issue.
- * 17 FEB 2017  28609      amoore      Fixed query bug with quotations.
- * 10 MAR 2017  27420      amoore      Fix casting issue.
- * 16 MAR 2017  30162      amoore      Fix logging. Use modern Java standards.
- * 20 MAR 2017  20632      amoore      Handle null DB values.
- * 31 MAR 2017  30166      amoore      More null DB values.
- * 12 APR 2017  30171      amoore      Clean up methods and messages.
- * 19 APR 2017  33104      amoore      Use query maps now that DB issue is fixed.
- * 20 APR 2017  30166      amoore      Clarify comments. Fix parameterization error.
- * 24 APR 2017  33104      amoore      Use query maps for update/insert/delete.
- * 03 MAY 2017  33104      amoore      More query map replacements. Use abstract maps.
- * 04 MAY 2017  33104      amoore      Query bug fixes.
- * 16 MAY 2017  33104      amoore      Floating point equality.
- * 23 MAY 2017  33104      amoore      Address data discrepancies, fix Legacy logic.
- * 14 JUN 2017  35175      amoore      Remove redundant logic.
- * 21 JUN 2017  35179      amoore      Fix historical precip logic.
+ * 07 JUL 2017  33104      amoore      Split Daily and Period norms into different classes.
+ * 01 SEP 2017  37589      amoore      Consolidate many sum of historical data queries to
+ *                                     reduce duplicate code.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
-public class ClimateNormDAO extends ClimateDAO {
+public class ClimatePeriodNormDAO extends ClimateDAO {
     /**
      * The logger.
      */
     private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateNormDAO.class);
+            .getHandler(ClimatePeriodNormDAO.class);
 
     /**
      * Maximum days per month. Different from regular calculation for max days
@@ -88,382 +61,8 @@ public class ClimateNormDAO extends ClimateDAO {
     /**
      * Constructor.
      */
-    public ClimateNormDAO() {
+    public ClimatePeriodNormDAO() {
         super();
-    }
-
-    /**
-     * Converted from get_his_norms.ecpp
-     * 
-     * Original comments:
-     * 
-     * <pre>
-     *     void get_his_norms ( const climate_date         &climo_date,  
-     *                                 long                 *station_id,
-     *                                 climate_record_day   *y_climate   )
-     *    
-     *    
-     * Dan Zipper        PRC/TDL             HP 9000/7xx
-     * 
-     * FUNCTION DESCRIPTION
-     * ====================
-     * 
-     * This function will retrieve historical normals (i.e. records and averages)
-     * from the Informix database and store them in data structures referenced as 
-     * y_climate (yesterday's climate) and t_climate (today's_climate).
-     * 
-     * VARIABLES
-     * =========
-     * 
-     * name                  description
-     * -------------------------------------------------------------------------------                  
-     *  Input
-     *      climo_date        - derived TYPE that contains valid date for
-     *                          this climate summary retrieval
-     *      station_id        - derived TYPE which contains the station ids
-     *                          and plain language stations names for the
-     *                          stations in this climate summary
-     *  Output
-     *      y_climate         - derived TYPE that contains historical climate data
-     *                          for this date 
-     *  Local
-     *      db_status         L  The success/failure code returned by
-     *                           dbUtils and Informix functions.
-     *  Code Changes
-     *  David T. Miller   January 1999   Moved assignment of structure variables
-     *                               for the day_climate_norm table before the call
-     *                           to the mon_climate_norm table
-     *                    December 30 1999  Removed the SQL to retrieve from the monthly
-     *                                      table as it's handled by another routine
-     *                    July 2000      Added mean temperature and also null database 
-     *                                   checks.
-     *  Bob Morris        Dec 2002       - Changed date args to reference variables
-     *                                   to fix seg. faults under Linux.
-     *  Bob Morris        3/25/03        Fixed arguments in calls to risnull, need
-     *                                   to use defined constants for C-data 
-     *                                   types, not values (hard-coded, no less!)
-     *                                   for SQL data types.  OB2
-     *  Manan Dalal       Jan, 2005      Ported from Informix to Postgresql - OB6
-     * </pre>
-     * 
-     * @param iDate
-     *            date to query for.
-     * @param stationId
-     *            ID to query for.
-     * @throws ClimateQueryException
-     *             on error getting data.
-     * @return {@link ClimateRecordDay} instance, which may have missing data
-     *         (except for station ID).
-     */
-    public ClimateRecordDay getHistoricalNorms(ClimateDate iDate, int stationId)
-            throws ClimateQueryException {
-        ClimateRecordDay yClimate = ClimateRecordDay
-                .getMissingClimateRecordDay();
-        yClimate.setInformId(stationId);
-
-        StringBuilder query = new StringBuilder(
-                "SELECT mean_temp, max_temp_mean, min_temp_mean,");
-        query.append(" max_temp_record, min_temp_record, max_temp_rec_yr1,");
-        query.append(" max_temp_rec_yr2, max_temp_rec_yr3, min_temp_rec_yr1,");
-        query.append(" min_temp_rec_yr2, min_temp_rec_yr3, precip_mean,");
-        query.append(
-                " precip_day_max, precip_day_max_yr1, precip_day_max_yr2,");
-        query.append(" precip_day_max_yr3, snow_mean, snow_day_max,");
-        query.append(" snow_day_max_yr1, snow_day_max_yr2, snow_day_max_yr3,");
-        query.append(" snow_ground_mean, heat_day_mean, cool_day_mean FROM ");
-        query.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        query.append(" WHERE station_id = :stationId")
-                .append(" AND day_of_year = ");
-        query.append(":dayOfYear");
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("stationId", stationId);
-        paramMap.put("dayOfYear", iDate.toMonthDayDateString());
-
-        try {
-            Object[] results = getDao().executeSQLQuery(query.toString(),
-                    paramMap);
-            if ((results != null) && (results.length >= 1)) {
-                Object result = results[0];
-                if (result instanceof Object[]) {
-                    try {
-                        Object[] oa = (Object[]) result;
-
-                        // any values could be null
-                        float ecMeanTemp = oa[0] != null ? (float) oa[0]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMaxTempMean = oa[1] != null ? (short) oa[1]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMinTempMean = oa[2] != null ? (short) oa[2]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMaxTempRecord = oa[3] != null ? (short) oa[3]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMinTempRecord = oa[4] != null ? (short) oa[4]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMaxTempRecordYear1 = oa[5] != null
-                                ? (short) oa[5]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMaxTempRecordYear2 = oa[6] != null
-                                ? (short) oa[6]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMaxTempRecordYear3 = oa[7] != null
-                                ? (short) oa[7]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMinTempRecordYear1 = oa[8] != null
-                                ? (short) oa[8]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMinTempRecordYear2 = oa[9] != null
-                                ? (short) oa[9]
-                                : ParameterFormatClimate.MISSING;
-                        short ecMinTempRecordYear3 = oa[10] != null
-                                ? (short) oa[10]
-                                : ParameterFormatClimate.MISSING;
-                        float ecPrecipMean = oa[11] != null ? (float) oa[11]
-                                : ParameterFormatClimate.MISSING;
-                        float ecPrecipDayRecord = oa[12] != null
-                                ? (float) oa[12]
-                                : ParameterFormatClimate.MISSING;
-                        short ecPrecipDayRecordYear1 = oa[13] != null
-                                ? (short) oa[13]
-                                : ParameterFormatClimate.MISSING;
-                        short ecPrecipDayRecordYear2 = oa[14] != null
-                                ? (short) oa[14]
-                                : ParameterFormatClimate.MISSING;
-                        short ecPrecipDayRecordYear3 = oa[15] != null
-                                ? (short) oa[15]
-                                : ParameterFormatClimate.MISSING;
-                        float ecSnowDayMean = oa[16] != null ? (float) oa[16]
-                                : ParameterFormatClimate.MISSING;
-                        float ecSnowDayRecord = oa[17] != null ? (float) oa[17]
-                                : ParameterFormatClimate.MISSING;
-                        short ecSnowDayRecordYear1 = oa[18] != null
-                                ? (short) oa[18]
-                                : ParameterFormatClimate.MISSING;
-                        short ecSnowDayRecordYear2 = oa[19] != null
-                                ? (short) oa[19]
-                                : ParameterFormatClimate.MISSING;
-                        short ecSnowDayRecordYear3 = oa[20] != null
-                                ? (short) oa[20]
-                                : ParameterFormatClimate.MISSING;
-                        /* unused */
-                        @SuppressWarnings("unused")
-                        float ecSnowGroundMean = oa[21] != null ? (float) oa[21]
-                                : ParameterFormatClimate.MISSING;
-                        int ecNumHeatMean = oa[22] != null ? (int) oa[22]
-                                : ParameterFormatClimate.MISSING;
-                        int ecNumCoolMean = oa[23] != null ? (int) oa[23]
-                                : ParameterFormatClimate.MISSING;
-
-                        yClimate.setMaxTempYear(new int[] {
-                                ecMaxTempRecordYear1, ecMaxTempRecordYear2,
-                                ecMaxTempRecordYear3 });
-                        yClimate.setMinTempYear(new int[] {
-                                ecMinTempRecordYear1, ecMinTempRecordYear2,
-                                ecMinTempRecordYear3 });
-                        yClimate.setPrecipDayRecordYear(new int[] {
-                                ecPrecipDayRecordYear1, ecPrecipDayRecordYear2,
-                                ecPrecipDayRecordYear3 });
-                        yClimate.setSnowDayRecordYear(new int[] {
-                                ecSnowDayRecordYear1, ecSnowDayRecordYear2,
-                                ecSnowDayRecordYear3 });
-
-                        yClimate.setMeanTemp(ecMeanTemp);
-                        yClimate.setMaxTempMean(ecMaxTempMean);
-                        yClimate.setMinTempMean(ecMinTempMean);
-                        yClimate.setMaxTempRecord(ecMaxTempRecord);
-                        yClimate.setMinTempRecord(ecMinTempRecord);
-                        yClimate.setPrecipMean(ecPrecipMean);
-                        yClimate.setPrecipDayRecord(ecPrecipDayRecord);
-                        yClimate.setSnowDayMean(ecSnowDayMean);
-                        yClimate.setSnowDayRecord(ecSnowDayRecord);
-                        yClimate.setNumHeatMean(ecNumHeatMean);
-                        yClimate.setNumCoolMean(ecNumCoolMean);
-
-                    } catch (Exception e) {
-                        // if casting failed
-                        throw new ClimateQueryException(
-                                "Unexpected return column type from query: ["
-                                        + query + "] and map: [" + paramMap
-                                        + "]",
-                                e);
-                    }
-
-                } else {
-                    throw new ClimateQueryException(
-                            "Unexpected return type from query, expected Object[], got "
-                                    + result.getClass().getName());
-                }
-
-            } else {
-                // no results
-                logger.warn("No historical normals data for date: ["
-                        + iDate.toMonthDayDateString() + "] and station ID: ["
-                        + stationId
-                        + "]. Empty or null normals query result from: ["
-                        + query + "] and map: [" + paramMap + "]");
-            }
-        } catch (Exception e) {
-            throw new ClimateQueryException(
-                    "Error querying the climate database with: [" + query
-                            + "] and map: [" + paramMap + "]",
-                    e);
-        }
-
-        return yClimate;
-    }
-
-    /**
-     * Fetch a row from day_climate_norm
-     * 
-     * @param stationId
-     * @param dayOfYear
-     * @return
-     * @throws ClimateQueryException
-     */
-    public ClimateDayNorm fetchClimateDayRecord(int stationId, String dayOfYear)
-            throws ClimateQueryException {
-        ClimateDayNorm climateRcd = null;
-
-        StringBuilder sql = new StringBuilder("SELECT ");
-        sql.append(
-                "mean_temp, max_temp_record, max_temp_mean, min_temp_record, min_temp_mean,");
-        sql.append("max_temp_rec_yr1, max_temp_rec_yr2, max_temp_rec_yr3,");
-        sql.append("min_temp_rec_yr1, min_temp_rec_yr2, min_temp_rec_yr3,");
-        sql.append("precip_mean, precip_day_max,");
-        sql.append(
-                "precip_day_max_yr1, precip_day_max_yr2, precip_day_max_yr3,");
-        sql.append("snow_mean, snow_day_max,");
-        sql.append("snow_day_max_yr1, snow_day_max_yr2, snow_day_max_yr3,");
-        sql.append("snow_ground_mean, heat_day_mean, cool_day_mean");
-        sql.append(" FROM ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" WHERE station_id= :stationId");
-        sql.append(" AND day_of_year= :dayOfYear");
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("stationId", stationId);
-        paramMap.put("dayOfYear", dayOfYear);
-
-        try {
-            Object[] results = getDao().executeSQLQuery(sql.toString(),
-                    paramMap);
-            if (results != null && results.length >= 1) {
-                Object result = results[0];
-                if (result instanceof Object[]) {
-                    Object[] rowData = (Object[]) result; // expect one only
-                    try {
-                        climateRcd = new ClimateDayNorm();
-                        climateRcd.setDataToMissing();
-                        climateRcd.setStationId(stationId);
-                        climateRcd.setDayOfYear(dayOfYear);
-
-                        // any values could be null
-                        if (rowData[0] != null) {
-                            climateRcd.setMeanTemp((float) rowData[0]);
-                        }
-                        if (rowData[1] != null) {
-                            climateRcd.setMaxTempRecord((short) rowData[1]);
-                        }
-                        if (rowData[2] != null) {
-                            climateRcd.setMaxTempMean((short) rowData[2]);
-                        }
-                        if (rowData[3] != null) {
-                            climateRcd.setMinTempRecord((short) rowData[3]);
-                        }
-                        if (rowData[4] != null) {
-                            climateRcd.setMinTempMean((short) rowData[4]);
-                        }
-
-                        short[] maxTempYear = climateRcd.getMaxTempYear();
-                        if (rowData[5] != null) {
-                            maxTempYear[0] = (short) rowData[5];
-                        }
-                        if (rowData[6] != null) {
-                            maxTempYear[1] = (short) rowData[6];
-                        }
-                        if (rowData[7] != null) {
-                            maxTempYear[2] = (short) rowData[7];
-                        }
-
-                        short[] minTempYear = climateRcd.getMinTempYear();
-                        if (rowData[8] != null) {
-                            minTempYear[0] = (short) rowData[8];
-                        }
-                        if (rowData[9] != null) {
-                            minTempYear[1] = (short) rowData[9];
-                        }
-                        if (rowData[10] != null) {
-                            minTempYear[2] = (short) rowData[10];
-                        }
-
-                        if (rowData[11] != null) {
-                            climateRcd.setPrecipMean((float) rowData[11]);
-                        }
-                        if (rowData[12] != null) {
-                            climateRcd.setPrecipDayRecord((float) rowData[12]);
-                        }
-
-                        short[] precipDayRecordYear = climateRcd
-                                .getPrecipDayRecordYear();
-                        if (rowData[13] != null) {
-                            precipDayRecordYear[0] = (short) rowData[13];
-                        }
-                        if (rowData[14] != null) {
-                            precipDayRecordYear[1] = (short) rowData[14];
-                        }
-                        if (rowData[15] != null) {
-                            precipDayRecordYear[2] = (short) rowData[15];
-                        }
-
-                        if (rowData[16] != null) {
-                            climateRcd.setSnowDayMean((float) rowData[16]);
-                        }
-                        if (rowData[17] != null) {
-                            climateRcd.setSnowDayRecord((float) rowData[17]);
-                        }
-
-                        short[] snowDayRecordYear = climateRcd
-                                .getSnowDayRecordYear();
-                        if (rowData[18] != null) {
-                            snowDayRecordYear[0] = (short) rowData[18];
-                        }
-                        if (rowData[19] != null) {
-                            snowDayRecordYear[1] = (short) rowData[19];
-                        }
-                        if (rowData[20] != null) {
-                            snowDayRecordYear[2] = (short) rowData[20];
-                        }
-
-                        if (rowData[21] != null) {
-                            climateRcd.setSnowGround((float) rowData[21]);
-                        }
-                        if (rowData[22] != null) {
-                            climateRcd.setNumHeatMean((int) rowData[22]);
-                        }
-                        if (rowData[23] != null) {
-                            climateRcd.setNumCoolMean((int) rowData[23]);
-                        }
-                    } catch (Exception e) {
-                        throw new ClimateQueryException(
-                                "Unexpected return column type from query: ["
-                                        + sql + "] and map: [" + paramMap + "]",
-                                e);
-                    }
-                } else {
-                    throw new ClimateQueryException(
-                            "Unexpected return type from query, expected Object[], got "
-                                    + result.getClass().getName());
-                }
-            } else {
-                logger.warn("Empty or null normals result from query: [" + sql
-                        + "] and map: [" + paramMap + "]");
-            }
-        } catch (Exception e) {
-            throw new ClimateQueryException("Error querying with: [" + sql
-                    + "] and map: [" + paramMap + "]", e);
-        }
-
-        return climateRcd;
     }
 
     /**
@@ -1663,9 +1262,16 @@ public class ClimateNormDAO extends ClimateDAO {
      * 
      *    Output return_val     returns float value resulting from calculations
      * </pre>
+     * 
+     * @param beginDate
+     * @param endDate
+     * @param numMos
+     * @param stationId
+     * @param colName
+     * @return
      */
     public float monthlySums(int beginDate, int endDate, int numMos,
-            int stationId, String tableName) {
+            int stationId, String colName) {
         StringBuilder ecStmt;
         /* Build statements */
         if (endDate < beginDate) {
@@ -1675,9 +1281,9 @@ public class ClimateNormDAO extends ClimateDAO {
                     " WHERE period_type = 5 AND station_id = :stationId ");
             ecStmt.append(
                     " AND ( month_of_year >= :ecBegin  OR month_of_year <= :ecEnd) ");
-            ecStmt.append(" AND ").append(tableName).append(" != ")
+            ecStmt.append(" AND ").append(colName).append(" != ")
                     .append(ParameterFormatClimate.MISSING)
-                    .append("::real AND ").append(tableName);
+                    .append("::real AND ").append(colName);
             ecStmt.append(" != ").append(ParameterFormatClimate.TRACE);
         } else {
             ecStmt = new StringBuilder(" FROM ")
@@ -1686,14 +1292,14 @@ public class ClimateNormDAO extends ClimateDAO {
                     " WHERE period_type = 5 AND station_id = :stationId ");
             ecStmt.append(
                     " AND month_of_year >= :ecBegin AND month_of_year <= :ecEnd ");
-            ecStmt.append(" AND ").append(tableName).append(" != ")
+            ecStmt.append(" AND ").append(colName).append(" != ")
                     .append(ParameterFormatClimate.MISSING)
-                    .append("::real AND ").append(tableName);
+                    .append("::real AND ").append(colName);
             ecStmt.append(" != ").append(ParameterFormatClimate.TRACE);
         }
 
-        StringBuilder ecSum = new StringBuilder("SELECT SUM( ")
-                .append(tableName).append(")").append(ecStmt);
+        StringBuilder ecSum = new StringBuilder("SELECT SUM( ").append(colName)
+                .append(")").append(ecStmt);
 
         StringBuilder ecCount = new StringBuilder("SELECT COUNT(*) ")
                 .append(ecStmt);
@@ -1853,37 +1459,31 @@ public class ClimateNormDAO extends ClimateDAO {
             dailiesOnly = true;
         }
 
-        /* Use the monthly norms */
-        StringBuilder countQuery;
         Map<String, Object> keyParamMap = new HashMap<>();
 
+        /* Use the monthly norms */
         if (!dailiesOnly) {
             /*
              * If numMos is >0, we have a date span which covers more than one
              * month (can use the monthly norms for the full months of the span)
              */
             if (numMos != 0) {
+                StringBuilder countQuery = new StringBuilder(
+                        " SELECT COUNT(*) FROM ");
+                countQuery
+                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
                 if (endDate.getMon() < beginDate.getMon()) {
-                    countQuery = new StringBuilder(" SELECT COUNT(*) FROM ");
-                    countQuery.append(
-                            ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                    countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                     countQuery.append(" OR month_of_year < :ec_end_mo) ");
-                    countQuery.append(" AND station_id = :ec_station_id ");
-                    countQuery.append(" AND period_type = 5 ");
-                    countQuery.append(" AND cool_pd_mean != ")
-                            .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
                 } else {
-                    countQuery = new StringBuilder("SELECT COUNT(*) FROM ");
-                    countQuery.append(
-                            ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                    countQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                    countQuery.append(" AND month_of_year < :ec_end_mo ");
-                    countQuery.append(" AND station_id = :ec_station_id ");
-                    countQuery.append(" AND period_type = 5 ");
-                    countQuery.append(" AND cool_pd_mean != ")
-                            .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
+                    countQuery.append(" AND month_of_year < :ec_end_mo) ");
                 }
+
+                countQuery.append(" AND station_id = :ec_station_id ");
+                countQuery.append(" AND period_type = 5 ");
+                countQuery.append(" AND cool_pd_mean != ")
+                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
 
                 keyParamMap.clear();
                 keyParamMap.put("ec_start_mo", ecStartMo);
@@ -1895,36 +1495,25 @@ public class ClimateNormDAO extends ClimateDAO {
                 if (results != -1) {
                     int ecCountCool = results;
                     if (ecCountCool == numMos) {
-                        StringBuilder sumQuery;
+                        StringBuilder sumQuery = new StringBuilder(
+                                "SELECT SUM (cool_pd_mean) ");
+                        sumQuery.append(" FROM ");
+                        sumQuery.append(
+                                ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                        sumQuery.append(
+                                " WHERE (month_of_year >= :ec_start_mo ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM (cool_pd_mean) ");
-                            sumQuery.append(" FROM ");
-                            sumQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE (month_of_year >= :ec_start_mo ");
                             sumQuery.append(" OR month_of_year < :ec_end_mo) ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND period_type = 5 ");
-                            sumQuery.append(" AND cool_pd_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
                         } else {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM (cool_pd_mean) ");
-                            sumQuery.append(" FROM ");
                             sumQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE month_of_year >= :ec_start_mo ");
-                            sumQuery.append(" AND month_of_year < :ec_end_mo ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND period_type = 5 ");
-                            sumQuery.append(" AND cool_pd_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
+                                    " AND month_of_year < :ec_end_mo) ");
                         }
+
+                        sumQuery.append(" AND station_id = :ec_station_id ");
+                        sumQuery.append(" AND period_type = 5 ");
+                        sumQuery.append(" AND cool_pd_mean != ").append(
+                                ParameterFormatClimate.MISSING_DEGREE_DAY);
 
                         int sumcoolRes = ((Number) queryForOneValue(
                                 sumQuery.toString(), keyParamMap, -1))
@@ -2027,28 +1616,22 @@ public class ClimateNormDAO extends ClimateDAO {
             keyParamMap.put("ec_start_date", ecStartDate);
             keyParamMap.put("ec_end_date", ecEndDate);
             keyParamMap.put("ec_station_id", stationId);
-            StringBuilder countQuery2;
+
+            StringBuilder countQuery2 = new StringBuilder(
+                    "SELECT COUNT(*) FROM ");
+            countQuery2.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+            countQuery2.append(" WHERE (day_of_year >= :ec_start_date ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                countQuery2 = new StringBuilder("SELECT COUNT(*) FROM ");
-                countQuery2
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                countQuery2.append(" WHERE (day_of_year >= :ec_start_date ");
                 countQuery2.append(" OR day_of_year <= :ec_end_date) ");
-                countQuery2.append(" AND station_id = :ec_station_id ");
-                countQuery2.append(" AND cool_day_mean != ")
-                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                countQuery2.append(" AND day_of_year != '02-29'");
             } else {
-                countQuery2 = new StringBuilder("SELECT COUNT(*) FROM ");
-                countQuery2
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                countQuery2.append(" WHERE day_of_year >= :ec_start_date ");
-                countQuery2.append(" AND day_of_year <= :ec_end_date ");
-                countQuery2.append(" AND station_id = :ec_station_id ");
-                countQuery2.append(" AND cool_day_mean != ")
-                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                countQuery2.append(" AND day_of_year != '02-29'");
+                countQuery2.append(" AND day_of_year <= :ec_end_date) ");
             }
+
+            countQuery2.append(" AND station_id = :ec_station_id ");
+            countQuery2.append(" AND cool_day_mean != ")
+                    .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
+            countQuery2.append(" AND day_of_year != '02-29'");
 
             try {
                 Object[] results = getDao()
@@ -2057,36 +1640,25 @@ public class ClimateNormDAO extends ClimateDAO {
                     int ecCountCool = ((Number) results[0]).intValue();
 
                     if (ecCountCool != 0) {
-                        StringBuilder sumQuery;
+                        StringBuilder sumQuery = new StringBuilder(
+                                "SELECT SUM(cool_day_mean) FROM ");
+                        sumQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        sumQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM(cool_day_mean) FROM ");
-                            sumQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             sumQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND cool_day_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
-                            sumQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM(cool_day_mean) FROM ");
                             sumQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            sumQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND cool_day_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
-                            sumQuery.append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        sumQuery.append(" AND station_id = :ec_station_id ");
+                        sumQuery.append(" AND cool_day_mean != ").append(
+                                ParameterFormatClimate.MISSING_DEGREE_DAY);
+                        sumQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] ecsumObjects = getDao().executeSQLQuery(
@@ -2117,40 +1689,31 @@ public class ClimateNormDAO extends ClimateDAO {
                          * max and min temperatures
                          */
                         /* sum the max temperatures first */
-                        StringBuilder maxTempQuery;
+                        StringBuilder maxTempQuery = new StringBuilder(
+                                "SELECT SUM(max_temp_mean) FROM ");
+                        maxTempQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        maxTempQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            maxTempQuery = new StringBuilder(
-                                    "SELECT SUM(max_temp_mean) FROM ");
-                            maxTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            maxTempQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             maxTempQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            maxTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            maxTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            maxTempQuery = new StringBuilder(
-                                    "SELECT SUM(max_temp_mean) FROM ");
                             maxTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            maxTempQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            maxTempQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            maxTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            maxTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        maxTempQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        maxTempQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        maxTempQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        maxTempQuery.append(" AND day_of_year != '02-29'");
+
+                        keyParamMap.put("ec_missing_value",
+                                ParameterFormatClimate.MISSING);
 
                         try {
                             Object[] ecsumRes = getDao().executeSQLQuery(
@@ -2175,40 +1738,28 @@ public class ClimateNormDAO extends ClimateDAO {
                         }
 
                         /* sum the min temperatures next */
-                        StringBuilder minTempQuery;
+                        StringBuilder minTempQuery = new StringBuilder(
+                                "SELECT SUM(min_temp_mean) FROM ");
+                        minTempQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        minTempQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            minTempQuery = new StringBuilder(
-                                    "SELECT SUM(min_temp_mean) FROM ");
-                            minTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            minTempQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             minTempQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            minTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            minTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            minTempQuery = new StringBuilder(
-                                    "SELECT SUM(min_temp_mean) FROM ");
                             minTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            minTempQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            minTempQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            minTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            minTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        minTempQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        minTempQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        minTempQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        minTempQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] ecsumRes = getDao().executeSQLQuery(
@@ -2236,42 +1787,28 @@ public class ClimateNormDAO extends ClimateDAO {
                          * Now count the number of rows where there is both a
                          * max and min temperature
                          */
-                        StringBuilder tempCountQuery;
+                        StringBuilder tempCountQuery = new StringBuilder(
+                                "SELECT COUNT(*) FROM ");
+                        tempCountQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        tempCountQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            tempCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            tempCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            tempCountQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             tempCountQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            tempCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            tempCountQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            tempCountQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            tempCountQuery
-                                    .append(" AND day_of_year != '02-29'");
                         } else {
-                            tempCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
                             tempCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            tempCountQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            tempCountQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            tempCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            tempCountQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            tempCountQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            tempCountQuery
-                                    .append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        tempCountQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        tempCountQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        tempCountQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        tempCountQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] ecsumObjects = getDao().executeSQLQuery(
@@ -2489,28 +2026,22 @@ public class ClimateNormDAO extends ClimateDAO {
             /* covers more than one month (can use the */
             /* monthly norms for the full months of the span) */
             if (numMos != 0) {
-                StringBuilder countQuery;
+                StringBuilder countQuery = new StringBuilder(
+                        "SELECT COUNT (*) FROM ");
+                countQuery
+                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
                 if (endDate.getMon() < beginDate.getMon()) {
-                    countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                    countQuery.append(
-                            ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                    countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                     countQuery.append(" OR month_of_year < :ec_end_mo) ");
-                    countQuery.append(" AND station_id = :ec_station_id ");
-                    countQuery.append(" AND period_type = 5 ");
-                    countQuery.append(" AND heat_pd_mean != ")
-                            .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
                 } else {
-                    countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                    countQuery.append(
-                            ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                    countQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                    countQuery.append(" AND month_of_year < :ec_end_mo ");
-                    countQuery.append(" AND station_id = :ec_station_id ");
-                    countQuery.append(" AND period_type = 5 ");
-                    countQuery.append(" AND heat_pd_mean != ")
-                            .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
+                    countQuery.append(" AND month_of_year < :ec_end_mo) ");
                 }
+
+                countQuery.append(" AND station_id = :ec_station_id ");
+                countQuery.append(" AND period_type = 5 ");
+                countQuery.append(" AND heat_pd_mean != ")
+                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
 
                 keyParamMap.clear();
                 keyParamMap.put("ec_start_mo", ecStartMo);
@@ -2523,36 +2054,25 @@ public class ClimateNormDAO extends ClimateDAO {
                     int ecCountHeat = results;
 
                     if (ecCountHeat == numMos) {
-                        StringBuilder sumQuery;
+                        StringBuilder sumQuery = new StringBuilder(
+                                "SELECT SUM (heat_pd_mean) ");
+                        sumQuery.append(" FROM ");
+                        sumQuery.append(
+                                ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                        sumQuery.append(
+                                " WHERE (month_of_year >= :ec_start_mo ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM (heat_pd_mean) ");
-                            sumQuery.append(" FROM ");
-                            sumQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE (month_of_year >= :ec_start_mo ");
                             sumQuery.append(" OR month_of_year < :ec_end_mo) ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND period_type = 5 ");
-                            sumQuery.append(" AND heat_pd_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
                         } else {
-                            sumQuery = new StringBuilder(
-                                    "SELECT SUM (heat_pd_mean) ");
-                            sumQuery.append(" FROM ");
                             sumQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            sumQuery.append(
-                                    " WHERE month_of_year >= :ec_start_mo ");
-                            sumQuery.append(" AND month_of_year < :ec_end_mo ");
-                            sumQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumQuery.append(" AND period_type = 5 ");
-                            sumQuery.append(" AND heat_pd_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
+                                    " AND month_of_year < :ec_end_mo) ");
                         }
+
+                        sumQuery.append(" AND station_id = :ec_station_id ");
+                        sumQuery.append(" AND period_type = 5 ");
+                        sumQuery.append(" AND heat_pd_mean != ").append(
+                                ParameterFormatClimate.MISSING_DEGREE_DAY);
 
                         int res = ((Number) queryForOneValue(
                                 sumQuery.toString(), keyParamMap, -1))
@@ -2580,6 +2100,7 @@ public class ClimateNormDAO extends ClimateDAO {
              * norm... otherwise, use the daily norms for the last month of the
              * span
              */
+            keyParamMap.clear();
             StringBuilder heatQuery;
             if (endDate.getDay() >= MAX_DAYS_PER_MONTH[endDate.getMon() - 1]) {
                 heatQuery = new StringBuilder("SELECT heat_pd_mean FROM ");
@@ -2590,7 +2111,7 @@ public class ClimateNormDAO extends ClimateDAO {
                 heatQuery.append(" AND period_type = 5 ");
                 heatQuery.append(" AND heat_pd_mean != ")
                         .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                keyParamMap.clear();
+
                 keyParamMap.put("ec_end_mo", ecEndMo);
                 keyParamMap.put("ec_station_id", stationId);
 
@@ -2603,7 +2124,7 @@ public class ClimateNormDAO extends ClimateDAO {
                 heatQuery.append(" AND station_id = :ec_station_id ");
                 heatQuery.append(" AND heat_day_mean != ")
                         .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                keyParamMap.clear();
+
                 keyParamMap.put("ec_station_id", stationId);
                 keyParamMap.put("ec_end_date", ecEndDate);
                 keyParamMap.put("ec_month_begin", ecMonthBegin);
@@ -2624,9 +2145,11 @@ public class ClimateNormDAO extends ClimateDAO {
          * If we made it through the first section without an error, set heating
          * degree days to the sum found above
          */
-        int sumHeat = ParameterFormatClimate.MISSING_DEGREE_DAY;
+        int sumHeat;
         if (!dailiesOnly) {
             sumHeat = tempSum;
+        } else {
+            sumHeat = ParameterFormatClimate.MISSING_DEGREE_DAY;
         }
 
         /*
@@ -2634,95 +2157,79 @@ public class ClimateNormDAO extends ClimateDAO {
          * the daily norms. This section is original code
          */
         if (dailiesOnly) {
-            tempSum = 0;
             float sumMax = ParameterFormatClimate.MISSING;
             float sumMin = ParameterFormatClimate.MISSING;
+            tempSum = 0;
 
             /*
              * determine if there is daily heating degree day data in the data
              * base. We will do this by determining if there are any rows in
              * which the heating degree days aren't set to missing.
              */
-            StringBuilder countQuery;
+            keyParamMap.clear();
+            keyParamMap.put("ec_station_id", stationId);
+            keyParamMap.put("ec_start_date", ecStartDate);
+            keyParamMap.put("ec_end_date", ecEndDate);
+
+            StringBuilder countQuery = new StringBuilder(
+                    "SELECT COUNT(*) FROM ");
+            countQuery.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+            countQuery.append(" WHERE (day_of_year >= :ec_start_date ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                countQuery = new StringBuilder("SELECT COUNT(*) FROM ");
-                countQuery.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE (day_of_year >= :ec_start_date ");
                 countQuery.append(" OR day_of_year <= :ec_end_date) ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND heat_day_mean != ")
-                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                countQuery.append(" AND day_of_year != '02-29'");
             } else {
-                countQuery = new StringBuilder("SELECT COUNT(*) FROM ");
-                countQuery.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE day_of_year >= :ec_start_date ");
-                countQuery.append(" AND day_of_year <= :ec_end_date ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND heat_day_mean != ")
-                        .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
-                countQuery.append(" AND day_of_year != '02-29'");
+                countQuery.append(" AND day_of_year <= :ec_end_date) ");
             }
 
-            try {
-                keyParamMap.clear();
-                keyParamMap.put("ec_station_id", stationId);
-                keyParamMap.put("ec_start_date", ecStartDate);
-                keyParamMap.put("ec_end_date", ecEndDate);
+            countQuery.append(" AND station_id = :ec_station_id ");
+            countQuery.append(" AND heat_day_mean != ")
+                    .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
+            countQuery.append(" AND day_of_year != '02-29'");
 
+            try {
                 Object[] results = getDao()
                         .executeSQLQuery(countQuery.toString(), keyParamMap);
                 if ((results != null) && (results.length >= 1)) {
                     int ecCountHeat = ((Number) results[0]).intValue();
+
                     if (ecCountHeat != 0) {
-                        StringBuilder heatQuery;
+                        StringBuilder sumQuery = new StringBuilder(
+                                "SELECT SUM(heat_day_mean) ");
+                        sumQuery.append(" FROM ");
+                        sumQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        sumQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            heatQuery = new StringBuilder(
-                                    "SELECT SUM(heat_day_mean) ");
-                            heatQuery.append(" FROM ");
-                            heatQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            heatQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
-                            heatQuery.append(
+                            sumQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            heatQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            heatQuery.append(" AND heat_day_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
-                            heatQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            heatQuery = new StringBuilder(
-                                    "SELECT SUM(heat_day_mean) ");
-                            heatQuery.append(" FROM ");
-                            heatQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            heatQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            heatQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            heatQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            heatQuery.append(" AND heat_day_mean != ").append(
-                                    ParameterFormatClimate.MISSING_DEGREE_DAY);
-                            heatQuery.append(" AND day_of_year != '02-29'");
+                            sumQuery.append(
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        sumQuery.append(" AND station_id = :ec_station_id ");
+                        sumQuery.append(" AND heat_day_mean != ").append(
+                                ParameterFormatClimate.MISSING_DEGREE_DAY);
+                        sumQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] res = getDao().executeSQLQuery(
-                                    heatQuery.toString(), keyParamMap);
+                                    sumQuery.toString(), keyParamMap);
                             // result could be null
                             if ((res != null) && (res.length >= 1)
                                     && (res[0] != null)) {
                                 sumHeat = ((Number) res[0]).intValue();
                             } else {
-                                logger.warn("No data for query: [" + heatQuery
+                                logger.warn("No data for query: [" + sumQuery
                                         + "] and map: [" + keyParamMap + "]");
                             }
                         } catch (Exception e) {
                             logger.error(
                                     "Error summing the heating degree day data: ["
-                                            + heatQuery + "] map: ["
+                                            + sumQuery + "] map: ["
                                             + keyParamMap + "]",
                                     e);
                             return ParameterFormatClimate.MISSING_DEGREE_DAY;
@@ -2745,56 +2252,40 @@ public class ClimateNormDAO extends ClimateDAO {
                          * max and min temperatures
                          */
                         /* sum the max temperatures first */
-                        StringBuilder maxTempQuery;
+                        StringBuilder maxTempQuery = new StringBuilder(
+                                "SELECT SUM(max_temp_mean) ");
+                        maxTempQuery.append(" FROM ");
+                        maxTempQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        maxTempQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            maxTempQuery = new StringBuilder(
-                                    "SELECT SUM(max_temp_mean) ");
-                            maxTempQuery.append(" FROM ");
-                            maxTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            maxTempQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             maxTempQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            maxTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            maxTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            maxTempQuery = new StringBuilder(
-                                    "SELECT SUM(max_temp_mean) ");
-                            maxTempQuery.append(" FROM ");
                             maxTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            maxTempQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            maxTempQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            maxTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            maxTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            maxTempQuery.append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
 
-                        keyParamMap.clear();
-                        keyParamMap.put("ec_station_id", stationId);
+                        maxTempQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        maxTempQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        maxTempQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        maxTempQuery.append(" AND day_of_year != '02-29'");
+
                         keyParamMap.put("ec_missing_value",
                                 ParameterFormatClimate.MISSING);
-                        keyParamMap.put("ec_start_date", ecStartDate);
-                        keyParamMap.put("ec_end_date", ecEndDate);
+
                         try {
-                            Object[] res = getDao().executeSQLQuery(
+                            Object[] ecsumRes = getDao().executeSQLQuery(
                                     maxTempQuery.toString(), keyParamMap);
                             // result could be null
-                            if ((res != null) && (res.length >= 1)
-                                    && (res[0] != null)) {
-                                sumMax = ((Number) res[0]).intValue();
+                            if ((ecsumRes != null) && (ecsumRes.length >= 1)
+                                    && (ecsumRes[0] != null)) {
+                                sumMax = ((Number) ecsumRes[0]).intValue();
                             } else {
                                 logger.warn("No data for query: ["
                                         + maxTempQuery + "] and map: ["
@@ -2809,40 +2300,28 @@ public class ClimateNormDAO extends ClimateDAO {
                         }
 
                         /* sum the min temperatures next */
-                        StringBuilder minTempQuery;
+                        StringBuilder minTempQuery = new StringBuilder(
+                                "SELECT SUM(min_temp_mean) FROM ");
+                        minTempQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        minTempQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            minTempQuery = new StringBuilder(
-                                    "SELECT SUM(min_temp_mean) FROM ");
-                            minTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            minTempQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             minTempQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            minTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            minTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(" AND day_of_year != '02-29'");
                         } else {
-                            minTempQuery = new StringBuilder(
-                                    "SELECT SUM(min_temp_mean) FROM ");
                             minTempQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            minTempQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            minTempQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            minTempQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            minTempQuery.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            minTempQuery.append(" AND day_of_year != '02-29'");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        minTempQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        minTempQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        minTempQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        minTempQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] res = getDao().executeSQLQuery(
@@ -2868,44 +2347,32 @@ public class ClimateNormDAO extends ClimateDAO {
                          * Now count the number of rows where there is both a
                          * max and min temperature
                          */
-                        StringBuilder countQuery2;
+                        StringBuilder tempCountQuery = new StringBuilder(
+                                "SELECT COUNT(*) FROM ");
+                        tempCountQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        tempCountQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            countQuery2 = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            countQuery2.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            countQuery2.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
-                            countQuery2.append(
+                            tempCountQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            countQuery2.append(
-                                    " AND station_id = :ec_station_id ");
-                            countQuery2.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            countQuery2.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            countQuery2.append(" AND day_of_year != '02-29'");
                         } else {
-                            countQuery2 = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            countQuery2.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            countQuery2.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            countQuery2.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            countQuery2.append(
-                                    " AND station_id = :ec_station_id ");
-                            countQuery2.append(
-                                    " AND max_temp_mean != :ec_missing_value ");
-                            countQuery2.append(
-                                    " AND min_temp_mean != :ec_missing_value ");
-                            countQuery2.append(" AND day_of_year != '02-29'");
+                            tempCountQuery.append(
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        tempCountQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        tempCountQuery.append(
+                                " AND max_temp_mean != :ec_missing_value ");
+                        tempCountQuery.append(
+                                " AND min_temp_mean != :ec_missing_value ");
+                        tempCountQuery.append(" AND day_of_year != '02-29'");
 
                         try {
                             Object[] res = getDao().executeSQLQuery(
-                                    countQuery2.toString(), keyParamMap);
+                                    tempCountQuery.toString(), keyParamMap);
                             if ((res != null) && (res.length >= 1)) {
                                 int ecCountTemp = ((Number) res[0]).intValue();
                                 if (ecCountTemp != 0) {
@@ -2925,13 +2392,13 @@ public class ClimateNormDAO extends ClimateDAO {
                                 }
                             } else {
                                 logger.warn("Expected some result from query: ["
-                                        + countQuery2 + "] and map: ["
+                                        + tempCountQuery + "] and map: ["
                                         + keyParamMap + "]");
                                 sumHeat = ParameterFormatClimate.MISSING_DEGREE_DAY;
                             }
                         } catch (Exception e) {
                             logger.error("Error counting the temp data: ["
-                                    + countQuery2 + "] map: [" + keyParamMap
+                                    + tempCountQuery + "] map: [" + keyParamMap
                                     + "]", e);
                             return ParameterFormatClimate.MISSING_DEGREE_DAY;
                         }
@@ -3113,6 +2580,7 @@ public class ClimateNormDAO extends ClimateDAO {
         }
 
         Map<String, Object> keyParamMap = new HashMap<>();
+
         /* Use the monthly norms */
         if (dailiesOnly == 0) {
             /*
@@ -3123,28 +2591,22 @@ public class ClimateNormDAO extends ClimateDAO {
              * Count the number of missing monthly snow values. If there are
              * any, set dailiesOnly to 1 (count the daily data instead).
              */
-            StringBuilder countQuery;
+            StringBuilder countQuery = new StringBuilder(
+                    "SELECT COUNT (*) FROM ");
+            countQuery.append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+            countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
             if (endDate.getMon() < beginDate.getMon()) {
                 /* Here if our data period spans two calendar years */
-                countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                countQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                 countQuery.append(" OR month_of_year < :ec_end_mo) ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND period_type = 5 ");
-                countQuery.append(" AND snow_pd_mean = :ec_missing_value");
             } else {
                 /* Otherwise, data period falls within the same calendar year */
-                countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                countQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                countQuery.append(" AND month_of_year < :ec_end_mo ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND period_type = 5 ");
-                countQuery.append(" AND snow_pd_mean = :ec_missing_value");
+                countQuery.append(" AND month_of_year < :ec_end_mo) ");
             }
+
+            countQuery.append(" AND station_id = :ec_station_id ");
+            countQuery.append(" AND period_type = 5 ");
+            countQuery.append(" AND snow_pd_mean = :ec_missing_value");
             /*
              * If any of the monthly values are missing or if there is a problem
              * with the monthly normals, set the flag to read the daily normals
@@ -3180,28 +2642,20 @@ public class ClimateNormDAO extends ClimateDAO {
              * Don't add trace values, since they are stored in the database as
              * -1
              */
-            StringBuilder snowSumQuery;
+            StringBuilder snowSumQuery = new StringBuilder(
+                    "SELECT SUM (snow_pd_mean) FROM ");
+            snowSumQuery.append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+            snowSumQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                snowSumQuery = new StringBuilder(
-                        "SELECT SUM (snow_pd_mean) FROM ");
-                snowSumQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                snowSumQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                 snowSumQuery.append(" OR month_of_year < :ec_end_mo) ");
-                snowSumQuery.append(" AND station_id = :ec_station_id ");
-                snowSumQuery.append(" AND period_type = 5 ");
-                snowSumQuery.append(" AND snow_pd_mean != :ec_trace_value");
             } else {
-                snowSumQuery = new StringBuilder(
-                        "SELECT SUM(snow_pd_mean) FROM ");
-                snowSumQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                snowSumQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                snowSumQuery.append(" AND month_of_year < :ec_end_mo ");
-                snowSumQuery.append(" AND station_id = :ec_station_id ");
-                snowSumQuery.append(" AND period_type = 5 ");
-                snowSumQuery.append(" AND snow_pd_mean != :ec_trace_value");
+                snowSumQuery.append(" AND month_of_year < :ec_end_mo) ");
             }
+
+            snowSumQuery.append(" AND station_id = :ec_station_id ");
+            snowSumQuery.append(" AND period_type = 5 ");
+            snowSumQuery.append(" AND snow_pd_mean != :ec_trace_value");
             /*
              * We may have any of the following conditions:
              * 
@@ -3240,49 +2694,38 @@ public class ClimateNormDAO extends ClimateDAO {
                          * determine if any of the months contain TRACE, in
                          * which case, we also set temp_sum to TRACE
                          */
-                        StringBuilder countQuery;
+                        StringBuilder countQuery = new StringBuilder(
+                                "SELECT COUNT(*) FROM ");
+                        countQuery.append(
+                                ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                        countQuery.append(
+                                " WHERE (month_of_year >= :ec_start_mo ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
                             /*
                              * Here if our data period spans two calendar years
                              */
-                            countQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            countQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            countQuery.append(
-                                    " WHERE (month_of_year >= :ec_start_mo ");
                             countQuery
                                     .append(" OR month_of_year < :ec_end_mo) ");
-                            countQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            countQuery.append(" AND period_type = 5 ");
-                            countQuery.append(
-                                    " AND snow_pd_mean = :ec_trace_value");
                         } else {
                             /*
                              * Otherwise, data period falls within the same
                              * calendar year
                              */
-                            countQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
                             countQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            countQuery.append(
-                                    " WHERE month_of_year >= :ec_start_mo ");
-                            countQuery
-                                    .append(" AND month_of_year < :ec_end_mo ");
-                            countQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            countQuery.append(" AND period_type = 5 ");
-                            countQuery.append(
-                                    " AND snow_pd_mean = :ec_trace_value");
+                                    " AND month_of_year < :ec_end_mo) ");
                         }
 
-                        int res2 = ((Number) queryForOneValue(
+                        countQuery.append(" AND station_id = :ec_station_id ");
+                        countQuery.append(" AND period_type = 5 ");
+                        countQuery
+                                .append(" AND snow_pd_mean = :ec_trace_value");
+
+                        int sumsnowRes = ((Number) queryForOneValue(
                                 countQuery.toString(), keyParamMap, -1))
                                         .intValue();
-                        if (res2 != -1) {
-                            if (res2 > 0) {
+                        if (sumsnowRes != -1) {
+                            if (sumsnowRes > 0) {
                                 tempSum = ParameterFormatClimate.TRACE;
                             } else {
                                 tempSum = 0.f;
@@ -3397,12 +2840,15 @@ public class ClimateNormDAO extends ClimateDAO {
                             ParameterFormatClimate.TRACE);
                     keyParamMap.put("ec_end_date", ecEndDate);
                     keyParamMap.put("ec_month_begin", ecMonthBegin);
+
                     Object[] sumSnowRes = getDao().executeSQLQuery(
                             snowSumQuery.toString(), keyParamMap);
+
                     if ((sumSnowRes != null) && (sumSnowRes.length >= 1)) {
                         ecSumSnow = (sumSnowRes[0] == null ? 0
                                 : ((Number) sumSnowRes[0]).floatValue());
                         if (ClimateUtilities.floatingEquals(ecSumSnow, 0)) {
+
                             StringBuilder snowCountQuery = new StringBuilder(
                                     "SELECT COUNT(*) FROM ");
                             snowCountQuery.append(
@@ -3415,6 +2861,7 @@ public class ClimateNormDAO extends ClimateDAO {
                                     " AND station_id = :ec_station_id ");
                             snowCountQuery
                                     .append(" AND snow_mean = :ec_trace_value");
+
                             try {
                                 keyParamMap.clear();
                                 keyParamMap.put("ec_station_id", stationId);
@@ -3516,28 +2963,21 @@ public class ClimateNormDAO extends ClimateDAO {
              * If the begin date is not the first, or the monthly data is not
              * available, sum the daily norms.
              */
-            StringBuilder snowSumQuery;
+            StringBuilder snowSumQuery = new StringBuilder(
+                    "SELECT SUM(snow_mean) FROM ");
+            snowSumQuery.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+            snowSumQuery.append(" WHERE (day_of_year >= :ec_start_date ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                snowSumQuery = new StringBuilder("SELECT SUM(snow_mean) FROM ");
-                snowSumQuery
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                snowSumQuery.append(" WHERE (day_of_year >= :ec_start_date ");
                 snowSumQuery.append(" OR day_of_year <= :ec_end_date) ");
-                snowSumQuery.append(" AND station_id = :ec_station_id ");
-                snowSumQuery.append(" AND snow_mean != :ec_missing_value ");
-                snowSumQuery.append(" AND snow_mean != :ec_trace_value ");
-                snowSumQuery.append(" AND day_of_year !='02-29'");
             } else {
-                snowSumQuery = new StringBuilder("SELECT SUM(snow_mean) FROM ");
-                snowSumQuery
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                snowSumQuery.append(" WHERE day_of_year >= :ec_start_date ");
-                snowSumQuery.append(" AND day_of_year <= :ec_end_date ");
-                snowSumQuery.append(" AND station_id = :ec_station_id ");
-                snowSumQuery.append(" AND snow_mean != :ec_missing_value ");
-                snowSumQuery.append(" AND snow_mean != :ec_trace_value ");
-                snowSumQuery.append(" AND day_of_year !='02-29'");
+                snowSumQuery.append(" AND day_of_year <= :ec_end_date) ");
             }
+
+            snowSumQuery.append(" AND station_id = :ec_station_id ");
+            snowSumQuery.append(" AND snow_mean != :ec_missing_value ");
+            snowSumQuery.append(" AND snow_mean != :ec_trace_value ");
+            snowSumQuery.append(" AND day_of_year !='02-29'");
 
             try {
                 keyParamMap.clear();
@@ -3560,35 +3000,24 @@ public class ClimateNormDAO extends ClimateDAO {
                      * in which case, set the sum to TRACE.
                      */
                     if (ClimateUtilities.floatingEquals(ecSumSnow, 0)) {
-                        StringBuilder snowCountQuery;
+                        StringBuilder snowCountQuery = new StringBuilder(
+                                "SELECT COUNT(*) FROM ");
+                        snowCountQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        snowCountQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
                         if (endDate.getMon() < beginDate.getMon()) {
-                            snowCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            snowCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            snowCountQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             snowCountQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            snowCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            snowCountQuery
-                                    .append(" AND snow_mean = :ec_trace_value");
-
                         } else {
-                            snowCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
                             snowCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            snowCountQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            snowCountQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            snowCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            snowCountQuery
-                                    .append(" AND snow_mean = :ec_trace_value");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+                        snowCountQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        snowCountQuery
+                                .append(" AND snow_mean = :ec_trace_value");
+
                         keyParamMap.clear();
                         keyParamMap.put("ec_station_id", stationId);
                         keyParamMap.put("ec_trace_value",
@@ -3620,35 +3049,23 @@ public class ClimateNormDAO extends ClimateDAO {
                      * to T. Otherwise, they values must all be
                      * ClimateFormatParameter.MISSING.
                      */
-                    StringBuilder snowCountQuery;
+                    StringBuilder snowCountQuery = new StringBuilder(
+                            "SELECT COUNT(*) FROM ");
+                    snowCountQuery.append(
+                            ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                    snowCountQuery
+                            .append(" WHERE (day_of_year >= :ec_start_date ");
                     if (endDate.getMon() < beginDate.getMon()) {
-                        snowCountQuery = new StringBuilder(
-                                "SELECT COUNT(*) FROM ");
-                        snowCountQuery.append(
-                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                        snowCountQuery.append(
-                                " WHERE (day_of_year >= :ec_start_date ");
                         snowCountQuery
                                 .append(" OR day_of_year <= :ec_end_date) ");
-                        snowCountQuery
-                                .append(" AND station_id = :ec_station_id ");
-                        snowCountQuery
-                                .append(" AND snow_mean = :ec_trace_value");
 
                     } else {
-                        snowCountQuery = new StringBuilder(
-                                "SELECT COUNT(*) FROM ");
-                        snowCountQuery.append(
-                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                        snowCountQuery.append(
-                                " WHERE day_of_year >= :ec_start_date ");
                         snowCountQuery
-                                .append(" AND day_of_year <= :ec_end_date ");
-                        snowCountQuery
-                                .append(" AND station_id = :ec_station_id ");
-                        snowCountQuery
-                                .append(" AND snow_mean = :ec_trace_value");
+                                .append(" AND day_of_year <= :ec_end_date) ");
                     }
+                    snowCountQuery.append(" AND station_id = :ec_station_id ");
+                    snowCountQuery.append(" AND snow_mean = :ec_trace_value");
+
                     keyParamMap.clear();
                     keyParamMap.put("ec_station_id", stationId);
                     keyParamMap.put("ec_trace_value",
@@ -3814,6 +3231,7 @@ public class ClimateNormDAO extends ClimateDAO {
         }
 
         Map<String, Object> keyParamMap = new HashMap<>();
+
         /* Use the monthly norms */
         if (dailiesOnly == 0) {
             /*
@@ -3824,28 +3242,22 @@ public class ClimateNormDAO extends ClimateDAO {
              * Count the number of missing monthly precip values. If there are
              * any, set the indicator to count the daily data instead
              */
-            StringBuilder countQuery;
+            StringBuilder countQuery = new StringBuilder(
+                    "SELECT COUNT (*) FROM ");
+            countQuery.append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+            countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
             if (endDate.getMon() < beginDate.getMon()) {
                 /* Here if our data period spans two calendar years */
-                countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                countQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                 countQuery.append(" OR month_of_year < :ec_end_mo) ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND period_type = 5 ");
-                countQuery.append(" AND precip_pd_mean = :ec_missing_value");
             } else {
                 /* Otherwise, data period falls within the same calendar year */
-                countQuery = new StringBuilder("SELECT COUNT (*) FROM ");
-                countQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                countQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                countQuery.append(" AND month_of_year < :ec_end_mo ");
-                countQuery.append(" AND station_id = :ec_station_id ");
-                countQuery.append(" AND period_type = 5 ");
-                countQuery.append(" AND precip_pd_mean = :ec_missing_value");
+                countQuery.append(" AND month_of_year < :ec_end_mo) ");
             }
+
+            countQuery.append(" AND station_id = :ec_station_id ");
+            countQuery.append(" AND period_type = 5 ");
+            countQuery.append(" AND precip_pd_mean = :ec_missing_value");
             /*
              * If any of the monthly values are missing, or if there is a
              * problem reading the monthly normals, set the indicator to read
@@ -3883,28 +3295,21 @@ public class ClimateNormDAO extends ClimateDAO {
              * -1. Once again, we need to do this database addition differently
              * if the period of record spans more than one calendar year
              */
-            StringBuilder precipSumQuery;
+            StringBuilder precipSumQuery = new StringBuilder(
+                    "SELECT SUM (precip_pd_mean) FROM ");
+            precipSumQuery
+                    .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+            precipSumQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                precipSumQuery = new StringBuilder(
-                        "SELECT SUM (precip_pd_mean) FROM ");
-                precipSumQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                precipSumQuery.append(" WHERE (month_of_year >= :ec_start_mo ");
                 precipSumQuery.append(" OR month_of_year < :ec_end_mo) ");
-                precipSumQuery.append(" AND station_id = :ec_station_id ");
-                precipSumQuery.append(" AND period_type = 5 ");
-                precipSumQuery.append(" AND precip_pd_mean != :ec_trace_value");
             } else {
-                precipSumQuery = new StringBuilder(
-                        "SELECT SUM (precip_pd_mean) FROM ");
-                precipSumQuery
-                        .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                precipSumQuery.append(" WHERE month_of_year >= :ec_start_mo ");
-                precipSumQuery.append(" AND month_of_year < :ec_end_mo ");
-                precipSumQuery.append(" AND station_id = :ec_station_id ");
-                precipSumQuery.append(" AND period_type = 5 ");
-                precipSumQuery.append(" AND precip_pd_mean != :ec_trace_value");
+                precipSumQuery.append(" AND month_of_year < :ec_end_mo) ");
             }
+
+            precipSumQuery.append(" AND station_id = :ec_station_id ");
+            precipSumQuery.append(" AND period_type = 5 ");
+            precipSumQuery.append(" AND precip_pd_mean != :ec_trace_value");
             /*
              * We may have any of the following conditions:
              * 
@@ -3938,43 +3343,33 @@ public class ClimateNormDAO extends ClimateDAO {
                          * determine if any of the months contain TRACE, in
                          * which case, we also set tempSum to TRACE
                          */
-                        StringBuilder precipCountQuery;
+                        StringBuilder precipCountQuery = new StringBuilder(
+                                "SELECT COUNT (*) FROM ");
+                        precipCountQuery.append(
+                                ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
+                        precipCountQuery.append(
+                                " WHERE (month_of_year >= :ec_start_mo ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
                             /*
                              * Here if our data period spans two calendar years
                              */
-                            precipCountQuery = new StringBuilder(
-                                    "SELECT COUNT (*) FROM ");
-                            precipCountQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            precipCountQuery.append(
-                                    " WHERE (month_of_year >= :ec_start_mo ");
                             precipCountQuery
                                     .append(" OR month_of_year < :ec_end_mo) ");
-                            precipCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            precipCountQuery.append(" AND period_type = 5 ");
-                            precipCountQuery.append(
-                                    " AND precip_pd_mean = :ec_trace_value");
                         } else {
                             /*
                              * Otherwise, data period falls within the same
                              * calendar year
                              */
-                            precipCountQuery = new StringBuilder(
-                                    "SELECT COUNT (*) FROM ");
                             precipCountQuery.append(
-                                    ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
-                            precipCountQuery.append(
-                                    " WHERE month_of_year >= :ec_start_mo ");
-                            precipCountQuery
-                                    .append(" AND month_of_year < :ec_end_mo ");
-                            precipCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            precipCountQuery.append(" AND period_type = 5 ");
-                            precipCountQuery.append(
-                                    " AND precip_pd_mean = :ec_trace_value");
+                                    " AND month_of_year < :ec_end_mo) ");
                         }
+
+                        precipCountQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        precipCountQuery.append(" AND period_type = 5 ");
+                        precipCountQuery.append(
+                                " AND precip_pd_mean = :ec_trace_value");
 
                         keyParamMap.clear();
                         keyParamMap.put("ec_start_mo", ecStartMo);
@@ -4255,30 +3650,21 @@ public class ClimateNormDAO extends ClimateDAO {
              * If the begin date is not the first, or the the monthly data is
              * not available, sum the daily norms.
              */
-            StringBuilder sumPrecipQuery;
+            StringBuilder sumPrecipQuery = new StringBuilder(
+                    "SELECT SUM(precip_mean) FROM ");
+            sumPrecipQuery.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+            sumPrecipQuery.append(" WHERE (day_of_year >= :ec_start_date ");
+
             if (endDate.getMon() < beginDate.getMon()) {
-                sumPrecipQuery = new StringBuilder(
-                        "SELECT SUM(precip_mean) FROM ");
-                sumPrecipQuery
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                sumPrecipQuery.append(" WHERE (day_of_year >= :ec_start_date ");
                 sumPrecipQuery.append(" OR day_of_year <= :ec_end_date) ");
-                sumPrecipQuery.append(" AND station_id = :ec_station_id ");
-                sumPrecipQuery.append(" AND precip_mean != :ec_missing_value ");
-                sumPrecipQuery.append(" AND precip_mean != :ec_trace_value ");
-                sumPrecipQuery.append(" AND day_of_year !='02-29'");
             } else {
-                sumPrecipQuery = new StringBuilder(
-                        "SELECT SUM(precip_mean) FROM ");
-                sumPrecipQuery
-                        .append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                sumPrecipQuery.append(" WHERE day_of_year >= :ec_start_date ");
-                sumPrecipQuery.append(" AND day_of_year <= :ec_end_date ");
-                sumPrecipQuery.append(" AND station_id = :ec_station_id ");
-                sumPrecipQuery.append(" AND precip_mean != :ec_missing_value ");
-                sumPrecipQuery.append(" AND precip_mean != :ec_trace_value ");
-                sumPrecipQuery.append(" AND day_of_year !='02-29'");
+                sumPrecipQuery.append(" AND day_of_year <= :ec_end_date) ");
             }
+
+            sumPrecipQuery.append(" AND station_id = :ec_station_id ");
+            sumPrecipQuery.append(" AND precip_mean != :ec_missing_value ");
+            sumPrecipQuery.append(" AND precip_mean != :ec_trace_value ");
+            sumPrecipQuery.append(" AND day_of_year !='02-29'");
 
             try {
                 keyParamMap.clear();
@@ -4301,35 +3687,27 @@ public class ClimateNormDAO extends ClimateDAO {
                      * in which case, set the sum to TRACE.
                      */
                     if (ClimateUtilities.floatingEquals(ecSumPrecip, 0)) {
-                        StringBuilder sumCountQuery;
+                        StringBuilder sumCountQuery = new StringBuilder(
+                                "SELECT COUNT(*) FROM ");
+                        sumCountQuery.append(
+                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                        sumCountQuery.append(
+                                " WHERE (day_of_year >= :ec_start_date ");
+
                         if (endDate.getMon() < beginDate.getMon()) {
-                            sumCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
-                            sumCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            sumCountQuery.append(
-                                    " WHERE (day_of_year >= :ec_start_date ");
                             sumCountQuery.append(
                                     " OR day_of_year <= :ec_end_date) ");
-                            sumCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumCountQuery.append(
-                                    " AND precip_mean = :ec_trace_value");
 
                         } else {
-                            sumCountQuery = new StringBuilder(
-                                    "SELECT COUNT(*) FROM ");
                             sumCountQuery.append(
-                                    ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                            sumCountQuery.append(
-                                    " WHERE day_of_year >= :ec_start_date ");
-                            sumCountQuery.append(
-                                    " AND day_of_year <= :ec_end_date ");
-                            sumCountQuery.append(
-                                    " AND station_id = :ec_station_id ");
-                            sumCountQuery.append(
-                                    " AND precip_mean = :ec_trace_value");
+                                    " AND day_of_year <= :ec_end_date) ");
                         }
+
+                        sumCountQuery
+                                .append(" AND station_id = :ec_station_id ");
+                        sumCountQuery
+                                .append(" AND precip_mean = :ec_trace_value");
+
                         keyParamMap.clear();
                         keyParamMap.put("ec_station_id", stationId);
                         keyParamMap.put("ec_trace_value",
@@ -4362,34 +3740,25 @@ public class ClimateNormDAO extends ClimateDAO {
                      * changed to T. Otherwise, the values must all be
                      * ClimateFormatParameter.MISSING.
                      */
-                    StringBuilder precipCountQuery;
+                    StringBuilder precipCountQuery = new StringBuilder(
+                            "SELECT COUNT(*) FROM ");
+                    precipCountQuery.append(
+                            ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
+                    precipCountQuery
+                            .append(" WHERE (day_of_year >= :ec_start_date ");
+
                     if (endDate.getMon() < beginDate.getMon()) {
-                        precipCountQuery = new StringBuilder(
-                                "SELECT COUNT(*) FROM ");
-                        precipCountQuery.append(
-                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                        precipCountQuery.append(
-                                " WHERE (day_of_year >= :ec_start_date ");
                         precipCountQuery
                                 .append(" OR day_of_year <= :ec_end_date) ");
-                        precipCountQuery
-                                .append(" AND station_id = :ec_station_id ");
-                        precipCountQuery
-                                .append(" AND precip_mean = :ec_trace_value");
                     } else {
-                        precipCountQuery = new StringBuilder(
-                                "SELECT COUNT(*) FROM ");
-                        precipCountQuery.append(
-                                ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-                        precipCountQuery.append(
-                                " WHERE day_of_year >= :ec_start_date ");
                         precipCountQuery
-                                .append(" AND day_of_year <= :ec_end_date ");
-                        precipCountQuery
-                                .append(" AND station_id = :ec_station_id ");
-                        precipCountQuery
-                                .append(" AND precip_mean = :ec_trace_value");
+                                .append(" AND day_of_year <= :ec_end_date) ");
                     }
+
+                    precipCountQuery
+                            .append(" AND station_id = :ec_station_id ");
+                    precipCountQuery
+                            .append(" AND precip_mean = :ec_trace_value");
 
                     keyParamMap.clear();
                     keyParamMap.put("ec_station_id", stationId);
@@ -4422,748 +3791,6 @@ public class ClimateNormDAO extends ClimateDAO {
         }
 
         return sumPrecip;
-    }
-
-    /**
-     * If firstOne, get the earliest day_of_year from table day_climate_norm
-     * where station_id=StationId, else get the latest one.
-     * 
-     * @param firstOne
-     * @param stationId
-     * @return day of year
-     * @throws ClimateQueryException
-     */
-    public String getAvailableDayOfYear(boolean firstOne, int stationId)
-            throws ClimateQueryException {
-        String dayOfYear = null;
-        StringBuilder sql = new StringBuilder("SELECT day_of_year FROM ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" WHERE station_id= :stationId");
-
-        if (firstOne) {
-            sql.append(" ORDER BY day_of_year ASC LIMIT 1");
-        } else {
-            sql.append(" ORDER BY day_of_year DESC LIMIT 1");
-        }
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("stationId", stationId);
-
-        try {
-            Object[] results = getDao().executeSQLQuery(sql.toString(),
-                    paramMap);
-            if ((results != null) && (results.length >= 1)) {
-                if (results[0] instanceof String) {
-                    dayOfYear = (String) results[0];
-                } else {
-                    throw new ClimateQueryException(
-                            "Unexpected return type from query, expected String, got "
-                                    + results[0].getClass().getName());
-                }
-            } else {
-                logger.warn("No available day of year for query: [" + sql
-                        + "] and map: [" + paramMap + "]");
-            }
-        } catch (Exception e) {
-            throw new ClimateQueryException("Error with query: [" + sql
-                    + "] and map: [" + paramMap + "]", e);
-        }
-
-        return dayOfYear;
-    }
-
-    /**
-     * Delete record with station_id=statioId and day_of_year=dayOfYear
-     * 
-     * @param stationId
-     * @param dayOfYear
-     * @return
-     * @throws ClimateQueryException
-     */
-    public boolean deleteClimateDayRecord(int stationId, String dayOfYear)
-            throws ClimateQueryException {
-        StringBuilder sql = new StringBuilder("DELETE FROM ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" WHERE station_id= :stationId");
-        sql.append(" AND day_of_year=:dayOfYear");
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("stationId", stationId);
-        paramMap.put("dayOfYear", dayOfYear);
-
-        int numRow = 0;
-        try {
-            numRow = getDao().executeSQLUpdate(sql.toString(), paramMap);
-        } catch (Exception e) {
-            throw new ClimateQueryException(
-                    "Failed to delete record station ID=" + stationId
-                            + " day_of_year=" + dayOfYear + ". Query: [" + sql
-                            + "] and map: [" + paramMap + "]",
-                    e);
-        }
-
-        return (numRow == 1);
-    }
-
-    /**
-     * insert a row into day_climate_norm table
-     * 
-     * @param record
-     * @return
-     * @throws ClimateQueryException
-     */
-    public boolean insertClimateDayRecord(ClimateDayNorm record)
-            throws ClimateQueryException {
-        boolean isInserted = false;
-
-        StringBuilder sql = new StringBuilder();
-
-        Map<String, Object> paramMap = new HashMap<>();
-
-        sql.append("INSERT INTO " + ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME
-                + " VALUES(");
-        sql.append(":stationID");
-        paramMap.put("stationID", record.getStationId());
-        sql.append(", :dayOfYear");
-        paramMap.put("dayOfYear", record.getDayOfYear());
-        sql.append(", :meanTemp");
-        paramMap.put("meanTemp", record.getMeanTemp());
-        sql.append(", :maxTempRecord");
-        paramMap.put("maxTempRecord", record.getMaxTempRecord());
-        sql.append(", :maxTempMean");
-        paramMap.put("maxTempMean", record.getMaxTempMean());
-        sql.append(", :minTempRecord");
-        paramMap.put("minTempRecord", record.getMinTempRecord());
-        sql.append(", :minTempMean");
-        paramMap.put("minTempMean", record.getMinTempMean());
-
-        sql.append(", :maxTempYear1");
-        paramMap.put("maxTempYear1", record.getMaxTempYear()[0]);
-        sql.append(", :maxTempYear2");
-        paramMap.put("maxTempYear2", record.getMaxTempYear()[1]);
-        sql.append(", :maxTempYear3");
-        paramMap.put("maxTempYear3", record.getMaxTempYear()[2]);
-
-        sql.append(", :minTempYear1");
-        paramMap.put("minTempYear1", record.getMinTempYear()[0]);
-        sql.append(", :minTempYear2");
-        paramMap.put("minTempYear2", record.getMinTempYear()[1]);
-        sql.append(", :minTempYear3");
-        paramMap.put("minTempYear3", record.getMinTempYear()[2]);
-
-        sql.append(", :precipMean");
-        paramMap.put("precipMean", record.getPrecipMean());
-        sql.append(", :precipDayRecord");
-        paramMap.put("precipDayRecord", record.getPrecipDayRecord());
-
-        sql.append(", :precipDayRecordYear1");
-        paramMap.put("precipDayRecordYear1",
-                record.getPrecipDayRecordYear()[0]);
-        sql.append(", :precipDayRecordYear2");
-        paramMap.put("precipDayRecordYear2",
-                record.getPrecipDayRecordYear()[1]);
-        sql.append(", :precipDayRecordYear3");
-        paramMap.put("precipDayRecordYear3",
-                record.getPrecipDayRecordYear()[2]);
-        sql.append(", :snowDayMean");
-        paramMap.put("snowDayMean", record.getSnowDayMean());
-        sql.append(", :snowDayRecord");
-        paramMap.put("snowDayRecord", record.getSnowDayRecord());
-
-        sql.append(", :snowDayRecordYear1");
-        paramMap.put("snowDayRecordYear1", record.getSnowDayRecordYear()[0]);
-        sql.append(", :snowDayRecordYear2");
-        paramMap.put("snowDayRecordYear2", record.getSnowDayRecordYear()[1]);
-        sql.append(", :snowDayRecordYear3");
-        paramMap.put("snowDayRecordYear3", record.getSnowDayRecordYear()[2]);
-
-        sql.append(", :snowGround");
-        paramMap.put("snowGround", record.getSnowGround());
-        sql.append(", :numHeatMean");
-        paramMap.put("numHeatMean", record.getNumHeatMean());
-        sql.append(", :numCoolMean");
-        paramMap.put("numCoolMean", record.getNumCoolMean());
-        sql.append(")");
-
-        try {
-            int numRow = getDao().executeSQLUpdate(sql.toString(), paramMap);
-            isInserted = (numRow == 1);
-        } catch (Exception e) {
-            throw new ClimateQueryException(
-                    "Failed to insert record station ID="
-                            + record.getStationId() + " day_of_year="
-                            + record.getDayOfYear() + ". Query: [" + sql
-                            + "] and map: [" + paramMap + "]",
-                    e);
-        }
-
-        return isInserted;
-    }
-
-    /**
-     * update table day_climate_norm with exactly record data given.
-     * 
-     * @param record
-     * @return
-     * @throws ClimateQueryException
-     */
-    public boolean updateClimateDayRecord(ClimateDayNorm record)
-            throws ClimateQueryException {
-        boolean isUpdated = false;
-
-        Map<String, Object> paramMap = new HashMap<>();
-
-        StringBuilder sql = new StringBuilder("UPDATE ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" SET ");
-        sql.append("mean_temp= :mean_temp");
-        paramMap.put("mean_temp", record.getMeanTemp());
-        sql.append(", max_temp_record= :max_temp_record");
-        paramMap.put("max_temp_record", record.getMaxTempRecord());
-        sql.append(", max_temp_mean= :max_temp_mean");
-        paramMap.put("max_temp_mean", record.getMaxTempMean());
-        sql.append(", min_temp_record= :min_temp_record");
-        paramMap.put("min_temp_record", record.getMinTempRecord());
-        sql.append(", min_temp_mean= :min_temp_mean");
-        paramMap.put("min_temp_mean", record.getMinTempMean());
-
-        sql.append(", max_temp_rec_yr1= :max_temp_rec_yr1");
-        paramMap.put("max_temp_rec_yr1", record.getMaxTempYear()[0]);
-        sql.append(", max_temp_rec_yr2= :max_temp_rec_yr2");
-        paramMap.put("max_temp_rec_yr2", record.getMaxTempYear()[1]);
-        sql.append(", max_temp_rec_yr3= :max_temp_rec_yr3");
-        paramMap.put("max_temp_rec_yr3", record.getMaxTempYear()[2]);
-
-        sql.append(", min_temp_rec_yr1= :min_temp_rec_yr1");
-        paramMap.put("min_temp_rec_yr1", record.getMinTempYear()[0]);
-        sql.append(", min_temp_rec_yr2= :min_temp_rec_yr2");
-        paramMap.put("min_temp_rec_yr2", record.getMinTempYear()[1]);
-        sql.append(", min_temp_rec_yr3= :min_temp_rec_yr3");
-        paramMap.put("min_temp_rec_yr3", record.getMinTempYear()[2]);
-
-        sql.append(", precip_mean= :precip_mean");
-        paramMap.put("precip_mean", record.getPrecipMean());
-        sql.append(", precip_day_max= :precip_day_max");
-        paramMap.put("precip_day_max", record.getPrecipDayRecord());
-
-        sql.append(", precip_day_max_yr1= :precip_day_max_yr1");
-        paramMap.put("precip_day_max_yr1", record.getPrecipDayRecordYear()[0]);
-        sql.append(", precip_day_max_yr2= :precip_day_max_yr2");
-        paramMap.put("precip_day_max_yr2", record.getPrecipDayRecordYear()[1]);
-        sql.append(", precip_day_max_yr3= :precip_day_max_yr3");
-        paramMap.put("precip_day_max_yr3", record.getPrecipDayRecordYear()[2]);
-        sql.append(", snow_mean= :snow_mean");
-        paramMap.put("snow_mean", record.getSnowDayMean());
-        sql.append(", snow_day_max= :snow_day_max");
-        paramMap.put("snow_day_max", record.getSnowDayRecord());
-
-        sql.append(", snow_day_max_yr1= :snow_day_max_yr1");
-        paramMap.put("snow_day_max_yr1", record.getSnowDayRecordYear()[0]);
-        sql.append(", snow_day_max_yr2= :snow_day_max_yr2");
-        paramMap.put("snow_day_max_yr2", record.getSnowDayRecordYear()[1]);
-        sql.append(", snow_day_max_yr3= :snow_day_max_yr3");
-        paramMap.put("snow_day_max_yr3", record.getSnowDayRecordYear()[2]);
-
-        sql.append(", snow_ground_mean= :snow_ground_mean");
-        paramMap.put("snow_ground_mean", record.getSnowGround());
-        sql.append(", heat_day_mean= :heat_day_mean");
-        paramMap.put("heat_day_mean", record.getNumHeatMean());
-        sql.append(", cool_day_mean= :cool_day_mean");
-        paramMap.put("cool_day_mean", record.getNumCoolMean());
-        sql.append(" WHERE station_id= :station_id");
-        paramMap.put("station_id", record.getStationId());
-        sql.append(" AND day_of_year= :day_of_year");
-        paramMap.put("day_of_year", record.getDayOfYear());
-
-        try {
-            int numRow = getDao().executeSQLUpdate(sql.toString(), paramMap);
-            isUpdated = (numRow == 1);
-        } catch (Exception e) {
-            throw new ClimateQueryException(
-                    "Failed to update record station ID="
-                            + record.getStationId() + " day_of_year="
-                            + record.getDayOfYear() + ". Query: [" + sql
-                            + "] and map: [" + paramMap + "]",
-                    e);
-        }
-
-        return isUpdated;
-    }
-
-    /**
-     * Insert or update record into table day_climate_norm
-     * 
-     * @param record
-     * @return
-     * @throws ClimateQueryException
-     */
-    public boolean saveClimateDayRecord(ClimateDayNorm record)
-            throws ClimateQueryException {
-        StringBuilder sql = new StringBuilder("SELECT 1 FROM ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" WHERE station_id= :stationID");
-        sql.append(" AND day_of_year= :dayOfYear");
-
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("stationID", record.getStationId());
-        paramMap.put("dayOfYear", record.getDayOfYear());
-
-        try {
-            Object[] results = getDao().executeSQLQuery(sql.toString(),
-                    paramMap);
-            if ((results != null) && (results.length >= 1)) {
-                return updateClimateDayRecord(record);
-            } else {
-                return insertClimateDayRecord(record);
-            }
-        } catch (ClimateQueryException e) {
-            throw new ClimateQueryException("Error with inner query.", e);
-        } catch (Exception e) {
-            throw new ClimateQueryException("Error with query: [" + sql
-                    + "] and map: [" + paramMap + "]", e);
-        }
-    }
-
-    /**
-     * If record does not exist, insert it, else update columns with non-missing
-     * data only.
-     * 
-     * @param record
-     * @return true if update succeeded, false if update failed or no update was
-     *         possible due to all missing values.
-     * @throws ClimateQueryException
-     */
-    public boolean updateClimateDayNormNoMissing(ClimateDayNorm record)
-            throws ClimateQueryException {
-        if (fetchClimateDayRecord((int) record.getStationId(),
-                record.getDayOfYear()) == null) {
-            return insertClimateDayRecord(record);
-        }
-
-        Map<String, Object> paramMap = new HashMap<>();
-
-        StringBuilder setClause = new StringBuilder();
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMeanTemp(), ParameterFormatClimate.MISSING,
-                "mean_temp", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMaxTempRecord(), ParameterFormatClimate.MISSING,
-                "max_temp_record", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMaxTempMean(), ParameterFormatClimate.MISSING,
-                "max_temp_mean", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMinTempRecord(), ParameterFormatClimate.MISSING,
-                "min_temp_record", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMinTempMean(), ParameterFormatClimate.MISSING,
-                "min_temp_mean", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMaxTempYear()[0], ParameterFormatClimate.MISSING,
-                "max_temp_rec_yr1", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMaxTempYear()[1], ParameterFormatClimate.MISSING,
-                "max_temp_rec_yr2", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMaxTempYear()[2], ParameterFormatClimate.MISSING,
-                "max_temp_rec_yr3", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMinTempYear()[0], ParameterFormatClimate.MISSING,
-                "min_temp_rec_yr1", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMinTempYear()[1], ParameterFormatClimate.MISSING,
-                "min_temp_rec_yr2", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getMinTempYear()[2], ParameterFormatClimate.MISSING,
-                "min_temp_rec_yr3", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getPrecipMean(), ParameterFormatClimate.MISSING_PRECIP,
-                "precip_mean", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getPrecipDayRecord(),
-                ParameterFormatClimate.MISSING_PRECIP, "precip_day_max",
-                paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getPrecipDayRecordYear()[0],
-                ParameterFormatClimate.MISSING, "precip_day_max_yr1",
-                paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getPrecipDayRecordYear()[1],
-                ParameterFormatClimate.MISSING, "precip_day_max_yr2",
-                paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getPrecipDayRecordYear()[2],
-                ParameterFormatClimate.MISSING, "precip_day_max_yr3",
-                paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowDayMean(), ParameterFormatClimate.MISSING_SNOW,
-                "snow_mean", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowDayRecord(), ParameterFormatClimate.MISSING_SNOW,
-                "snow_day_max", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowDayRecordYear()[0],
-                ParameterFormatClimate.MISSING, "snow_day_max_yr1", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowDayRecordYear()[1],
-                ParameterFormatClimate.MISSING, "snow_day_max_yr2", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowDayRecordYear()[2],
-                ParameterFormatClimate.MISSING, "snow_day_max_yr3", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getSnowGround(), ParameterFormatClimate.MISSING_SNOW,
-                "snow_ground_mean", paramMap));
-
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getNumHeatMean(), ParameterFormatClimate.MISSING,
-                "heat_day_mean", paramMap));
-        setClause.append(SubClause.getSetSubClause(setClause.toString(),
-                record.getNumCoolMean(), ParameterFormatClimate.MISSING,
-                "cool_day_mean", paramMap));
-
-        if (setClause.length() == 0) {
-            return false;
-        }
-
-        StringBuilder sql = new StringBuilder("UPDATE ");
-        sql.append(ClimateDAOValues.DAY_CLIMATE_NORM_TABLE_NAME);
-        sql.append(" SET ").append(setClause);
-        sql.append(" WHERE station_id= :stationID");
-        paramMap.put("stationID", record.getStationId());
-        sql.append(" AND day_of_year= :dayOfYear");
-        paramMap.put("dayOfYear", record.getDayOfYear());
-
-        try {
-            int numRow = getDao().executeSQLUpdate(sql.toString(), paramMap);
-            return (numRow == 1);
-        } catch (Exception e) {
-            throw new ClimateQueryException(
-                    "Failed to update record station ID="
-                            + record.getStationId() + " day_of_year="
-                            + record.getDayOfYear() + ". Query: [" + sql
-                            + "] and map: [" + paramMap + "]",
-                    e);
-        }
-    }
-
-    /**
-     * Migrated from check_daily_records.ec
-     * 
-     * <pre>
-     *   void check_daily_records (        climate_date        a_date,
-     *                  long            station_id,
-     *                  int         max_temp,
-     *                  int         min_temp,
-     *                  float           precip,
-     *                  float           snow
-     *                   )
-     *
-     *   Doug Murphy        PRC/TDL             HP 9000/7xx
-     *                                  December 1999
-     *
-     *   FUNCTION DESCRIPTION
-     *   ====================
-     *
-     *  This function compares the daily max temp, min temp, precip, and snow
-     *  values against the record values stored in the database and updates if
-     *  needed.
-     *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *------------------------------------------------------------------------------
-     *    Input
-     *
-     *   MODIFICATION HISTORY
-     *   ====================
-     *    May 2000      Doug Murphy Added checks to precip and snow for
-     *                  special cases where T is record and
-     *                  0 is observed and vice versa
-     *    November 2000     Doug Murphy     Added section to update end of records
-     *                                      period if necessary
-     *     3/30/01          Doug Murphy     We do NOT want to update a record 
-     *                                      value if it is missing
-     *     4/2/02           Gary Battel     We do not want to update a record year
-     *                                      if the precip or snow amount is 0.
-     *    03/25/03          Bob Morris      Fix args to rsetnull, use symbolic names
-     *                                      for ESQL-C data types, instead of hard-
-     *                                      coded ints for SQL data types. OB2
-     *    01/13/05          Gary Battel/    Conversion from INFORMIX to POSTGRES
-     *                      Manan Dalal 
-     *   
-     *    06/05/06          Darnell Early   Add code to check for dates of min and
-     *                                      max temp records for monthly climate
-     *                                      table
-     * </pre>
-     *
-     * @param date
-     * @param stationId
-     * @param maxTemp
-     * @param minTemp
-     * @param precip
-     * @param snow
-     * @return true if daily record(s) was updated; false otherwise.
-     * @throws ClimateQueryException
-     */
-    public boolean compareUpdateDailyRecords(ClimateDate date, int stationId,
-            short maxTemp, short minTemp, float precip, float snow)
-                    throws ClimateQueryException {
-
-        boolean updated = false;
-
-        ClimatePeriodDAO periodDAO = new ClimatePeriodDAO();
-
-        // Update the end date for the records period if necessary
-        int[] climatePeriod = periodDAO.fetchClimatePeriod(stationId);
-        if (climatePeriod != null) {
-            int recordEnd = climatePeriod[3];
-            if (recordEnd != ParameterFormatClimate.MISSING
-                    && recordEnd != date.getYear()) {
-
-                recordEnd = date.getYear();
-
-                periodDAO.updateClimatePeriod(stationId, climatePeriod[0],
-                        climatePeriod[1], climatePeriod[2], recordEnd);
-            }
-
-        }
-
-        ClimateDayNorm dayRecord = fetchClimateDayRecord(stationId,
-                date.toMonthDayDateString());
-
-        if (dayRecord != null) {
-            /* Maximum Temperature Record Check */
-            if (maxTemp != ParameterFormatClimate.MISSING && dayRecord
-                    .getMaxTempRecord() != ParameterFormatClimate.MISSING) {
-                // set the year variables to be record years that were read from
-                // db
-                short[] year = Arrays.copyOf(dayRecord.getMaxTempYear(),
-                        dayRecord.getMaxTempYear().length);
-
-                if (maxTemp > dayRecord.getMaxTempRecord()) {
-                    dayRecord.setMaxTempRecord(maxTemp);
-                    dayRecord.setMaxTempYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-                } else if (maxTemp == dayRecord.getMaxTempRecord()
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setMaxTempYear(new short[] { year[2], year[1],
-                            (short) date.getYear() });
-                }
-            }
-
-            /* Minimum Temperature Record Check */
-            if (minTemp != ParameterFormatClimate.MISSING && dayRecord
-                    .getMinTempRecord() != ParameterFormatClimate.MISSING) {
-                // set the year variables to be record years that were read from
-                // db
-                short[] year = Arrays.copyOf(dayRecord.getMinTempYear(),
-                        dayRecord.getMinTempYear().length);
-
-                if (minTemp > dayRecord.getMinTempRecord()) {
-                    dayRecord.setMinTempRecord(minTemp);
-                    dayRecord.setMinTempYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-                } else if (minTemp == dayRecord.getMinTempRecord()
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setMinTempYear(new short[] { year[2], year[1],
-                            (short) date.getYear() });
-                }
-            }
-
-            /* Precipitation Record Check */
-            if (precip != ParameterFormatClimate.MISSING_PRECIP
-                    && dayRecord
-                            .getPrecipDayRecord() != ParameterFormatClimate.MISSING_PRECIP
-                    && precip != 0.0) {
-                // set the year data
-                short[] year = Arrays.copyOf(dayRecord.getPrecipDayRecordYear(),
-                        dayRecord.getPrecipDayRecordYear().length);
-
-                if ((precip > dayRecord.getPrecipDayRecord() && dayRecord
-                        .getPrecipDayRecord() != ParameterFormatClimate.TRACE)
-                        || (precip == ParameterFormatClimate.TRACE
-                                && dayRecord.getPrecipDayRecord() == 0.0)) {
-                    dayRecord.setPrecipDayRecord(precip);
-
-                    dayRecord.setPrecipDayRecordYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-
-                } else if (ClimateUtilities.floatingEquals(precip,
-                        dayRecord.getPrecipDayRecord())
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setPrecipDayRecordYear(new short[] {
-                            (short) date.getYear(), year[1], year[2] });
-                }
-            }
-
-            /* Snow Record Check */
-            if (snow != ParameterFormatClimate.MISSING_PRECIP
-                    && dayRecord
-                            .getSnowDayRecord() != ParameterFormatClimate.MISSING_PRECIP
-                    && snow != 0.0) {
-                // set the year data
-                short[] year = Arrays.copyOf(dayRecord.getSnowDayRecordYear(),
-                        dayRecord.getSnowDayRecordYear().length);
-
-                if ((snow > dayRecord.getSnowDayRecord() && dayRecord
-                        .getSnowDayRecord() != ParameterFormatClimate.TRACE)
-                        || (snow == ParameterFormatClimate.TRACE
-                                && dayRecord.getSnowDayRecord() == 0.0)) {
-                    dayRecord.setSnowDayRecord(snow);
-
-                    dayRecord.setSnowDayRecordYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-
-                } else if (ClimateUtilities.floatingEquals(snow,
-                        dayRecord.getSnowDayRecord())
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setSnowDayRecordYear(new short[] {
-                            (short) date.getYear(), year[1], year[2] });
-                }
-            }
-
-            updated = updateClimateDayRecord(dayRecord);
-
-        }
-
-        // Check against monthly, seasonal, and annual records
-        for (int i = 0; i < 3; i++) {
-            PeriodType ecPeriodType;
-            int ecMonth = ParameterFormatClimate.MISSING_DATE;
-
-            if (i == 0) {
-                ecPeriodType = PeriodType.MONTHLY_RAD;
-                ecMonth = (short) date.getMon();
-            } else if (i == 1) {
-                ecPeriodType = PeriodType.SEASONAL_RAD;
-                if (date.getMon() == 12 || date.getMon() <= 2)
-                    ecMonth = 2;
-                else if (date.getMon() > 2 && date.getMon() < 6)
-                    ecMonth = 5;
-                else if (date.getMon() > 5 && date.getMon() < 9)
-                    ecMonth = 8;
-                else if (date.getMon() > 8 && date.getMon() < 12)
-                    ecMonth = 11;
-            } else {
-                ecPeriodType = PeriodType.ANNUAL_RAD;
-                ecMonth = 12;
-            }
-
-            MonthClimateNormDAO monthDAO = new MonthClimateNormDAO();
-
-            PeriodClimo monthRecord = monthDAO
-                    .fetchClimateMonthRecord(stationId, ecMonth, ecPeriodType);
-
-            if (monthRecord != null) {
-                if (maxTemp != ParameterFormatClimate.MISSING && monthRecord
-                        .getMaxTempRecord() != ParameterFormatClimate.MISSING) {
-
-                    if (maxTemp > monthRecord.getMaxTempRecord()) {
-                        monthRecord.setMaxTempRecord(maxTemp);
-                        List<ClimateDate> tempList = new ArrayList<ClimateDate>();
-
-                        tempList.add(date);
-                        tempList.add(ClimateDate.getMissingClimateDate());
-                        tempList.add(ClimateDate.getMissingClimateDate());
-
-                        monthRecord.setDayMaxTempRecordList(tempList);
-                    }
-                    /*
-                     * check for temp that matches maximum temp but was not on
-                     * the same day
-                     */
-                    else if (maxTemp == monthRecord.getMaxTempRecord()
-                            && date.equals(monthRecord.getDayMaxTempRecordList()
-                                    .get(0))) {
-                        List<ClimateDate> tempList = new ArrayList<ClimateDate>();
-                        tempList.add(date);
-                        tempList.add(
-                                monthRecord.getDayMaxTempRecordList().get(0));
-                        tempList.add(
-                                monthRecord.getDayMaxTempRecordList().get(1));
-
-                        monthRecord.setDayMaxTempRecordList(tempList);
-                    }
-                }
-
-                if (minTemp != ParameterFormatClimate.MISSING) {
-                    if (monthRecord
-                            .getMinTempRecord() == ParameterFormatClimate.MISSING)
-                    // There is no data available for Min temp. Just update with
-                    // the year
-                    {
-                        monthRecord.setMinTempRecord(minTemp);
-                        List<ClimateDate> tempList = new ArrayList<ClimateDate>();
-                        tempList.add(date);
-                        tempList.add(ClimateDate.getMissingClimateDate());
-                        tempList.add(ClimateDate.getMissingClimateDate());
-
-                        monthRecord.setDayMinTempRecordList(tempList);
-                    }
-
-                    if (minTemp < monthRecord.getMinTempRecord()) {
-                        monthRecord.setMinTempRecord(minTemp);
-
-                        List<ClimateDate> tempList = new ArrayList<ClimateDate>();
-                        tempList.add(date);
-                        tempList.add(ClimateDate.getMissingClimateDate());
-                        tempList.add(ClimateDate.getMissingClimateDate());
-
-                        monthRecord.setDayMinTempRecordList(tempList);
-                    }
-                    /*
-                     * check temp the matches the minimum temp but is not on the
-                     * same day
-                     */
-                    else if (minTemp == monthRecord.getMinTempRecord()
-                            && date.equals(monthRecord.getDayMinTempRecordList()
-                                    .get(0))) {
-
-                        List<ClimateDate> tempList = new ArrayList<ClimateDate>();
-                        tempList.add(date);
-                        tempList.add(
-                                monthRecord.getDayMinTempRecordList().get(0));
-                        tempList.add(
-                                monthRecord.getDayMinTempRecordList().get(1));
-
-                        monthRecord.setDayMinTempRecordList(tempList);
-                    }
-                }
-
-                monthDAO.updateClimateMonthRecord(monthRecord);
-
-            }
-        }
-        return updated;
     }
 
     /**
@@ -5591,54 +4218,6 @@ public class ClimateNormDAO extends ClimateDAO {
 
         return updated;
 
-    }
-
-    /**
-     * Migrated from check_daily_records.ec helper function year_shuffle.
-     * 
-     * <pre>
-     * 
-     *  void year_shuffle ( int *year)
-    *
-    *   Doug Murphy        PRC/TDL             HP 9000/7xx
-    *                                  December 1999
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function updates the dates of occurence for a given element's
-    *  record.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-     * </pre>
-     * 
-     * @param year
-     */
-    private static short[] yearShuffle(short[] year) {
-        if (year[2] != ParameterFormatClimate.MISSING) {
-            if ((year[1] < year[2] && year[1] < year[0]
-                    && year[0] != ParameterFormatClimate.MISSING)
-                    || year[1] == ParameterFormatClimate.MISSING)
-                year[1] = year[0];
-            else if (year[2] < year[1] && year[2] < year[0]
-                    && year[0] != ParameterFormatClimate.MISSING
-                    && year[1] != ParameterFormatClimate.MISSING) {
-                year[2] = year[1];
-                year[1] = year[0];
-            }
-        } else {
-            if (year[1] != ParameterFormatClimate.MISSING
-                    && year[0] != ParameterFormatClimate.MISSING)
-                year[2] = year[1];
-            if (year[0] != ParameterFormatClimate.MISSING)
-                year[1] = year[0];
-        }
-        return year;
     }
 
     /**

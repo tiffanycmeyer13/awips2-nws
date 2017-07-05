@@ -1,3 +1,6 @@
+/**
+ * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
+ **/
 package gov.noaa.nws.ocp.edex.common.climate.dataaccess;
 
 /**
@@ -15,6 +18,7 @@ package gov.noaa.nws.ocp.edex.common.climate.dataaccess;
  * 30 SEP 2016  20752      pwang       Default to climate DB
  * 10 MAR 2017  30128      amoore      Globalday properties file should be a static property file.
  * 10 MAR 2017  30130      amoore      F6 should not write data to awips2 directories.
+ * 07 AUG 2017  36783      amoore      Move constants.
  * </pre>
  * 
  * @author Wufeng Zhou
@@ -30,31 +34,6 @@ public class ClimateDataAccessConfiguration {
      * Environment variable stating name of AWIPS 2 Climate database.
      */
     private static final String ENV_CLIMATE_DB_NAME = "climate.db.name";
-
-    /**
-     * Location of temporary F6 output, for printing.
-     */
-    public static final String F6_OUTPUT_LOCATION = "/tmp/climate/output/";
-
-    /**
-     * Location of climate data and properties.
-     */
-    public static final String DATA_LOCATION = "/awips2/climate/data/";
-
-    /**
-     * Location of Global Day properties.
-     */
-    public static final String GLOBAL_DAY_FILE = "/awips2/edex/conf/resources/globalDay.properties";
-
-    /**
-     * Velocity template file - all upper case.
-     */
-    public static final String VELOCITY_TEMP_ALL_UPPER_CASE = "/reportTemplates/f6_report.vm";
-
-    /**
-     * Velocity template file - mixed case.
-     */
-    public static final String VELOCITY_TEMP_MIXED_CASE = "/reportTemplates/f6_report_mixed_case.vm";
 
     /**
      * Get the name of the Climate database, based on environment variable first

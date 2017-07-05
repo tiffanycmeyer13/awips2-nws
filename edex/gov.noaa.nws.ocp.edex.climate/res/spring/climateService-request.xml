@@ -1,0 +1,19 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+   <bean id="climateservice" class="gov.noaa.nws.ocp.edex.climate.service.handler.ClimateServiceHandler"/>
+  
+    <bean factory-bean="handlerRegistry" factory-method="register">
+      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest"/>
+      <constructor-arg ref="climateservice"/>
+    </bean>
+    
+    <bean id="climateProdSendRecordService" class="gov.noaa.nws.ocp.edex.climate.service.handler.ClimateProdSendRecordHandler"/>
+  
+    <bean factory-bean="handlerRegistry" factory-method="register">
+      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateProdSendRecordRequest"/>
+      <constructor-arg ref="climateProdSendRecordService"/>
+    </bean>
+    
+</beans>

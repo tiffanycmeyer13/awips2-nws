@@ -5,6 +5,7 @@ package gov.noaa.nws.ocp.edex.common.climate.dao;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,9 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 14 JUN 2017  35177      amoore      Fix trace snow sum calculations. Fix latent query bug.
  * 20 JUN 2017  33104      amoore      Address review comments. Remove unused method.
  * 20 JUN 2017  35179      amoore      Fix issue with improper summing dates for season/year data.
+ * 30 JUN 2017  35729      amoore      Move #determineWindow from ClimateCreator to Daily DAO.
+ * 08 AUG 2017  33104      amoore      Logic branch fix. Minor cleanup of logging and comments.
+ * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
  * </pre>
  * 
  * @author amoore
@@ -116,20 +120,17 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder("SELECT MAX(date) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
         query.append(" WHERE station_id = ").append(":stationID");
-        query.append(" AND to_char(date, 'yyyy-MM-dd') >= '")
-                .append(" :beginDate");
-        query.append("' AND to_char(date, 'yyyy-MM-dd') <= '")
-                .append(" :endDate");
+        query.append(" AND date >= ").append(" :beginDate");
+        query.append(" AND date <= ").append(" :endDate");
         query.append(" AND min_temp <= 32");
 
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("stationID", stationID);
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
 
-        String result = (String) queryForOneValue(query.toString(), queryParams,
-                "");
-        return new ClimateDate(result);
+        Object date = queryForOneValue(query.toString(), queryParams, null);
+        return new ClimateDate(date);
     }
 
     /**
@@ -148,20 +149,17 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder("SELECT MIN(date) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
         query.append(" WHERE station_id = ").append(":stationID");
-        query.append(" AND to_char(date, 'yyyy-MM-dd') >= '")
-                .append(" :beginDate");
-        query.append("' AND to_char(date, 'yyyy-MM-dd') <= '")
-                .append(" :endDate");
+        query.append(" AND date >= ").append(" :beginDate");
+        query.append(" AND date <= ").append(" :endDate");
         query.append(" AND min_temp <= 32");
 
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("stationID", stationID);
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
 
-        String result = (String) queryForOneValue(query.toString(), queryParams,
-                "");
-        return new ClimateDate(result);
+        Object date = queryForOneValue(query.toString(), queryParams, null);
+        return new ClimateDate(date);
     }
 
     /**
@@ -1161,9 +1159,8 @@ public class DailyClimateDAO extends ClimateDAO {
             ClimateDate endDate, int informid) throws ClimateQueryException {
         PeriodData oPeriodData = PeriodData.getMissingPeriodData();
 
-        /* Converting the inputed date structure to a character string */
-        String ecStartDate = beginDate.toFullDateString();
-        String ecEndDate = endDate.toFullDateString();
+        Calendar ecStartDate = beginDate.getCalendarFromClimateDate();
+        Calendar ecEndDate = endDate.getCalendarFromClimateDate();
 
         /***************
          * maximum temperature section
@@ -1171,14 +1168,12 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxTempQuery = new StringBuilder(
                 "SELECT date, max_temp FROM ");
         maxTempQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxTempQuery.append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxTempQuery.append(" AND station_id = :stationId ");
         maxTempQuery.append(" AND max_temp!= :missingValue and max_temp = ( ");
         maxTempQuery.append(" SELECT MAX(max_temp) FROM ");
         maxTempQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxTempQuery.append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxTempQuery.append(" AND station_id = :stationId ");
         maxTempQuery.append(" AND  max_temp!= :missingValue )");
 
@@ -1224,8 +1219,8 @@ public class DailyClimateDAO extends ClimateDAO {
                 "SELECT cast(AVG(max_temp) as real) ");
         avgMaxTempQuery.append(" FROM ")
                 .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        avgMaxTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        avgMaxTempQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         avgMaxTempQuery.append(" AND station_id = :stationId ");
         avgMaxTempQuery.append(" AND max_temp!= :missingValue ");
         avgMaxTempQuery.append(" AND min_temp != :missingValue");
@@ -1238,8 +1233,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxTempBaseString = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         maxTempBaseString.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxTempBaseString.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxTempBaseString
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxTempBaseString.append(" AND station_id = :stationId ");
         maxTempBaseString.append(" AND max_temp!= :missingValue");
 
@@ -1261,14 +1256,12 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder minTempQuery = new StringBuilder(
                 "SELECT date, min_temp FROM ");
         minTempQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        minTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        minTempQuery.append(" WHERE date >= :beginDate AND date <= :endDate ");
         minTempQuery.append(" AND station_id = :stationId ");
         minTempQuery.append(" AND min_temp!= :missingValue and min_temp = ( ");
         minTempQuery.append(" SELECT MIN(min_temp) FROM ");
         minTempQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        minTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate  AND  to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        minTempQuery.append(" WHERE date >= :beginDate AND date <= :endDate ");
         minTempQuery.append(" AND station_id = :stationId ");
         minTempQuery.append(" AND min_temp!= :missingValue )");
 
@@ -1307,8 +1300,8 @@ public class DailyClimateDAO extends ClimateDAO {
                 "SELECT cast(AVG(min_temp) as real) ");
         avgMinTempQuery.append(" FROM ")
                 .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        avgMinTempQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        avgMinTempQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         avgMinTempQuery.append(" AND station_id = :stationId ");
         avgMinTempQuery.append(" AND max_temp!= :missingValue");
         avgMinTempQuery.append(" AND min_temp != :missingValue");
@@ -1321,8 +1314,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder minTempBaseString = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         minTempBaseString.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        minTempBaseString.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        minTempBaseString
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         minTempBaseString.append(" AND station_id = :stationId ");
         minTempBaseString.append(" AND min_temp!= :missingValue");
 
@@ -1395,14 +1388,14 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder precip24HQuery = new StringBuilder(
                 "SELECT date, precip FROM ");
         precip24HQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        precip24HQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        precip24HQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         precip24HQuery.append(" AND station_id = :stationId ");
         precip24HQuery.append(" AND precip != :missingValue AND precip = (");
         precip24HQuery.append(" SELECT MAX(precip) FROM ");
         precip24HQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        precip24HQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        precip24HQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         precip24HQuery.append(" AND station_id = :stationId ");
         precip24HQuery.append(" AND precip != :missingValue )");
 
@@ -1445,8 +1438,8 @@ public class DailyClimateDAO extends ClimateDAO {
             StringBuilder precipTraceQuery = new StringBuilder(
                     "SELECT date FROM ");
             precipTraceQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            precipTraceQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate  AND  to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            precipTraceQuery
+                    .append(" WHERE date >= :beginDate  AND date <= :endDate ");
             precipTraceQuery.append(" AND station_id = :stationId ");
             precipTraceQuery.append(" AND precip = -1.0");
             // don't need missing value
@@ -1680,8 +1673,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxSnow24HQuery = new StringBuilder(
                 "SELECT MAX(snow) FROM ");
         maxSnow24HQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxSnow24HQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxSnow24HQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxSnow24HQuery.append(
                 " AND station_id = :stationId AND snow != :missingValue");
 
@@ -1704,8 +1697,8 @@ public class DailyClimateDAO extends ClimateDAO {
                     "SELECT MAX(snow) FROM ");
             maxSnow24HTraceQuery
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            maxSnow24HTraceQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            maxSnow24HTraceQuery
+                    .append(" WHERE date >= :beginDate AND date <= :endDate ");
             maxSnow24HTraceQuery
                     .append(" AND station_id = :stationId AND snow = -1.0 ");
 
@@ -1720,8 +1713,8 @@ public class DailyClimateDAO extends ClimateDAO {
                     "SELECT date, snow FROM ");
             maxSnow24HDatesQuery
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            maxSnow24HDatesQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate  AND  to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            maxSnow24HDatesQuery
+                    .append(" WHERE date >= :beginDate  AND date <= :endDate ");
             maxSnow24HDatesQuery.append(" AND station_id = :stationId ");
             maxSnow24HDatesQuery.append(" AND snow = :maxSnow");
 
@@ -1768,8 +1761,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxSnowPosQuery = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         maxSnowPosQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxSnowPosQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxSnowPosQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxSnowPosQuery.append(
                 " AND station_id = :stationId AND snow::numeric >= 0.001 ");
         /* return greater than zero but not a trace */
@@ -1780,8 +1773,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxSnowTraceQuery = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         maxSnowTraceQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxSnowTraceQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxSnowTraceQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxSnowTraceQuery
                 .append(" AND station_id = :stationId AND snow <= -1.0 ");
         oPeriodData.setNumSnowGreaterThanTR(
@@ -1797,8 +1790,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder maxSnowInchQuery = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         maxSnowInchQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        maxSnowInchQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        maxSnowInchQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         maxSnowInchQuery
                 .append(" AND station_id = :stationId AND snow >= 1.0 ");
         oPeriodData.setNumSnowGreaterThan1(
@@ -1820,8 +1813,8 @@ public class DailyClimateDAO extends ClimateDAO {
                     "SELECT date FROM ");
             maxSnowGroundDatesQuery
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            maxSnowGroundDatesQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            maxSnowGroundDatesQuery
+                    .append(" WHERE date >= :beginDate AND date <= :endDate ");
             maxSnowGroundDatesQuery.append(
                     " AND station_id = :stationId AND snow_ground = :snowValue");
 
@@ -1865,8 +1858,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder heatingDaysQuery = new StringBuilder(
                 "SELECT cast(SUM(heat) as int) FROM ");
         heatingDaysQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        heatingDaysQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        heatingDaysQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         heatingDaysQuery.append(" AND station_id = :stationId ");
         heatingDaysQuery.append(" AND heat != ")
                 .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
@@ -1880,7 +1873,7 @@ public class DailyClimateDAO extends ClimateDAO {
             july1Date.setYear(july1Date.getYear() - 1);
         }
 
-        keyParamMap.put("beginDate", july1Date.toFullDateString());
+        keyParamMap.put("beginDate", july1Date.getCalendarFromClimateDate());
 
         oPeriodData.setNumHeat1July(
                 (int) queryForOneValue(heatingDaysQuery.toString(), keyParamMap,
@@ -1896,8 +1889,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder coolingDaysQuery = new StringBuilder(
                 "SELECT cast(SUM(cool) as int) FROM ");
         coolingDaysQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        coolingDaysQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        coolingDaysQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         coolingDaysQuery.append(" AND station_id = :stationId ");
         coolingDaysQuery.append(" AND cool != ")
                 .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
@@ -1905,8 +1898,8 @@ public class DailyClimateDAO extends ClimateDAO {
                 (int) queryForOneValue(coolingDaysQuery.toString(), keyParamMap,
                         ParameterFormatClimate.MISSING_DEGREE_DAY));
 
-        keyParamMap.put("beginDate",
-                new ClimateDate(1, 1, beginDate.getYear()).toFullDateString());
+        keyParamMap.put("beginDate", new ClimateDate(1, 1, beginDate.getYear())
+                .getCalendarFromClimateDate());
 
         oPeriodData.setNumCool1Jan(
                 (int) queryForOneValue(coolingDaysQuery.toString(), keyParamMap,
@@ -1920,8 +1913,8 @@ public class DailyClimateDAO extends ClimateDAO {
                 "SELECT cast(AVG(avg_sky_cover) as real) ");
         meanSkyCoverQuery.append(" FROM ")
                 .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        meanSkyCoverQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate  AND  to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        meanSkyCoverQuery
+                .append(" WHERE date >= :beginDat  AND date<= :endDate ");
         meanSkyCoverQuery.append(" AND station_id = :stationId");
 
         oPeriodData.setMeanSkyCover(
@@ -1961,8 +1954,8 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder cloudyDaysQuery = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         cloudyDaysQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        cloudyDaysQuery.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        cloudyDaysQuery
+                .append(" WHERE date >= :beginDate AND date <= :endDate ");
         cloudyDaysQuery.append(
                 " AND station_id = :stationId AND avg_sky_cover::numeric >= 0.8125");
 
@@ -1981,8 +1974,8 @@ public class DailyClimateDAO extends ClimateDAO {
                     "SELECT cast(COUNT(*) as int) ");
             partlyCloudyDaysQuery.append(" FROM ")
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            partlyCloudyDaysQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            partlyCloudyDaysQuery
+                    .append(" WHERE date >= :beginDate AND date <= :endDate ");
             partlyCloudyDaysQuery.append(
                     " AND station_id = :stationId AND avg_sky_cover::numeric >= 0.3125");
 
@@ -2002,8 +1995,8 @@ public class DailyClimateDAO extends ClimateDAO {
             StringBuilder fairDaysQuery = new StringBuilder(
                     "SELECT cast(count(*) as int) FROM ");
             fairDaysQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-            fairDaysQuery.append(
-                    " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+            fairDaysQuery
+                    .append(" WHERE date >= :beginDate AND date <= :endDate ");
             fairDaysQuery.append(
                     " AND station_id = :stationId AND avg_sky_cover >= 0.0");
 
@@ -2197,8 +2190,7 @@ public class DailyClimateDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT cast(COUNT(*) as int) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        query.append(
-                " WHERE to_char(date, 'yyyy-MM-dd')>= :beginDate AND to_char(date, 'yyyy-MM-dd')<= :endDate ");
+        query.append(" WHERE date >= :beginDate AND date <= :endDate ");
         query.append(" AND station_id = :stationId AND  wx_");
         query.append(index).append("> 0 ");
 
@@ -2323,8 +2315,8 @@ public class DailyClimateDAO extends ClimateDAO {
         ClimateDate start = new ClimateDate(aDate);
         start.setDay(1);
         keyParamMap.put("stationId", station.getInformId());
-        keyParamMap.put("startDate", start.toFullDateString());
-        keyParamMap.put("endDate", aDate.toFullDateString());
+        keyParamMap.put("startDate", start.getCalendarFromClimateDate());
+        keyParamMap.put("endDate", aDate.getCalendarFromClimateDate());
         keyParamMap.put("missValue", ParameterFormatClimate.MISSING_SLP);
 
         /******* This section added 3/10/01 ***************/
@@ -2336,12 +2328,12 @@ public class DailyClimateDAO extends ClimateDAO {
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
             maxSLPBackupQuery.append(" WHERE station_id = :stationId ");
             maxSLPBackupQuery.append(
-                    " AND to_char(date, 'yyyy-MM-dd') BETWEEN :startDate AND :endDate AND max_slp = ");
+                    " AND date BETWEEN :startDate AND :endDate AND max_slp = ");
             maxSLPBackupQuery.append(" (SELECT MAX(max_slp) FROM ");
             maxSLPBackupQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
             maxSLPBackupQuery.append(" WHERE station_id = :stationId ");
             maxSLPBackupQuery.append(
-                    " AND to_char(date, 'yyyy-MM-dd') BETWEEN :startDate AND :endDate AND max_slp != :missValue )");
+                    " AND date BETWEEN :startDate AND :endDate AND max_slp != :missValue )");
 
             try {
                 Object[] results = getDao().executeSQLQuery(
@@ -2387,12 +2379,12 @@ public class DailyClimateDAO extends ClimateDAO {
                     .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
             minSLPBackupQuery.append(" WHERE station_id = :stationId ");
             minSLPBackupQuery.append(
-                    " AND to_char(date, 'yyyy-MM-dd') BETWEEN :startDate AND :endDate AND min_slp = ");
+                    " AND date BETWEEN :startDate AND :endDate AND min_slp = ");
             minSLPBackupQuery.append(" (SELECT MIN(min_slp) FROM ");
             minSLPBackupQuery.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
             minSLPBackupQuery.append(" WHERE station_id = :stationId ");
             minSLPBackupQuery.append(
-                    " AND to_char(date, 'yyyy-MM-dd') BETWEEN :startDate AND :endDate AND min_slp != :missValue )");
+                    " AND date BETWEEN :startDate AND :endDate AND min_slp != :missValue )");
 
             try {
                 Object[] results = getDao().executeSQLQuery(
@@ -2623,7 +2615,7 @@ public class DailyClimateDAO extends ClimateDAO {
         int year = (short) queryForOneValue(yearQuery.toString(), paramMap,
                 (short) -1);
         if (year == -1) {
-            logger.error("Daily Summary Message not available for station ["
+            logger.warn("Daily Summary Message not available for station ["
                     + stationCode
                     + "] as the year was not found for time of year ["
                     + dayOfYear
@@ -2680,183 +2672,196 @@ public class DailyClimateDAO extends ClimateDAO {
          * New documentation: evening DSMs to be treated the same as
          * intermediate in this case
          */
-        if ((year == aDate.getYear())
-                && (validTimeHour > TimeUtil.HOURS_PER_DAY - 1
-                        && (itype.equals(PeriodType.MORN_NWWS)
-                                || itype.equals(PeriodType.MORN_RAD))
-                        || ((!itype.equals(PeriodType.MORN_NWWS)
-                                && (!itype.equals(PeriodType.MORN_RAD))
-                                && (runTimeDiffFromValidTime <= 1))))) {
-            StringBuilder query = new StringBuilder(
-                    "SELECT maxtemp_cal, maxtemp_cal_time, ");
-            query.append(" mintemp_cal, mintemp_cal_time, ");
-            /*
-             * These values are unused and not part of the Data class: +
-             * " maxtemp_day, mintemp_day, "
-             */
-            query.append(" min_press, ");
-            /*
-             * This value is unused and not part of the Data class: +
-             * " min_press_time, "
-             */
-            query.append(" equiv_water, ");
-            /*
-             * These values are unused and not part of the Data class: +
-             * " pcp_hr_amt_01, pcp_hr_amt_02, pcp_hr_amt_03, " +
-             * " pcp_hr_amt_04, pcp_hr_amt_05, pcp_hr_amt_06, " +
-             * " pcp_hr_amt_07, pcp_hr_amt_08, pcp_hr_amt_09, " +
-             * " pcp_hr_amt_10, pcp_hr_amt_11, pcp_hr_amt_12, " +
-             * " pcp_hr_amt_13, pcp_hr_amt_14, pcp_hr_amt_15, " +
-             * " pcp_hr_amt_16, pcp_hr_amt_17, pcp_hr_amt_18, " +
-             * " pcp_hr_amt_19, pcp_hr_amt_20, pcp_hr_amt_21, " +
-             * " pcp_hr_amt_22, pcp_hr_amt_23, pcp_hr_amt_24, "
-             */
-            query.append(
-                    " twomin_wspd, max2min_wdir, max2min_wspd, max2min_wnd_time, ");
-            query.append(" pkwnd_dir, pkwnd_spd, pkwnd_time, ");
-            query.append(" wx1, wx2, wx3, wx4, wx5, min_sun, percent_sun, ");
-            query.append(" solid_precip, snowdepth, ");
-            /*
-             * This value is unused and not part of the Data class: +
-             * " sky_cover, "
-             */
-            query.append(" avg_sky_cover ");
-            /*
-             * This value is unused and not part of the Data class: +
-             * " remarks "
-             */
-            query.append(" FROM ")
-                    .append(ClimateDAOValues.CLI_ASOS_DAILY_TABLE_NAME);
-            query.append(" WHERE station_code = :stationCode");
-            query.append(" AND day_of_year = :dayOfYear");
+        if (year == aDate.getYear()) {
+            if ((validTimeHour >= TimeUtil.HOURS_PER_DAY
+                    && (itype.equals(PeriodType.MORN_NWWS)
+                            || itype.equals(PeriodType.MORN_RAD)))
+                    || ((!itype.equals(PeriodType.MORN_NWWS)
+                            && (!itype.equals(PeriodType.MORN_RAD))
+                            && (runTimeDiffFromValidTime <= 1)))) {
+                StringBuilder query = new StringBuilder(
+                        "SELECT maxtemp_cal, maxtemp_cal_time, ");
+                query.append(" mintemp_cal, mintemp_cal_time, ");
+                /*
+                 * These values are unused and not part of the Data class: +
+                 * " maxtemp_day, mintemp_day, "
+                 */
+                query.append(" min_press, ");
+                /*
+                 * This value is unused and not part of the Data class: +
+                 * " min_press_time, "
+                 */
+                query.append(" equiv_water, ");
+                /*
+                 * These values are unused and not part of the Data class: +
+                 * " pcp_hr_amt_01, pcp_hr_amt_02, pcp_hr_amt_03, " +
+                 * " pcp_hr_amt_04, pcp_hr_amt_05, pcp_hr_amt_06, " +
+                 * " pcp_hr_amt_07, pcp_hr_amt_08, pcp_hr_amt_09, " +
+                 * " pcp_hr_amt_10, pcp_hr_amt_11, pcp_hr_amt_12, " +
+                 * " pcp_hr_amt_13, pcp_hr_amt_14, pcp_hr_amt_15, " +
+                 * " pcp_hr_amt_16, pcp_hr_amt_17, pcp_hr_amt_18, " +
+                 * " pcp_hr_amt_19, pcp_hr_amt_20, pcp_hr_amt_21, " +
+                 * " pcp_hr_amt_22, pcp_hr_amt_23, pcp_hr_amt_24, "
+                 */
+                query.append(
+                        " twomin_wspd, max2min_wdir, max2min_wspd, max2min_wnd_time, ");
+                query.append(" pkwnd_dir, pkwnd_spd, pkwnd_time, ");
+                query.append(
+                        " wx1, wx2, wx3, wx4, wx5, min_sun, percent_sun, ");
+                query.append(" solid_precip, snowdepth, ");
+                /*
+                 * This value is unused and not part of the Data class: +
+                 * " sky_cover, "
+                 */
+                query.append(" avg_sky_cover ");
+                /*
+                 * This value is unused and not part of the Data class: +
+                 * " remarks "
+                 */
+                query.append(" FROM ")
+                        .append(ClimateDAOValues.CLI_ASOS_DAILY_TABLE_NAME);
+                query.append(" WHERE station_code = :stationCode");
+                query.append(" AND day_of_year = :dayOfYear");
 
-            try {
-                Object[] results = getDao().executeSQLQuery(query.toString(),
-                        paramMap);
-                if ((results != null) && (results.length >= 1)) {
-                    Object result = results[0]; // get the first record
-                    if (result instanceof Object[]) {
-                        Object[] oa = (Object[]) result;
-                        /*
-                         * Any of the values could be null
-                         */
-                        // max temp
-                        yesterday.setMaxTemp(
-                                oa[0] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[0]).intValue());
-                        // max temp time
-                        yesterday.setMaxTempTime(new ClimateTime(oa[1]));
-                        // min temp
-                        yesterday.setMinTemp(
-                                oa[2] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[2]).intValue());
-                        // min temp time
-                        yesterday.setMinTempTime(new ClimateTime(oa[3]));
-                        // min pressure (SLP)
-                        yesterday.setMinSlp(oa[4] == null
-                                ? ParameterFormatClimate.MISSING_SLP
-                                : (float) oa[4]);
-                        // precip/equivalent water
-                        yesterday.setPrecip(oa[5] == null
-                                ? ParameterFormatClimate.MISSING_PRECIP
-                                : ((Number) oa[5]).floatValue());
-                        // average speed (two minute windspeed)
-                        yesterday.setAvgWindSpeed(oa[6] == null
-                                ? ParameterFormatClimate.MISSING_SPEED
-                                : ((Number) oa[6]).floatValue());
-                        // max wind dir and speed (two minute)
-                        int maxWindDir = oa[7] == null
-                                ? ParameterFormatClimate.MISSING
-                                : ((Number) oa[7]).intValue();
-                        float maxWindSpd = oa[8] == null
-                                ? ParameterFormatClimate.MISSING_SPEED
-                                : ((Number) oa[8]).intValue();
-                        yesterday.setMaxWind(
-                                new ClimateWind(maxWindDir, maxWindSpd));
-                        // max wind time
-                        yesterday.setMaxWindTime(new ClimateTime(oa[9]));
-                        // peak wind/max gust dir and speed
-                        int maxGustDir = oa[10] == null
-                                ? ParameterFormatClimate.MISSING
-                                : ((Number) oa[10]).intValue();
-                        float maxGustSpd = oa[11] == null
-                                ? ParameterFormatClimate.MISSING_SPEED
-                                : ((Number) oa[11]).intValue();
-                        yesterday.setMaxGust(
-                                new ClimateWind(maxGustDir, maxGustSpd));
-                        // peak wind/max gust time
-                        yesterday.setMaxGustTime(new ClimateTime(oa[12]));
-                        // wx 1
-                        parseWeatherFlagForDailyData(yesterday,
-                                oa[13] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[13]).intValue());
-                        // wx 2
-                        parseWeatherFlagForDailyData(yesterday,
-                                oa[14] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[14]).intValue());
-                        // wx 3
-                        parseWeatherFlagForDailyData(yesterday,
-                                oa[15] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[15]).intValue());
-                        // wx 4
-                        parseWeatherFlagForDailyData(yesterday,
-                                oa[16] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[16]).intValue());
-                        // wx 5
-                        parseWeatherFlagForDailyData(yesterday,
-                                oa[17] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[17]).intValue());
-                        // minutes of sun
-                        yesterday.setMinutesSun(
-                                oa[18] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[18]).intValue());
-                        // percent possible sun
-                        yesterday.setPercentPossSun(
-                                oa[19] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[19]).intValue());
-                        // snow in the day/solid precip
-                        yesterday.setSnowDay(oa[20] == null
-                                ? ParameterFormatClimate.MISSING_SNOW
-                                : ((Number) oa[20]).intValue());
-                        // snow on ground depth
-                        yesterday.setSnowGround(oa[21] == null
-                                ? ParameterFormatClimate.MISSING_SNOW
-                                : ((Number) oa[21]).intValue());
-                        // avg sky cover
-                        yesterday.setSkyCover(
-                                oa[22] == null ? ParameterFormatClimate.MISSING
-                                        : ((Number) oa[22]).floatValue());
+                try {
+                    Object[] results = getDao()
+                            .executeSQLQuery(query.toString(), paramMap);
+                    if ((results != null) && (results.length >= 1)) {
+                        Object result = results[0]; // get the first record
+                        if (result instanceof Object[]) {
+                            Object[] oa = (Object[]) result;
+                            /*
+                             * Any of the values could be null
+                             */
+                            // max temp
+                            yesterday.setMaxTemp(oa[0] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[0]).intValue());
+                            // max temp time
+                            yesterday.setMaxTempTime(new ClimateTime(oa[1]));
+                            // min temp
+                            yesterday.setMinTemp(oa[2] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[2]).intValue());
+                            // min temp time
+                            yesterday.setMinTempTime(new ClimateTime(oa[3]));
+                            // min pressure (SLP)
+                            yesterday.setMinSlp(oa[4] == null
+                                    ? ParameterFormatClimate.MISSING_SLP
+                                    : (float) oa[4]);
+                            // precip/equivalent water
+                            yesterday.setPrecip(oa[5] == null
+                                    ? ParameterFormatClimate.MISSING_PRECIP
+                                    : ((Number) oa[5]).floatValue());
+                            // average speed (two minute windspeed)
+                            yesterday.setAvgWindSpeed(oa[6] == null
+                                    ? ParameterFormatClimate.MISSING_SPEED
+                                    : ((Number) oa[6]).floatValue());
+                            // max wind dir and speed (two minute)
+                            int maxWindDir = oa[7] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[7]).intValue();
+                            float maxWindSpd = oa[8] == null
+                                    ? ParameterFormatClimate.MISSING_SPEED
+                                    : ((Number) oa[8]).intValue();
+                            yesterday.setMaxWind(
+                                    new ClimateWind(maxWindDir, maxWindSpd));
+                            // max wind time
+                            yesterday.setMaxWindTime(new ClimateTime(oa[9]));
+                            // peak wind/max gust dir and speed
+                            int maxGustDir = oa[10] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[10]).intValue();
+                            float maxGustSpd = oa[11] == null
+                                    ? ParameterFormatClimate.MISSING_SPEED
+                                    : ((Number) oa[11]).intValue();
+                            yesterday.setMaxGust(
+                                    new ClimateWind(maxGustDir, maxGustSpd));
+                            // peak wind/max gust time
+                            yesterday.setMaxGustTime(new ClimateTime(oa[12]));
+                            // wx 1
+                            parseWeatherFlagForDailyData(yesterday,
+                                    oa[13] == null
+                                            ? ParameterFormatClimate.MISSING
+                                            : ((Number) oa[13]).intValue());
+                            // wx 2
+                            parseWeatherFlagForDailyData(yesterday,
+                                    oa[14] == null
+                                            ? ParameterFormatClimate.MISSING
+                                            : ((Number) oa[14]).intValue());
+                            // wx 3
+                            parseWeatherFlagForDailyData(yesterday,
+                                    oa[15] == null
+                                            ? ParameterFormatClimate.MISSING
+                                            : ((Number) oa[15]).intValue());
+                            // wx 4
+                            parseWeatherFlagForDailyData(yesterday,
+                                    oa[16] == null
+                                            ? ParameterFormatClimate.MISSING
+                                            : ((Number) oa[16]).intValue());
+                            // wx 5
+                            parseWeatherFlagForDailyData(yesterday,
+                                    oa[17] == null
+                                            ? ParameterFormatClimate.MISSING
+                                            : ((Number) oa[17]).intValue());
+                            // minutes of sun
+                            yesterday.setMinutesSun(oa[18] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[18]).intValue());
+                            // percent possible sun
+                            yesterday.setPercentPossSun(oa[19] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[19]).intValue());
+                            // snow in the day/solid precip
+                            yesterday.setSnowDay(oa[20] == null
+                                    ? ParameterFormatClimate.MISSING_SNOW
+                                    : ((Number) oa[20]).intValue());
+                            // snow on ground depth
+                            yesterday.setSnowGround(oa[21] == null
+                                    ? ParameterFormatClimate.MISSING_SNOW
+                                    : ((Number) oa[21]).intValue());
+                            // avg sky cover
+                            yesterday.setSkyCover(oa[22] == null
+                                    ? ParameterFormatClimate.MISSING
+                                    : ((Number) oa[22]).floatValue());
+                        } else {
+                            throw new ClimateQueryException(
+                                    "Unexpected return type from query, expected Object[], got "
+                                            + result.getClass().getName());
+                        }
+
                     } else {
-                        throw new ClimateQueryException(
-                                "Unexpected return type from query, expected Object[], got "
-                                        + result.getClass().getName());
+                        logger.warn(
+                                "Could not get daily climate data using query: ["
+                                        + query + "] and map: [" + paramMap
+                                        + "]");
                     }
-
-                } else {
-                    logger.warn(
-                            "Could not get daily climate data using query: ["
-                                    + query + "] and map: [" + paramMap + "]");
+                } catch (ClimateQueryException e) {
+                    throw new ClimateQueryException(
+                            "Error querying the climate database with query: ["
+                                    + query + "] and map: [" + paramMap + "]",
+                            e);
                 }
-            } catch (ClimateQueryException e) {
-                throw new ClimateQueryException(
-                        "Error querying the climate database with query: ["
-                                + query + "] and map: [" + paramMap + "]",
-                        e);
+            } else if (itype.isDaily()) {
+                /*
+                 * Legacy documentation:
+                 * 
+                 * If it is morning/evening/intermediate(1,3,2,4,10,11), get
+                 * snow_ground from ASOS.
+                 */
+                StringBuilder query = new StringBuilder(
+                        "SELECT snowdepth FROM ");
+                query.append(ClimateDAOValues.CLI_ASOS_DAILY_TABLE_NAME);
+                query.append(" WHERE station_code = :stationCode");
+                query.append(" AND day_of_year = :dayOfYear");
+                yesterday.setSnowGround(
+                        ((Number) queryForOneValue(query.toString(), paramMap,
+                                ParameterFormatClimate.MISSING_SNOW))
+                                        .floatValue());
             }
-        } else if (year == aDate.getYear() && itype.isDaily()) {
-            /*
-             * Legacy documentation:
-             * 
-             * If it is morning/evening/intermediate(1,3,2,4,10,11), get
-             * snow_ground from ASOS
-             */
-            StringBuilder query = new StringBuilder("SELECT snowdepth FROM ");
-            query.append(ClimateDAOValues.CLI_ASOS_DAILY_TABLE_NAME);
-            query.append(" WHERE station_code = :stationCode");
-            query.append(" AND day_of_year = :dayOfYear");
-            yesterday.setSnowGround(
-                    ((Number) queryForOneValue(query.toString(), paramMap,
-                            ParameterFormatClimate.MISSING_SNOW)).floatValue());
+        } else {
+            logger.warn("No DSM available for current year with station code: ["
+                    + stationCode + "] and day of year: [" + dayOfYear + "]");
         }
     }
 
@@ -3730,7 +3735,7 @@ public class DailyClimateDAO extends ClimateDAO {
             ClimateDate date,
             HashMap<Integer, ClimateDailyReportData> dataMap) {
         // climate norm DAO for updating norm records
-        ClimateNormDAO climateNormDAO = new ClimateNormDAO();
+        ClimateDailyNormDAO climateNormDAO = new ClimateDailyNormDAO();
 
         for (ClimateDailyReportData reportData : dataMap.values()) {
             DailyClimateData data = reportData.getData();
@@ -3794,5 +3799,270 @@ public class DailyClimateDAO extends ClimateDAO {
             }
         }
         return true;
+    }
+
+    /**
+     * Migrated from determine_window.f
+     * 
+     * <pre>
+     *   July 1998     Jason P. Tuell        PRC/TDL
+    *   Oct. 1998     David O. Miller       PRC/TDL
+    *
+    *
+    *   Purpose:  This routine determines the starting and ending times
+    *             and dates for data retrievals for the different climate
+    *             summaries.  It only makes one assumption regarding the
+    *             valid_time for the evening climate summaries: the valid_time
+    *             must be later than or equal to 1300 local!!  (i.e., the 
+    *             evening climate summary must be run in the afternoon or
+    *             evening.  The begin and start times are only used
+    *             for building the daily summaries.
+    *
+    *             The month and year in the valid date is used to specify
+    *             month and year of the monthly climate summary.  The day
+    *             is used to specify the ending day of the month (typically
+    *             the last day of the month).  However, by using the day from
+    *             a_date, it allows the user to produce mid-month climate
+    *             summaries.
+    *
+    *             The year is used to determine the year for an annual 
+    *             climate summary.  In a normal run, the month and day will
+    *             be that of the last day of the year.  However, using the day
+    *             and year from a_date will enable the user to produce mid_year
+    *             climate summaries.
+    *              
+    *   Variables
+    *
+    *      Input
+    *        a_date      - derived structure that defines the local date 
+    *                      (day, mon, year) of the climate summary
+    *        a_time      - time program was started (UTC!!!)
+    *        station     - derived TYPE that contains the stations for this 
+    *                      climate summary
+    *        itype       - type of climate summary;
+    *                      =1 morning NWR daily climate summary
+    *                      =2 evening NWR daily climate summary
+    *                      =3 morning NWWS daily climate summary
+    *                      =4 evening NWWS daily climate summary
+    *                      =5 monthly NWR climate summary
+    *                      =6 monthly NWWS climate summary
+    *                      =7 annual climate summary
+    *                      =10 NWR intermediate daily summary
+    *                      =11 NWWS intermediate daily summary
+    *        valid_time  - ending time (LST) for evening climate summaries
+    *                      not used for any other climate summaries
+    *        
+    *
+    *      Output
+    *        begin_date  - derived TYPE that specifies the starting date
+    *                      for data retrieval
+    *        begin_time  - derived TYPE that specifies the starting time
+    *                      for data retrieval (note - not used for 
+    *                      monthly and annual summaries)
+    *        end_date    - derived TYPE that specifies the ending date
+    *                      for data retrieval
+    *        end_time    - derived TYPE that specifies the ending time
+    *                      for data retrieval (note - not used for 
+    *                      monthly and annual summaries)
+    *
+    *      Local
+    *        iday            - julian day of the year
+    *        ihour           - hour of the day
+    *        ihour_valid_UTC - UTC equivalent of valid_time%ihour
+    *        leap            - LOGICAL variable returned from function leap
+    *                          = TRUE  input year is a leap year
+    *                          = FALSE input year isn't a leap year
+    *        is_dst          - flag returned from HWRUtils::stdTime.
+    *                          = 0; daylight savings time in effect at this time
+    *                          = 1; standard time in effect at this time
+    *        num_off_UTC     - hours off of UTC
+    *
+    *      Non-system routines used
+    *        convert_julday             - calculates date for an input Julian day;
+    *                                     date is returned in the DATE derived type
+    *        determine_daylight_savings - This routine will set up the arguements
+    *                                     needed by and will call det_dst.c.
+    *
+    *      Non-system functions used
+    *        julday  - calculates julian date for an input date
+    *        leap    - determines if input year is a leap year
+    *
+    *  MODIFICATION HISTORY
+    *   DATE           NAME                 CHANGE
+    *  11/05/01     Doug Murphy             For stations offset GT than GMT (Guam), 
+    *                                       the window was not being properly set 
+    *                                       for intermediate/evening reports
+     * </pre>
+     * 
+     * @param aDate
+     * @param station
+     * @param itype
+     * @param validTime
+     */
+    public static ClimateDates determineWindow(ClimateDate aDate,
+            Station station, PeriodType itype, ClimateTime validTime) {
+        ClimateDate beginDate = ClimateDate.getMissingClimateDate();
+        ClimateTime beginTime = ClimateTime.getMissingClimateTime();
+        ClimateDate endDate = ClimateDate.getMissingClimateDate();
+        ClimateTime endTime = ClimateTime.getMissingClimateTime();
+
+        switch (itype) {
+
+        // Daily climate summary. We need to take into account the
+        // differences in the different time zones.
+        // Keep in mind that the daily climate summary is done for
+        // midnight to midnight local standard time.
+
+        case MORN_NWWS:
+        case MORN_RAD:
+
+            beginTime.setMin(0);
+            endTime.setMin(59);
+
+            if (station.getNumOffUTC() < 0) {
+
+                int ihour = -station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                endTime.setHour(ihour - 1);
+
+                beginDate = new ClimateDate(aDate);
+                endDate.setYear(aDate.getYear());
+                // Get next day of year
+                int iday = aDate.julday() + 1;
+
+                // Set endDate to next day of year
+                endDate.convertJulday(iday);
+
+            } else if (station.getNumOffUTC() > 0) {
+                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                endTime.setHour(ihour - 1);
+
+                int iday = aDate.julday() - 1;
+                endDate = new ClimateDate(aDate);
+                beginDate.setYear(aDate.getYear());
+
+                beginDate.convertJulday(iday);
+
+            } else {
+
+                beginTime.setHour(0);
+                endTime.setHour(23);
+                beginDate = new ClimateDate(aDate);
+                endDate = new ClimateDate(aDate);
+
+            }
+            break;
+
+        case INTER_NWWS:
+        case INTER_RAD:
+        case EVEN_NWWS:
+        case EVEN_RAD:
+
+            // Evening and intermediate climate summary. These are
+            // generated for the period from midnight to valid_time, which
+            // the user specifies via the set up GUI.
+            beginTime.setMin(0);
+            endTime.setMin(0);
+
+            if (station.getNumOffUTC() < 0) {
+
+                int iday;
+                int ihour = -station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                int ihourValidUTC = ihour + validTime.getHour();
+
+                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
+                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
+                    // Get next day of year
+                    iday = aDate.julday() + 1;
+                } else {
+                    endTime.setHour(ihourValidUTC);
+                    // Get current day of year
+                    iday = aDate.julday();
+                }
+
+                beginDate = new ClimateDate(aDate);
+                endDate.setYear(aDate.getYear());
+
+                // Set endDate to next or current day of year
+                endDate.convertJulday(iday);
+
+            } else if (station.getNumOffUTC() > 0) {
+                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                int ihourValidUTC = beginTime.getHour() + validTime.getHour();
+
+                int iday = aDate.julday() - 1;
+                beginDate.convertJulday(iday);
+                beginDate.setYear(aDate.getYear());
+
+                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
+                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
+                    endDate = new ClimateDate(aDate);
+                } else {
+                    endTime.setHour(ihourValidUTC);
+                    endDate = new ClimateDate(beginDate);
+                }
+
+            } else {
+
+                beginTime.setHour(0);
+                endTime.setHour(validTime.getHour());
+                beginDate = new ClimateDate(aDate);
+                endDate = new ClimateDate(aDate);
+
+            }
+            break;
+        //
+        // Monthly climate report case
+        // Here we assume that the monthly reports are generated
+        // sometime after the last day of the month for which the
+        // report is valid
+        //
+        case MONTHLY_NWWS:
+        case MONTHLY_RAD:
+
+            beginDate.setDay(1);
+
+            int imon;
+
+            // You need to handle January as a special case
+            if (aDate.getMon() == 1) {
+                imon = 12;
+                beginDate.setMon(imon);
+                beginDate.setYear(aDate.getYear() - 1);
+            } else {
+                imon = aDate.getMon() - 1;
+                beginDate.setMon(imon);
+                beginDate.setYear(aDate.getYear());
+            }
+            // Now you need to handle leap years as a special case
+            // keeping replaced code for viewing by Creator implementor
+            endDate.setMon(beginDate.getMon());
+            endDate.setYear(beginDate.getYear());
+            endDate.setDay(ClimateUtilities.daysInMonth(endDate));
+            break;
+        // Annual climate report case
+        // Here we assume that the annual summary is generated in
+        // the next year for which the summary is valid
+        case ANNUAL_NWWS:
+        case ANNUAL_RAD:
+            beginDate.setDay(1);
+            beginDate.setMon(1);
+            beginDate.setYear(aDate.getYear() - 1);
+
+            endDate.setDay(
+                    ClimateUtilities.daysInMonth(beginDate.getYear(), 12));
+            endDate.setMon(12);
+            endDate.setYear(beginDate.getYear());
+            break;
+
+        default:
+            logger.error("Unknown period type [" + itype.getValue() + "]");
+            break;
+        }
+
+        return new ClimateDates(beginDate, endDate, beginTime, endTime);
     }
 }

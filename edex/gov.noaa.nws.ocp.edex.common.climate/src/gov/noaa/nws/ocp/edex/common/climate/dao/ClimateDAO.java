@@ -48,6 +48,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 23 MAR 2017  30515      amoore      Replace constants that are already defined in AWIPS.
  * 18 APR 2017  33104      amoore      Code consolidation.
  * 16 MAY 2017  33104      amoore      Floating point equality.
+ * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
  * </pre>
  * 
  * @author amoore
@@ -387,8 +388,8 @@ public abstract class ClimateDAO {
             Number threshold, boolean greaterOrLess, boolean precipOrSnow) {
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("stationID", stationID);
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("value", threshold);
         queryParams.put("missing", threshold);
         String element, idCol, endCol, startCol;
@@ -418,12 +419,11 @@ public abstract class ClimateDAO {
             startCol = "date";
         }
 
-        query.append(idCol + " = :stationID ");
-        query.append(
-                " AND to_char(" + startCol + ", 'yyyy-MM-dd') >= :beginDate ");
-        query.append(" AND to_char(" + endCol + ", 'yyyy-MM-dd') <= :endDate ");
-        query.append(" AND " + element + " != :missing ");
-        query.append(" AND " + element);
+        query.append(idCol).append(" = :stationID ");
+        query.append(" AND ").append(startCol).append(" >= :beginDate ");
+        query.append(" AND ").append(endCol).append(" <= :endDate ");
+        query.append(" AND ").append(element).append(" != :missing ");
+        query.append(" AND ").append(element);
         if (greaterOrLess) {
             query.append(" >= ");
         } else {
@@ -432,7 +432,7 @@ public abstract class ClimateDAO {
         query.append(" :value ");
 
         if (precipOrSnow) {
-            query.append(" AND " + element + " != ");
+            query.append(" AND ").append(element).append(" != ");
             query.append(ParameterFormatClimate.TRACE);
         }
 
@@ -465,8 +465,8 @@ public abstract class ClimateDAO {
             String dailyColumn, String periodColumn, Number equalValue) {
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("stationID", stationID);
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("value", equalValue);
         String element, idCol, endCol, startCol;
 
@@ -494,11 +494,10 @@ public abstract class ClimateDAO {
             startCol = "date";
         }
 
-        query.append(idCol + " = :stationID ");
-        query.append(
-                " AND to_char(" + startCol + ", 'yyyy-MM-dd') >= :beginDate ");
-        query.append(" AND to_char(" + endCol + ", 'yyyy-MM-dd') <= :endDate ");
-        query.append(" AND " + element + " = :value ");
+        query.append(idCol).append(" = :stationID ");
+        query.append(" AND ").append(startCol).append(" >= :beginDate ");
+        query.append(" AND ").append(endCol).append(" <= :endDate ");
+        query.append(" AND ").append(element).append(" = :value ");
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
                 ParameterFormatClimate.MISSING)).intValue();
@@ -561,7 +560,6 @@ public abstract class ClimateDAO {
 
         StringBuilder query = new StringBuilder("SELECT ");
         String element, idCol, startCol, endCol;
-        // TODO parameterization
         // select by period from period table, or no period from daily table.
         if (!PeriodType.OTHER.equals(iType)) {
 
@@ -592,17 +590,19 @@ public abstract class ClimateDAO {
             query.append(" WHERE ");
         }
 
-        query.append(idCol).append(" = ").append(stationID);
-        query.append(" AND to_char(").append(startCol)
-                .append(", 'yyyy-MM-dd') >= '")
-                .append(beginDate.toFullDateString()).append("'");
-        query.append(" AND to_char(").append(endCol)
-                .append(", 'yyyy-MM-dd') <= '")
-                .append(endDate.toFullDateString()).append("'");
+        query.append(idCol).append(" = :stationID");
+        query.append(" AND ").append(startCol).append(" >= :beginDate");
+        query.append(" AND ").append(endCol).append(" <= :endDate");
         query.append(" AND ").append(element).append(" != ")
                 .append(missingValue);
 
-        Object baseResult = queryForOneValue(query.toString(), missingValue);
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("stationID", stationID);
+        paramMap.put("beginDate", beginDate.getCalendarFromClimateDate());
+        paramMap.put("endDate", endDate.getCalendarFromClimateDate());
+
+        Object baseResult = queryForOneValue(query.toString(), paramMap,
+                missingValue);
 
         Number baseResultNumber = (Number) baseResult;
 
@@ -619,7 +619,7 @@ public abstract class ClimateDAO {
             query.append(" AND " + element + " != ");
             query.append(ParameterFormatClimate.TRACE);
 
-            Object noTraceResult = queryForOneValue(query.toString(),
+            Object noTraceResult = queryForOneValue(query.toString(), paramMap,
                     missingValue);
 
             Number noTraceResultNumber = (Number) noTraceResult;
@@ -684,19 +684,16 @@ public abstract class ClimateDAO {
                 startCol = "date";
             }
 
-            maxSnowGroundQuery.append(" ").append(idCol).append(" = ")
-                    .append(stationID);
-            maxSnowGroundQuery.append(" AND to_char(").append(startCol)
-                    .append(", 'yyyy-MM-dd') >= '")
-                    .append(beginDate.toFullDateString()).append("'");
-            maxSnowGroundQuery.append(" AND to_char(").append(endCol)
-                    .append(", 'yyyy-MM-dd') <= '")
-                    .append(endDate.toFullDateString()).append("'");
+            maxSnowGroundQuery.append(idCol).append(" = :stationID");
+            maxSnowGroundQuery.append(" AND ").append(startCol)
+                    .append(" >= :beginDate");
+            maxSnowGroundQuery.append(" AND ").append(endCol)
+                    .append(" <= :endDate");
             maxSnowGroundQuery.append(" AND ").append(element).append(" = ");
             maxSnowGroundQuery.append(ParameterFormatClimate.TRACE);
 
             int maxSnowGroundResult = ((Number) queryForOneValue(
-                    maxSnowGroundQuery.toString(),
+                    maxSnowGroundQuery.toString(), paramMap,
                     ParameterFormatClimate.MISSING)).intValue();
 
             if (maxSnowGroundResult > 0) {

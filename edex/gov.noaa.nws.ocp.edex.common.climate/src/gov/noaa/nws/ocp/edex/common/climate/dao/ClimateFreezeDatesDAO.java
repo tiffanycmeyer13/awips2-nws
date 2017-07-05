@@ -35,6 +35,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 24 APR 2017  33104      amoore      Use query maps for update/insert/delete.
  * 03 MAY 2017  33104      amoore      Use abstract map.
  * 20 JUN 2017  33104      amoore      Address review comments.
+ * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
  * </pre>
  * 
  * @author amoore
@@ -377,8 +378,8 @@ public class ClimateFreezeDatesDAO extends ClimateDAO {
                     "SELECT MIN(date), MAX(date) FROM ")
                             .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME)
                             .append(" WHERE station_id = :stationId")
-                            .append(" AND min_temp <= 32 AND to_char(date, 'yyyy-MM-dd') ")
-                            .append("BETWEEN :startDate")
+                            .append(" AND min_temp <= 32 AND date ")
+                            .append(" BETWEEN :startDate")
                             .append(" AND :endDate");
 
             Object[] data;

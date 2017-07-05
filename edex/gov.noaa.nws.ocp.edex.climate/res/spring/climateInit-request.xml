@@ -1,0 +1,136 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="getavailablerequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.GetAvailableDayOfYearServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.GetAvailableDayOfYearRequest" />
+        <constructor-arg ref="getavailablerequest" />
+    </bean>
+
+    <bean id="deleteclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.DeleteClimateDayRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.DeleteClimateDayRecordRequest" />
+        <constructor-arg ref="deleteclimatedayrecordrequest" />
+    </bean>
+
+    <bean id="fetchclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchClimateDayRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.FetchClimateDayRecordRequest" />
+        <constructor-arg ref="fetchclimatedayrecordrequest" />
+    </bean>
+
+    <bean id="saveclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.SaveClimateDayRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.SaveClimateDayRecordRequest" />
+        <constructor-arg ref="saveclimatedayrecordrequest" />
+    </bean>
+
+    <bean id="updateclimatedaynormnomissingrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.UpdateClimateDayNormNoMissingServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.UpdateClimateDayNormNoMissingRequest" />
+        <constructor-arg ref="updateclimatedaynormnomissingrequest" />
+    </bean>
+
+    <!-- beans for freeze dates table -->
+
+    <bean id="fetchfreezedatesrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchFreezeDatesServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.FetchFreezeDatesRequest" />
+        <constructor-arg ref="fetchfreezedatesrequest" />
+    </bean>
+
+    <!-- beans for climate_period table -->
+
+    <bean id="fetchclimateperiodrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchClimatePeriodServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.FetchClimatePeriodRequest" />
+        <constructor-arg ref="fetchclimateperiodrequest" />
+    </bean>
+
+    <bean id="insertclimateperiodrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.InsertClimatePeriodServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.InsertClimatePeriodRequest" />
+        <constructor-arg ref="insertclimateperiodrequest" />
+    </bean>
+
+    <bean id="updateclimateperiodrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.UpdateClimatePeriodServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.initclimate.UpdateClimatePeriodRequest" />
+        <constructor-arg ref="updateclimateperiodrequest" />
+    </bean>
+
+    <!-- beans for mon_climate_norm table -->
+    <bean id="fetchmonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.FetchClimateMonthRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.monclimatenorm.FetchClimateMonthRecordRequest" />
+        <constructor-arg ref="fetchmonclimatenormrequest" />
+    </bean>
+
+    <bean id="deletemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.DeleteClimateMonthRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.monclimatenorm.DeleteClimateMonthRecordRequest" />
+        <constructor-arg ref="deletemonclimatenormrequest" />
+    </bean>
+
+    <bean id="getavailablemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.GetAvailableMonthOfYearServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.monclimatenorm.GetAvailableMonthOfYearRequest" />
+        <constructor-arg ref="getavailablemonclimatenormrequest" />
+    </bean>
+
+    <bean id="savemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.SaveClimateMonthRecordServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.monclimatenorm.SaveClimateMonthRecordRequest" />
+        <constructor-arg ref="savemonclimatenormrequest" />
+    </bean>
+
+    <bean id="updatemonclimatenormnomissingrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.UpdateClimateMonthNormNoMissingServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.monclimatenorm.UpdateClimateMonthNormNoMissingRequest" />
+        <constructor-arg ref="updatemonclimatenormnomissingrequest" />
+    </bean>
+
+</beans>

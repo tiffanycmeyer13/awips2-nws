@@ -19,7 +19,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 
 /**
- * Query the mon_climate_norm table
+ * Query the mon_climate_norm table, for basic CRUD rather than complex
+ * calculations.
  * 
  * <pre>
  * 

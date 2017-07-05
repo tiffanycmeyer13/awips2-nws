@@ -1,0 +1,31 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="climatemonthlyasosdisplay"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.display.MonthlyASOSDisplayServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DisplayMonthlyASOSClimateServiceRequest" />
+        <constructor-arg ref="climatemonthlyasosdisplay" />
+    </bean>
+
+    <bean id="climatemonthlybuilddisplay"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.display.MonthlyBuildDisplayServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DisplayMonthlyBuildClimateServiceRequest" />
+        <constructor-arg ref="climatemonthlybuilddisplay" />
+    </bean>
+
+    <bean id="climateseasonalannualdisplay"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.display.SeasonalAnnualDisplayServiceHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DisplaySeasonalAnnualClimateServiceRequest" />
+        <constructor-arg ref="climateseasonalannualdisplay" />
+    </bean>
+</beans>

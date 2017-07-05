@@ -75,6 +75,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  *                                     extreme dates.
  * 16 JUN 2017  35182      amoore      Fix wind/gust logic.
  * 20 JUN 2017  33104      amoore      Address review comments.
+ * 02 AUG 2017  33641      amoore      If snow total is trace, snow water is also trace.
+ * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
  * </pre>
  * 
  * @author amoore
@@ -480,8 +482,18 @@ public class ClimatePeriodDAO extends ClimateDAO {
          * 
          * DAI 30, Task 23211: okay, use 1:10 ratio here? First we'll do that
          * but should look into using the DSM as well
+         * 
+         * Discrepancy #64: In Legacy Climate, it was possible for reports to
+         * have -0.1 total water equivalent values, since it is calculated from
+         * dividing the snow total by 10, and snow total could be trace (-1.0).
+         * In Migrated Climate, if snow total is trace, then total water
+         * equivalent will also be trace.
          */
-        if (periodData.getSnowTotal() != ParameterFormatClimate.MISSING_SNOW) {
+        if (ClimateUtilities.floatingEquals(periodData.getSnowTotal(),
+                ParameterFormatClimate.TRACE)) {
+            periodData.setSnowWater(ParameterFormatClimate.TRACE);
+        } else if (periodData
+                .getSnowTotal() != ParameterFormatClimate.MISSING_SNOW) {
             periodData.setSnowWater(periodData.getSnowTotal() / 10);
         } else {
             periodData.setSnowWater(ParameterFormatClimate.MISSING_SNOW);
@@ -1439,14 +1451,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
             int stationID) {
         StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        query.append(" WHERE to_char(date, 'yyyy-MM-dd') >= :beginDate");
-        query.append(" AND to_char(date, 'yyyy-MM-dd') <= :endDate");
+        query.append(" WHERE date >= :beginDate");
+        query.append(" AND date <= :endDate");
         query.append(" AND station_id = :stationID");
         query.append(" AND avg_sky_cover >= 0 AND avg_sky_cover < 0.35");
 
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -1471,14 +1483,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
             int stationID) {
         StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        query.append(" WHERE to_char(date, 'yyyy-MM-dd') >= :beginDate");
-        query.append(" AND to_char(date, 'yyyy-MM-dd') <= :endDate");
+        query.append(" WHERE date >= :beginDate");
+        query.append(" AND date <= :endDate");
         query.append(" AND station_id = :stationID");
         query.append(" AND avg_sky_cover >= 0.35 AND avg_sky_cover < 0.75");
 
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -1503,14 +1515,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
             int stationID) {
         StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM ");
         query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
-        query.append(" WHERE to_char(date, 'yyyy-MM-dd') >= :beginDate");
-        query.append(" AND to_char(date, 'yyyy-MM-dd') <= :endDate");
+        query.append(" WHERE date >= :beginDate");
+        query.append(" AND date <= :endDate");
         query.append(" AND station_id = :stationID");
         query.append(" AND avg_sky_cover >= 0.75 AND avg_sky_cover != ");
         query.append(":missing");
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         queryParams.put("missing", ParameterFormatClimate.MISSING);
 
@@ -1607,7 +1619,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         dirQuery.append(
                 ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
         dirQuery.append(
-                " WHERE to_char(max_gust_date:dirIndex, 'yyyy-MM-dd') = :date AND inform_id = ");
+                " WHERE max_gust_date:dirIndex = :date AND inform_id = ");
         dirQuery.append(":stationID");
         Map<String, Object> dirQueryParams = new HashMap<>();
 
@@ -1617,10 +1629,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery = new StringBuilder("SELECT period_end FROM ");
             dateQuery.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            dateQuery.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            dateQuery.append(" WHERE period_start >= ");
             dateQuery.append(" :beginDate");
-            dateQuery.append(
-                    " AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            dateQuery.append(" AND period_end <= :endDate");
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_gust_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_gust_spd != :missing");
@@ -1638,10 +1649,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "SELECT max_gust_date1, max_gust_date2, max_gust_date3 FROM ");
             dateQuery.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            dateQuery.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            dateQuery.append(" WHERE period_start >= ");
             dateQuery.append(" :beginDate");
-            dateQuery.append(
-                    " AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            dateQuery.append(" AND period_end <= :endDate");
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_gust_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_gust_spd != :missing");
@@ -1656,8 +1666,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
             dirQueryParams.put("periodType", 5);
         }
-        dateQueryParams.put("beginDate", beginDate.toFullDateString());
-        dateQueryParams.put("endDate", endDate.toFullDateString());
+        dateQueryParams.put("beginDate",
+                beginDate.getCalendarFromClimateDate());
+        dateQueryParams.put("endDate", endDate.getCalendarFromClimateDate());
         dateQueryParams.put("stationID", stationID);
         dateQueryParams.put("speed", ClimateUtilities.nint(maxGustSpeed, 2));
         dateQueryParams.put("missing", ParameterFormatClimate.MISSING_SPEED);
@@ -1692,10 +1703,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                      * distinct searches.
                                      */
                                     for (int searchDirIndex = 1; searchDirIndex <= dirSearchLimit; searchDirIndex++) {
-                                        // TODO use regular date, not
-                                        // string?
-                                        dirQueryParams.put("date",
-                                                searchDate.toFullDateString());
+                                        dirQueryParams.put("date", searchDate
+                                                .getCalendarFromClimateDate());
 
                                         int direction = ((Number) queryForOneValue(
                                                 dirQuery.toString().replaceAll(
@@ -1821,7 +1830,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         dirQuery.append(
                 ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
         dirQuery.append(
-                " WHERE to_char(max_wind_date:dirIndex, 'yyyy-MM-dd') = :date AND inform_id = ");
+                " WHERE max_wind_date:dirIndex = :date AND inform_id = ");
         dirQuery.append(":stationID");
         Map<String, Object> dirQueryParams = new HashMap<>();
 
@@ -1831,10 +1840,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery = new StringBuilder("SELECT period_end FROM ");
             dateQuery.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            dateQuery.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            dateQuery.append(" WHERE period_start >= ");
             dateQuery.append(" :beginDate");
-            dateQuery.append(
-                    " AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            dateQuery.append(" AND period_end <= :endDate");
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_wind_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_wind_spd != :missing");
@@ -1852,10 +1860,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "SELECT max_wind_date1, max_wind_date2, max_wind_date3 FROM ");
             dateQuery.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            dateQuery.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            dateQuery.append(" WHERE period_start >= ");
             dateQuery.append(" :beginDate");
-            dateQuery.append(
-                    " AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            dateQuery.append(" AND period_end <= :endDate");
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_wind_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_wind_spd != :missing");
@@ -1870,8 +1877,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
             dirQueryParams.put("periodType", 5);
         }
-        dateQueryParams.put("beginDate", beginDate.toFullDateString());
-        dateQueryParams.put("endDate", endDate.toFullDateString());
+        dateQueryParams.put("beginDate",
+                beginDate.getCalendarFromClimateDate());
+        dateQueryParams.put("endDate", endDate.getCalendarFromClimateDate());
         dateQueryParams.put("stationID", stationID);
         dateQueryParams.put("speed", ClimateUtilities.nint(maxWindSpeed, 2));
         dateQueryParams.put("missing", ParameterFormatClimate.MISSING_SPEED);
@@ -1906,10 +1914,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                      * distinct searches.
                                      */
                                     for (int searchDirIndex = 1; searchDirIndex <= dirSearchLimit; searchDirIndex++) {
-                                        // TODO use regular date, not
-                                        // string?
-                                        dirQueryParams.put("date",
-                                                searchDate.toFullDateString());
+                                        dirQueryParams.put("date", searchDate
+                                                .getCalendarFromClimateDate());
 
                                         int direction = ((Number) queryForOneValue(
                                                 dirQuery.toString().replaceAll(
@@ -2073,9 +2079,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query = new StringBuilder("SELECT period_end FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(" :beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(snow_ground_max::numeric, 2) >= ");
             query.append(":snowGround AND snow_ground_max != :missing");
@@ -2087,9 +2093,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "SELECT snow_ground_date1, snow_ground_date2, snow_ground_date3 FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(" :beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(snow_ground_max::numeric, 2) >= ");
             query.append(":snowGround AND snow_ground_max != :missing");
@@ -2097,8 +2103,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" ORDER BY snow_ground_max");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         queryParams.put("snowGround", ClimateUtilities.nint(snowGround, 2));
         queryParams.put("missing", ParameterFormatClimate.MISSING_SNOW);
@@ -2252,8 +2258,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(
                 " sno_stm_end_day2, sno_stm_start_day3, sno_stm_end_day3 FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(snow_max_storm::numeric, 2) >= :maxSnowStorm");
         query.append(" AND snow_max_storm != :missing");
@@ -2265,8 +2271,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY snow_max_storm");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the value to 2 decimal places
         queryParams.put("maxSnowStorm", ClimateUtilities.nint(maxSnowStorm, 2));
@@ -2359,8 +2365,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(
                 " sno_24h_end_day2, sno_24h_start_day3, sno_24h_end_day3 FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(snow_max_24h::numeric, 2) >= :max24hSnow");
         query.append(" AND snow_max_24h != :missing");
@@ -2372,8 +2378,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY snow_max_24h");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the value to 2 decimal places
         queryParams.put("max24hSnow", ClimateUtilities.nint(max24HSnow, 2));
@@ -2462,8 +2468,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         // go by period end date
         StringBuilder query = new StringBuilder("SELECT period_end FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(snow_total::numeric, 2) >= :snowTotal");
         query.append(" AND snow_total != :missing");
@@ -2475,8 +2481,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY snow_total");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the given total precip
         queryParams.put("snowTotal", ClimateUtilities.nint(maxTotalSnow, 2));
@@ -2565,15 +2571,15 @@ public class ClimatePeriodDAO extends ClimateDAO {
             int stationID) {
         StringBuilder query = new StringBuilder("SELECT MAX(snow_total) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND snow_total != :missing AND snow_total != ");
         query.append(":trace");
 
         Map<String, Object> queryParams = new HashMap<>();
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         queryParams.put("missing", ParameterFormatClimate.MISSING_SNOW);
         queryParams.put("trace", ParameterFormatClimate.TRACE);
@@ -2656,8 +2662,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(
                 " pcp_stm_end_day2, pcp_stm_start_day3, pcp_stm_end_day3 FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(precip_storm_max::numeric, 2) = ");
         query.append(":precipMaxStorm" + " AND precip_storm_max != :missing");
@@ -2669,8 +2675,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY precip_storm_max");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the value to 2 decimal places
         queryParams.put("precipMaxStorm",
@@ -2742,8 +2748,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(
                 " pcp_24h_end_day2, pcp_24h_start_day3, pcp_24h_end_day3 FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(precip_max_24h::numeric, 2) >= :precipMax24h");
         query.append(" AND precip_max_24h != :missing");
@@ -2755,8 +2761,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY precip_max_24h");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the value to 2 decimal places
         queryParams.put("precipMax24h", ClimateUtilities.nint(max24HPrecip, 2));
@@ -2878,8 +2884,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         // go by period end date
         StringBuilder query = new StringBuilder("SELECT period_end FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(" :beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(precip_total::numeric, 2) >= :totalPrecip");
         query.append(" AND precip_total != :missing");
@@ -2891,8 +2897,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
         query.append(" ORDER BY precip_total");
 
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         // round the given total precip
         queryParams.put("totalPrecip",
@@ -3103,9 +3109,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query = new StringBuilder("SELECT period_end FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(" :beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(min_temp, 2) <= :minTemp");
             query.append(" AND min_temp != :missing ORDER BY min_temp");
@@ -3116,17 +3122,17 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "SELECT day_min_temp1, day_min_temp2, day_min_temp3 FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(" :beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(min_temp, 2) <= :minTemp");
             query.append(" AND min_temp != :missing AND period_type = ");
             query.append(":periodType ORDER BY min_temp");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         queryParams.put("minTemp", minTemp);
         queryParams.put("missing", ParameterFormatClimate.MISSING);
@@ -3224,9 +3230,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query = new StringBuilder("SELECT period_end FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(" :beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(max_temp, 2) >= :maxTemp");
             query.append(" AND max_temp != :missing ORDER BY max_temp");
@@ -3237,17 +3243,17 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "SELECT day_max_temp1, day_max_temp2, day_max_temp3 FROM ");
             query.append(
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
+            query.append(" WHERE period_start >= ");
             query.append(":beginDate");
-            query.append(" AND to_char(period_end, 'yyyy-MM-dd') <= :endDate");
+            query.append(" AND period_end <= :endDate");
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(max_temp, 2) >= :maxTemp");
             query.append(" AND max_temp != :missing AND period_type = ");
             query.append(":periodType ORDER BY max_temp");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", stationID);
         queryParams.put("maxTemp", maxTemp);
         queryParams.put("missing", ParameterFormatClimate.MISSING);
@@ -3723,8 +3729,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_s1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_snow_ge_s1 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -3734,8 +3740,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -3785,8 +3791,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_snow_ge_1 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -3796,8 +3802,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -3850,8 +3856,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_tr) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_snow_ge_tr != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -3861,8 +3867,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -3888,8 +3894,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_p2) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_p2 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -3899,8 +3905,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -3958,8 +3964,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_p1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_p1 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -3969,8 +3975,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4067,8 +4073,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_100) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_100 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4078,8 +4084,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4128,8 +4134,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_50) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_50 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4139,8 +4145,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4189,8 +4195,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_10) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_10 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4200,8 +4206,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4250,8 +4256,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_01) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_prcp_ge_01 != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4261,8 +4267,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4311,8 +4317,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_t6f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_min_le_t6f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4322,8 +4328,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4385,8 +4391,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_t5f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_min_le_t5f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4396,8 +4402,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4459,8 +4465,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_ge_t4f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_min_ge_t4f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4470,8 +4476,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4533,8 +4539,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_0f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_min_le_0f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4544,8 +4550,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4594,8 +4600,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_32f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_min_le_32f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4605,8 +4611,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4655,8 +4661,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_le_t3f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_max_le_t3f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4666,8 +4672,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4729,8 +4735,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_t2f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_max_ge_t2f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4740,8 +4746,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4803,8 +4809,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_t1f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_max_ge_t1f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4814,8 +4820,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4877,8 +4883,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_le_32f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_max_le_32f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4888,8 +4894,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -4938,8 +4944,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_90f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE to_char(period_start, 'yyyy-MM-dd') >= ");
-        query.append(":beginDate AND to_char(period_end, 'yyyy-MM-dd') <= ");
+        query.append(" WHERE period_start >= ");
+        query.append(":beginDate AND period_end <= ");
         query.append(":endDate AND inform_id = :stationID");
         query.append(" AND num_max_ge_90f != ")
                 .append(ParameterFormatClimate.MISSING);
@@ -4949,8 +4955,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        queryParams.put("beginDate", beginDate.toFullDateString());
-        queryParams.put("endDate", endDate.toFullDateString());
+        queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
+        queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
 
         return ((Number) queryForOneValue(query.toString(), queryParams,
@@ -7463,8 +7469,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     public boolean processDisplayFinalization(PeriodType periodType,
             ClimateDate startDate, ClimateDate endDate,
-            HashMap<Integer, ClimatePeriodReportData> originalDataMap,
-            HashMap<Integer, ClimatePeriodReportData> savedData,
+            Map<Integer, ClimatePeriodReportData> originalDataMap,
+            Map<Integer, ClimatePeriodReportData> savedData,
             Set<Integer> msmOverwriteApproved)
                     throws ClimateInvalidParameterException {
         // MSM data
@@ -7476,8 +7482,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         // Freeze dates DAO, for freeze date updating
         ClimateFreezeDatesDAO freezeDatesDAO = new ClimateFreezeDatesDAO();
 
-        // climate norm DAO for updating norm records
-        ClimateNormDAO climateNormDAO = new ClimateNormDAO();
+        // climate period norm DAO for updating norm records
+        ClimatePeriodNormDAO climatePeriodNormDAO = new ClimatePeriodNormDAO();
 
         /*
          * loop through data map and saved values; any station present in the
@@ -7759,8 +7765,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
          */
         for (ClimatePeriodReportData reportData : originalDataMap.values()) {
             try {
-                climateNormDAO.compareUpdatePeriodRecords(periodType, endDate,
-                        reportData.getData());
+                climatePeriodNormDAO.compareUpdatePeriodRecords(periodType,
+                        endDate, reportData.getData());
             } catch (ClimateQueryException e) {
                 // how should this error affect the
                 // workflow?
@@ -7799,7 +7805,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @param freezeDatesDAO
      */
     private void determineFreeze(PeriodType periodType, ClimateDate endDate,
-            HashMap<Integer, ClimatePeriodReportData> dataMap,
+            Map<Integer, ClimatePeriodReportData> dataMap,
             ClimateFreezeDatesDAO freezeDatesDAO) {
         for (Entry<Integer, ClimatePeriodReportData> reportDataEntry : dataMap
                 .entrySet()) {

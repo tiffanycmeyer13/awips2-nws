@@ -1,0 +1,13 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="climatecreatorautorequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.creator.AutoCreatorHandler" />
+
+    <bean factory-bean="handlerRegistry" factory-method="register">
+        <constructor-arg
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.creator.CreatorAutoRequest" />
+        <constructor-arg ref="climatecreatorautorequest" />
+    </bean>
+</beans>
