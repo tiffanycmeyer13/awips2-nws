@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ClimateIngestConfig xmlns:ns2="group">
+<!-- Example using filters: 
+    <filter>
+        <sourceIngest group="SITE">
+            <dataKey>KZHU</dataKey>
+        </sourceIngest>
+        <sourceIngest group="STATION">
+            <dataKey>KAEX</dataKey>
+            <dataKey>KARA</dataKey>
+            <dataKey>KLCH</dataKey>
+        </sourceIngest>
+    </filter> -->
+    <filter>
+        <sourceIngest group="SITE">
+            <dataKey>ALL</dataKey>
+        </sourceIngest>
+        <sourceIngest group="STATION">
+            <dataKey>ALL</dataKey>
+        </sourceIngest>
+    </filter>
+</ClimateIngestConfig>
