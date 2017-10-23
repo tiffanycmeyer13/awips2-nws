@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Firewx Plug-in
+Bundle-SymbolicName: gov.noaa.nws.ocp.viz.firewx; singleton:=true
+Bundle-Version: 1.15.1.qualifier
+Bundle-Vendor: Raytheon
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.eclipse.core.runtime,
+ com.raytheon.uf.viz.core;bundle-version="1.14.3",
+ com.raytheon.viz.ui;bundle-version="1.14.0",
+ com.raytheon.viz.pointdata;bundle-version="1.12.1174",
+ com.raytheon.uf.common.geospatial;bundle-version="1.14.1",
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.dataquery
+Export-Package: gov.noaa.nws.ocp.viz.firewx.rsc
+Bundle-ClassPath: gov.noaa.nws.ocp.viz.firewx.jar
+Import-Package: com.raytheon.uf.common.dataplugin.bufrua,
+ com.raytheon.uf.viz.d2d.nsharp.display,
+ com.raytheon.uf.viz.d2d.nsharp.rsc,
+ com.raytheon.uf.viz.npp.sounding.rsc,
+ com.raytheon.viz.core.graphing,
+ com.raytheon.viz.pointdata.rsc.retrieve,
+ gov.noaa.nws.ncep.ui.nsharp,
+ gov.noaa.nws.ncep.ui.nsharp.display,
+ gov.noaa.nws.ncep.ui.nsharp.view,
+ org.apache.commons.lang3

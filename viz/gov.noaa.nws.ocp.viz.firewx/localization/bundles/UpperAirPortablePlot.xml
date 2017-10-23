@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<bundle>
+    <displayList>
+        <displays xsi:type="d2DMapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true" />
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true" />
+                    <resourceData xsi:type="firewxResourceData"
+                        plotSource="${plotSource}"
+                        isUpdatingOnMetadataOnly="true"
+                        isRequeryNecessaryOnTimeMatch="true">
+                        <binOffset posOffset="3600" negOffset="3600"
+                            virtualOffset="0" />
+                        <metadataMap>
+                            <mapping key="reportType">
+                                <constraint constraintValue="2020"
+                                    constraintType="EQUALS" />
+                            </mapping>
+                            <mapping key="pluginName">
+                                <constraint constraintValue="bufrua"
+                                    constraintType="EQUALS" />
+                            </mapping>
+                            <mapping key="wmoHeader">
+                                <constraint constraintValue="IUS%21 KWBC%"
+                                    constraintType="LIKE" />
+                            </mapping>
+                        </metadataMap>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+    </displayList>
+</bundle>
