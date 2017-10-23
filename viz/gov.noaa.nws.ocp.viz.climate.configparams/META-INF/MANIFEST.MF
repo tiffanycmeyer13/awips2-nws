@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Climate Viz Configparams
+Bundle-SymbolicName: gov.noaa.nws.ocp.viz.climate.configparams;singleton:=true
+Bundle-Version: 1.16.0.qualifier
+Bundle-Vendor: NWS
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: gov.noaa.nws.ocp.viz.common.climate,
+ com.raytheon.uf.viz.core,
+ com.raytheon.viz.ui
+Export-Package: gov.noaa.nws.ocp.viz.climate.configparams,
+ gov.noaa.nws.ocp.viz.climate.configparams.support
