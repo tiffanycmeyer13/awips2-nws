@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>    
+   <extension
+         point="org.eclipse.ui.commands">     
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationWithData"
+          name="Display Station With Data">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyMorning"
+          name="Display Station Daily Morning">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyIntermediate"
+          name="Display Station Daily Intermediate">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyEvening"
+          name="Display Station Daily Evening">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationMonthly"
+          name="Display Station Monthly">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationSeasonal"
+          name="Display Station Seasonal">
+      </command>
+      <command
+          id="gov.noaa.nws.ocp.viz.climate.display.DisplayStationAnnual"
+          name="Display Station Annual">
+      </command>
+   </extension>
+      
+   <extension
+         point="org.eclipse.ui.handlers">     
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.common.DisplayStationWithDataAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationWithData">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.daily.DisplayStationDailyMorningAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyMorning">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.daily.DisplayStationDailyIntermediateAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyIntermediate">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.daily.DisplayStationDailyEveningAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationDailyEvening">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.period.DisplayStationMonthlyAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationMonthly">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.period.DisplayStationSeasonalAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationSeasonal">
+      </handler>   
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.display.period.DisplayStationAnnualAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.display.DisplayStationAnnual">
+      </handler>   
+   </extension>
+</plugin>
