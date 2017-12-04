@@ -6,7 +6,6 @@ package gov.noaa.nws.ocp.viz.firewx.rsc;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,18 +31,18 @@ import com.raytheon.uf.viz.core.rsc.capabilities.MagnificationCapability;
 
 /**
  * Provides a resource that will display plot data for a given reference time.
- * 
- * 
+ *
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date          Ticket#  Engineer    Description
  * ------------- -------- ----------- --------------------------
- * FEB 07, 2017  18784    wkwock      Initial creation.
- * 
+ * Feb 07, 2017  18784    wkwock      Initial creation.
+ * Dec 01, 2017  5863     mapeters    Change dataTimes to a NavigableSet
+ *
  * </pre>
- * 
+ *
  * @author wkwock
- * @version 1.0
  */
 
 public class FirewxResource
@@ -56,20 +55,15 @@ public class FirewxResource
     private static final String NO_DATA = "NO DATA";
 
     /** all records */
-    private Collection<UAObs> allRecords = new HashSet<UAObs>();
+    private Collection<UAObs> allRecords = new HashSet<>();
 
     /** all records grouped by time */
-    private Map<DataTime, Collection<UAObs>> groupedRecords = new HashMap<DataTime, Collection<UAObs>>();
+    private Map<DataTime, Collection<UAObs>> groupedRecords = new HashMap<>();
 
-    /**
-     * @param resourceData
-     * @param loadProperties
-     */
     protected FirewxResource(FirewxResourceData resourceData,
             LoadProperties loadProperties) {
-        super(resourceData, loadProperties);
+        super(resourceData, loadProperties, false);
         this.inputManager = new FirewxInputHandler(this);
-        this.dataTimes = new ArrayList<DataTime>();
         getCapability(EditableCapability.class).setEditable(true);
         resourceData.addChangeListener(new IResourceDataChanged() {
             @Override
@@ -85,7 +79,7 @@ public class FirewxResource
 
     /**
      * get current records
-     * 
+     *
      * @return current records
      */
     protected Collection<UAObs> getCurrentRecords() {
@@ -94,7 +88,7 @@ public class FirewxResource
 
     /**
      * add new records
-     * 
+     *
      * @param records
      */
     public synchronized void addRecords(PluginDataObject... records) {
@@ -111,7 +105,7 @@ public class FirewxResource
                 DataTime normTime = getNormalizedTime(uaObs.getDataTime());
                 Collection<UAObs> uaObsList = newGroupedRecords.get(normTime);
                 if (uaObsList == null) {
-                    uaObsList = new ArrayList<UAObs>();
+                    uaObsList = new ArrayList<>();
                     uaObsList.add(uaObs);
                     newGroupedRecords.put(normTime, uaObsList);
                 } else {
@@ -120,16 +114,14 @@ public class FirewxResource
             }
         }
 
-        List<DataTime> dataTimes = new ArrayList<DataTime>(
-                groupedRecords.keySet());
-        Collections.sort(dataTimes);
-        this.dataTimes = dataTimes;
+        this.dataTimes.retainAll(groupedRecords.keySet());
+        this.dataTimes.addAll(groupedRecords.keySet());
         this.groupedRecords = newGroupedRecords;
     }
 
     /**
      * get normalized time
-     * 
+     *
      * @param time
      * @return normalized time
      */
@@ -179,8 +171,7 @@ public class FirewxResource
         }
 
         RGB color = getCapability(ColorableCapability.class).getColor();
-        List<DrawableCircle> circles = new ArrayList<DrawableCircle>(
-                records.size());
+        List<DrawableCircle> circles = new ArrayList<>(records.size());
         for (UAObs record : records) {
             double lat = record.getLatitude();
             double lon = record.getLongitude();
@@ -204,7 +195,7 @@ public class FirewxResource
 
     /**
      * get radius
-     * 
+     *
      * @return radius
      */
     private double getRadius() {
