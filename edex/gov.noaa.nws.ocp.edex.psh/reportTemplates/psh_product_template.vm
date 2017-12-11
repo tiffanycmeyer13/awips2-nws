@@ -1,0 +1,166 @@
+#set( $blankLine="")
+#set( $no_remarks='NO_REMARKS')
+
+Post Tropical Cyclone Report...$stormType $stormName$status
+$reportStation
+$reportTime
+
+
+Note: The data shown here are preliminary....and subject to updates
+and corrections as appropriate.
+
+This report includes events occurring when watches and/or warnings
+#if ( $stormName.length() <= 6 )
+were in effect...or when significant flooding associated with $stormName
+or its remnants was affecting the area.
+#else 
+were in effect...or when significant flooding associated with
+$stormName or its remnants was affecting the area.
+#end
+
+Counties Included...$counties
+
+#foreach ($item in $updateList)
+$item
+$blankLine
+#end
+
+
+
+
+
+A. Lowest Sea Level Pressure/Maximum Sustained Winds and Peak Gusts
+---------------------------------------------------------------------
+Metar Observations...
+Note: Anemometer height is 10 meters and wind averaging is 2 minutes
+---------------------------------------------------------------------
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+---------------------------------------------------------------------
+#foreach ($d in $metarList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+$blankLine
+#end
+#if ( !($metarRmk.equals($no_remarks)) )
+Remarks: $metarRmk
+#end
+
+
+Non-metar Observations...
+Note: Anemometer height in meters and wind averaging period in
+minutes indicated under maximum sustained wind if known
+---------------------------------------------------------------------
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+---------------------------------------------------------------------
+#foreach ($d in $nonMetarList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+#if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
+$d.anemHgmt
+#end
+$blankLine
+#end
+#if ( !($nonMetarRmk.equals($no_remarks)) )
+Remarks: $nonMetarRmk
+#end
+
+
+B. Marine Observations...
+Note: Anemometer height in meters and wind averaging period in
+minutes indicated under maximum sustained wind if known
+---------------------------------------------------------------------
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+---------------------------------------------------------------------
+#foreach ($d in $marineList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+#if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
+$d.anemHgmt
+#end
+$blankLine
+#end
+#if ( !($marineRmk.equals($no_remarks)) )
+Remarks: $marineRmk
+#end
+
+
+C. Storm Total Rainfall from $rainStart until $rainEnd
+---------------------------------------------------------------------
+City/Town                    County               ID         Rainfall
+Lat Lon                                                       (in)   
+Deg Decimal
+---------------------------------------------------------------------
+#foreach ($d in $rainfallList)
+$d.cityInfo $d.county $d.id $d.rainfall $d.inp
+$d.lat $d.lon
+$blankLine
+#end
+#if ( !($rainfallRmk.equals($no_remarks)) )
+Remarks: $rainfallRmk
+#end
+
+
+D. Inland Flooding...
+---------------------------------------------------------------------
+#foreach ($d in $floodingList)
+$d.flooding
+$blankLine
+#end
+---------------------------------------------------------------------
+
+E. Maximum Observed Water Level (WL)...
+---------------------------------------------------------------------
+ID     City/Town       County     State  WL  Datum  Date/   Source        
+       or Location                      (ft)        Time
+---------------------------------------------------------------------
+#foreach ($d in $wlList)
+$d.id  $d.location $d.county $d.state $d.waterLevel $d.datum $d.dt $d.source $d.inp
+$d.lat $d.lon
+$blankLine
+#end
+#if ( !($wlRmk.equals($no_remarks)) )
+Remarks: $wlRmk
+#end
+
+
+F. Tornadoes...
+---------------------------------------------------------------------
+(Dist)City/Town              County           Date/         EF Scale
+Lat Lon (Deg Decimal)                         Time(UTC)    (If known)
+Description
+---------------------------------------------------------------------
+#foreach ($d in $tornadoList)
+$d.location $d.county $d.dt $d.efScale $d.inp
+$d.lat  $d.lon
+#if ( $!d.tornadoDesp && $d.tornadoDesp.length() > 0 )
+$blankLine
+$d.tornadoDesp
+#end
+$blankLine
+#end
+
+
+G. Storm Impacts by County...
+---------------------------------------------------------------------
+County            Deaths           Injuries             Evacuations  
+Description
+---------------------------------------------------------------------
+#foreach ($d in $impactList)
+$d.county $d.deaths $d.injuries $d.evacs
+$blankLine
+$d.desp
+$blankLine
+#end
+$$
+
+Legend:
+I-Incomplete Data
+E-Estimated
+
+$forecaster

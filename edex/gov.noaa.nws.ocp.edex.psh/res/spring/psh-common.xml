@@ -1,0 +1,27 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+    <bean id="pshPluginName" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="psh" />
+    </bean>
+
+    <bean id="pshPathProvider"
+        class="gov.noaa.nws.ocp.common.dataplugin.psh.PshPathProvider" />
+
+    <bean id="pshProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+        <property name="pluginName" ref="pshPluginName" />
+        <property name="pluginFQN" value="gov.noaa.nws.ocp.common.dataplugin.psh" />
+        <property name="dao"
+            value="gov.noaa.nws.ocp.edex.psh.dao.PshDataDAO" />
+        <property name="record"
+            value="gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord" />
+        <property name="pathProvider">
+            <ref bean="pshPathProvider" />
+        </property> 
+    </bean>
+    <bean id="pshRegistered" factory-bean="pluginRegistry" factory-method="register">
+        <constructor-arg ref="pshPluginName" />
+        <constructor-arg ref="pshProperties" />
+    </bean>
+</beans>
+
