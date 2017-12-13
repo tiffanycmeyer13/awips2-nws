@@ -2,7 +2,7 @@
 <feature
       id="gov.noaa.nws.ocp.viz.firewx.feature"
       label="BufrUAFirewxFeature"
-      version="1.0.0"
+      version="1.0.0.qualifier"
       provider-name="NWS">
 
    <description url="http://www.example.com/description">
@@ -21,7 +21,6 @@
          id="gov.noaa.nws.ocp.viz.firewx"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
 </feature>
