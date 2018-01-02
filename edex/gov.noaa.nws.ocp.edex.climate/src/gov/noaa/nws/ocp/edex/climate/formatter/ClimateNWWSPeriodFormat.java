@@ -12,9 +12,6 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
@@ -29,8 +26,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.WeatherStrings;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
@@ -53,6 +50,9 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * Feb 27, 2017 21099      wpaintsil   Initial creation
  * May 10, 2017 30162      wpaintsil   Address FindBugs issues with date format constants.
  * 16 MAY 2017  33104      amoore      Floating point equality.
+ * 20 NOV 2017  41088      amoore      Remove unnecessary double-checking of report windows
+ *                                     for snow section.
+ * 20 NOV 2017  41125      amoore      Mean RH section should not be dependent on sky section.
  *
  * </pre>
  *
@@ -60,12 +60,6 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * @version 1.0
  */
 public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
-
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateNWWSPeriodFormat.class);
 
     /**
      * Length of separator under nwws period table.
@@ -111,48 +105,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
     *  THIS IS THE STARTING ROUTINE FOR THE MONTHLY,SEASONAL,YEARLY NWWS PRODUCT.
     *  THIS ROUTINE CONTROLS ALL CALLS TO THE VARIOUS METEOROLOGICAL ROUTINES
     *  THAT WILL BE USED TO CREATED THE WIRE PRODUCT.
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *              itype  -  integer that determines whether the routine is a
-    *                        daily,monthly,seasonal,yearly product
-    *       num_stations  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *   climate_stations  -  Defined structure of TYPE "station_list.h" that holds 
-    *                        all the stations to be used in the NWWS product.
-    *            do_temp  -  Defined structure of TYPE "temp_control.h" that hold the
-    *                        control flags for the temperature segment.
-    *   do_liquid_precip  -  Defined structure of TYPE "liquid_precip_control.h" that 
-    *                        hold the control flags for the liquid precip segment.
-    *     do_snow_precip  -  Defined structure of TYPE "snow_precip_control.h" that 
-    *                        hold the control flags for the snow segment.
-    *             do_sky  -  Defined structure of TYPE "sky_control.h" that holds the
-    *                        control flags for the sky segment.
-    *            do_wind  -  Defined structure of TYPE "wind_control.h" that holds the
-    *                        control flags for the wind segment.
-    *      do_degree_day  -  Defined structure of TYPE "deg_day_control.h" that holds the
-    *                        control flags for the degree segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *      global_values  -  Defined strcuture of TYPE "climate_globals.h" that holds
-    *                        global values which for the most part is data inputted by
-    *                        the user.
-    *          valid_time -  Passes the current time for use by NWWS_comment.f
-    *
-    *   OUTPUT
-    *         output_file -  Output file is an array of characters that will act as the
-    *                        buffer to which all sentences are added.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   10/27/00  Doug Murphy            Made build_NWWS_comment cleaner,
-    *                                    therefore call to it had to change
-     * 
+     *
      * </pre>
      * 
      * @param reportData
@@ -160,12 +113,11 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    public Map<String, ClimateProduct> buildText(
-            ClimateCreatorResponse reportData) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+    public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
         Map<String, ClimateProduct> prod = new HashMap<>();
-        Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateCreatorPeriodResponse) reportData)
+        Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateRunPeriodData) reportData)
                 .getReportMap();
         StringBuilder productText = new StringBuilder();
         productText.append(buildNWWSHeader(reportData.getBeginDate()));
@@ -176,14 +128,14 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             ClimatePeriodReportData report = reportMap.get(stationId);
             if (report == null) {
                 logger.warn("The station with informId " + stationId
-                        + " defined in the ClimateProductType settings object was not found in the ClimateCreatorResponse report map.");
+                        + " defined in the ClimateProductType settings object was not found in the ClimateRunData report map.");
                 continue;
             }
 
             productText.append(buildNWWSComment(stationId, reportData));
 
             productText.append(buildNWWSPeriodTable(
-                    (ClimateCreatorPeriodResponse) reportData, report));
+                    (ClimateRunPeriodData) reportData, report));
 
             productText.append(buildNWWSPeriodWind(report));
 
@@ -191,7 +143,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             productText.append(NWWS_FOOTNOTE);
         }
-        productText.append("\n" + PRODUCT_TERMINATOR + "\n");
+        productText.append("\n").append(PRODUCT_TERMINATOR).append("\n");
 
         prod.put(getName(),
                 getProduct(applyGlobalConfig(productText.toString())));
@@ -208,59 +160,19 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
     *  THIS ROUTINE WILL CALL ALL THE ROUTINES THAT WILL BE INVOLVED IN CREATING
     *  THE NWWS TABULAR PORTION OF THE NWWS PRODUCT. THIS WILL INCLUDE CALLS TO
     *  THE TEMPERATURE, LIQUID PRECIP, SNOW PRECIP, AND DEGREE DAYS.
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *        cool_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the cool degree day season.
-    *        heat_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the heat degree day season.
-    *        snow_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the snow season.
-    *            do_temp  -  Defined structure of TYPE "temp_control.h" that hold the
-    *                        control flags for the temperature segment.
-    *   do_liquid_precip  -  Defined structure of TYPE "liquid_precip_control.h" that 
-    *                        hold the control flags for the liquid precip segment.
-    *     do_snow_precip  -  Defined structure of TYPE "snow_precip_control.h" that 
-    *                        hold the control flags for the snow segment.
-    *             do_sky  -  Defined structure of TYPE "sky_control.h" that holds the
-    *                        control flags for the sky segment.
-    *            do_wind  -  Defined structure of TYPE "wind_control.h" that holds the
-    *                        control flags for the wind segment.
-    *      do_degree_day  -  Defined structure of TYPE "deg_day_control.h" that holds the
-    *                        control flags for the degree segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *      global_values  -  Defined strcuture of TYPE "climate_globals.h" that holds
-    *                        global values which for the most part is data inputted by
-    *                        the user.
-    *     OUTPUT
-    *         all_phrases -  character array that holds the accumulated sentences from
-    *                        each routine.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *    4/18/00  Doug Murphy                Code for ending "." separator is
-    *                                        simplified
+     *
      * </pre>
      * 
      * @param reportData
      * @param climatePeriodReportData
      * @return
      */
-    private String buildNWWSPeriodTable(ClimateCreatorPeriodResponse reportData,
+    private String buildNWWSPeriodTable(ClimateRunPeriodData reportData,
             ClimatePeriodReportData climatePeriodReportData) {
 
         StringBuilder nwwsPeriodTable = new StringBuilder();
         ColumnSpaces tabs = new ColumnSpaces();
-        tabs.setDailyTabs(currentSettings);
+        tabs.setDailyTabs(currentSettings, reportData.getBeginDate());
 
         // create table header
         nwwsPeriodTable.append(createPeriodTableHead());
@@ -269,15 +181,18 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
         // create precipitation columns
         nwwsPeriodTable
                 .append(buildPeriodLiquidPrecip(climatePeriodReportData));
-        if (ClimateFormat
-                .reportWindow(currentSettings.getControl().getSnowDates())) {
+
+        if (ClimateFormat.reportWindow(
+                currentSettings.getControl().getSnowDates(),
+                reportData.getBeginDate())) {
             // create snowfall columns
-            nwwsPeriodTable
-                    .append(buildPeriodSnowPrecip(climatePeriodReportData));
+            nwwsPeriodTable.append(buildPeriodSnowPrecip(
+                    climatePeriodReportData, reportData.getBeginDate()));
         }
 
         // create degree days columns
-        nwwsPeriodTable.append(buildPeriodDegreeDays(climatePeriodReportData));
+        nwwsPeriodTable.append(buildPeriodDegreeDays(climatePeriodReportData,
+                reportData.getBeginDate()));
 
         // append separator
         nwwsPeriodTable.append(separator(periodSeparatorLength));
@@ -291,35 +206,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
     *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *        cool_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the cool degree day season.
-    *        heat_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the heat degree day season.
-    *        snow_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the snow season.
-    *            do_temp  -  Defined structure of TYPE "temp_control.h" that hold the
-    *                        control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *                 qc  -  Defined strcuture of TYPE "period_data_method.h" that holds
-    *                        "qc" quality control data which determines how the product
-    *                        was created.
-    * MODIFICATION HISTORY
-    * --------------------
-    *   7/13/00   Doug Murphy           Wind speeds have changed from int to float
-    *   2/15/01   Doug Murphy           Wind speeds are now in mph throughout climate..
-    *                                   no longer a need to convert from knots to mph
+    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE.
+     *
      * </pre>
      * 
      * @param climatePeriodReportData
@@ -350,9 +238,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
         if (windFlag.getResultWind().isMeasured()
                 || windFlag.getMaxWind().isMeasured()
                 || windFlag.getMaxGust().isMeasured()
-                || windFlag.getMaxWind().isMeasured()) {
-            periodWind.append(
-                    "\n" + WordUtils.capitalize(WIND) + SPACE + MPH + "\n");
+                || windFlag.getMeanWind().isMeasured()) {
+            periodWind.append("\n").append(WordUtils.capitalize(WIND))
+                    .append(SPACE).append(MPH).append("\n");
         }
 
         int speedPos = 31;
@@ -379,7 +267,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 break;
             }
 
-            periodWind.append(windLine.toString() + "\n");
+            periodWind.append(windLine.toString()).append("\n");
         }
 
         if (windFlag.getResultWind().isMeasured()) {
@@ -393,7 +281,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             switch ((int) actualData.getResultWind().getSpeed()) {
             case ParameterFormatClimate.MISSING:
-                windLine.replace(speedPos, speedPos + 2,
+                windLine.replace(speedPos + 1, speedPos + 3,
                         ParameterFormatClimate.MM);
                 break;
             default:
@@ -421,7 +309,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 }
             }
 
-            periodWind.append(windLine.toString() + "\n");
+            periodWind.append(windLine.toString()).append("\n");
 
         }
 
@@ -449,30 +337,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
      *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *        cool_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the cool degree day season.
-    *        heat_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the heat degree day season.
-    *        snow_report  -  Defined structure of TYPE "climate_dates.h" that holds
-    *                        the start and end date/times for the snow season.
-    *            do_temp  -  Defined structure of TYPE "temp_control.h" that hold the
-    *                        control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *                 qc  -  Defined strcuture of TYPE "period_data_method.h" that holds
-    *                        "qc" quality control data which determines how the product
-    *                        was created.
+    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE.
+     *
      * </pre>
      * 
      * @param climatePeriodReportData
@@ -510,7 +376,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
         if (skyFlag.isPossSunshine() || skyFlag.isAvgSkycover()
                 || skyFlag.isFairDays() || skyFlag.isPartlyCloudyDays()
                 || skyFlag.isCloudyDays()) {
-            periodSky.append("\n" + SKY_COVER + "\n");
+            periodSky.append("\n").append(SKY_COVER).append("\n");
 
             // possible sunshine line
             if (skyFlag.isPossSunshine()) {
@@ -528,7 +394,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                 switch ((int) actualData.getMeanSkyCover()) {
                 case ParameterFormatClimate.MISSING:
-                    sunLine.replace(elementFloat + 1, elementFloat + 3,
+                    sunLine.replace(elementFloat + 2, elementFloat + 4,
                             ParameterFormatClimate.MM);
                     break;
                 default:
@@ -538,7 +404,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                             elementFloat + coverString.length(), coverString);
                     break;
                 }
-                periodSky.append(sunLine.toString() + "\n");
+                periodSky.append(sunLine.toString()).append("\n");
             }
 
             // number of fair days line
@@ -560,19 +426,20 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         actualData.getNumMostlyCloudyDays(), element,
                         element + 1));
             }
-            periodSky.append("\n");
-            // average relative humidity line
-            if (currentSettings.getControl().getRelHumidityControl()
-                    .getAverageRH().isMeasured()) {
-                periodSky.append(skyHelper(
-                        WordUtils.capitalize(AVERAGE) + " RH ("
-                                + WordUtils.capitalize(PERCENT) + ")",
-                        actualData.getMeanRh(), table1, table1 + 1));
-            }
-
-            periodSky.append("\n");
 
         }
+
+        periodSky.append("\n");
+        // average relative humidity line
+        if (currentSettings.getControl().getRelHumidityControl().getAverageRH()
+                .isMeasured()) {
+            periodSky.append(skyHelper(
+                    WordUtils.capitalize(AVERAGE) + " RH ("
+                            + WordUtils.capitalize(PERCENT) + ")",
+                    actualData.getMeanRh(), table1, table1 + 1));
+        }
+
+        periodSky.append("\n");
 
         /**
          * Create weather section
@@ -685,7 +552,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 }
 
                 if (output == 2 || (i == wxValue.length - 1 && output == 1)) {
-                    periodSky.append(weatherLine.toString() + "\n");
+                    periodSky.append(weatherLine.toString()).append("\n");
                     weatherLine = emptyLine(
                             ParameterFormatClimate.NUM_LINE1_NWWS + 1);
                     output = 0;
@@ -705,26 +572,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
     *
     *  This routine creates the header of the table section for monthly, seasonal,
     * and annual climate reports
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *        line1, line2, line3       three table header lines
-    *        do_temp                   control flags for temperature variables
-    *        do_liquid_precip          control flags for precip variables
-    *        do_snow_precip            control flags for snow variables
-    *        do_degree_day             control flags for degree days
-    *        line_spaces               flag denoting which length of separator
-    *                                  to use
-    *        tabs                      set positions for each of the columns
-    *        all_phrases               the climate report output buffer
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *    8/10/00  Doug Murphy          Changed "Actual" to "Observed" and made
-    *                                  some slight spacing changes to fit it in
-    *    4/18/01  Doug Murphy          Did quite a bit of tweaking to spacing to
-    *                                  account for 7 digit values
+     *
      * </pre>
      * 
      * @return
@@ -1110,9 +958,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             }
 
-            periodTableHead.append(tableHeadLine1.toString() + "\n");
-            periodTableHead.append(tableHeadLine2.toString() + "\n");
-            periodTableHead.append(tableHeadLine3.toString() + "\n");
+            periodTableHead.append(tableHeadLine1.toString()).append("\n");
+            periodTableHead.append(tableHeadLine2.toString()).append("\n");
+            periodTableHead.append(tableHeadLine3.toString()).append("\n");
 
             periodTableHead.append(separator(separatorLength).toString());
             periodSeparatorLength = separatorLength;
@@ -1130,45 +978,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
      *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *        global_line  -  A character array of size 71 that is used for the used
-    *                        input lines. They are then added to new_line1 before 
-    *                        being added to the all_phrases buffer.
-    *            do_temp  -  Defined structure of TYPE "temp_control.h" that hold the
-    *                        control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *      global_values  -  Defined strcuture of TYPE "climate_globals.h" that holds
-    *                        global values which for the most part is data inputted by
-    *                        the user.
-    *     OUTPUT
-    *         all_phrases -  character array that holds the accumulated sentences from
-    *                        each routine.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *     7/14/00   Doug Murphy             Normal temps changed from int to float.
-    *                                       Requires rounding them to nearest int.
-    *     2/06/01   Doug Murphy             Avg. max, avg min, and mean temp lines
-    *                                       are changed to all float values.
-    *     3/13/01   Doug Murphy             Changed "GE" and "LE" labels to ">=" and
-    *                                       "<=".
-    *     3/22/01   Doug Murphy             Changed which_form from 1 to 2.
-    *     4/19/01   Doug Murphy             "Days GE/LE ..." have become hybrid lines
-    *                                       - part float part int
+    *  THIS ROUTINE WILL CREATE THE TEMPERATURE SEGMENT OF THE NWWS TABLE.
+     *
      * </pre>
      * 
      * @param climatePeriodReportData
@@ -1230,8 +1041,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 || currentSettings.getControl().getTempControl().getMeanTemp()
                         .isMeasured()) {
             // "TEMPERATURE (F)"
-            periodTemp.append(WordUtils.capitalize(TEMPERATURE) + SPACE
-                    + ABBRV_FAHRENHEIT + "\n");
+            periodTemp.append(WordUtils.capitalize(TEMPERATURE)).append(SPACE)
+                    .append(ABBRV_FAHRENHEIT).append("\n");
 
             // Record High/Low rows
             if (currentSettings.getControl().getTempControl().getMaxTemp()
@@ -1242,7 +1053,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         .isMeasured()
                         || currentSettings.getControl().getTempControl()
                                 .getMinTemp().isMeasured()) {
-                    periodTemp.append(WordUtils.capitalize(RECORD) + "\n");
+                    periodTemp.append(WordUtils.capitalize(RECORD))
+                            .append("\n");
                 }
                 if (currentSettings.getControl().getTempControl().getMaxTemp()
                         .isRecord()
@@ -1630,43 +1442,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
     *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE LIQUID PRECIP SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *        global_line  -  A character array of size 71 that is used for the used
-    *                        input lines. They are then added to new_line1 before 
-    *                        being added to the all_phrases buffer.
-    *   do_liquid_precip  -  Defined structure of TYPE "liquid_precip_control.h" that 
-    *                        hold the control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *      global_values  -  Defined strcuture of TYPE "climate_globals.h" that holds
-    *                        global values which for the most part is data inputted by
-    *                        the user.
-    *     OUTPUT
-    *         all_phrases -  character array that holds the accumulated sentences from
-    *                        each routine.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *     3/13/01   Doug Murphy             Changed "GE" labels to ">=" and added a trace
-    *                                       case when checking for record values.
-    *     4/19/01   Doug Murphy             "Days GE/LE ..." have become hybrid lines
-    *                                       - part float part int
-    *     3/13/03   Gary Battel             Corrects handling of TRACE amounts of precip
+    *  THIS ROUTINE WILL CREATE THE LIQUID PRECIP SEGMENT OF THE NWWS TABLE.
+     *
      * </pre>
      * 
      * @param climatePeriodReportData
@@ -1725,13 +1502,14 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         && precipFlag.getPrecipGEP1().isMeasured())
                 || (globalConfig.getP2() != 0.
                         && precipFlag.getPrecipGEP2().isMeasured())) {
-            liquidPrecip.append(WordUtils.capitalize(PRECIPITATION) + SPACE
-                    + "(" + INCHES + ")\n");
+            liquidPrecip.append(WordUtils.capitalize(PRECIPITATION))
+                    .append(SPACE).append("(").append(INCHES).append(")\n");
 
             if (precipFlag.getPrecipTotal().isMeasured()) {
                 if (precipFlag.getPrecipTotal().isRecord()
                         || precipFlag.getPrecipMin().isRecord()) {
-                    liquidPrecip.append(WordUtils.capitalize(RECORD) + "\n");
+                    liquidPrecip.append(WordUtils.capitalize(RECORD))
+                            .append("\n");
 
                     if (precipFlag.getPrecipTotal().isRecord()) {
                         StringBuilder floatLine = new StringBuilder(
@@ -1771,7 +1549,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 if (measured != ParameterFormatClimate.MISSING
                         && recMax != ParameterFormatClimate.MISSING) {
                     newRecord = (measured > recMax) ? true : false;
-                } else {
+
                     newRecord = (ClimateUtilities.floatingEquals(measured,
                             recMax) && recMax != 0) ? true : false;
                 }
@@ -1781,6 +1559,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         && recMin != ParameterFormatClimate.MISSING) {
                     newRecord = true;
                 }
+
                 StringBuilder floatLine = new StringBuilder(
                         buildNWWSFloatLine(precipFlag.getPrecipTotal(),
                                 actualData.getPrecipTotal(), null, null,
@@ -1989,59 +1768,20 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
     *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE SNOW SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *        global_line  -  A character array of size 71 that is used for the used
-    *                        input lines. They are then added to new_line1 before 
-    *                        being added to the all_phrases buffer.
-    *     do_snow_precip  -  Defined structure of TYPE "liquid_precip_control.h" that 
-    *                        hold the control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *      global_values  -  Defined strcuture of TYPE "climate_globals.h" that holds
-    *                        global values which for the most part is data inputted by
-    *                        the user.
-    *     OUTPUT
-    *         all_phrases -  character array that holds the accumulated sentences from
-    *                        each routine.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *     3/13/01   Doug Murphy             Changed "GE" labels to ">="...
-    *                                       Added code which would check for breaking record
-    *                                       for snow depth and 24h snowfall. Also added
-    *                                       case where Trace breaks record.
-    *     4/19/01   Doug Murphy             "Days GE/LE ..." have become hybrid lines
-    *                                       - part float part int
-    *     3/13/03   Gary Battel             Corrects problem with handling of TRACE of snow
+    *  THIS ROUTINE WILL CREATE THE SNOW SEGMENT OF THE NWWS TABLE.
+     *
      * </pre>
      * 
      * @param climatePeriodReportData
      * @return
      */
     private String buildPeriodSnowPrecip(
-            ClimatePeriodReportData climatePeriodReportData) {
+            ClimatePeriodReportData climatePeriodReportData,
+            ClimateDate beginDate) {
         StringBuilder snowPrecip = new StringBuilder();
 
         SnowControlFlags snowFlag = currentSettings.getControl()
                 .getSnowControl();
-
-        boolean snowReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getSnowDates());
 
         PeriodClimo recordData = climatePeriodReportData.getClimo();
         PeriodData actualData = climatePeriodReportData.getData();
@@ -2066,7 +1806,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
          *  24 HR TOTAL      1.1
          * </pre>
          */
-        if (snowReport && (snowFlag.getSnowTotal().isMeasured()
+        if (snowFlag.getSnowTotal().isMeasured()
                 || snowFlag.getSnowWaterTotal().isMeasured()
                 || snowFlag.getSnowJuly1().isMeasured()
                 || snowFlag.getSnowWaterJuly1().isMeasured()
@@ -2077,15 +1817,18 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         && snowFlag.getSnowGEP1().isMeasured())
                 || snowFlag.getSnowDepthMax().isMeasured()
                 || snowFlag.getSnow24hr().isMeasured()
-                || snowFlag.getSnowStormMax().isMeasured())) {
+                || snowFlag.getSnowStormMax().isMeasured()) {
+
             if (snowFlag.getSnowTotal().isMeasured()) {
-                snowPrecip.append(WordUtils.capitalize(SNOWFALL) + SPACE + "("
-                        + INCHES + ")\n");
+
+                snowPrecip.append(WordUtils.capitalize(SNOWFALL)).append(SPACE)
+                        .append("(").append(INCHES).append(")\n");
 
                 if (snowFlag.getSnowTotal().isRecord()
                         || snowFlag.getSnow24hr().isRecord()
                         || snowFlag.getSnowDepthAvg().isRecord()) {
-                    snowPrecip.append(WordUtils.capitalize(RECORD) + "s\n");
+                    snowPrecip.append(WordUtils.capitalize(RECORD))
+                            .append("s\n");
 
                     if (snowFlag.getSnowTotal().isRecord()) {
                         StringBuilder floatLine = new StringBuilder(
@@ -2407,54 +2150,21 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * <pre>
     *  SEPTEMBER 1999       Dan Zipper       PRC\TDL
     *
-    *  THIS ROUTINE WILL CREATE THE DEGREE DAY SEGMENT OF THE NWWS TABLE. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *      do_heat_report -  A logical flag that determines whether or not to include
-    *                        the heating degree days.
-    *      do_cool_report -  A logical flag that determines whether or not to include
-    *                        the cooling degree days.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *        global_line  -  A character array of size 71 that is used for the used
-    *                        input lines. They are then added to new_line1 before 
-    *                        being added to the all_phrases buffer.
-    *     do_degree_days  -  Defined structure of TYPE "liquid_precip_control.h" that 
-    *                        hold the control flags for the temperature segment.
-    *                  p  -  Defined structure of TYPE "period_data.h" that holds all 
-    *                        "p"eriodic observed data.
-    *                  l  -  Defined structure of TYPE "period_data.h" that holds all
-    *                        "l"ast years's observed data.
-    *                  h  -  Defined structure of TYPE "period_climo.h" that holds all
-    *                        "h"istorical and record data for the period.
-    *     OUTPUT
-    *         all_phrases -  character array that holds the accumulated sentences from
-    *                        each routine.  
-    *
-    *  MODIFICATION HISTORY
-    *
-    *  Oct 2002   Bob Morris          OB1: Fixed cut/paste typo in IF test on
-    *                                 whether to include CDD (lines 189-190).
+    *  THIS ROUTINE WILL CREATE THE DEGREE DAY SEGMENT OF THE NWWS TABLE.
      * </pre>
      * 
      * @param climatePeriodReportData
      * @return
      */
     private String buildPeriodDegreeDays(
-            ClimatePeriodReportData climatePeriodReportData) {
+            ClimatePeriodReportData climatePeriodReportData,
+            ClimateDate beginDate) {
         StringBuilder degreeDays = new StringBuilder();
 
-        boolean coolReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getCoolDates());
-        boolean heatReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getHeatDates());
+        boolean coolReport = ClimateFormat.reportWindow(
+                currentSettings.getControl().getCoolDates(), beginDate);
+        boolean heatReport = ClimateFormat.reportWindow(
+                currentSettings.getControl().getHeatDates(), beginDate);
         DegreeDaysControlFlags degreeFlag = currentSettings.getControl()
                 .getDegreeDaysControl();
 
@@ -2479,7 +2189,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 || degreeFlag.getSeasonCDD().isMeasured()))
                 || (heatReport && (degreeFlag.getTotalHDD().isMeasured()
                         || degreeFlag.getSeasonHDD().isMeasured()))) {
-            degreeDays.append(DEGREE_DAYS + "\n");
+            degreeDays.append(DEGREE_DAYS).append("\n");
         }
 
         if (heatReport && (degreeFlag.getTotalHDD().isMeasured()
@@ -2498,7 +2208,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             } else {
                 integerLine1 = new StringBuilder(
                         emptyLine(ParameterFormatClimate.NUM_LINE1_NWWS + 1)
-                                .toString() + "\n");
+                                .toString()).append("\n");
             }
 
             if (degreeFlag.getSeasonHDD().isMeasured()) {
@@ -2536,7 +2246,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             } else {
                 integerLine1 = new StringBuilder(
                         emptyLine(ParameterFormatClimate.NUM_LINE1_NWWS + 1)
-                                .toString() + "\n");
+                                .toString()).append("\n");
             }
 
             integerLine1.replace(0, (COOLING + SPACE + TOTAL).length(),
@@ -2580,18 +2290,19 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         datesLine1.replace(periodTabs.getPosValue(),
                                 periodTabs.getPosValue() + dateString.length(),
                                 dateString);
-                        degreeDays.append(datesLine1.toString() + "\n");
+                        degreeDays.append(datesLine1.toString()).append("\n");
                     } else {
                         datesLine1.replace(periodTabs.getPosValue(),
                                 periodTabs.getPosValue() + 2,
                                 ParameterFormatClimate.MM);
-                        degreeDays.append(datesLine1.toString() + "\n");
+                        degreeDays.append(datesLine1.toString()).append("\n");
                     }
                 }
 
                 if (degreeFlag.getLateFreeze().isRecord()) {
                     if (!degreeFlag.getEarlyFreeze().isRecord()) {
-                        degreeDays.append(WordUtils.capitalize(RECORD) + "\n");
+                        degreeDays.append(WordUtils.capitalize(RECORD))
+                                .append("\n");
                     }
 
                     StringBuilder datesLine1 = emptyLine(
@@ -2606,12 +2317,12 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         datesLine1.replace(periodTabs.getPosValue(),
                                 periodTabs.getPosValue() + dateString.length(),
                                 dateString);
-                        degreeDays.append(datesLine1.toString() + "\n");
+                        degreeDays.append(datesLine1.toString()).append("\n");
                     } else {
                         datesLine1.replace(periodTabs.getPosValue(),
                                 periodTabs.getPosValue() + 2,
                                 ParameterFormatClimate.MM);
-                        degreeDays.append(datesLine1.toString() + "\n");
+                        degreeDays.append(datesLine1.toString()).append("\n");
                     }
                 }
             }
@@ -2765,11 +2476,11 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
         if (!maxList.isEmpty()) {
             switch ((int) maxList.get(0).getSpeed()) {
             case ParameterFormatClimate.MISSING:
-                windLine.replace(speedPos, speedPos + 2,
+                windLine.replace(speedPos + 1, speedPos + 3,
                         ParameterFormatClimate.MM);
                 windLine.replace(datePos + 1, datePos + 3,
                         ParameterFormatClimate.MM);
-                periodWind.append(windLine.toString() + "\n");
+                periodWind.append(windLine.toString()).append("\n");
                 secondTime = true;
                 break;
 
@@ -2804,12 +2515,12 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         windLine.replace(datePos, datePos + dateString.length(),
                                 dateString);
                     } else {
-                        windLine.replace(datePos, datePos + 2,
+                        windLine.replace(datePos + 1, datePos + 3,
                                 ParameterFormatClimate.MM);
                     }
                 }
 
-                periodWind.append(windLine.toString() + "\n");
+                periodWind.append(windLine.toString()).append("\n");
 
                 break;
             }
@@ -2823,7 +2534,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 String speedString = "";
                 switch ((int) maxList.get(j).getSpeed()) {
                 case ParameterFormatClimate.MISSING:
-                    windDateLines.replace(speedPos, speedPos + 3,
+                    windDateLines.replace(speedPos + 1, speedPos + 3,
                             ParameterFormatClimate.MM + "/");
                     break;
                 default:
@@ -2868,14 +2579,14 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         windDateLines.replace(datePos,
                                 datePos + dateString.length(), dateString);
                     } else {
-                        windDateLines.replace(datePos, datePos + 2,
+                        windDateLines.replace(datePos + 1, datePos + 3,
                                 ParameterFormatClimate.MM);
                     }
                 }
 
                 if (maxList.get(j)
                         .getSpeed() != ParameterFormatClimate.MISSING) {
-                    periodWind.append(windDateLines.toString() + "\n");
+                    periodWind.append(windDateLines.toString()).append("\n");
                 }
             }
         }
@@ -2917,49 +2628,11 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * Migrated from build_NWWS_integer_line.c
      * 
      * <pre>
-     * SEPTEMBER 1999       Dan Zipper       PRC\TDL
-    *
-    *  THIS IS THE GENERIC ROUTINE THAT WILL BE USED FOR ALL LINES WHERE THE 
-    *  ACTUAL VALUE IS INTEGER NUMBER. 
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *         new_record  -  Indicates whether or not a new record has been set
-    *           do_trace  -  Indicates whether or not the value of -1 indicates a trace
-    *           do_value  -  Defined generic structure to be used with whatever structure
-    *                        is passed into the routine.
-    *        actual_value -  The actual observed value.
-    *        actual_date1 -  The date the element was observed.
-    *        actual_date2 -  The second date the element was observed.
-    *        actual_date3 -  The third date the element was observed.
-    *        record_value -  The record date.
-    *        record_date1 -  The date the record element was observed.
-    *        record_date2 -  The second date the record element was observed.
-    *        record_date3 -  The third date the record element was observed.
-    *        normal_value -  The normal value for the element.
-    *       last_yr_value -  The last years element value.
-    *     last_year_date1 -  The date the element was observed last yr.
-    *     last_year_date2 -  The second date the element was observed last yr.
-    *     last_year_date3 -  The third date the element was observed last yr.
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    4/18/01   Doug Murphy              Modified to 7 digit values (to
-    *                                       line up with 7 digit float values)
-    *    3/20/03   Gary Battel              Outputs T for trace values
-     * 
-     * </pre>
-     * 
-     * Format a line in the report with integer and date values. Pass a dummy
-     * value if the column corresponding to the parameter is blank at this line.
+     * SEPTEMBER 1999 Dan Zipper PRC\TDL
+     *
+     * THIS IS THE GENERIC ROUTINE THAT WILL BE USED FOR ALL LINES WHERE THE
+     * ACTUAL VALUE IS INTEGER NUMBER.
+     *
      * 
      * @param valueFlag
      * @param actualValue
@@ -3073,23 +2746,25 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             if (valueFlag.isTimeOfMeasured() && Math
                     .abs(actualValue) != ParameterFormatClimate.MISSING) {
 
-                if (dayActualList == null || dayActualList.isEmpty()
-                        || dayActualList.get(0).isPartialMissing()) {
+                if (dayActualList != null && !dayActualList.isEmpty()) {
+                    if (dayActualList.get(0).isPartialMissing()) {
 
-                    integerLine1.replace(periodTabs.getPosActDate() - 1,
-                            periodTabs.getPosActDate() + 1,
-                            ParameterFormatClimate.MM);
-                } else {
-                    String dateString = getShortDateFormat(
-                            dayActualList.get(0).getCalendarFromClimateDate());
+                        integerLine1.replace(periodTabs.getPosActDate() - 1,
+                                periodTabs.getPosActDate() + 1,
+                                ParameterFormatClimate.MM);
+                    } else {
+                        String dateString = getShortDateFormat(dayActualList
+                                .get(0).getCalendarFromClimateDate());
 
-                    integerLine1.replace(periodTabs.getPosActDate() - 1,
-                            periodTabs.getPosActDate() - 1
-                                    + dateString.length(),
-                            dateString);
-                    dateLines.append(multipleYear(
-                            new SimpleDateFormat(SHORT_DATE_FORMAT_STRING),
-                            dayActualList, periodTabs.getPosActDate() - 1));
+                        integerLine1
+                                .replace(periodTabs.getPosActDate() - 1,
+                                        periodTabs.getPosActDate() - 1
+                                                + dateString.length(),
+                                dateString);
+                        dateLines.append(multipleYear(
+                                new SimpleDateFormat(SHORT_DATE_FORMAT_STRING),
+                                dayActualList, periodTabs.getPosActDate() - 1));
+                    }
                 }
 
             }
@@ -3215,40 +2890,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
     *
     *  THIS IS THE GENERIC ROUTINE THAT WILL BE USED FOR ALL LINES WHERE THE 
     *  ACTUAL VALUE IS A REAL NUMBER.
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *           num_stat  -  integer that determines how many stations are to be
-    *                        used in the product. Used to define element number.
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *           do_value  -  Defined generic structure to be used with whatever structure
-    *                        is passed into the routine.
-    *        actual_value -  The actual observed value.
-    *     start_end_date1 -  The date the element was observed.
-    *     start_end_date2 -  The second date the element was observed.
-    *     start_end_date3 -  The third date the element was observed.
-    *        record_value -  The record date.
-    *record_start_end_date1 -  The date the record element was observed.
-    *record_start_end_date2 -  The second date the record element was observed.
-    *record_start_end_date3 -  The third date the record element was observed.
-    *        normal_value -  The normal value for the element.
-    *       last_yr_value -  The last years element value.
-    *last_yr_start_end_date -  The date the element was observed last yr.
-    *last_yr_start_end_date2 -  The second date the element was observed last yr.
-    *last_yr_start_end_date3 -  The third date the element was observed last yr.
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    3/22/01   Doug Murphy           Moved flag for record outside case statement
-    *                                    in order to allow for a T breaking a record..
-    *                                    Added a snow=2 option for float temperatures
-    *                                    (since a temp of -1 would've printed as T)
-    *    4/18/01   Doug Murphy           Changed to account for 7 digit values
+     *
      * </pre>
      * 
      * @param valueFlag
@@ -3440,18 +3082,20 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             if (valueFlag.isTimeOfMeasured()
                     && actualValue != ParameterFormatClimate.MISSING) {
-                if (actualDate1 == null || actualDate1.isPartialMissing()) {
-                    floatLine1.replace(periodTabs.getPosActDate() - 1,
-                            periodTabs.getPosActDate() + 1,
-                            ParameterFormatClimate.MM);
-                } else {
-                    String datesString = getShortDateFormat(
-                            actualDate1.getCalendarFromClimateDate());
-                    floatLine1
-                            .replace(periodTabs.getPosActDate() - 1,
-                                    periodTabs.getPosActDate() - 1
-                                            + datesString.length(),
-                            datesString);
+                if (actualDate1 != null) {
+                    if (actualDate1.isPartialMissing()) {
+                        floatLine1.replace(periodTabs.getPosActDate() - 1,
+                                periodTabs.getPosActDate() + 1,
+                                ParameterFormatClimate.MM);
+                    } else {
+                        String datesString = getShortDateFormat(
+                                actualDate1.getCalendarFromClimateDate());
+                        floatLine1
+                                .replace(periodTabs.getPosActDate() - 1,
+                                        periodTabs.getPosActDate() - 1
+                                                + datesString.length(),
+                                datesString);
+                    }
                 }
             }
 
@@ -3778,20 +3422,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
     *  Routine used to format threshold lines of monthly, seasonal, and annual
     *  NWWS reports. The normals and departures are float values, and the observed
     *  and previous year values are integers, causing a hybrid line.
-    *
-    *  VARIABLES
-    *
-    *    INPUT
-    *              tabs   -  Defined structure of TYPE "tab_sets.h". Determines
-    *                        where to place the output in the table.
-    *          new_line1  -  A character array of size 71 that the individual lines
-    *                        are written to before being added to the all_phrases 
-    *                        buffer.
-    *           do_value  -  Defined generic structure to be used with whatever structure
-    *                        is passed into the routine.
-    *        actual_value -  The actual observed value.
-    *        normal_value -  The normal value for the element.
-    *       last_yr_value -  The last years element value.
+     *
      * </pre>
      * 
      * @param valueFlag
@@ -3891,7 +3522,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 dateLine.replace(position, position + dateString.length(),
                         dateString);
 
-                multipleYear.append(dateLine + "\n");
+                multipleYear.append(dateLine).append("\n");
             }
         }
 
@@ -3936,7 +3567,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 dateLine.replace(position, position + datesString.length(),
                         datesString);
 
-                multipleYear.append(dateLine + "\n");
+                multipleYear.append(dateLine).append("\n");
             }
         }
 

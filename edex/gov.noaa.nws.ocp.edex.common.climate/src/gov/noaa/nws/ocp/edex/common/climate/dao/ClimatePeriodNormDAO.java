@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodClimo;
@@ -37,18 +34,14 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * 07 JUL 2017  33104      amoore      Split Daily and Period norms into different classes.
  * 01 SEP 2017  37589      amoore      Consolidate many sum of historical data queries to
  *                                     reduce duplicate code.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 15 SEP 2017  38014      amoore      Address index out of bounds error.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
 public class ClimatePeriodNormDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimatePeriodNormDAO.class);
-
     /**
      * Maximum days per month. Different from regular calculation for max days
      * in a particular month because this array is for use in calculating
@@ -65,7 +58,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         super();
     }
 
-    /**
+     /**
      * Converted from get_period_hist_climo.ec
      * 
      * Original comments:
@@ -76,70 +69,10 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *   ecember 1999     David T. Miller        PRC/TDL
      *         Purpose:  retrieves the historical climatological data from the monthly,
      *           seasonal, and yearly database table
-     * 
-     * 
-     * Variables
-     * 
-     *    Input  *end_date     pointer to the end date structure of the period
-     *       period_type     flag to indicate month, season or year
-     * 
-     * 
-     *    Output  *period_climo  pointer to historical period climatology data structure
-     * 
-     * 
-     *    Local  see variable list
-     * 
-     * 
-     *    Non-system routines used
-     * 
-     *    Non-system functions used
-     * 
-     * SUBROUTINE #1: monthly_sums
-     *                  This routine sums a variable using the monthly normal
-     *                  entries for the passed element.
-     * SUBROUTINE #2: average_value
-     *                  This routine calculates a weighted normal using a
-     *                  combination of monthly and daily normal values. Used
-     *                  primarily as a backup for the normal temperatures, it is
-     *                  also used as a backup for normal snow depth and avg daily
-     *                  precipitation.
-     * 
-     * MODIFICATION HISTORY
-     * --------------------
-     *   7/14/00   Doug Murphy      
-     *                Normal temperatures changed from int to float
-     *   1/17/01   Doug Murphy              
-     *                Major additions allow backup calculation of norms when an 
-     *                entire period is not asked for or values are missing from the
-     *                mon_climate_norm... includes the addition of two generic 
-     *                routines- monthly_sums and average_value which can be reused
-     *                by the different variables.
-     *   4/18/01   Doug Murphy
-     *                Normal number of days >/< precip/temp/snow have changed from
-     *                ints to floats
-     *  12/19/02   Bob Morris
-     *                Modified prototypes for called/changed sum_his_* routines, and
-     *                removed unnecessary julday() prototype and unused ec_begin_month
-     *                variable - OB2
-     *  03/05/03   Bob Morris
-     *                Eliminate out-of-bounds strcpy's to temp_date.  OB2 DR_12256
-     *  03/25/03   Bob Morris
-     *                Fix data type arguments to risnull(), should use c-data types
-     *                not SQL types, and use their names, not numbers.  OB2 DR_12256
-     *   1/19/05   Gary Battel/Manan Dalal
-     *                 Conversion of INFORMIX to POSTGRES
-     * 
-     *   6/24/2007 Darnell Early
-     *                 Fixed the code to handle leap year from previous years in seasonal
-     *                 and monthly reports
-     *                                      
-     *   04/13/2011  Xiaochuan
-     *         Fix the memory override problem for DR 21228. Add Initialize 
-     *         statement that set \0 at the end for temp_year, temp_mon, 
-     *         temp_day. The problem appeared after version OB9.2.12. 
-     *         Also, change all sprintf() to snprintf().
+     *           
      * </pre>
      */
+    
     public void getPeriodHistClimo(ClimateDate beginDate, ClimateDate endDate,
             PeriodClimo periodClimo, PeriodType periodType)
                     throws ClimateQueryException {
@@ -253,11 +186,11 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* mean climo max temperature */
                             float maxTempNorm = oa[0] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[0];
+                                    : ((Number) oa[0]).floatValue();
                             /* record maxTemp */
                             short maxTempRecord = oa[1] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[1];
+                                    : ((Number) oa[1]).shortValue();
                             /* date(s) of record max temp */
                             Date dayMaxTempRecord1 = oa[2] == null ? null
                                     : (Date) oa[2];
@@ -268,13 +201,13 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* mean climo min temp */
                             float minTempNorm = oa[5] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[5];
+                                    : ((Number) oa[5]).floatValue();
                             /*
                              * record min temp, degrees F
                              */
                             short minTempRecord = oa[6] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[6];
+                                    : ((Number) oa[6]).shortValue();
                             /* date(s) of observed minTemp */
                             Date dayMinTempRecord1 = oa[7] == null ? null
                                     : (Date) oa[7];
@@ -285,100 +218,100 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* norm climo average temp */
                             float normMeanTemp = oa[10] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[10];
+                                    : ((Number) oa[10]).floatValue();
                             /* normal mean max temperature */
                             float normMeanMaxTemp = oa[11] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[11];
+                                    : ((Number) oa[11]).floatValue();
                             /* normal mean min temperature */
                             float normMeanMinTemp = oa[12] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[12];
+                                    : ((Number) oa[12]).floatValue();
                             /* mean # of days max temp GE 90F */
                             float normNumMaxGE90F = oa[13] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[13];
+                                    : ((Number) oa[13]).floatValue();
                             /* mean # of days max temp LE 32F */
                             float normNumMaxLE32F = oa[14] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[14];
+                                    : ((Number) oa[14]).floatValue();
                             /* mean # of days min temp LE 32F */
                             float normNumMinLE32F = oa[15] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[15];
+                                    : ((Number) oa[15]).floatValue();
                             /* mean # of days min temp LE 0F */
                             float normNumMinLE0F = oa[16] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[16];
+                                    : ((Number) oa[16]).floatValue();
                             /* mean cumulative precip this month (in.) */
                             float precipPeriodNorm = oa[17] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[17];
+                                    : ((Number) oa[17]).floatValue();
                             /* record precip for this month */
                             float precipPeriodMax = oa[18] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[18];
+                                    : ((Number) oa[18]).floatValue();
                             /* year of record monthly precip */
                             short precipPeriodMaxYear1 = oa[19] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[19];
+                                    : ((Number) oa[19]).shortValue();
                             short precipPeriodMaxYear2 = oa[20] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[20];
+                                    : ((Number) oa[20]).shortValue();
                             short precipPeriodMaxYear3 = oa[21] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[21];
+                                    : ((Number) oa[21]).shortValue();
                             /* record min precip for this month */
                             float precipPeriodMin = oa[22] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[22];
+                                    : ((Number) oa[22]).floatValue();
                             /* year of record monthly precip */
                             short precipPeriodMinYear1 = oa[23] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[23];
+                                    : ((Number) oa[23]).shortValue();
                             short precipPeriodMinYear2 = oa[24] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[24];
+                                    : ((Number) oa[24]).shortValue();
                             short precipPeriodMinYear3 = oa[25] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[25];
+                                    : ((Number) oa[25]).shortValue();
                             /* daily average precip */
                             float precipDayNorm = oa[26] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[26];
+                                    : ((Number) oa[26]).floatValue();
                             /* mean # of days precip GE .01 inches */
                             float numPrcpGE01Norm = oa[27] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[27];
+                                    : ((Number) oa[27]).floatValue();
                             /* mean # of days precip GE .10 inches */
                             float numPrcpGE10Norm = oa[28] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[28];
+                                    : ((Number) oa[28]).floatValue();
                             /* mean # of days precip GE .50 inches */
                             float numPrcpGE50Norm = oa[29] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[29];
+                                    : ((Number) oa[29]).floatValue();
                             /* mean # of days precip GE 1.00 inches */
                             float numPrcpGE100Norm = oa[30] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[30];
+                                    : ((Number) oa[30]).floatValue();
                             /* total snow for month (in.) */
                             float snowPeriodNorm = oa[31] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[31];
+                                    : ((Number) oa[31]).floatValue();
                             /* record snowfall for the month */
                             float snowPeriodRecord = oa[32] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[32];
+                                    : ((Number) oa[32]).floatValue();
                             short snowPeriodMaxYear1 = oa[33] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[33];
+                                    : ((Number) oa[33]).shortValue();
                             short snowPeriodMaxYear2 = oa[34] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[34];
+                                    : ((Number) oa[34]).shortValue();
                             short snowPeriodMaxYear3 = oa[35] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[35];
+                                    : ((Number) oa[35]).shortValue();
                             /* begin dates of max 24H snow */
                             Date snow24HBegin1 = oa[36] == null ? null
                                     : (Date) oa[36];
@@ -389,7 +322,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* record max 24 hour snowfall */
                             float snowMax24HRecord = oa[39] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[39];
+                                    : ((Number) oa[39]).floatValue();
                             /* end dates of max 24H snow */
                             Date snow24HEnd1 = oa[40] == null ? null
                                     : (Date) oa[40];
@@ -400,15 +333,15 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* normal water equivalent of snow (in.) */
                             float snowWaterPeriodNorm = oa[43] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[43];
+                                    : ((Number) oa[43]).floatValue();
                             /* average climo snow depth */
                             float snowGroundNorm = oa[44] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[44];
+                                    : ((Number) oa[44]).floatValue();
                             /* record snow depth for the month */
                             short snowGroundMax = oa[45] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[45];
+                                    : ((Number) oa[45]).shortValue();
                             /* date(s) of observed snow depth */
                             Date daySnowGroundMax1 = oa[46] == null ? null
                                     : (Date) oa[46];
@@ -419,19 +352,19 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             /* mean # of days with any snowfall */
                             float numSnowGETRNorm = oa[49] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[49];
+                                    : ((Number) oa[49]).floatValue();
                             /* mean # of days with snow GEinch */
                             float numSnowGE1Norm = oa[50] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (float) oa[50];
+                                    : ((Number) oa[50]).floatValue();
                             /* mean cumulative # of heat days */
                             int numHeatPeriodNorm = oa[51] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (int) oa[51];
+                                    : ((Number) oa[51]).intValue();
                             /* mean cumulative # of cool days */
                             int numCoolPeriodNorm = oa[52] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (int) oa[52];
+                                    : ((Number) oa[52]).intValue();
 
                             periodClimo.setMonthOfYear(ecMonth);
                             periodClimo.setPeriodType(periodType);
@@ -624,9 +557,9 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                 keyParamMap.put("ec_missing_int",
                         ParameterFormatClimate.MISSING);
 
-                short maxTempRecord = (short) queryForOneValue(
+                short maxTempRecord = ((Number) queryForOneValue(
                         maxTempQuery.toString(), keyParamMap,
-                        ParameterFormatClimate.MISSING);
+                        ParameterFormatClimate.MISSING)).shortValue();
                 periodClimo.setMaxTempRecord(maxTempRecord);
 
             } catch (Exception e) {
@@ -667,9 +600,9 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                 keyParamMap.put("ec_missing_int",
                         ParameterFormatClimate.MISSING);
 
-                short minTempRecord = (short) queryForOneValue(
+                short minTempRecord = ((Number) queryForOneValue(
                         minTempQuery.toString(), keyParamMap,
-                        ParameterFormatClimate.MISSING);
+                        ParameterFormatClimate.MISSING)).shortValue();
                 periodClimo.setMinTempRecord(minTempRecord);
 
             } catch (Exception e) {
@@ -912,22 +845,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * a backup for the normal temperatures, it is also used as a backup for
      * normal snow depth and avg daily precipitation.
      * 
-     * Original comments:
-     * 
-     * <pre>
-     * *   January 2001     Doug Murphy        PRC/MDL
-     * 
-     *   Variables
-     *    Input  begin_date     begin date of period to be averaged
-     *       end_date       end date of period to be averaged
-     *           station_id     ID of station whose norms are to be averaged
-     *           day_name       column name in the day_climate_norm hmdb table
-     *                          of the variable to be averaged
-     *           mon_name       column name in the mon_climate_norm hmdb table
-     *                          of the variable to be averaged
-     * 
-     *    Output return_val     returns float value resulting from calculations
-     * </pre>
      */
     private float averageValue(ClimateDate beginDate, ClimateDate endDate,
             long stationId, String dayName, String monName) {
@@ -1009,7 +926,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                         keyParamMap);
                 if ((results != null) && (results.length >= 1)) {
                     daySum = daySum + MAX_DAYS_PER_MONTH[begin - 1];
-                    weightedSum += ((float) results[0]
+                    weightedSum += (((Number) results[0]).floatValue()
                             * MAX_DAYS_PER_MONTH[begin - 1]);
                 } else {
                     dailiesOnly = 1;
@@ -1086,7 +1003,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                         keyParamMap);
                 if ((results != null) && (results.length >= 1)) {
 
-                    if ((int) results[0] == numberOfDays) {
+                    if (((Number) results[0]).intValue() == numberOfDays) {
 
                         try {
                             Object[] results2 = getDao().executeSQLQuery(
@@ -1238,7 +1155,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         }
     }
 
-    /**
+     /**
      * Converted from get_period_hist_climo.ec SUBROUTINE #1: monthly_sums This
      * routine sums a variable using the monthly normal entries for the passed
      * element.
@@ -1251,16 +1168,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * 
      *   January 2001     Doug Murphy        PRC/MDL
      * 
-     *   Variables
-     *    Input  begin_date     begin month of period to be summed
-     *       end_date       end month of period to be summed
-     *           num_mos        number of complete months within the period
-     *                          begin and end
-     *           station_id     ID of station whose norms are to be summed
-     *           table_name     column name in the mon_climate_norm hmdb table
-     *                          of the variable to be summed
-     * 
-     *    Output return_val     returns float value resulting from calculations
      * </pre>
      * 
      * @param beginDate
@@ -1270,6 +1177,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param colName
      * @return
      */
+    
     public float monthlySums(int beginDate, int endDate, int numMos,
             int stationId, String colName) {
         StringBuilder ecStmt;
@@ -1349,7 +1257,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return returnVal;
     }
 
-    /**
+     /**
      * Converted from sum_his_cool.ecpp
      * 
      * Original comments:
@@ -1381,44 +1289,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *          the Feb 29th normal value is added into the sum. Note that this will
      *          only occur on the 29th of the month.
      *    
-     *       VARIABLES
-     *       =========
-     *    
-     *       name                  description
-     *    ------------------------------------------------------------------------------
-     *        Input
-     *          begin_date          - starting date for summation
-     *          end_date            - ending date for summation
-     *          station_id         - station id of type int for which this function
-     *                   is called
-     *    
-     *        Output
-     *          sum_cool            - sum of historical cooling degree days between
-     *                                start date and end date
-     *    
-     *          Local
-     *    
-     *        MODIFICATIONS
-     *        May 1999             David T. Miller                 PRC/TDL
-     *                             Added check for leap year.  If it is a leap year, then
-     *                             want to include Feb 29th historical data.  If not, 
-     *                             then must exclude it.
-     *        April 2000           David T. Miller                 PRC/TDL
-     *                             Slight modification so YTD normals would add up okay
-     *                             during leap years
-     *        September 2000       Doug Murphy                     PRC/TDL
-     *                             Removed unnecessary include files
-     *        January 2001         Doug Murphy                     PRC/MDL
-     *                             Major rewrite to take advantage of monthly norms
-     *                             that have been introduced - also revised to work
-     *                             with monthly, seasonal, and annual reports as well
-     *        Dec 2002             Bob Morris                      SAIC/MDL
-     *                             - Changed date args to reference variables
-     *                             to fix seg. faults under Linux.
-     *                             - Added non-const int iyrtemp for call to leap()
-     *        Jan 2005             Manan Dalal                     NGIT/MDL
-     *                             - Ported code from Informix to Postgresql
-     ************************************************************************* 
      * </pre>
      * 
      * @param beginDate
@@ -1426,6 +1296,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+    
     public int sumHisCool(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         int tempSum = 0;
@@ -1721,7 +1592,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             // result could be null
                             if ((ecsumRes != null) && (ecsumRes.length >= 1)
                                     && (ecsumRes[0] != null)) {
-                                sumMax = (int) ecsumRes[0];
+                                sumMax = ((Number) ecsumRes[0]).intValue();
                             } else {
                                 logger.warn("No data for query: ["
                                         + maxTempQuery + "] and map: ["
@@ -1767,7 +1638,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             // result could be null
                             if ((ecsumRes != null) && (ecsumRes.length >= 1)
                                     && (ecsumRes[0] != null)) {
-                                sumMin = (int) ecsumRes[0];
+                                sumMin = ((Number) ecsumRes[0]).intValue();
                             } else {
                                 logger.warn("No data for query: ["
                                         + minTempQuery + "] and map: ["
@@ -1892,7 +1763,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                     // result could be null
                     if ((ecsumRes != null) && (ecsumRes.length >= 1)
                             && (ecsumRes[0] != null)) {
-                        sumCool += (int) ecsumRes[0];
+                        sumCool += ((Number) ecsumRes[0]).intValue();
                     } else {
                         logger.warn("No data for query: [" + leapQuery
                                 + "] and map: [" + keyParamMap + "]");
@@ -1912,7 +1783,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumCool;
     }
 
-    /**
+     /**
      * Converted from sum_his_heat.ecpp
      * 
      * Original comments:
@@ -1943,45 +1814,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *          Finally, during leap years, for a February monthly normal total ONLY, 
      *          the Feb 29th normal value is added into the sum. Note that this will
      *          only occur on the 29th of the month.
-     *    
-     *       VARIABLES
-     *       =========
-     *    
-     *       name                  description
-     *    ------------------------------------------------------------------------------
-     *        Input
-     *          begin_date          - starting date for summation
-     *          end_date            - ending date for summation
-     *          station_id         - station id of type int for which this function
-     *                   is called
-     *    
-     *        Output
-     *          sum_heat            - sum of historical heating degree days between
-     *                                start date and end date
-     *    
-     *          Local
-     *    
-     *        MODIFICATIONS
-     *    
-     *        May 1999              David T. Miller             PRC/TDL
-     *                              Had to add a section so if the period included a leap
-     *                              year, the historical values for Feb 29th would also
-     *                              be added into the summations.
-     *        Apr 2000              David T. Miller             PRC/TDL
-     *                              Slight modification so Feb 29th YTD values would comply
-     *                              with WSOM and NCDC 
-     *        September 2000        Doug Murphy                 PRC/TDL
-     *                              Removed unnecessary include files
-     *        January 2001          Doug Murphy                 PRC/MDL
-     *                              Major rewrite to take advantage of monthly norms
-     *                              that have been introduced - also revised to work
-     *                              with monthly, seasonal, and annual reports as well
-     *        Dec 2002              Bob Morris                  SAIC/MDL
-     *                              - Changed date args to reference variables
-     *                              to fix seg. faults under Linux.
-     *                              - Added non-const int iyrtemp for call to leap()
-     *        Jan 2005              Manan Dalal                 NGIT/MDL
-     *                              - Converted Routine from Informix to Postgresql
      * </pre>
      * 
      * @param beginDate
@@ -1989,6 +1821,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+    
     public int sumHisHeat(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         int tempSum = 0;
@@ -2329,7 +2162,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             // result could be null
                             if ((res != null) && (res.length >= 1)
                                     && (res[0] != null)) {
-                                sumMin = (int) res[0];
+                                sumMin = ((Number) res[0]).intValue();
                             } else {
                                 logger.warn("No data for query: ["
                                         + minTempQuery + "] and map: ["
@@ -2444,7 +2277,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                 // result could be null
                 if ((results != null) && (results.length >= 1)
                         && (results[0] != null)) {
-                    sumHeat += (int) results[0];
+                    sumHeat += ((Number) results[0]).intValue();
                 } else {
                     logger.warn("No data for query: [" + query + "] and map: ["
                             + keyParamMap + "]");
@@ -2460,7 +2293,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumHeat;
     }
 
-    /**
+     /**
      * Converted from sum_his_snow.ecpp
      * 
      * Original comments:
@@ -2489,51 +2322,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *            of normal snowfall are added for all the days in the period.
      *            In the monthly data cannot be read or the begin date is not the first
      *         day of a month, the function will use only daily normals for the snow sum.
-     *         VARIABLES
-     *      =========
-     *         name                  description
-     *    -----------------------------------------------------------------------------
-     *       Input
-     *         begin_date          - starting date for summation
-     *         end_date            - ending date for summation
-     *         station_id         - station id of type int for which this function
-     *                  is called
-     *          Output
-     *         sum_snow            - sum of historical snowfall between
-     *                               start date and end date
-     *            Local
-     *         dailies_only        - 0 when the period of interest spans more than one
-     *                               month, and the start date is the 1st of a month
-     *                             - 1 when the start date is not the 1st of a month, or
-     *                               monthly values are missing or invalid
-     *                             - 2 when the period of interest is within one month
-     *          MODIFICATIONS
-     *          May 1999              David T. Miller             PRC/TDL
-     *                             Had to add a section so if the period included a leap
-     *                             year, the historical values for Feb 29th would also
-     *                             be added into the summations.
-     *       Feb 2000              David T. Miller             PRC/TDL
-     *                             If trace occurred during the period, this routine
-     *                             would set it to zero.  Added a check and another
-     *                             ESQL call to account for this occurrence.
-     *       Apr 2000              David T. Miller             PRC/TDL
-     *                             Slight modification for Feb 29th YTD values so they 
-     *                             comply with WSOM and NCDC
-     *       September 2000        Doug Murphy                 PRC/TDL
-     *                             Removed unnecessary include files
-     *       January 2001          Doug Murphy                 PRC/MDL
-     *                             Major rewrite to take advantage of monthly norms
-     *                             that have been introduced - also revised to work
-     *                             with monthly, seasonal, and annual reports as well
-     *       Dec 2002              Bob Morris                  SAIC/MDL
-     *                             - Changed date args to reference variables
-     *                             to fix seg. faults under Linux.
-     *       Nov 2004              Gary Battel                 SAIC/MDL
-     *                             Corrected code which was incorrect when the normal
-     *                             values for each day or month within the period of 
-     *                             interest is T
-     *       Jan 2005              Manan Dalal                 NGIT/MDL
-     *                             - Ported from Informix to Postgresql
+     *         
      ****************************************************************************** 
      * </pre>
      * 
@@ -2542,6 +2331,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+    
     public float sumHisSnow(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float tempSum = 0.f;
@@ -2789,7 +2579,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                     // result could be null
                     if ((res != null) && (res.length >= 1)
                             && (res[0] != null)) {
-                        ecSumSnow = (float) res[0];
+                        ecSumSnow = ((Number) res[0]).floatValue();
                     } else {
                         logger.warn("No data for query: [" + query
                                 + "] and map: [" + keyParamMap + "]");
@@ -3098,7 +2888,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumSnow;
     }
 
-    /**
+     /**
      * Converted from sum_his_precip.ecpp
      * 
      * Original comments:
@@ -3136,56 +2926,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *       If the begin date is not the first day of a month, the function will use
      *       only daily normals for the precip sum.
      * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                  description
-     * ------------------------------------------------------------------------------
-     *     Input
-     *       begin_date          - starting date for summation
-     *       end_date            - ending date for summation
-     *       station_id         - station id of type int for which this function
-     *                is called
-     * 
-     *     Output
-     *       sum_precip          - sum of precipitation between
-     *                             start date and end date
-     * 
-     *       Local
-     *       dailies_only        - 0 when the period of interest spans more than one
-     *                               month, and the start date is the 1st of a month
-     *                             1 when the start date is not the 1st of a month, or 
-     *                               monthly values are missing or invalid
-     *                             2 when the period of interest is within one month
-     * 
-     *     MODIFICATIONS
-     * 
-     *     May 1999              David T. Miller             PRC/TDL
-     *                           Had to add a section so if the period included a leap
-     *                           year, the historical values for Feb 29th would also
-     *                           be added into the summations.
-     *     Feb 2000              David T. Miller             PRC/TDL
-     *                           If trace occurred during the period, this routine
-     *                           would set it to zero.  Added a check and another
-     *                           ESQL call to account for this occurrence.
-     *     Apr 2000              David T. Miller             PRC/TDL
-     *                           Slight modification to Feb 29th YTD totals so code
-     *                           complies with WSOM and NCDC
-     *     September 2000        Doug Murphy                 PRC/TDL
-     *                          Removed unnecessary include files
-     *    January 2001          Doug Murphy                 PRC/MDL
-     *                          Major rewrite to take advantage of monthly norms
-     *                          that have been introduced - also revised to work
-     *                          with monthly, seasonal, and annual reports as well
-     *    Dec 2002              Bob Morris                  SAIC/MDL
-     *                          - Changed date args to reference variables
-     *                          to fix seg. faults under Linux.
-     *    Nov 2004              Gary Battel                 SAIC/MDL
-     *                          Code is incorrect when the normal values for each day 
-     *                          or month within the period of record is T.
-     *    Jan 2005              Manan Dalal                 NGIT/MDL
-     *                          - Ported code from Informix to Postgresql
-     * 
      * </pre>
      * 
      * @param beginDate
@@ -3193,6 +2933,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+    
     public float sumHisPrecip(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float tempSum = 0.f;
@@ -3455,7 +3196,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                     // result could be null
                     if ((res != null) && (res.length >= 1)
                             && (res[0] != null)) {
-                        ecSumPrecip = (float) res[0];
+                        ecSumPrecip = ((Number) res[0]).floatValue();
                     } else {
                         logger.warn("No data for query: [" + query
                                 + "] and map: [" + keyParamMap + "]");
@@ -3766,6 +3507,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             ParameterFormatClimate.TRACE);
                     keyParamMap.put("ec_start_date", ecStartDate);
                     keyParamMap.put("ec_end_date", ecEndDate);
+
                     int res = ((Number) queryForOneValue(
                             precipCountQuery.toString(), keyParamMap, -1))
                                     .intValue();
@@ -3793,7 +3535,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumPrecip;
     }
 
-    /**
+     /**
      * Migrated from check_period_records.ec.
      * 
      * <pre>
@@ -3811,29 +3553,6 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *  This function compares the current observed values against the record 
      *      values stored in the database and updates if needed.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *-------------------------------------------------------------------------------   
-     *    Input 
-     *
-     *   MODIFICATION HISTORY
-     *   ====================
-     *    May 2000      Doug Murphy Added checks to precip and snow for
-     *                  special cases where T is record and
-     *                  0 is observed and vice versa
-     *     3/30/01          Doug Murphy     We do NOT want to update a record
-     *                                      if it is missing
-     *     4/2/02           Gary Battel     We do not want to update the year of
-     *                                      record if the max precip amount or 
-     *                                      snow or precip value is 0
-     *     3/25/03          Bob Morris      Fixed arguments in calls to risnull and
-     *                                      rsetnull, need to use defined constants
-     *                                      for C-data types, not values (hard-coded,
-     *                                      no less!) for SQL data types.  OB2
-     *     1/18/04          Gary Battel/    Conversion from INFORMIX to POSTGRES
-     *                      Manan Dalal
      * </pre>
      * 
      * 
@@ -3843,6 +3562,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @return true if period record(s) was updated; false otherwise.
      * @throws ClimateQueryException
      */
+     
     public boolean compareUpdatePeriodRecords(PeriodType type, ClimateDate end,
             PeriodData periodData) throws ClimateQueryException {
         boolean updated = false;
@@ -4124,9 +3844,9 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
                             yearArrange(endDate, order);
 
                             List<ClimateDate> snowList = new ArrayList<ClimateDate>();
-                            snowList.set(0, endDate[0]);
-                            snowList.set(1, endDate[1]);
-                            snowList.set(2, endDate[2]);
+                            snowList.add(endDate[0]);
+                            snowList.add(endDate[1]);
+                            snowList.add(endDate[2]);
 
                             monthRecord.setDaySnowGroundMaxList(snowList);
 
@@ -4220,7 +3940,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
 
     }
 
-    /**
+     /**
      * Migrated from check_period_records.ec helper function year_arrange.
      * 
      * <pre>
@@ -4235,17 +3955,12 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *  This function updates the dates of occurence for a given element's
      *  record.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *-------------------------------------------------------------------------------                   
-     *    Input
      * </pre>
      * 
      * @param recDates
      * @param order
      */
+    
     private static void yearArrange(ClimateDate[] recDates, int[] order) {
 
         for (int i = 1; i < 6; i++) {

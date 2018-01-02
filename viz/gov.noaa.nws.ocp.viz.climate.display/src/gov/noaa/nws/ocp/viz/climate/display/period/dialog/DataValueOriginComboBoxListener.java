@@ -99,7 +99,7 @@ public abstract class DataValueOriginComboBoxListener
                      * consider this an unsaved change (user is selecting
                      * possible values to save).
                      */
-                    myParent.myUnsavedChangesListener.setChangesUnsaved(true);
+                    myParent.getChangeListener().setChangesUnsaved(true);
                 }
 
                 myPreviousSelection = newOrigin;

@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Climate Viz InitClimate
+Bundle-SymbolicName: gov.noaa.nws.ocp.viz.climate.initClimate;singleton:=true
+Bundle-Version: 1.16.0.qualifier
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ com.raytheon.viz.ui,
+ gov.noaa.nws.ocp.common.dataplugin.climate,
+ com.raytheon.uf.viz.core,
+ org.eclipse.swt,
+ gov.noaa.nws.ocp.viz.common.climate
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Vendor: NWS
+Import-Package: gov.noaa.nws.ocp.viz.common.climate.comp

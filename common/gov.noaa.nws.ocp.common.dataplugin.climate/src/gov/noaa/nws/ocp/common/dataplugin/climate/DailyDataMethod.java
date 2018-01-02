@@ -7,12 +7,11 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
-import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
 
 /**
  * Converted from the daily_data_method structure
  * (rehost-adapt/adapt/climate/include/TYPE_daily_data_method.h). Values should
- * reference appropriate constants from {@link QCValues}.
+ * reference appropriate constants from QCValues.
  * 
  * <pre>
  * 

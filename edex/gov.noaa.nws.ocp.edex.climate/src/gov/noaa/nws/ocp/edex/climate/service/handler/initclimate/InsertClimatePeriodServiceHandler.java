@@ -37,7 +37,7 @@ public class InsertClimatePeriodServiceHandler
     public Object handleRequest(InsertClimatePeriodRequest request)
             throws Exception {
         try {
-            return new ClimatePeriodDAO().insertClimatePeriod(
+            return new ClimatePeriodDAO().updateClimatePeriod(
                     request.getStationId(), request.getNormStartYear(),
                     request.getNormEndYear(), request.getRecordStartYear(),
                     request.getRecordEndYear());

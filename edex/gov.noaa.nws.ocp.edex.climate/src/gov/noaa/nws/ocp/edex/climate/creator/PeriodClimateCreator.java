@@ -20,7 +20,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateFreezeDatesDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodDAO;
@@ -36,6 +36,9 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07 JUL 2017  33104      amoore      Initial creation
+ * 08 NOV 2017  40624      amoore      Monthly period needs special
+ *                                     logic to check against daily
+ *                                     tables, not period tables.
  * </pre>
  * 
  * @author amoore
@@ -79,8 +82,8 @@ public final class PeriodClimateCreator {
      * @throws ClimateInvalidParameterException
      * @throws ClimateQueryException
      */
-    protected ClimateCreatorPeriodResponse createPeriodClimate(
-            PeriodType periodType, ClimateDate beginDate, ClimateDate endDate,
+    protected ClimateRunPeriodData createPeriodClimate(PeriodType periodType,
+            ClimateDate beginDate, ClimateDate endDate,
             ClimateGlobal globalValues, List<Station> climateStations,
             boolean cronOrManualMostRecent)
                     throws ClimateInvalidParameterException,
@@ -126,11 +129,13 @@ public final class PeriodClimateCreator {
          * 
          * need to check this section for generalization
          */
+        boolean monthly = false;
         if (cronOrManualMostRecent) {
             switch (periodType) {
             case MONTHLY_NWWS:
             case MONTHLY_RAD:
                 /* monthly */
+                monthly = true;
                 // if this was a cron job or manual selection of most recent
                 // period, need to calculate proper begin and end date
                 beginDate.setDay(1);
@@ -243,12 +248,18 @@ public final class PeriodClimateCreator {
             int currStationID = climateStations.get(i).getInformId();
             PeriodClimo currPeriodClimo = periodClimos.get(i);
 
+            /*
+             * If monthly, build from daily tables (period type 0)
+             */
             climatePeriodDAO.buildPeriodObsClimo(beginDate, endDate,
-                    currPeriodData, globalValues, periodType);
-
+                    currPeriodData, globalValues,
+                    monthly ? PeriodType.OTHER : periodType);
             // freeze dates, originally a part of build_period_obs_climo
-            buildPeriodObsFreezeDates(periodType, beginDate, endDate,
-                    currPeriodData, currStationID);
+            buildPeriodObsFreezeDates(monthly ? PeriodType.OTHER : periodType,
+                    beginDate, endDate, currPeriodData, currStationID);
+            /*
+             * End special monthly logic
+             */
 
             climatePeriodDAO.buildPeriodSumClimo(beginDate, endDate,
                     currPeriodData, periodType);
@@ -283,7 +294,7 @@ public final class PeriodClimateCreator {
                             periodDatas.get(i), lastYearPeriodDatas.get(i),
                             periodClimos.get(i)));
         }
-        return new ClimateCreatorPeriodResponse(periodType, beginDate, endDate,
+        return new ClimateRunPeriodData(periodType, beginDate, endDate,
                 reportMap);
     }
 
@@ -310,7 +321,7 @@ public final class PeriodClimateCreator {
                 periodData.setLateFreeze(dailyClimateDao
                         .getLateFreezeDate(beginDate, endDate, stationID));
             }
-        } // Task 25623 no freeze date info for other period types?
+        }
     }
 
     /**

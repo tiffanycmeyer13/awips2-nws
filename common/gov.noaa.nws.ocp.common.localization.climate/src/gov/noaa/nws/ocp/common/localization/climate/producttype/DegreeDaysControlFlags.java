@@ -60,7 +60,7 @@ public class DegreeDaysControlFlags {
      * Flags for cooling days since 1/1
      */
     @DynamicSerializeElement
-    @XmlElement(name = "CoolJuly1")
+    @XmlElement(name = "CoolJan1")
     private ClimateProductFlags seasonCDD;
 
     /**

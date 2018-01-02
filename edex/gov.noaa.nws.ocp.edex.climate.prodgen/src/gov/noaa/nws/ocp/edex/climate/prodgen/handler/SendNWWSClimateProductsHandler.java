@@ -10,7 +10,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.SendNWWSClimateProductsRequest;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * Handler to send NWWS products reviewed in CPG GUI.
@@ -37,21 +36,13 @@ public class SendNWWSClimateProductsHandler
 
         String cpgSessionId = request.getCpgSessionID();
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Get existing session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, cpgSessionId);
+                .getCPGSession(cpgSessionId);
 
         if (session.getState() == SessionState.SENT) {
-            session.sendAlertVizMessage(Priority.WARN,
-                    "Resend sent NWWS products!", null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.WARN,
+                    "Resending NWWS products!", null);
         }
 
         return session.sendAllNWWSProducts(request.isOperational(),

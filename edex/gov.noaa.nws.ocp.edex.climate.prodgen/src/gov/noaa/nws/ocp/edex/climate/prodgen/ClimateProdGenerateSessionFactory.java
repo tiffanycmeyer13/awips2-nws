@@ -5,8 +5,15 @@ package gov.noaa.nws.ocp.edex.climate.prodgen;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.edex.core.EDEXUtil;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
+import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
+import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 
 /**
  * ClimateProdGenerateSessionFactory Create a new / recreate existing CPG
@@ -20,6 +27,7 @@ import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
  * ------------ ---------- ----------- --------------------------
  * Feb 13, 2017 20637      pwang       Initial creation
  * Jul 26, 2017 33104      amoore      Address review comments.
+ * Nov 06, 2017 35731      pwang       added logic to enable ON/OFF for auto product generation
  * </pre>
  *
  * @author pwang
@@ -40,18 +48,17 @@ public final class ClimateProdGenerateSessionFactory {
      * empty constructor
      */
     public ClimateProdGenerateSessionFactory() {
+        this.dao = new ClimateProdGenerateSessionDAO();
     }
 
     /**
      * Constructor for cron jobs
      * 
-     * @param dao
      * @param runType
      * @param prodType
      */
-    public ClimateProdGenerateSessionFactory(ClimateProdGenerateSessionDAO dao,
-            int runType, int prodType) {
-        this.dao = dao;
+    public ClimateProdGenerateSessionFactory(int runType, int prodType) {
+        this.dao = new ClimateProdGenerateSessionDAO();
         this.runType = runType;
         this.prodType = prodType;
     }
@@ -59,26 +66,26 @@ public final class ClimateProdGenerateSessionFactory {
     /**
      * Create a new CPG Session
      * 
-     * @param dao
      * @param runType
      * @param prodType
      * @return
      */
-    public static ClimateProdGenerateSession getCPGSession(
-            ClimateProdGenerateSessionDAO dao, int runType, int prodType) {
-        return new ClimateProdGenerateSession(dao, runType, prodType);
+    public static ClimateProdGenerateSession getCPGSession(int runType,
+            int prodType) {
+        return new ClimateProdGenerateSession(
+                new ClimateProdGenerateSessionDAO(), runType, prodType);
     }
 
     /**
      * get existing CPG session by session ID
      * 
-     * @param dao
      * @param cpgSessionId
      * @return
      */
     public static ClimateProdGenerateSession getCPGSession(
-            ClimateProdGenerateSessionDAO dao, String cpgSessionId) {
-        return new ClimateProdGenerateSession(dao, cpgSessionId);
+            String cpgSessionId) {
+        return new ClimateProdGenerateSession(
+                new ClimateProdGenerateSessionDAO(), cpgSessionId);
     }
 
     /**
@@ -97,12 +104,54 @@ public final class ClimateProdGenerateSessionFactory {
             throw new Exception("Invalid Product Type code: " + prodType);
         }
 
+        // Check auto generate switch is ON
+        if (!isAutoOn()) {
+            String periodName = PeriodType.getPeriodTypeDesc(prodType);
+            String msg = "Auto generate climate product: " + periodName
+                    + " is OFF in the GlobalDay configure properties";
+            logger.info(msg);
+            EDEXUtil.sendMessageAlertViz(Priority.EVENTB,
+                    ClimateMessageUtils.CPG_PLUGIN_ID,
+                    ClimateAlertUtils.SOURCE_EDEX,
+                    ClimateAlertUtils.CATEGORY_CLIMATE,
+                    "Climate [" + periodName + "] will not automatically run",
+                    msg, null);
+            // do nothing
+            return;
+        }
+
         // Instantiate a new CPG Session
         ClimateProdGenerateSession cpgSession = new ClimateProdGenerateSession(
                 this.dao, this.runType, this.prodType);
 
         // call autoCreateClimate
         cpgSession.autoCreateClimate();
+    }
+
+    /**
+     * check if the product configured for auto-generating
+     * 
+     * @return
+     */
+    private boolean isAutoOn() {
+        ClimateGlobal globalConfig = ClimateGlobalConfiguration.getGlobal();
+
+        switch (this.prodType) {
+        case 1:
+            return globalConfig.isAutoAM();
+        case 10:
+            return globalConfig.isAutoIM();
+        case 2:
+            return globalConfig.isAutoPM();
+        case 5:
+            return globalConfig.isAutoCLM();
+        case 7:
+            return globalConfig.isAutoCLS();
+        case 9:
+            return globalConfig.isAutoCLA();
+        default:
+            return false;
+        }
     }
 
     /**

@@ -1,49 +1,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="getlastyearrequest"
         class="gov.noaa.nws.ocp.edex.climate.service.handler.qualitycontrol.GetLastYearServiceHandler" />
 
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.GetLastYearRequest" />
-        <constructor-arg ref="getlastyearrequest" />
-    </bean>
-
-	<bean id="climatedailyupdate"
-		class="gov.noaa.nws.ocp.edex.climate.service.handler.DailyUpdateServiceHandler" />
-
-	<bean factory-bean="handlerRegistry" factory-method="register">
-		<constructor-arg
-			value="gov.noaa.nws.ocp.common.dataplugin.climate.request.DailyClimateServiceUpdateRequest" />
-		<constructor-arg ref="climatedailyupdate" />
-	</bean>
-
-	<bean id="climatedailymaxtempupdate"
-		class="gov.noaa.nws.ocp.edex.climate.service.handler.display.DailyMaxTempUpdateServiceHandler" />
-
-	<bean factory-bean="handlerRegistry" factory-method="register">
-		<constructor-arg
-			value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DailyClimateMaxTempUpdateServiceRequest" />
-		<constructor-arg ref="climatedailymaxtempupdate" />
-	</bean>
-
-	<bean id="climatedailymintempupdate"
-		class="gov.noaa.nws.ocp.edex.climate.service.handler.display.DailyMinTempUpdateServiceHandler" />
-
-	<bean factory-bean="handlerRegistry" factory-method="register">
-		<constructor-arg
-			value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DailyClimateMinTempUpdateServiceRequest" />
-		<constructor-arg ref="climatedailymintempupdate" />
-	</bean>
-
-	<bean id="climatedailymaxsnowupdate"
-		class="gov.noaa.nws.ocp.edex.climate.service.handler.display.DailyMaxSnowUpdateServiceHandler" />
-
-	<bean factory-bean="handlerRegistry" factory-method="register">
-		<constructor-arg
-			value="gov.noaa.nws.ocp.common.dataplugin.climate.request.display.DailyClimateMaxSnowUpdateServiceRequest" />
-		<constructor-arg ref="climatedailymaxsnowupdate" />
-	</bean>
+    <bean id="climatedailyupdate"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.DailyUpdateServiceHandler" />
 </beans>

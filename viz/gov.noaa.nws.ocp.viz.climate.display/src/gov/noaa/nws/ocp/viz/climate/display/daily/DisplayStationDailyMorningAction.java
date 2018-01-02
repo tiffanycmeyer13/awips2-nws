@@ -88,7 +88,7 @@ public class DisplayStationDailyMorningAction extends DisplayDailyAction {
         dialogRL.marginBottom = 8;
         dialogRL.marginTop = 10;
         preDisplayDialog.setLayout(dialogRL);
-        Point size = new Point(306, 200);
+        Point size = new Point(306, 220);
         preDisplayDialog.setSize(size);
 
         // center on the current shell

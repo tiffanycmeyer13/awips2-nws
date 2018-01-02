@@ -53,6 +53,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 10 MAY 2017  33104      amoore     Address Find Bugs issue about static date formats.
  * 11 MAY 2017  33104      amoore     More Find Bugs minor issues.
  * 16 JUN 2017  35182      amoore     Add util Date and SQL date as possible construction objects.
+ * 24 JUL 2017  33104      amoore     Time format in 24-hours.
+ * 18 SEP 2017  38078      amoore     Fixed bad formatting for First of month format.
  * </pre>
  * 
  * @author xzhang
@@ -426,7 +428,6 @@ public class ClimateDate {
      */
     public String toFirstDayOfMonthDateString() {
         Calendar calendar = TimeUtil.newCalendar();
-        calendar.set(Calendar.YEAR, year);
         // offset month due to DateTime using 0-11
         calendar.set(Calendar.MONTH, mon - 1);
 
@@ -464,6 +465,9 @@ public class ClimateDate {
      * 
      * Purpose: This routine calculates the Julian day for an input date. It
      * takes into account leap years. It is Y2K compliant.
+     * 
+     * Migration comments: This actually returns, as in Legacy, the DAY OF YEAR
+     * number, not the Julian day.
      */
     public int julday() {
         return getCalendarFromClimateDate().get(Calendar.DAY_OF_YEAR);
@@ -584,6 +588,9 @@ public class ClimateDate {
      * a_date. If the Julian day is greater than 365 in normal years or 366 in
      * leap years, then the year is incremented by one. If the Julian day is
      * less than 1, then the year is decremented by one.
+     * 
+     * Migration comments: This actually converts, as in Legacy, the DAY OF YEAR
+     * number, not the Julian day.
      */
     public void convertJulday(int julday) {
         if (!isLeapYear(getYear())) {
@@ -635,19 +642,6 @@ public class ClimateDate {
      *             not a leap year.  Note that the input year must be
      *             a four digit year.  This subroutine is Y2K compliant.
      * 
-     *   Data set use - none
-     * 
-     *   Variables:
-     *      Input:
-     *             iyear   - integer year (4 digits)
-     * 
-     *  Output:
-     *        leap     - LOGICAL flag to indicate a leap year
-     *               = TRUE if it is a leap year
-     *           = FALSE if it is not a leap year
-     *  Local: none
-     * 
-     *      Non-system subroutines used - none
      * </pre>
      */
     public static boolean isLeapYear(int year) {
@@ -695,23 +689,23 @@ public class ClimateDate {
      * @return First-day-of-month date format: MM-01
      */
     private static SimpleDateFormat getFirstDayOfMonthDateFormat() {
-        return new SimpleDateFormat(
-                "yyyy" + DATE_SEPARATOR + "MM" + DATE_SEPARATOR + "01");
+        return new SimpleDateFormat("MM" + DATE_SEPARATOR + "01");
     }
 
     /**
-     * @return Format for full date and time. No seconds: yyyy-MM-dd hh:mm
+     * @return Format for full date and time. No seconds: yyyy-MM-dd hh24:mm
      */
     public static SimpleDateFormat getFullDateTimeFormat() {
         return new SimpleDateFormat("yyyy" + DATE_SEPARATOR + "MM"
-                + DATE_SEPARATOR + "dd" + " hh:mm");
+                + DATE_SEPARATOR + "dd" + " HH:mm");
     }
 
     /**
-     * @return Format for full date and time, with seconds: yyyy-MM-dd hh:mm:ss
+     * @return Format for full date and time, with seconds: yyyy-MM-dd
+     *         hh24:mm:ss
      */
     public static SimpleDateFormat getFullDateTimeSecondsFormat() {
         return new SimpleDateFormat("yyyy" + DATE_SEPARATOR + "MM"
-                + DATE_SEPARATOR + "dd" + " hh:mm:ss");
+                + DATE_SEPARATOR + "dd" + " HH:mm:ss");
     }
 }

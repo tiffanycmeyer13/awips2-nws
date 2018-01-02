@@ -13,13 +13,14 @@ package gov.noaa.nws.ocp.common.dataplugin.climate.exception;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 29 SEP 2016  21378      amoore      Initial creation
+ * 07 SEP 2017  37754      amoore      Get rid of abstract.
  * 
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
-public abstract class ClimateException extends Exception {
+public class ClimateException extends Exception {
 
     /**
      * Serial ID.

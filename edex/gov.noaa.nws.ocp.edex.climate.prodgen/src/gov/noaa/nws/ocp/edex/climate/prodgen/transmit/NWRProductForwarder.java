@@ -5,6 +5,8 @@ package gov.noaa.nws.ocp.edex.climate.prodgen.transmit;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -29,7 +31,13 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  * ------------ ---------- ----------- --------------------------
  * Apr 25, 2017 20637      pwang       Initial creation
  * May 05, 2017 20642      pwang       Re-designed status and error handling
- *
+ * Aug 4, 2017  33104      amoore      Address review comments.
+ * Aug 16, 2017 37117      amoore      Always use Legacy FXA DATA root, since
+ *                                     AWIPS2 EDEX sets its own version based
+ *                                     on EDEX HOME that NWR WAVES cannot and
+ *                                     does not access.
+ * Aug 22, 2017 37242      amoore      Better logging and field access.
+ * Oct 10, 2017 39153      amoore      Less action-blocking from dissemination flag.
  * </pre>
  *
  * @author pwang
@@ -38,26 +46,20 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 public final class NWRProductForwarder extends ClimateProductNWRSender {
 
     /** The logger */
-    public static final IUFStatusHandler logger = UFStatus
+    private static final IUFStatusHandler logger = UFStatus
             .getHandler(NWRProductForwarder.class);
 
     private static final String DEFAULT_FXA_DATA_ROOT = "/data/fxa/";
 
-    public String destDirectory;
+    private static final String DEFAULT_TARGET_DIRECTORY = "pending";
+
+    private String destDirectory;
 
     /**
-     * Empty Constructor
+     * Empty Constructor. Use default directory.
      */
     public NWRProductForwarder() {
-        String fxaData = System.getenv("FXA_DATA");
-        if (fxaData == null || fxaData.isEmpty()) {
-            fxaData = DEFAULT_FXA_DATA_ROOT;
-        }
-        this.destDirectory = DEFAULT_FXA_DATA_ROOT + "workFiles/nwr/pending/";
-
-        logger.info("NWR pending dir = " + this.destDirectory);
-
-        dao = new ClimateProdSendRecordDAO();
+        this(DEFAULT_TARGET_DIRECTORY);
     }
 
     /**
@@ -66,14 +68,20 @@ public final class NWRProductForwarder extends ClimateProductNWRSender {
      * @param targetDir
      */
     public NWRProductForwarder(String targetDir) {
-        String fxaData = System.getenv("FXA_DATA");
-        if (fxaData == null || fxaData.isEmpty()) {
-            fxaData = DEFAULT_FXA_DATA_ROOT;
-        }
-        this.destDirectory = DEFAULT_FXA_DATA_ROOT + "workFiles/nwr/"
-                + targetDir.toLowerCase() + "/";
+        /*
+         * Task 37687: when NWR Waves is migrated, both NWR Waves and this code
+         * should use the environment variable FXA_DATA, and fall back on
+         * /data/fxa.
+         */
+        // String fxaData = System.getenv("FXA_DATA");
+        // if (fxaData == null || fxaData.isEmpty()) {
+        String fxaData = DEFAULT_FXA_DATA_ROOT;
+        // }
+        Path destPath = Paths.get(fxaData, "workFiles/nwr/",
+                targetDir.toLowerCase());
+        this.destDirectory = destPath.toAbsolutePath().toString();
 
-        logger.info("Target NWRWave dir = " + this.destDirectory);
+        logger.debug("Target NWRWave dir = " + this.destDirectory);
 
         dao = new ClimateProdSendRecordDAO();
     }
@@ -81,24 +89,35 @@ public final class NWRProductForwarder extends ClimateProductNWRSender {
     /**
      * Forward session's product set to NWR Waves.
      * 
-     * @param nwrProds
+     * @param session
+     * @param nwrProdSet
      * @param res
+     * @param targetNWRDir
+     * @param user
+     * @param disseminate
      */
     public static void forwardToNWR(ClimateProdGenerateSession session,
             ClimateProductSet nwrProdSet, SendClimateProductsResponse res,
-            String targetNWRDir, String user) {
-
+            String targetNWRDir, String user, boolean disseminate) {
         NWRProductForwarder trans = new NWRProductForwarder(targetNWRDir);
 
         // Check if the bmhStagingDirectory exists
         File destPath = new File(trans.getDestDirectory());
 
-        if (!destPath.exists() || !destPath.isDirectory()) {
-            String msg = "NWR Pending Directory " + trans.getDestDirectory()
-                    + " is not accessible";
+        if (disseminate && (!destPath.exists() || !destPath.isDirectory())) {
+            String msg;
+
+            if (!destPath.exists()) {
+                msg = "NWR Pending Directory " + trans.getDestDirectory()
+                        + " does not exist!";
+            } else {
+                msg = "NWR Pending Directory " + trans.getDestDirectory()
+                        + " is not a directory!";
+            }
 
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            session.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    msg, null);
             logger.error(msg);
             return;
         }
@@ -108,18 +127,24 @@ public final class NWRProductForwarder extends ClimateProductNWRSender {
 
             try {
                 if (trans.verifyHeader(cp)) {
+                    if (disseminate) {
 
-                    // Save prod to NWR peding
-                    trans.writeProductToFile(trans.destDirectory, cp.getName(),
-                            cp.getProdText());
+                        // Save prod to NWR pending
+                        trans.writeProductToFile(trans.getDestDirectory(),
+                                cp.getName(), cp.getProdText());
+
+                        logger.info("NWR product " + fileName + " copied to "
+                                + destPath
+                                + ", a record will be inserted in the DB.");
+                    } else {
+                        logger.info("NWR product " + fileName
+                                + " will not be copied to NWR WAVES, "
+                                + "as dissemination is disabled.");
+                    }
+                    cp.setStatus(ProductStatus.SENT);
 
                     // insert a record into DB
                     trans.recordSentNWRProduct(fileName, cp, user);
-
-                    cp.setStatus(ProductStatus.SENT);
-
-                    logger.info("NWR prod copied to " + destPath
-                            + ", a record is inserted in the DB ");
                 } else {
                     String errorMsg = "Check Header failed, NWR product "
                             + fileName + " has wrong format";
@@ -138,7 +163,7 @@ public final class NWRProductForwarder extends ClimateProductNWRSender {
                 logger.error(errorMsg);
 
             } catch (Exception e2) {
-                String errorMsg = "Fialed to forward NWR product " + fileName
+                String errorMsg = "Failed to forward NWR product " + fileName
                         + " to NWR" + e2.getLocalizedMessage();
 
                 cp.setStatus(ProductStatus.ERROR);
@@ -157,13 +182,4 @@ public final class NWRProductForwarder extends ClimateProductNWRSender {
     public String getDestDirectory() {
         return destDirectory;
     }
-
-    /**
-     * @param destDirectory
-     *            the destDirectory to set
-     */
-    public void setDestDirectory(String destDirectory) {
-        this.destDirectory = destDirectory;
-    }
-
 }

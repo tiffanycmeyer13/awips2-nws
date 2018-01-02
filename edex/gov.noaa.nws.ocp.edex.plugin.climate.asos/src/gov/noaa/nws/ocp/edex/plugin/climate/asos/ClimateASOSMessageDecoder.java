@@ -24,7 +24,7 @@ import gov.noaa.nws.ocp.edex.plugin.climate.asos.config.ClimateIngestFilterXML;
 import gov.noaa.nws.ocp.edex.plugin.climate.asos.dao.ClimateASOSMessageDAO;
 
 /**
- * DSM and SMS message decoder
+ * DSM and SMS message decoder. From rehost-adapt/src/asos_sm_decode folder.
  * 
  * <pre>
  *
@@ -36,6 +36,9 @@ import gov.noaa.nws.ocp.edex.plugin.climate.asos.dao.ClimateASOSMessageDAO;
  * Aug 4, 2016  20905      pwang     Add filter to only decode configured Sites / Stations
  * 24 FEB 2017  27420      amoore    Address warnings in code.
  * 05 MAY 2017  33104      amoore    Minor clean up.
+ * 07 SEP 2017  37754      amoore    Exceptions instead of boolean returns.
+ * 31 OCT 2017  40231      amoore    Clean up of MSM/DSM parsing and records. Better
+ *                                   logging. Get rid of serialization tags.
  * </pre>
  *
  * @author pwang
@@ -89,7 +92,6 @@ public class ClimateASOSMessageDecoder {
     public void decode(File ingestFile, Headers headers)
             throws DecoderException {
 
-        BufferedReader br = null;
         String oneline = "";
         List<String> messageList = new ArrayList<String>();
 
@@ -102,15 +104,14 @@ public class ClimateASOSMessageDecoder {
             theFilter = filters.get(0);
         }
 
-        try {
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(ingestFile))) {
             logger.debug("Decoding ASOS file: [" + ingestFile.getName() + "]");
 
-            br = new BufferedReader(new FileReader(ingestFile));
             StringBuilder sb = null;
             while ((oneline = br.readLine()) != null) {
                 // Trim spaces of the line
                 String line = oneline.trim();
-                line = line.replaceAll("\\r", "").replaceAll("\\n", "");
 
                 if (line.isEmpty()) {
                     continue;
@@ -172,20 +173,11 @@ public class ClimateASOSMessageDecoder {
 
         } catch (FileNotFoundException e) {
             throw new DecoderException(
-                    "DSM or MSM Ingest file " + ingestFile + " is not found!",
+                    "DSM or MSM Ingest file " + ingestFile + " was not found!",
                     e);
         } catch (IOException e) {
             throw new DecoderException(
                     "I/O exception for reading " + ingestFile, e);
-        } finally {
-            if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                    throw new DecoderException(
-                            "I/O exception for closing " + ingestFile, e);
-                }
-            }
         }
 
         // Parsing each message
@@ -206,7 +198,8 @@ public class ClimateASOSMessageDecoder {
             ClimateASOSMessageRecord record = parser.parse(message);
 
             if (record == null) {
-                logger.error("The parser return no records");
+                logger.error("The ASOS parser returned no records for file: ["
+                        + ingestFile.getName() + "].");
             } else {
                 records.add(record);
             }
@@ -214,7 +207,12 @@ public class ClimateASOSMessageDecoder {
 
         // Persist to the database
         for (ClimateASOSMessageRecord record : records) {
-            dao.storeToTable(record);
+            try {
+                dao.storeToTable(record);
+            } catch (Exception e) {
+                logger.error("Error storing ASOS record: [" + record.toString()
+                        + "]", e);
+            }
         }
     }
 }

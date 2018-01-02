@@ -8,7 +8,6 @@ import com.raytheon.uf.common.serialization.comm.IRequestHandler;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.CancelClimateProdGenerateRequest;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * Handler for when user cancels a CPG session.
@@ -35,19 +34,11 @@ public class CancelClimateProdGenerateHandler
 
         String cpgSessionId = request.getCpgSessionID();
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Get existing session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, cpgSessionId);
+                .getCPGSession(cpgSessionId);
 
-        if (session == null) {
+        if (session.getClimateProdGenerateSessionData() == null) {
             throw new Exception(
                     "Missing CPG Session for the ID: " + cpgSessionId);
         }

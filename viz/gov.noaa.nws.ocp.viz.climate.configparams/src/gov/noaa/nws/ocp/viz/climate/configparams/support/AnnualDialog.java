@@ -4,7 +4,6 @@
 package gov.noaa.nws.ocp.viz.climate.configparams.support;
 
 import java.text.DateFormatSymbols;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -25,20 +24,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimoDatesRequest;
-import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimoDatesRequest.ClimoDatesRequestType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.configparams.SnowPrecipServiceRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
-import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 
 /**
  * 
@@ -55,19 +50,14 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 10/18/2016   20639    wkwock      Remove back ground color
  * 20 DEC 2016  26404    amoore      Correcting yes-no, ok-cancel ordering in message boxes.
  * 12 MAY 2017  33104    amoore      Address FindBugs.
- * 27 JUL 2017  33104     amoore     Do not use effectively final functionality, for 1.7 build.
+ * 27 JUL 2017  33104    amoore      Do not use effectively final functionality, for 1.7 build.
+ * 01 MAR 2018  44624    amoore      Clean up logic for determining new seasons.
  * </pre>
  * 
  * @author wkwock
  * @version 1.0
  */
-public class AnnualDialog extends CaveSWTDialog {
-    /**
-     * logger
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(AnnualDialog.class);
-
+public class AnnualDialog extends ClimateCaveChangeTrackDialog {
     /**
      * default month for snow
      */
@@ -133,11 +123,6 @@ public class AnnualDialog extends CaveSWTDialog {
      */
     protected Font boldFont;
 
-    /**
-     * Change listener
-     */
-    protected UnsavedChangesListener changeListener = new UnsavedChangesListener();
-
     public AnnualDialog(Shell parent) {
         super(parent, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE
                 | SWT.PRIMARY_MODAL, CAVE.DO_NOT_BLOCK);
@@ -166,8 +151,10 @@ public class AnnualDialog extends CaveSWTDialog {
     private void setupFont() {
         FontData fontData = shell.getFont().getFontData()[0];
 
-        boldFont = new Font(getDisplay(), new FontData(fontData.getName(),
-                fontData.getHeight(), SWT.BOLD));
+        if (boldFont == null) {
+            boldFont = new Font(getDisplay(), new FontData(fontData.getName(),
+                    fontData.getHeight(), SWT.BOLD));
+        }
 
         shell.addDisposeListener(new DisposeListener() {
             @Override
@@ -335,16 +322,7 @@ public class AnnualDialog extends CaveSWTDialog {
         cancelBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                if (changeListener.isChangesUnsaved()) {
-                    boolean close = MessageDialog.openQuestion(shell,
-                            "Unsaved Changes",
-                            "Close this window? Unsaved changes will be lost.");
-                    if (close) {
-                        close();
-                    }
-                } else {
-                    close();
-                }
+                close();
             }
         });
     }
@@ -378,8 +356,6 @@ public class AnnualDialog extends CaveSWTDialog {
         ClimateDates precipSeason = ClimateDates.getMissingClimateDates();
         ClimateDates precipYear = ClimateDates.getMissingClimateDates();
 
-        int month = 0;
-        int day = 0;
         boolean snowContinue = true;
         boolean precipContinue = true;
 
@@ -398,12 +374,17 @@ public class AnnualDialog extends CaveSWTDialog {
                 snowSeason.getEnd().setMon(SNOW_DEFAULT_MON);
             }
         } else {
-            month = snowMonthCbo.getSelectionIndex() + 1;
-            day = snowDaySpn.getSelection();
+            int snowMonth = snowMonthCbo.getSelectionIndex() + 1;
+            int snowDay = snowDaySpn.getSelection();
 
-            if (month == SNOW_DEFAULT_MON && day == SNOW_DEFAULT_DAY) {
+            if (snowMonth == SNOW_DEFAULT_MON && snowDay == SNOW_DEFAULT_DAY) {
                 snowContinue = MessageDialog.openQuestion(shell, "Warning",
-                        "The snow start date indicated will result in seasonal sums for\nthe current 3 month season. \nContinue?");
+                        "The snow start date indicated will result in seasonal sums"
+                                + " for\nthe current 3 month season. \nContinue?");
+            }
+
+            if (snowContinue) {
+                setSeasonFromStart(snowSeason, snowMonth, snowDay);
             }
         }
 
@@ -421,44 +402,14 @@ public class AnnualDialog extends CaveSWTDialog {
                         && precipDay == PRECIP_DEFAULT_DAY) {
                     precipContinue = MessageDialog.openQuestion(shell,
                             "Warning",
-                            "The precip start date indicated will result in seasonal sums for\nthe current 3 month season. \nContinue?");
+                            "The precip start date indicated will result in seasonal sums "
+                                    + "for\nthe current 3 month season. \nContinue?");
                 }
 
                 if (precipContinue) {
-                    precipSeason.getStart().setMon(precipMonth);
-                    precipSeason.getStart().setDay(precipDay);
-                    precipSeason.getEnd()
-                            .setDay(precipSeason.getStart().getDay() - 1);
-                    if (precipSeason.getEnd().getDay() == 0) {
-                        precipSeason.getEnd()
-                                .setMon(precipSeason.getStart().getMon() - 1);
-                        if (precipSeason.getEnd().getMon() == 0) {
-                            precipSeason.getEnd().setMon(12);
-                        }
-                        precipSeason.getEnd()
-                                .setDay(ClimateUtilities.daysInMonth(2015,
-                                        precipSeason.getEnd().getMon()));
-                    } else {
-                        precipSeason.getEnd()
-                                .setMon(precipSeason.getStart().getMon());
-                    }
+                    setSeasonFromStart(precipSeason, precipMonth, precipDay);
                 }
             }
-        }
-
-        if (precipContinue && snowContinue
-                && !this.snowCurrentChk.getSelection()) {
-            snowSeason.getStart().setDay(day);
-            snowSeason.getStart().setMon(month);
-            snowSeason.getEnd().setDay(day - 1);
-            if (snowSeason.getEnd().getDay() == 0) {
-                snowSeason.getEnd().setMon(month - 1);
-                if (snowSeason.getEnd().getMon() == 0)
-                    snowSeason.getEnd().setMon(12);
-                snowSeason.getEnd().setDay(ClimateUtilities.daysInMonth(2015,
-                        snowSeason.getEnd().getMon()));
-            } else
-                snowSeason.getEnd().setMon(month);
         }
 
         /* Annual Values Currently ALWAYS stay the same */
@@ -472,7 +423,38 @@ public class AnnualDialog extends CaveSWTDialog {
         precipYear.getEnd().setDay(31);
 
         if (snowContinue && precipContinue) {
-            changeSeason(precipSeason, precipYear, snowSeason, snowYear);
+            boolean saved = changeSeason(precipSeason, precipYear, snowSeason,
+                    snowYear);
+
+            if (saved) {
+                changeListener.setChangesUnsaved(false);
+                close();
+            }
+        }
+    }
+
+    /**
+     * Set season start and end based on given start month and day. End will be
+     * the day prior to the start (in the next year).
+     * 
+     * @param season
+     * @param startMonth
+     * @param startDay
+     */
+    private static void setSeasonFromStart(ClimateDates season, int startMonth,
+            int startDay) {
+        season.getStart().setMon(startMonth);
+        season.getStart().setDay(startDay);
+        season.getEnd().setDay(startDay - 1);
+        if (season.getEnd().getDay() == 0) {
+            season.getEnd().setMon(startMonth - 1);
+            if (season.getEnd().getMon() == 0) {
+                season.getEnd().setMon(12);
+            }
+            season.getEnd().setDay(ClimateUtilities.daysInMonth(2015,
+                    season.getEnd().getMon()));
+        } else {
+            season.getEnd().setMon(startMonth);
         }
     }
 
@@ -484,15 +466,14 @@ public class AnnualDialog extends CaveSWTDialog {
      * @param snowSeason
      * @param snowYear
      */
-    private void changeSeason(ClimateDates precipSeason,
+    private boolean changeSeason(ClimateDates precipSeason,
             ClimateDates precipYear, ClimateDates snowSeason,
             ClimateDates snowYear) {
 
         String message = "Preferences have saved to table climo_dates.";
 
-        ClimoDatesRequest cdr = new ClimoDatesRequest(
-                ClimoDatesRequestType.UPDATE_CLIMODATES, precipSeason,
-                precipYear, snowSeason, snowYear);
+        ClimoDatesRequest cdr = new ClimoDatesRequest(precipSeason, precipYear,
+                snowSeason, snowYear);
 
         boolean isSaved = false;
         try {
@@ -505,9 +486,7 @@ public class AnnualDialog extends CaveSWTDialog {
 
         MessageDialog.openInformation(shell, "Season Preferences", message);
 
-        if (isSaved) {
-            close();
-        }
+        return isSaved;
     }
 
     /**
@@ -518,7 +497,7 @@ public class AnnualDialog extends CaveSWTDialog {
 
         try {
             @SuppressWarnings("unchecked")
-            List<ClimateDate> dates = (ArrayList<ClimateDate>) ThriftClient
+            List<ClimateDate> dates = (List<ClimateDate>) ThriftClient
                     .sendRequest(spsr);
             if (dates == null || dates.size() != 2) {
                 return;

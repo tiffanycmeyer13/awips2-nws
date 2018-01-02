@@ -31,26 +31,22 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAO;
  * 22 FEB 2017  28609      amoore      Address TODOs.
  * 09 MAY 2017  33104      amoore      Change extension type to common.
  * 07 SEP 2017  37754      amoore      Exceptions instead of boolean returns.
+ * 02 NOV 2017  37755      amoore      Get rid of local locking.
  * </pre>
  *
  * @author pwang
  * @version 1.0
  */
-public class ClimateReportDao extends ClimateDAO {
+public class ClimateReportDAO extends ClimateDAO {
     /**
      * Report table.
      */
     public static final String REPORT_TABLE_NAME = "rpt";
 
     /**
-     * Lock object for synchronization.
-     */
-    private static final Object LOCK = new Object();
-
-    /**
      * Constructor.
      */
-    public ClimateReportDao() {
+    public ClimateReportDAO() {
         super();
     }
 
@@ -62,24 +58,21 @@ public class ClimateReportDao extends ClimateDAO {
      */
     public void storeToTable(ClimateReport report) throws ClimateException {
         // insert to report table
-        synchronized (LOCK) {
-            Map<String, Object> parameters = report.getColumnValues();
-            String sql = getInsertStatement(REPORT_TABLE_NAME,
-                    parameters.keySet());
-            try {
-                int changes = getDao().executeSQLUpdate(sql, parameters);
+        Map<String, Object> parameters = report.getColumnValues();
+        String sql = getInsertStatement(REPORT_TABLE_NAME, parameters.keySet());
+        try {
+            int changes = getDao().executeSQLUpdate(sql, parameters);
 
-                if (changes != 1) {
-                    throw new ClimateQueryException(
-                            "Expected query to update 1 row, but updated ["
-                                    + changes + "] rows instead.");
-                }
-            } catch (Exception e) {
+            if (changes != 1) {
                 throw new ClimateQueryException(
-                        "Error writing to rpt table with query: [" + sql
-                                + "] and parameters: [" + parameters + "]",
-                        e);
+                        "Expected query to update 1 row, but updated ["
+                                + changes + "] rows instead.");
             }
+        } catch (Exception e) {
+            throw new ClimateQueryException(
+                    "Error writing to rpt table with query: [" + sql
+                            + "] and parameters: [" + parameters + "]",
+                    e);
         }
     }
 

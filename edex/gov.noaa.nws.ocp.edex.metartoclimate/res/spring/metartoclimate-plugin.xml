@@ -3,8 +3,17 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
+    <bean id="climateMetarReportDAO"
+        class="gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDAO"/>
+
+    <bean id="climateMetarInsertionDAO"
+        class="gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateFSSInsertionDAO"/>
+
     <bean id="metarToClimate"
-        class="gov.noaa.nws.ocp.edex.metartoclimate.MetarToClimateDBServer" />
+        class="gov.noaa.nws.ocp.edex.metartoclimate.MetarToClimateDBServer">
+        <constructor-arg ref="climateMetarReportDAO"/>
+        <constructor-arg ref="climateMetarInsertionDAO"/>    
+    </bean>
 
     <camelContext id="metarToClimate-camel"
         xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">

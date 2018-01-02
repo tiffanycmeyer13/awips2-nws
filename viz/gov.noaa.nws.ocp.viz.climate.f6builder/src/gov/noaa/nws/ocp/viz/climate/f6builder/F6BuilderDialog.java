@@ -40,13 +40,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.viz.core.mode.CAVEMode;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
@@ -54,7 +51,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.F6ServiceRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.F6ServiceResponse;
-import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveDialog;
 import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
@@ -93,14 +90,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * @version 1.0
  */
 
-public class F6BuilderDialog extends CaveSWTDialog {
-
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(F6BuilderDialog.class);
-
+public class F6BuilderDialog extends ClimateCaveDialog {
     /**
      * Station list.
      */
@@ -176,15 +166,14 @@ public class F6BuilderDialog extends CaveSWTDialog {
      */
     @SuppressWarnings("unchecked")
     public F6BuilderDialog(Shell parent) {
+        super(parent);
 
-        super(parent, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE,
-                ClimateLayoutValues.CLIMATE_DIALOG_CAVE_STYLE);
         setText("F6 Product Date and Stations");
         ClimateRequest request = new ClimateRequest();
         request.setRequestType(RequestType.GET_STATIONS);
 
         try {
-            stations = (ArrayList<Station>) ThriftClient.sendRequest(request);
+            stations = (List<Station>) ThriftClient.sendRequest(request);
         } catch (VizException e) {
             logger.error("Could not retrieve stations for F6 report dialog", e);
         }
@@ -249,11 +238,9 @@ public class F6BuilderDialog extends CaveSWTDialog {
 
         GC gc = new GC(stationTable);
         int fontWidth = gc.getFontMetrics().getAverageCharWidth();
-        int fontHeight = gc.getFontMetrics().getHeight();
         gc.dispose();
 
         GridData gd_table = new GridData(SWT.FILL, SWT.TOP, true, true, 1, 1);
-        gd_table.heightHint = 12 * fontHeight;
         stationTable.setLayoutData(gd_table);
 
         TableColumn checkColumn = new TableColumn(stationTable, SWT.NONE);
@@ -372,6 +359,9 @@ public class F6BuilderDialog extends CaveSWTDialog {
 
         GC gc = new GC(printCheckButton);
         int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        /*
+         * Height to ensure the remarks box has multiple easily viewable rows
+         */
         int fontHeight = gc.getFontMetrics().getHeight();
         gc.dispose();
 

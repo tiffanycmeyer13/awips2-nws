@@ -41,7 +41,7 @@ public class F6BuilderAction extends AbstractHandler {
         if (f6BuilderDialog == null
                 || f6BuilderDialog.getShell().isDisposed()) {
             f6BuilderDialog = new F6BuilderDialog(shell);
-            f6BuilderDialog.setCloseCallback(new ICloseCallback() {
+            f6BuilderDialog.addCloseCallback(new ICloseCallback() {
 
                 @Override
                 public void dialogClosed(Object returnValue) {

@@ -22,19 +22,16 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
-import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
 
 /**
  * 
@@ -60,13 +57,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * @author wkwock
  * @version 1.0
  */
-public class ThresholdsDialog extends CaveSWTDialog {
-
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ThresholdsDialog.class);
+public class ThresholdsDialog extends ClimateCaveChangeTrackDialog {
 
     /**
      * width for a 'degree Fahrenheit' text widget
@@ -142,11 +133,6 @@ public class ThresholdsDialog extends CaveSWTDialog {
      * preferences
      */
     private ClimateGlobal preferenceValues;
-
-    /**
-     * Change listener
-     */
-    private UnsavedChangesListener changeListener = new UnsavedChangesListener();
 
     /**
      * Collection of listeners.
@@ -615,6 +601,9 @@ public class ThresholdsDialog extends CaveSWTDialog {
              * to "true" to indicate values have been changed.
              */
             writePreferences(preferenceValues);
+
+            changeListener.setChangesUnsaved(false);
+
             this.setReturnValue(true);
 
             close();

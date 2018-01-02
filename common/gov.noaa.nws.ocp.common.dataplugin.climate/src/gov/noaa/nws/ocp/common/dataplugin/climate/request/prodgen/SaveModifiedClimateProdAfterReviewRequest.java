@@ -13,7 +13,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProductType;
 /**
  * SaveModifiedClimateProdAfterReviewRequest
  * 
- * This Request should only be called when Climate Product Reviewer When one
+ * This request should only be called when Climate Product Reviewer when one
  * product being modified and user confirm to save the changes
  * 
  * <pre>
@@ -44,9 +44,6 @@ public class SaveModifiedClimateProdAfterReviewRequest
 
     @DynamicSerializeElement
     private ClimateProduct saveProd;
-
-    // TODO: may need to send back the climate product objects if the product
-    // modified
 
     /**
      * Empty constructor.

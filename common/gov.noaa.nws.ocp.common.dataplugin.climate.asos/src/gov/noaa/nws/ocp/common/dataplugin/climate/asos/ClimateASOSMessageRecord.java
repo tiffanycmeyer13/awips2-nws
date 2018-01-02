@@ -6,13 +6,6 @@ package gov.noaa.nws.ocp.common.dataplugin.climate.asos;
 import java.time.LocalDate;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 
 /**
@@ -30,14 +23,14 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  *                                     of trace precip constant.
  * 05 MAY 2017  33104      amoore      Abstract methods for subclasses.
  *                                     Remove PDO extension.
+ * 31 OCT 2017  40231      amoore      Clean up of MSM/DSM parsing and records. Better
+ *                                     logging. Get rid of serialization tags.
  * </pre>
  *
  * @author pwang
  * @version 1.0
  */
 
-@DynamicSerialize
-@XmlAccessorType(XmlAccessType.NONE)
 public abstract class ClimateASOSMessageRecord {
 
     public static final short MISSING_VAL_4_DIGITS = ParameterFormatClimate.MISSING;
@@ -56,17 +49,23 @@ public abstract class ClimateASOSMessageRecord {
     public static final short MISSING_DEGREE_DAYS = MISSING_VAL_4_DIGITS * -1;
 
     /**
+     * Original message, for toString.
+     */
+    private final String originalMessage;
+
+    /**
      * maps to YYYY field, Alphanumeric station identifier, 3 or 4 characters
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String stationCode;
 
     /**
      * Constructor.
+     * 
+     * @param originalMessage
      */
-    public ClimateASOSMessageRecord() {
+    public ClimateASOSMessageRecord(String originalMessage) {
         stationCode = "";
+        this.originalMessage = originalMessage;
     }
 
     /**
@@ -134,5 +133,9 @@ public abstract class ClimateASOSMessageRecord {
      */
     public final void setStationCode(String stationCode) {
         this.stationCode = stationCode;
+    }
+
+    public String toString() {
+        return "Original ASOS message: [" + originalMessage + "]";
     }
 }

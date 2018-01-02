@@ -3,7 +3,9 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +13,8 @@ import java.util.Map.Entry;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct.ProductStatus;
 
@@ -25,7 +29,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct.ProductStatus;
  * ------------ ---------- ----------- --------------------------
  * May 3, 2017             pwang       Initial creation
  * 11 MAY 2017  33104      amoore      More Find Bugs minor issues.
- *
+ * 02 NOV 2016  40210      wpaintsil   Months for the Calendar object are zero-indexed, 
+ *                                     whereas LocalDateTime months are one-indexed.
  * </pre>
  *
  * @author pwang
@@ -43,6 +48,11 @@ public class ClimateProductSet {
 
     @DynamicSerializeElement
     private ProductSetStatus prodStatus = ProductSetStatus.PENDING;
+
+    /**
+     * The logger.
+     */
+    private final IUFStatusHandler logger = UFStatus.getHandler(getClass());
 
     /**
      * Empty Constructor
@@ -74,15 +84,21 @@ public class ClimateProductSet {
             return null;
         }
 
-        LocalDateTime expiration = LocalDateTime.now().minusHours(4);
+        LocalDateTime expiration = LocalDateTime.now();
 
         for (ClimateProduct cp : prodData.values()) {
             if (cp.getExpirationTime() != null
                     && cp.getStatus() != ProductStatus.SENT) {
-                expiration = getLaterExpriration(cp.getExpirationTime(),
+                expiration = getLaterExpiration(cp.getExpirationTime(),
                         expiration);
+
+                logger.info(cp.getPil() + " product expiration time: "
+                        + new SimpleDateFormat("hh:mm aaa, MM/dd/yyyy")
+                                .format(cp.getExpirationTime().getTime()));
             }
         }
+        logger.info("Latest expiration time: " + expiration
+                .format(DateTimeFormatter.ofPattern("hh:mm a, MM/dd/yyyy")));
         return expiration;
     }
 
@@ -90,19 +106,20 @@ public class ClimateProductSet {
      * getLaterExpriration
      * 
      * @param prodExp
-     * @param currectExp
+     * @param currentExp
      * @return latest expiration date time
      */
-    private LocalDateTime getLaterExpriration(Calendar prodExp,
-            LocalDateTime currectExp) {
+    private LocalDateTime getLaterExpiration(Calendar prodExp,
+            LocalDateTime currentExp) {
         LocalDateTime prodexp = LocalDateTime.of(prodExp.get(Calendar.YEAR),
-                prodExp.get(Calendar.MONTH), prodExp.get(Calendar.DAY_OF_MONTH),
-                prodExp.get(Calendar.HOUR), prodExp.get(Calendar.MINUTE),
-                prodExp.get(Calendar.SECOND));
-        if (prodexp.isAfter(currectExp)) {
+                prodExp.get(Calendar.MONTH) + 1,
+                prodExp.get(Calendar.DAY_OF_MONTH), prodExp.get(Calendar.HOUR),
+                prodExp.get(Calendar.MINUTE), prodExp.get(Calendar.SECOND));
+
+        if (prodexp.isAfter(currentExp)) {
             return prodexp;
         } else {
-            return currectExp;
+            return currentExp;
         }
     }
 

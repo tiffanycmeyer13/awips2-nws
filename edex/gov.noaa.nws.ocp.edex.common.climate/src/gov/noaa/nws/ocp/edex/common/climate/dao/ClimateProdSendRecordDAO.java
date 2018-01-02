@@ -3,6 +3,8 @@
  **/
 package gov.noaa.nws.ocp.edex.common.climate.dao;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -10,17 +12,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProdSendRecord;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
-
 
 /**
  * ClimateProdSendRecordDAO
@@ -31,18 +28,14 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Apr 26, 2017            pwang     Initial creation
+ * Apr 26, 2017 20642      pwang       Initial creation
  *
  * </pre>
  *
  * @author pwang
- * @version 1.0	
+ * @version 1.0
  */
 public class ClimateProdSendRecordDAO extends ClimateDAO {
-    
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateProdSendRecordDAO.class);
-
     public static final String SEND_RECORD_TABLE_NAME = "sent_prod_record";
 
     public static final String CPG_SESSION_ID_COLUMN = "cpg_session_id";
@@ -52,7 +45,7 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
     public static final String START_PARAM = "startTime";
 
     public static final String END_PARAM = "endTime";
-    
+
     public static final String PURGE_PARAM = "purgeTime";
 
     private static final Object LOCK = new Object();
@@ -61,20 +54,18 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
      * Constructor
      */
     public ClimateProdSendRecordDAO() {
-      super();
+        super();
     }
 
-
-    
     /**
      * insertSentClimateProdRecord
+     * 
      * @param record
      * @return
      * @throws ClimateQueryException
      */
-    public boolean insertSentClimateProdRecord(
-            ClimateProdSendRecord record)
-                    throws ClimateQueryException {
+    public boolean insertSentClimateProdRecord(ClimateProdSendRecord record)
+            throws ClimateQueryException {
         boolean status = true;
         synchronized (LOCK) {
 
@@ -101,20 +92,21 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
 
     /**
      * getSentClimateProductRecords
+     * 
      * @param startDT
      * @param endDT
      * @return
      * @throws ClimateQueryException
      */
-    public List<ClimateProdSendRecord> getSentClimateProductRecords(Date startDT, Date endDT)
-            throws ClimateQueryException {
+    public List<ClimateProdSendRecord> getSentClimateProductRecords(
+            Date startDT, Date endDT) throws ClimateQueryException {
         List<ClimateProdSendRecord> recordList = new ArrayList<>();
 
         ClimateProdSendRecord cpsr = new ClimateProdSendRecord();
         Map<String, Object> columns = cpsr.getColumnValues();
         String sql = getClimateProdSendRecordStatement(SEND_RECORD_TABLE_NAME,
                 columns.keySet());
-        
+
         Map<String, Object> params = new HashMap<>();
         params.put(START_PARAM, new Timestamp(startDT.getTime()));
         params.put(END_PARAM, new Timestamp(endDT.getTime()));
@@ -141,7 +133,7 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
         }
         return recordList;
     }
-    
+
     /**
      * purgeSentProductRecords
      * 
@@ -151,8 +143,7 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
      */
     public int purgeSentProductRecords(LocalDateTime purgeThreshold)
             throws ClimateQueryException {
-        String sql = getPurgeSentRecordStatement(
-                SEND_RECORD_TABLE_NAME);
+        String sql = getPurgeSentRecordStatement(SEND_RECORD_TABLE_NAME);
 
         // Parameters used by setXXX
         Map<String, Object> parameters = new HashMap<>();
@@ -162,7 +153,6 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
         int rows = this.getDao().executeSQLUpdate(sql, parameters);
         return rows;
     }
-
 
     /**
      * Create a parameterized insert statement that can be passed to
@@ -222,9 +212,10 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
         sb.append(";");
         return sb.toString();
     }
-    
+
     /**
      * getPurgeSentRecordStatement
+     * 
      * @param table
      * @return
      */
@@ -239,29 +230,25 @@ public class ClimateProdSendRecordDAO extends ClimateDAO {
         return sb.toString();
     }
 
-
-
-    
     /**
      * Test ONLY
+     * 
      * @param args
      */
+    // TODO delete
     public static void main(String[] args) {
         ClimateProdSendRecord cpgs = new ClimateProdSendRecord();
         Map<String, Object> columns = cpgs.getColumnValues();
         String sql = getInsertStatement(SEND_RECORD_TABLE_NAME,
                 columns.keySet());
-        
-        System.out.println(sql);
-        
-        sql = getClimateProdSendRecordStatement(SEND_RECORD_TABLE_NAME, columns.keySet());
-        
+
         System.out.println(sql);
 
-        
+        sql = getClimateProdSendRecordStatement(SEND_RECORD_TABLE_NAME,
+                columns.keySet());
+
+        System.out.println(sql);
+
     }
-    
-    
+
 }
-
-

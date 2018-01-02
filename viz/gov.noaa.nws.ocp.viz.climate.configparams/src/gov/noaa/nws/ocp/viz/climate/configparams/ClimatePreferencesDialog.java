@@ -22,11 +22,8 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
@@ -34,9 +31,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.Request
 import gov.noaa.nws.ocp.viz.climate.configparams.support.AnnualDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.StationEditDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.ThresholdsDialog;
-import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
-import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
 
 /**
  * 
@@ -65,12 +61,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * @author xzhang
  * @version 1.0
  */
-public class ClimatePreferencesDialog extends CaveSWTDialog {
-    /**
-     * logger
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimatePreferencesDialog.class);
+public class ClimatePreferencesDialog extends ClimateCaveChangeTrackDialog {
 
     /**
      * AM and PM
@@ -140,7 +131,7 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
     /**
      * colon radio button
      */
-    private Button colonRdo;
+    private Button colonYesRdo;
 
     /**
      * no colon radio button
@@ -183,14 +174,12 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
     protected Font boldItalicFont;
 
     /**
-     * Change listener
+     * Constructor.
+     * 
+     * @param parent
      */
-    private UnsavedChangesListener changeListener = new UnsavedChangesListener();
-
     public ClimatePreferencesDialog(Shell parent) {
-
-        super(parent, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE,
-                ClimateLayoutValues.CLIMATE_DIALOG_CAVE_STYLE);
+        super(parent);
         setText("Climate Preferences");
     }
 
@@ -218,8 +207,10 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
      * get font
      */
     private void getFont() {
-        boldItalicFont = new Font(this.getDisplay(), "Sans", 10,
-                SWT.BOLD | SWT.ITALIC);
+        if (boldItalicFont == null) {
+            boldItalicFont = new Font(this.getDisplay(), "Sans", 10,
+                    SWT.BOLD | SWT.ITALIC);
+        }
 
         shell.addDisposeListener(new DisposeListener() {
             @Override
@@ -257,7 +248,7 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
         closeMI.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                closePreferenceDlg();
+                close();
             }
         });
 
@@ -366,8 +357,8 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
                 new GridData(SWT.CENTER, SWT.BOTTOM, false, false, 1, 3));
         leftComp.setLayout(new GridLayout(1, false));
 
-        colonRdo = new Button(leftComp, SWT.RADIO);
-        colonRdo.setText("Yes");
+        colonYesRdo = new Button(leftComp, SWT.RADIO);
+        colonYesRdo.setText("Yes");
 
         colonNoRdo = new Button(leftComp, SWT.RADIO);
         colonNoRdo.setText("No");
@@ -419,10 +410,8 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
                 int stationEditWidth = stationEditDialog.getShell().getSize().x;
                 int stationEditHeight = stationEditDialog.getShell()
                         .getSize().y;
-                stationEditDialog.getShell()
-                        .setLocation(new Point(
-                                caveLocation.x + (caveWidth - stationEditWidth)
-                                        / 2,
+                stationEditDialog.getShell().setLocation(new Point(
+                        caveLocation.x + (caveWidth - stationEditWidth) / 2,
                         caveLocation.y + (caveHeight - stationEditHeight) / 2));
             }
         });
@@ -444,9 +433,8 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
                 // location.
                 int altAnnualWidth = altAnnualDialog.getShell().getSize().x;
                 int altAnnualHeight = altAnnualDialog.getShell().getSize().y;
-                altAnnualDialog.getShell()
-                        .setLocation(new Point(caveLocation.x
-                                + (caveWidth - altAnnualWidth) / 2,
+                altAnnualDialog.getShell().setLocation(new Point(
+                        caveLocation.x + (caveWidth - altAnnualWidth) / 2,
                         caveLocation.y + (caveHeight - altAnnualHeight) / 2));
             }
         });
@@ -606,24 +594,9 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
         cancelBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                closePreferenceDlg();
-            }
-        });
-    }
-
-    /**
-     * Close this dialog
-     */
-    protected void closePreferenceDlg() {
-        if (changeListener.isChangesUnsaved()) {
-            boolean close = MessageDialog.openQuestion(shell, "Unsaved Changes",
-                    "Close this window? Unsaved changes will be lost.");
-            if (close) {
                 close();
             }
-        } else {
-            close();
-        }
+        });
     }
 
     /**
@@ -769,7 +742,7 @@ public class ClimatePreferencesDialog extends CaveSWTDialog {
         negativeRdo.setSelection(!preferenceValues.isNoMinus());
         negativeMRdo.setSelection(preferenceValues.isNoMinus());
 
-        colonRdo.setSelection(!preferenceValues.isNoColon());
+        colonYesRdo.setSelection(!preferenceValues.isNoColon());
         colonNoRdo.setSelection(preferenceValues.isNoColon());
 
         valueSRdo.setSelection(!preferenceValues.isNoAsterisk());

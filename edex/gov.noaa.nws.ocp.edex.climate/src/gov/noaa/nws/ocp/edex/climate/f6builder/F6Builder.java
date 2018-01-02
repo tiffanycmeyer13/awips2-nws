@@ -22,10 +22,13 @@ import org.apache.velocity.exception.ResourceNotFoundException;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
+import com.raytheon.edex.site.SiteUtil;
 import com.raytheon.uf.common.message.StatusMessage;
+import com.raytheon.uf.common.site.SiteMap;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
 import com.raytheon.uf.edex.plugin.text.db.TextDB;
 
@@ -44,6 +47,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.F6ServiceResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDailyNormDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodNormDAO;
@@ -51,6 +55,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateStationsSetupDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
 import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
 
@@ -92,6 +97,12 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  *                                     where not all branches of logic lead to each station
  *                                     having a message line in the F6 response.
  * 31 AUG 2017  37561      amoore      Final remarks processing should occur on backend.
+ * 05 SEP 2017  37636      amoore      Minor code clean up.
+ * 19 SEP 2017  38120      amoore      Minor code clean up. More comments.
+ * 28 SEP 2017  38472      amoore      Each F6 report should be stored under 2 PILs.
+ * 10 OCT 2017  39132      amoore      Check against allowDisseminate flag.
+ * 16 OCT 2017  39449      amoore      Print weather line if any weather detected, not just if
+ *                                     num_weather_obs value is non-missing.
  * </pre>
  * 
  * @author amoore
@@ -115,20 +126,6 @@ public class F6Builder {
      */
     private static final String VELOCITY_TEMP_MIXED_CASE = "/reportTemplates/f6_report_mixed_case.vm";
 
-    // TODO put in common location
-    public final static String EDEX = "EDEX";
-
-    // TODO put in common location
-    public final static String CATEGORY_INFO = "INFO";
-
-    // TODO put in common location
-    public static final String cpgEndpoint = "climateNotify";
-
-    /**
-     * Plugin ID for alerts.
-     */
-    public static final String PLUGIN_ID = "F6Builder";
-
     /**
      * Prefix for temporary F6 files.
      */
@@ -139,13 +136,21 @@ public class F6Builder {
             .getHandler(F6Builder.class);
 
     /**
-     * Middle part of a PIL.
+     * Middle part of an F6 LCD PIL.
      * 
-     * F6 product could be output into the text database with the PIL SSSLCDMMM,
-     * where SSS represents the three-letter station id and MMM is the
-     * three-letter month.
+     * F6 product is output into the text database with the PIL SSSLCDMMM, where
+     * SSS represents the three-letter station code and MMM is the three-letter
+     * month.
      */
-    private final static String F6_PIL_MIDDLE = "LCD";
+    private final static String F6_LCD_PIL_MIDDLE = "LCD";
+
+    /**
+     * Beginning part of an F6 CF6 PIL.
+     * 
+     * F6 product is output into the text database with the PIL CF6SSS, where
+     * SSS represents the three-letter station code.
+     */
+    private final static String CF6_PIL_START = "CF6";
 
     private final DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
 
@@ -202,7 +207,7 @@ public class F6Builder {
             boolean operational) {
 
         boolean hasException = false;
-        StringBuilder sb = new StringBuilder();
+        StringBuilder messages = new StringBuilder();
         Map<String, String> fileMap = new HashMap<>();
         Map<String, List<String>> pilMap = new HashMap<>();
 
@@ -214,14 +219,25 @@ public class F6Builder {
 
         TextDB textdb = new TextDB();
 
+        String siteName = SiteUtil.getSite();
+        String ccc = SiteMap.getInstance().getCCCFromXXXCode(siteName);
+        if (ccc == null) {
+            ccc = siteName;
+        }
+
+        boolean disseminate = ClimateGlobalConfiguration.getGlobal()
+                .isAllowDisseminate();
+
+        if (!disseminate) {
+            messages.append("Dissemination to text DB is disabled!\n");
+        }
+
         for (Station station : stations) {
             // File name to match legacy
             String fileName = OUTPUT_F6_PREFIX + station.getIcaoId();
 
-            // PIL name to be used later for text DB.
-            String pilName = station.getIcaoId().substring(1) + F6_PIL_MIDDLE
-                    + mon;
             try {
+
                 List<String> reportContent = buildF6ForStation(station, aDate,
                         remarks);
 
@@ -236,62 +252,102 @@ public class F6Builder {
                     totalContents.append(line).append("\n");
                 }
 
-                long insertTime = textdb.writeProduct(pilName,
-                        totalContents.toString(), operational, null);
-
-                if (insertTime != Long.MIN_VALUE) {
-                    logger.info(
-                            "Successfully stored F6 report to the text database for station ["
-                                    + station.getIcaoId() + "]");
-
-                    // store record of product to DB
-                    try {
-                        ClimateProdSendRecord record = new ClimateProdSendRecord();
-                        record.setProd_id(pilName);
-                        record.setProd_type("F6");
-                        record.setProd_text(totalContents.toString());
-                        record.setFile_name(fileName);
-                        record.setSend_time(new Timestamp(insertTime));
-                        record.setUser_id("auto");
-
-                        sendRecordDAO.insertSentClimateProdRecord(record);
-                    } catch (ClimateQueryException e) {
-                        logger.error("Failed to track F6 report with PIL ["
-                                + pilName + "] and text body [" + totalContents
-                                + "].", e);
+                // PIL names to be used later for text DB.
+                String[] pils = new String[2];
+                /*
+                 * Legacy comment:
+                 * 
+                 * SPR6387: Central and Eastern regions requirement to have two
+                 * PILs for F6 products. We'll create a pil cccLCDmmm along with
+                 * CF6ccc
+                 * 
+                 * First, let's prepare the CCCLCDmmm product PIL
+                 */
+                pils[0] = station.getIcaoId().substring(1) + F6_LCD_PIL_MIDDLE
+                        + mon;
+                /*
+                 * Legacy comment:
+                 * 
+                 * Now, let's create the new CF6 product with "CF6ccc" format.
+                 */
+                pils[1] = ccc + CF6_PIL_START
+                        + station.getIcaoId().substring(1);
+                for (String pil : pils) {
+                    long insertTime;
+                    if (disseminate) {
+                        insertTime = textdb.writeProduct(pil,
+                                totalContents.toString(), operational, null);
+                    } else {
+                        insertTime = TimeUtil.newDate().getTime();
                     }
 
-                    // send product alarm alert
-                    try {
-                        StatusMessage sm = new StatusMessage();
-                        sm.setPriority(Priority.EVENTA);
-                        sm.setPlugin(PLUGIN_ID);
-                        sm.setCategory(CATEGORY_INFO);
-                        sm.setMessage(
-                                "F6 product [" + pilName + "] generated.");
-                        sm.setMachineToCurrent();
-                        sm.setSourceKey(EDEX);
-                        sm.setDetails("Stored F6 report with AFOS ID ["
-                                + pilName + "] and text body [" + totalContents
-                                + "]");
-                        sm.setEventTime(new Date(insertTime));
+                    if (insertTime != Long.MIN_VALUE) {
+                        logger.debug(
+                                "Successfully stored F6 report to the text database for station ["
+                                        + station.getIcaoId() + "] with PIL ["
+                                        + pil + "]");
 
-                        EDEXUtil.getMessageProducer().sendAsync(cpgEndpoint,
-                                sm);
-                    } catch (Exception e) {
-                        logger.error("Could not send message to ClimateView",
-                                e);
+                        // store record of product to DB
+                        try {
+                            ClimateProdSendRecord record = new ClimateProdSendRecord();
+                            record.setProd_id(pil);
+                            record.setProd_type("F6");
+                            record.setProd_text(totalContents.toString());
+                            record.setFile_name(fileName);
+                            record.setSend_time(new Timestamp(insertTime));
+                            record.setUser_id("auto");
+
+                            sendRecordDAO.insertSentClimateProdRecord(record);
+                        } catch (ClimateQueryException e) {
+                            logger.error("Failed to track F6 report with PIL ["
+                                    + pil + "] and text body [" + totalContents
+                                    + "].", e);
+                        }
+
+                        // send product alarm alert
+                        try {
+                            StatusMessage sm = new StatusMessage();
+                            sm.setPriority(Priority.INFO);
+                            sm.setPlugin(ClimateMessageUtils.F6_PLUGIN_ID);
+                            sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
+                            sm.setMachineToCurrent();
+                            sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
+
+                            if (disseminate) {
+                                sm.setMessage(
+                                        "F6 product [" + pil + "] generated.");
+                            } else {
+                                sm.setMessage("F6 product [" + pil
+                                        + "] generated but not stored. Dissemination is disabled.");
+                            }
+
+                            sm.setDetails("F6 report with AFOS ID [" + pil
+                                    + "] and text body [" + totalContents
+                                    + "]");
+
+                            sm.setEventTime(new Date(insertTime));
+
+                            EDEXUtil.getMessageProducer().sendAsync(
+                                    ClimateAlertUtils.CPG_ENDPOINT, sm);
+                        } catch (Exception e) {
+                            logger.error(
+                                    "Could not send message to ClimateView", e);
+                        }
+                        pilMap.put(pil, reportContent);
+
+                        messages.append(
+                                "Successfully created report for Station "
+                                        + station.getStationName()
+                                        + " with PIL " + pil + ".\n");
+                    } else {
+                        String message = "Something went wrong storing F6 report to the text database for station "
+                                + station.getIcaoId() + " with PIL " + pil
+                                + ". Ensure connection to text DB and that this is would not be an exact duplicate"
+                                + " of an existing report.\n";
+                        logger.error(message);
+                        messages.append(message);
+                        hasException = true;
                     }
-                    pilMap.put(pilName, reportContent);
-
-                    sb.append("Successfully created report for Station "
-                            + station.getStationName() + ".\n");
-                } else {
-                    String message = "Something went wrong storing F6 report to the text database for station "
-                            + station.getIcaoId();
-                    logger.error(message);
-                    sb.append(message);
-                    hasException = true;
                 }
             } catch (Exception e) {
                 logger.error(
@@ -299,7 +355,7 @@ public class F6Builder {
                                 + station.getIcaoId(),
                         e);
                 hasException = true;
-                sb.append(
+                messages.append(
                         "Something went wrong during creation of F6 report for station "
                                 + station.getStationName()
                                 + ". Check EDEX log for details.\n");
@@ -323,7 +379,8 @@ public class F6Builder {
             }
         }
 
-        return new F6ServiceResponse(pilMap, !hasException, sb.toString());
+        return new F6ServiceResponse(pilMap, !hasException,
+                messages.toString());
     }
 
     /**
@@ -437,8 +494,6 @@ public class F6Builder {
             Map<String, String> dailyValueMap = new HashMap<>();
 
             int avgTemp = 0;
-            int deptTemp;
-            int normTemp; /* dept_temp is departure from normal */
 
             dailyValueMap.put("dy", String.format("%2s", i + 1));
 
@@ -503,8 +558,8 @@ public class F6Builder {
                     && dailyData.getMaxTemp() != ParameterFormatClimate.MISSING
                     && dailyData
                             .getMinTemp() != ParameterFormatClimate.MISSING) {
-                normTemp = ClimateUtilities.nint(historyData.getMeanTemp());
-                deptTemp = avgTemp - normTemp;
+                int normTemp = ClimateUtilities.nint(historyData.getMeanTemp());
+                int deptTemp = avgTemp - normTemp;
                 dailyValueMap.put("dep", String.format("%4s", deptTemp));
             } else if (historyData
                     .getMinTempMean() != ParameterFormatClimate.MISSING
@@ -514,10 +569,11 @@ public class F6Builder {
                     && dailyData
                             .getMinTemp() != ParameterFormatClimate.MISSING) {
 
-                normTemp = ClimateUtilities.nint((historyData.getMinTempMean()
-                        + historyData.getMaxTempMean()) / 2.0f);
+                int normTemp = ClimateUtilities
+                        .nint((historyData.getMinTempMean()
+                                + historyData.getMaxTempMean()) / 2.0f);
 
-                deptTemp = avgTemp - normTemp;
+                int deptTemp = avgTemp - normTemp;
                 dailyValueMap.put("dep", String.format("%4s", deptTemp));
             } else {
                 dailyValueMap.put("dep", String.format("%4s", "M"));
@@ -687,39 +743,58 @@ public class F6Builder {
 
             /* weather */
             StringBuilder wxsb = new StringBuilder();
-            if (dailyData.getWxType()[12] == 1) {
+            /* Fog */
+            if (dailyData.getWxType()[DailyClimateData.WX_FOG_INDEX] == 1) {
                 wxsb.append("1");
             }
-            if (dailyData.getWxType()[13] == 1) {
+            /* Heavy Fog */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_FOG_QUARTER_SM_INDEX] == 1) {
                 wxsb.append("2");
             }
-            if (dailyData.getWxType()[0] == 1) {
+            /* Thunder */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_THUNDER_STORM_INDEX] == 1) {
                 wxsb.append("3");
             }
-            if (dailyData.getWxType()[11] == 1) {
+            /* Ice Pellets */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_ICE_PELLETS_INDEX] == 1) {
                 wxsb.append("4");
             }
-            if (dailyData.getWxType()[7] == 1) {
+            /* Hail */
+            if (dailyData.getWxType()[DailyClimateData.WX_HAIL_INDEX] == 1) {
                 wxsb.append("5");
             }
-            if (dailyData.getWxType()[5] == 1
-                    || dailyData.getWxType()[6] == 1) {
+            /* Freezing Rain (Glaze/Rime) */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_FREEZING_RAIN_INDEX] == 1
+                    || dailyData
+                            .getWxType()[DailyClimateData.WX_LIGHT_FREEZING_RAIN_INDEX] == 1) {
                 wxsb.append("6");
             }
-            if (dailyData.getWxType()[16] == 1) {
+            /* Blowing Sand */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_SAND_STORM_INDEX] == 1) {
                 wxsb.append("7");
             }
-            if (dailyData.getWxType()[14] == 1) {
+            /* Haze */
+            if (dailyData.getWxType()[DailyClimateData.WX_HAZE_INDEX] == 1) {
                 wxsb.append("8");
             }
-            if (dailyData.getWxType()[15] == 1) {
+            /* Blowing Snow */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_BLOWING_SNOW_INDEX] == 1) {
                 wxsb.append("9");
             }
-            if (dailyData.getWxType()[17] == 1) {
+            /* Tornado */
+            if (dailyData
+                    .getWxType()[DailyClimateData.WX_FUNNEL_CLOUD_INDEX] == 1) {
                 wxsb.append("X");
             }
 
-            if (dailyData.getNumWx() != ParameterFormatClimate.MISSING) {
+            if ((wxsb.length() != 0)
+                    || dailyData.getNumWx() != ParameterFormatClimate.MISSING) {
                 dailyValueMap.put("ws",
                         String.format(" %-4s", wxsb.toString()));
             } else {
@@ -831,7 +906,6 @@ public class F6Builder {
         float avgMaxTemp = ParameterFormatClimate.MISSING;
         float avgMinTemp = ParameterFormatClimate.MISSING;
         float avgTempf = ParameterFormatClimate.MISSING;
-        ;
 
         if (numMax > 0) {
             avgMaxTemp = (sumMax + 0.0f) / numMax;

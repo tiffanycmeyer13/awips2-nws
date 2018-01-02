@@ -6,10 +6,8 @@ package gov.noaa.nws.ocp.edex.plugin.climate.asos.dao;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.asos.ClimateASOSMessageRecord;
+import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAO;
 
@@ -25,7 +23,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAO;
  * Apr 12, 2016 16962      pwang       Initial creation
  * 05 MAY 2017  33104      amoore      Clean up SQL and logging.
  * 08 MAY 2017  33104      amoore      Extend common Climate functionality.
- *
+ * 07 SEP 2017  37754      amoore      Exceptions instead of boolean returns.
+ * 03 NOV 2017  36736      amoore      Get rid of unneeded synchronization.
  * </pre>
  *
  * @author pwang
@@ -33,14 +32,6 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAO;
  */
 
 public class ClimateASOSMessageDAO extends ClimateDAO {
-
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateASOSMessageDAO.class);
-
-    private static final Object LOCK = new Object();
 
     /**
      * Constructor.
@@ -56,64 +47,70 @@ public class ClimateASOSMessageDAO extends ClimateDAO {
      * 
      * @param report
      * @return
+     * @throws ClimateInvalidParameterException
+     * @throws ClimateQueryException
      */
-    public boolean storeToTable(ClimateASOSMessageRecord record) {
-
-        boolean status = true;
+    public void storeToTable(ClimateASOSMessageRecord record)
+            throws ClimateInvalidParameterException, ClimateQueryException {
         if (record == null) {
-            logger.warn("Cannot store null ASOS message record.");
-            return false;
+            throw new ClimateInvalidParameterException(
+                    "Cannot store null ASOS message record.");
         }
 
-        synchronized (LOCK) {
+        Map<String, Object> queryExistingParams = new HashMap<>();
 
-            Map<String, Object> queryExistingParams = new HashMap<>();
+        String queryExisting = record
+                .queryExistingRecordSQL(queryExistingParams);
 
-            String queryExisting = record
-                    .queryExistingRecordSQL(queryExistingParams);
+        try {
+            long count = ((Number) queryForOneValue(queryExisting,
+                    queryExistingParams, -1l)).longValue();
 
-            try {
-                long count = ((Number) queryForOneValue(queryExisting,
-                        queryExistingParams, -1l)).longValue();
+            String updateQuery = null;
 
-                String updateQuery = null;
+            Map<String, Object> queryUpdateParams = new HashMap<>();
 
-                Map<String, Object> queryUpdateParams = new HashMap<>();
-
-                if (count > 0) {
-                    logger.info("Record ASOS matching station code: ["
-                            + record.getStationCode()
-                            + "] for the given date already exists. Updating.");
-                    updateQuery = record.toUpdateSQL(queryUpdateParams);
-                } else {
-                    logger.info("No ASOS record matching station code: ["
-                            + record.getStationCode()
-                            + "] for the given date exists. Inserting new record.");
-                    updateQuery = record.toInsertSQL(queryUpdateParams);
-                }
-
-                if (updateQuery != null && !updateQuery.isEmpty()) {
-                    try {
-                        status = (getDao().executeSQLUpdate(updateQuery,
-                                queryUpdateParams) == 1);
-                    } catch (Exception e) {
-                        throw new ClimateQueryException("Error with query: ["
-                                + updateQuery + "] and map: ["
-                                + queryUpdateParams + "]", e);
-                    }
-                } else {
-                    logger.warn("No update query applicable for ASOS message.");
-                }
-            } catch (ClimateQueryException e) {
-                logger.error("Error with inner query.", e);
-            } catch (Exception e) {
-                logger.error(
-                        "Error with ASOS query: [" + queryExisting
-                                + "] and map: [" + queryExistingParams + "]",
-                        e);
+            if (count > 0) {
+                logger.info("Record ASOS matching station code: ["
+                        + record.getStationCode()
+                        + "] for the given date already exists. Updating.");
+                updateQuery = record.toUpdateSQL(queryUpdateParams);
+            } else {
+                logger.info("No ASOS record matching station code: ["
+                        + record.getStationCode()
+                        + "] for the given date exists. Inserting new record.");
+                updateQuery = record.toInsertSQL(queryUpdateParams);
             }
+
+            if (updateQuery != null && !updateQuery.isEmpty()) {
+                try {
+                    int changes = getDao().executeSQLUpdate(updateQuery,
+                            queryUpdateParams);
+
+                    if (changes != 1) {
+                        throw new ClimateQueryException(
+                                "Query expected to update 1 row, but updated: ["
+                                        + changes + "] rows.");
+                    }
+                } catch (Exception e) {
+                    throw new ClimateQueryException(
+                            "Error with query: [" + updateQuery + "] and map: ["
+                                    + queryUpdateParams + "]",
+                            e);
+                }
+            } else {
+                throw new ClimateInvalidParameterException(
+                        "No update query applicable for ASOS message, "
+                                + "as either station or date information may be missing.");
+            }
+        } catch (ClimateQueryException e) {
+            throw new ClimateQueryException("Error with inner query.", e);
+        } catch (Exception e) {
+            throw new ClimateQueryException(
+                    "Error with ASOS query: [" + queryExisting + "] and map: ["
+                            + queryExistingParams + "]",
+                    e);
         }
-        return status;
     }
 
 }

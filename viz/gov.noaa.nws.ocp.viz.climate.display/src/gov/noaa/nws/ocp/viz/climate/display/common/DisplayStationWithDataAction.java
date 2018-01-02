@@ -126,7 +126,7 @@ public class DisplayStationWithDataAction extends AbstractHandler {
                     dialog = new DisplayStationPeriodDialog(shell, sid);
                 }
 
-                dialog.setCloseCallback(new ICloseCallback() {
+                dialog.addCloseCallback(new ICloseCallback() {
                     @Override
                     public void dialogClosed(Object returnValue) {
                         // closing actions

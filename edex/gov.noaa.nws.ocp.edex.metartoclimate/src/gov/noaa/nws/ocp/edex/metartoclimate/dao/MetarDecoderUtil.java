@@ -31,6 +31,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07 SEP 2017  37754      amoore      Initial creation.
+ * 27 OCT 2017  40123      amoore      Simply time nominalization logic.
  * </pre>
  * 
  * @author amoore
@@ -1114,15 +1115,16 @@ public final class MetarDecoderUtil {
         obCal.set(Calendar.MINUTE, decodedMetar.getCmnData().getObMinute());
         surfaceObs.setObsTime(obCal.getTimeInMillis());
 
-        /* nominal date */
+        /*
+         * nominalize date, zero out minutes and seconds. If minutes > 44, go to
+         * next hour.
+         */
         if (decodedMetar.getCmnData().getObMinute() > 44) {
-            surfaceObs.setNominalTime(surfaceObs.getObsTime()
-                    + ((60L - (decodedMetar.getCmnData().getObMinute())) * 60L
-                            * 1000L));
-        } else {
-            surfaceObs.setNominalTime(surfaceObs.getObsTime()
-                    - (60L * 1000L * decodedMetar.getCmnData().getObMinute()));
+            obCal.add(Calendar.HOUR_OF_DAY, 1);
         }
+        obCal.set(Calendar.MINUTE, 0);
+        obCal.set(Calendar.SECOND, 0);
+        surfaceObs.setNominalTime(obCal.getTimeInMillis());
 
         /* origin time */
         surfaceObs.setOriginTime(report.getOrigin().getTimeInMillis());

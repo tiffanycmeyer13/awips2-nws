@@ -11,9 +11,9 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 
 /**
  * Request from the user when created climate report data: 1) User saves
@@ -41,7 +41,7 @@ public class CompleteDisplayClimateRequest implements IServerRequest {
     private String cpgSessionID;
 
     @DynamicSerializeElement
-    private ClimateCreatorResponse userData;
+    private ClimateRunData userData;
 
     @DynamicSerializeElement
     private HashMap<Integer, ClimatePeriodReportData> originalDataMap;
@@ -64,7 +64,7 @@ public class CompleteDisplayClimateRequest implements IServerRequest {
      *            potentially user-modified data for the report.
      */
     public CompleteDisplayClimateRequest(String cpgSessionId,
-            ClimateCreatorDailyResponse data) {
+            ClimateRunDailyData data) {
         this.cpgSessionID = cpgSessionId;
         this.userData = data;
     }
@@ -84,7 +84,7 @@ public class CompleteDisplayClimateRequest implements IServerRequest {
      *            MSM data.
      */
     public CompleteDisplayClimateRequest(String cpgSessionID,
-            ClimateCreatorPeriodResponse userData,
+            ClimateRunPeriodData userData,
             HashMap<Integer, ClimatePeriodReportData> originalDataMap,
             Set<Integer> msmOverwriteApproved) {
         this.cpgSessionID = cpgSessionID;
@@ -111,7 +111,7 @@ public class CompleteDisplayClimateRequest implements IServerRequest {
     /**
      * @return the userData
      */
-    public ClimateCreatorResponse getUserData() {
+    public ClimateRunData getUserData() {
         return userData;
     }
 
@@ -119,7 +119,7 @@ public class CompleteDisplayClimateRequest implements IServerRequest {
      * @param userData
      *            the userData to set
      */
-    public void setUserData(ClimateCreatorResponse userData) {
+    public void setUserData(ClimateRunData userData) {
         this.userData = userData;
     }
 

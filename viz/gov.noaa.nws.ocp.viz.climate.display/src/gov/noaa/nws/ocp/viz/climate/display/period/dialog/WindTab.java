@@ -154,8 +154,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 // convert between knots and mph
                 if (myIsWindSpeedsKnots != myWindSpeedsKnotsCheckbox
                         .getSelection()) {
-                    myPeriodDialog.myUnsavedChangesListener
-                            .setIgnoreChanges(true);
+                    myPeriodDialog.getChangeListener().setIgnoreChanges(true);
 
                     // selection value changed
                     myIsWindSpeedsKnots = myWindSpeedsKnotsCheckbox
@@ -260,8 +259,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                                 .valueOf(ParameterFormatClimate.MISSING_SPEED));
                     }
 
-                    myPeriodDialog.myUnsavedChangesListener
-                            .setIgnoreChanges(false);
+                    myPeriodDialog.getChangeListener().setIgnoreChanges(false);
                 }
             }
         });
@@ -319,7 +317,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxGustSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
         myMaxGustSpeedTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // max gust dir and dates
         Composite maxGustDirDatesComp = new Composite(parent, SWT.NONE);
@@ -344,7 +342,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxGustDirTFs[0].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxGustDirTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxGustDate1Comp = new Composite(maxGustDirDatesComp,
                 SWT.NONE);
@@ -359,7 +357,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxGustDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // second dir and date
         Composite maxGustDir2Comp = new Composite(maxGustDirDatesComp,
@@ -379,7 +377,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxGustDirTFs[1].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxGustDirTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxGustDate2Comp = new Composite(maxGustDirDatesComp,
                 SWT.NONE);
@@ -394,7 +392,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxGustDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // third dir and date
         Composite maxGustDir3Comp = new Composite(maxGustDirDatesComp,
@@ -414,7 +412,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxGustDirTFs[2].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxGustDirTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxGustDate3Comp = new Composite(maxGustDirDatesComp,
                 SWT.NONE);
@@ -429,7 +427,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxGustDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // average wind
         Composite averageWindComp = new Composite(parent, SWT.NONE);
@@ -457,7 +455,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myAverageWindSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
         myAverageWindSpeedTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     /**
@@ -493,7 +491,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxWindSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
         myMaxWindSpeedTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // max wind dir and dates
         Composite maxWindDirDatesComp = new Composite(parent, SWT.NONE);
@@ -518,7 +516,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxWindDirTFs[0].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxWindDirTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxWindDate1Comp = new Composite(maxWindDirDatesComp,
                 SWT.NONE);
@@ -533,7 +531,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxWindDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // second dir and date
         Composite maxWindDir2Comp = new Composite(maxWindDirDatesComp,
@@ -553,7 +551,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxWindDirTFs[1].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxWindDirTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxWindDate2Comp = new Composite(maxWindDirDatesComp,
                 SWT.NONE);
@@ -568,7 +566,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxWindDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // third dir and date
         Composite maxWindDir3Comp = new Composite(maxWindDirDatesComp,
@@ -588,7 +586,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myMaxWindDirTFs[2].addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myMaxWindDirTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite maxWindDate3Comp = new Composite(maxWindDirDatesComp,
                 SWT.NONE);
@@ -603,7 +601,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myMaxWindDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // resultant wind
         Composite resultantWindComp = new Composite(parent, SWT.NONE);
@@ -632,7 +630,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myResultantWindDirTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
         myResultantWindDirTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // resultant wind speed
         Label resultantWindSpeedSpacer = new Label(resultantWindComp,
@@ -663,7 +661,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
         myResultantWindSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
         myResultantWindSpeedTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     @Override

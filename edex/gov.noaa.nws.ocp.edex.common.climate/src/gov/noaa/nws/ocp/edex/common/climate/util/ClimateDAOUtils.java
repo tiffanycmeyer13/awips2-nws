@@ -36,6 +36,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  * 12 DEC 2016  27015      amoore      Documented migration of build_derived_fields.f.
  * 24 JAN 2017  28499      amoore      Make final, and have private constructor.
  * 20 JUN 2017  35179      amoore      Fix issue with improper summing dates for season/year data.
+ * 01 MAR 2018  44624      amoore      Clean up #setSeason with modern logic.
  * </pre>
  * 
  * @author xzhang
@@ -65,44 +66,6 @@ public final class ClimateDAOUtils {
      *           cooling degree days.  It determines the monthly 
      *           accumulated cooling degree days first, followed by the
      *           seasonal and lastly the annual cooling degree days.
-     * 
-     * 
-     * Variables
-     * 
-     *    Input
-     *      a_date         - derived TYPE that contains the date for this
-     *                       climate summary
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     *      cool_season    - derived TYPE that contains the begin and end
-     *                       dates for the cooling degree day season
-     *      cool_year      - derived TYPE that contains the begin and end
-     *                       dates for the cooling degree day year
-     *      inform_id      - INFORMIX station id
-     * 
-     *    Output
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     * 
-     *    Local
-     *      avg_temp       - average temperature (F)
-     *      iday           - Julian day
-     *      missing        - flag for missing data
-     *      sum_cool       - sum of the daily cooling degree days for the
-     *                       period between start and end date
-     * 
-     *    Non-system routines used
-     *      convert_julday        - converts an input Julian day into a date
-     *      sum_cool_degree_days  - C routine that sums the daily cooling
-     *                              degree days for this station for the
-     *                              period between a start and end date
-     * 
-     * 
-     *    Non-system functions used
-     *      cool_days             - calculates the number of cooling degree
-     *                              days given the average temperature
-     *      jul_day               - calculates the Julian day for an input
-     *                              date
      * 
      * </pre>
      * 
@@ -481,54 +444,6 @@ public final class ClimateDAOUtils {
      *           accumulated precipitation first, followed by the
      *           seasonal and lastly the annual precipitation.
      * 
-     * 
-     * Variables
-     * 
-     *    Input
-     *      a_date         - derived TYPE that contains the date for this
-     *                       climate summary
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     *      precip_season  - derived TYPE that contains the begin and end
-     *                       dates for the precipitation season
-     *      precip_year    - derived TYPE that contains the begin and end
-     *                       dates for the precipitation year
-     *      inform_id      - INFORMIX station id
-     * 
-     *    Output
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     * 
-     *    Local
-     *      avg_temp       - average temperature (F)
-     *      iday           - Julian day
-     *      missing        - flag for missing data
-     *      precip_sum     - sum of the daily precipitation for the
-     *                       period between start and end date
-     * 
-     *    Non-system routines used
-     *      convert_julday        - converts an input Julian day into a date
-     *      sum_precip            - C routine that sums the daily 
-     *                              precipitation for this station for the
-     *                              period between a start and end date
-     * 
-     * 
-     *    Non-system functions used
-     *      jul_day               - calculates the Julian day for an input
-     *                              date
-     * 
-     * 
-     * 
-     * MODIFICATION LOG
-     * NAME         DATE        CHANGE
-     * David T. Miller      April 2000      Updated if tests to ensure 
-     *                             trace totals are correctly
-     *                 taken into account
-     * David T. Miller      Aug 2000        Missed one small test in the
-     *                                     ifs.  If the day's precip
-     *                                     was 0, it wouldn't take
-     *                                     trace into account.
-     * 
      * </pre>
      * 
      * @param aDate
@@ -548,14 +463,22 @@ public final class ClimateDAOUtils {
         int iday;
 
         float precipSum = 0;
-        // Some rules for updating the precipitation.
-        // 1. The monthly total is reset at the first of each month.
-        // 2. The seasonal total is at the start of each season.
-        // 3. The yearly total is reset at the start of each
-        // precipitation season.
-        // Calculate the accumulated monthly precipitation.
-        // Treat the first of the month as a special case that
-        // requires INFORMIX calls.
+        /*
+         * These calculations are already done in Creator, however the user may
+         * have updated the daily precip in the Display phase which would adjust
+         * all other values.
+         * 
+         * Some rules for updating the precipitation.
+         * 
+         * 1. The monthly total is reset at the first of each month.
+         * 
+         * 2. The seasonal total is at the start of each season.
+         * 
+         * 3. The yearly total is reset at the start of each precipitation
+         * season.
+         * 
+         * Calculate the accumulated monthly precipitation.
+         */
         if (aDate.getDay() == 1) {
             current.setPrecipMonth(current.getPrecip());
         } else {
@@ -696,55 +619,6 @@ public final class ClimateDAOUtils {
      * Purpose:  This routine controls the determination of accumulated
      *           snowfall.  It determines the monthly 
      *           accumulated snowfall first, followed by the
-     *           seasonal and lastly, the annual snowfall.
-     * 
-     * 
-     * Variables
-     * 
-     *    Input
-     *      a_date         - derived TYPE that contains the date for this
-     *                       climate summary
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     *      snow_season    - derived TYPE that contains the begin and end
-     *                       dates for the snow season
-     *      snow_year      - derived TYPE that contains the begin and end
-     *                       dates for the snow year
-     *      inform_id      - INFORMIX station id
-     * 
-     *    Output
-     *      current        - derived TYPE that holds the daily climate
-     *                       data for this station
-     * 
-     *    Local
-     *      avg_temp       - average temperature (F)
-     *      iday           - Julian day
-     *      missing        - flag for missing data
-     *      snow_sum       - sum of the daily snowfall for the
-     *                       period between start and end date
-     * 
-     *    Non-system routines used
-     *      convert_julday        - converts an input Julian day into a date
-     *      sum_snow              - C routine that sums the daily 
-     *                              snowfall for this station for the
-     *                              period between a start and end date
-     * 
-     * 
-     *    Non-system functions used
-     *      jul_day               - calculates the Julian day for an input
-     *                              date
-     * 
-     * 
-     * 
-     * MODIFICATION LOG
-     * NAME         DATE        CHANGE
-     * David T. Miller      April 2000      Updated if tests to ensure 
-     *                             trace totals are correctly
-     *                 taken into account
-     * David T. Miller      Aug 2000        Missed one part of if test
-     *                                     when current day's precip
-     *                                     is zero and trace was recorded
-     *                                     previously.
      * 
      * </pre>
      * 
@@ -937,50 +811,6 @@ public final class ClimateDAOUtils {
      *        num_cool_year       yearly accumulated cooling degree days
      * 
      * 
-     * Variables
-     * 
-     * Input
-     *   a_date          - derived TYPE that contains the date for this
-     *                     climate summary
-     *   inform_id       - Informix ID of the station
-     *   cdata           - derived TYPE that contains the observed climate
-     *                     data
-     * 
-     * Output
-     * 
-     * 
-     * Local
-     *   cool_season      - derived TYPE that defines the date for the
-     *                      start of the cooling season
-     *   cool_year        - derived TYPE that defines the date for the
-     *                      start of the cooling year
-     *   heat_season      - derived TYPE that defines the date for the
-     *                      start of the heating season
-     *   heat_year        - derived TYPE that defines the date for the
-     *                      start of the heating year
-     *   precip_season    - derived TYPE that defines the date for the
-     *                      start of the precipitation season
-     *   precip_year      - derived TYPE that defines the date for the
-     *                      start of the precipitation year
-     *   snow_season      - derived TYPE that defines the date for the
-     *                      start of the snow season
-     *   snow_season      - derived TYPE that defines the date for the
-     *                      start of the snow year
-     *   day_before_date - derived TYPE that contains the date for the day
-     *                     before a_date
-     *   iday            - Julian day for a_date
-     * 
-     * Non-system routines used
-     *   get_day_before  - get the observed climate data for the day before
-     *   set_season      - set the dates that define the start of the season and 
-     *                     year for various parameters
-     *   update_cool     - update the cooling degree day climate data
-     *   update_heat     - update the heating degree day climate data
-     *   update_precip   - update the precipitation climate data
-     *   update_snow     - update the snowfall climate data
-     * 
-     * Non-system functions used
-     *   julday          - returns the Julian date for an input date
      * </pre>
      * 
      * @param aDate
@@ -1037,34 +867,6 @@ public final class ClimateDAOUtils {
      * cooling degree days, precipitation and snowfall. It allows for the
      * possibility of non-standard seasons and annual periods.
      * 
-     * 
-     * Variables
-     * 
-     * Input a_date - derived TYPE that contains the date for this climate
-     * summary
-     * 
-     * Output cool_season - derived TYPE that defines the date for the start of
-     * the cooling season cool_year - derived TYPE that defines the date for the
-     * start of the cooling year heat_season - derived TYPE that defines the
-     * date for the start of the heating season heat_year - derived TYPE that
-     * defines the date for the start of the heating year precip_season -
-     * derived TYPE that defines the date for the start of the precipitation
-     * season precip_year - derived TYPE that defines the date for the start of
-     * the precipitation year snow_season - derived TYPE that defines the date
-     * for the start of the snow season snow_season - derived TYPE that defines
-     * the date for the start of the snow year
-     * 
-     * Local mon - month of the start of a season no_dates - flag that indicates
-     * season and year dates weren't available from the data base = 0 dates were
-     * available = 1 dates were not available
-     * 
-     * Non-system routines used get_season - retrieves seasonal and annual dates
-     * for snow and precipitation from the data base (i.e., table climo_dates)
-     * set_month - sets the starting month of the current season set_year - sets
-     * the year for the starting date
-     * 
-     * Non-system functions used
-     * 
      * <pre>
      * 
      * @param aDate
@@ -1089,15 +891,15 @@ public final class ClimateDAOUtils {
         ClimateDate lastDay = new ClimateDate(31, 12, aDate.getYear());
 
         int iday;
-        int monStart, noDates;
+        int monStart;
 
         /*
          * Retrieve the seasonal and yearly dates for snow and precipitation
          * from the data base. If they aren't in the data base, then set them
          * here.
          */
-        noDates = climoDatesDAO.getSeason(precipSeason, precipYear, snowSeason,
-                snowYear);
+        boolean noDates = climoDatesDAO.getSeason(precipSeason, precipYear,
+                snowSeason, snowYear);
 
         /*
          * Define the start of the heating year. According to the TSPs, the heat
@@ -1161,7 +963,7 @@ public final class ClimateDAOUtils {
          */
 
         // Precip first
-        if ((noDates == 0) && (precipSeason.getStart().getDay() > 0)
+        if (!noDates && (precipSeason.getStart().getDay() > 0)
                 && (precipSeason.getStart().getDay() < 32)
                 && (precipSeason.getStart().getMon() > 0)
                 && (precipSeason.getStart().getMon() < 13)) {
@@ -1189,7 +991,7 @@ public final class ClimateDAOUtils {
         }
 
         // Snow
-        if ((noDates == 0) && (snowSeason.getStart().getDay() > 0)
+        if (!noDates && (snowSeason.getStart().getDay() > 0)
                 && (snowSeason.getStart().getDay() < 32)
                 && (snowSeason.getStart().getMon() > 0)
                 && (snowSeason.getStart().getMon() < 13)) {
@@ -1225,19 +1027,7 @@ public final class ClimateDAOUtils {
      * 
      * February 1999 Jason P. Tuell PRC/TDL Purpose: This routine defines the
      * starting month of a season given the current month.
-     * 
-     * 
-     * Variables
-     * 
-     * Input imon - current month
-     * 
-     * Output set_month - starting month of the season for imon
-     * 
-     * Local mon_start -starting month of the season for imon
-     * 
-     * Non-system routines used
-     * 
-     * Non-system functions used
+     *
      * </pre>
      * 
      * @param iMonth
@@ -1285,25 +1075,6 @@ public final class ClimateDAOUtils {
      * 
      * February 1999 Jason P. Tuell PRC/TDL Purpose: This routine defines the
      * year for the starting period.
-     * 
-     * 
-     * Variables
-     * 
-     * Input a_date - derived TYPE that contains the date for this climate
-     * summary
-     * 
-     * Output
-     * 
-     * Local
-     * 
-     * Non-system routines used
-     * 
-     * Non-system functions used
-     * </pre>
-     * 
-     * Comment from amoore: Sets the year of start to the year of aDate if
-     * aDate's month is equal to or after the month of start. Otherwise, set the
-     * year of start to the year prior to that of aDate.
      * 
      * @param aDate
      * @param start

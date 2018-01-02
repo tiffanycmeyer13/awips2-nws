@@ -10,7 +10,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.DisplayClimateRequest;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * DisplayClimateHandler
@@ -43,23 +42,16 @@ public class DisplayClimateHandler
 
         String cpgSessionId = request.getCpgSessionID();
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Get existing session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, cpgSessionId);
+                .getCPGSession(cpgSessionId);
 
         if (session.getState() != SessionState.CREATED
                 && session.getState() != SessionState.DISPLAY) {
             String msg = "Display only, no editing and saving the climate report data at the state: "
                     + session.getState();
-            session.sendAlertVizMessage(Priority.WARN, msg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.WARN, msg,
+                    null);
         }
 
         return session.startDisplayReportData(request.getUserId());

@@ -2,28 +2,11 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
     
-   <bean id="climateperiodrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.PeriodServiceHandler"/>
+    <bean id="climateperiodrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.PeriodServiceHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.PeriodServiceRequest"/>
-      <constructor-arg ref="climateperiodrequest"/>
-    </bean>
-    
     <bean id="climateperiodupdate"
         class="gov.noaa.nws.ocp.edex.climate.service.handler.PeriodUpdateServiceHandler" />
 
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.PeriodClimateServiceUpdateRequest" />
-        <constructor-arg ref="climateperiodupdate" />
-    </bean>
-    
     <bean id="climatebuildperiod"
         class="gov.noaa.nws.ocp.edex.climate.service.handler.BuildPeriodServiceHandler" />
-
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.BuildPeriodServiceRequest" />
-        <constructor-arg ref="climatebuildperiod" />
-    </bean>
 </beans>

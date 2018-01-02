@@ -5,10 +5,4 @@
     <bean id="climodatesservice"
         class="gov.noaa.nws.ocp.edex.climate.service.handler.ClimoDatesServiceHandler" />
 
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimoDatesRequest" />
-        <constructor-arg ref="climodatesservice" />
-    </bean>
-
 </beans>

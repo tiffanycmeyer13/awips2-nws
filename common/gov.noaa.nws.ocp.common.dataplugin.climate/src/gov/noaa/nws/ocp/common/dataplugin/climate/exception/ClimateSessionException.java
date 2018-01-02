@@ -6,13 +6,15 @@ package gov.noaa.nws.ocp.common.dataplugin.climate.exception;
 /**
  * ClimateSessionException
  * 
+ * Some exception with CPG sessions.
+ * 
  * <pre>
  *
  * SOFTWARE HISTORY
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Feb 28, 2017 20637      pwang     Initial creation
+ * Feb 28, 2017 20637      pwang       Initial creation
  *
  * </pre>
  *

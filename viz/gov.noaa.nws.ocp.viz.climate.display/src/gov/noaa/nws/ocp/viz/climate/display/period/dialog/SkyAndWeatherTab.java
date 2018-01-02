@@ -250,8 +250,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myThunderTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myThunderTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        myThunderTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
 
         // freezing rain
         Label freezingRainLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -265,7 +264,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myFreezingRainTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myFreezingRainTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // light snow
         Label lightSnowLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -279,7 +278,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myLightSnowTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myLightSnowTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // mixed precip
         Label mixedPrecipLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -293,7 +292,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myMixedPrecipTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMixedPrecipTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // light freezing rain
         Label lightFreezingRainLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -307,7 +306,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myLightFreezingRainTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myLightFreezingRainTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // ice pellets
         Label icePelletsLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -321,7 +320,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myIcePelletsTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myIcePelletsTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // heavy rain
         Label heavyRainLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -335,7 +334,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myHeavyRainTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myHeavyRainTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // hail
         Label hailLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -348,8 +347,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myHailTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myHailTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        myHailTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
 
         // fog
         Label fogLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -362,8 +360,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myFogTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myFogTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        myFogTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
 
         // rain
         Label rainLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -376,8 +373,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myRainTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myRainTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        myRainTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
 
         // heavy snow
         Label heavySnowLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -391,7 +387,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myHeavySnowTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myHeavySnowTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // heavy fog
         Label heavyFogLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -405,7 +401,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myHeavyFogTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myHeavyFogTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // light rain
         Label lightRainLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -419,7 +415,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myLightRainTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myLightRainTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // snow
         Label snowLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -432,8 +428,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         mySnowTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        mySnowTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        mySnowTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
 
         // haze
         Label hazeLbl = new Label(weatherFieldsComp, SWT.NORMAL);
@@ -446,8 +441,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myHazeTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myHazeTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+        myHazeTF.addListener(SWT.Modify, myPeriodDialog.getChangeListener());
     }
 
     /**
@@ -507,7 +501,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myFairTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myFairTF.addKeyListener(new DataFieldListener(myFairComboBox,
-                myPeriodDialog.myUnsavedChangesListener));
+                myPeriodDialog.getChangeListener()));
 
         myPartlyCloudyLabel = new MismatchLabel(skyMiddle, SWT.NORMAL);
         myPartlyCloudyLabel.setText("Partly Cloudy (0.4 - 0.7)");
@@ -552,9 +546,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myPartlyCloudyTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myPartlyCloudyTF
-                .addKeyListener(new DataFieldListener(myPartlyCloudyComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myPartlyCloudyTF.addKeyListener(new DataFieldListener(
+                myPartlyCloudyComboBox, myPeriodDialog.getChangeListener()));
 
         myMostlyCloudyLabel = new MismatchLabel(skyMiddle, SWT.NORMAL);
         myMostlyCloudyLabel.setText("Cloudy (0.8 - 1.0)");
@@ -599,9 +592,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMostlyCloudyTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myMostlyCloudyTF
-                .addKeyListener(new DataFieldListener(myMostlyCloudyComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myMostlyCloudyTF.addKeyListener(new DataFieldListener(
+                myMostlyCloudyComboBox, myPeriodDialog.getChangeListener()));
     }
 
     /**
@@ -673,7 +665,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getPercentListener());
         myPercentPossSunshineTF.addKeyListener(
                 new DataFieldListener(myPercentPossSunshineComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         // sky cover
         Composite skyCoverComp = new Composite(skyTopComp, SWT.NONE);
@@ -696,7 +688,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         mySkyCoverTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSkyCoverListener());
         mySkyCoverTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     @Override

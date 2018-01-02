@@ -16,7 +16,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAOValues;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateFSSInsertionDAO;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReport;
-import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDao;
+import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDAO;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.MetarDecoder;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.MetarDecoderUtil;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.DecodedMetar;
@@ -41,6 +41,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  * 07 SEP 2017  37754      amoore      Exceptions instead of boolean returns.
  *                                     Reorganize related methods for METAR decoding and storing.
  *                                     Throw exception on failure.
+ * 02 NOV 2017  37755      amoore      Log on truncating a report. Take DAOs in constructor.
  * </pre>
  *
  * @author pwang
@@ -54,7 +55,7 @@ public class MetarToClimateDBServer {
     /**
      * Report DAO.
      */
-    private final ClimateReportDao reportDAO;
+    private final ClimateReportDAO reportDAO;
 
     /**
      * Fixed surface stations dao.
@@ -64,22 +65,14 @@ public class MetarToClimateDBServer {
     /**
      * Construct an instance of this transformer.
      * 
-     * @throws ClimateException
+     * @param reportDAO
+     * @param fssInsertionDAO
      */
-    public MetarToClimateDBServer() throws ClimateException {
-        try {
-            reportDAO = new ClimateReportDao();
-        } catch (Exception e) {
-            throw new ClimateException("Error constructing ClimateReportDao",
-                    e);
-        }
+    public MetarToClimateDBServer(ClimateReportDAO reportDAO,
+            ClimateFSSInsertionDAO fssInsertionDAO) {
+        this.reportDAO = reportDAO;
 
-        try {
-            fssInsertionDAO = new ClimateFSSInsertionDAO();
-        } catch (ClimateQueryException e) {
-            throw new ClimateException("Error constructing FSS Insertion DAO",
-                    e);
-        }
+        this.fssInsertionDAO = fssInsertionDAO;
     }
 
     /**
@@ -87,8 +80,6 @@ public class MetarToClimateDBServer {
      * @param objects
      */
     public void process(PluginDataObject[] objects, Headers headers) {
-        logger.debug("Inside MetarToClimateDBServer.process()");
-
         for (PluginDataObject report : objects) {
             if (report instanceof MetarRecord) {
                 try {
@@ -123,8 +114,17 @@ public class MetarToClimateDBServer {
             // truncate it.
             String obsData = rptData.substring(hdr.getMessageDataStart());
             if (obsData.length() > 255) {
-                obsData = obsData.substring(0, 255);
+                String truncatedData = obsData.substring(0, 255);
+
+                logger.warn(
+                        "Climate received a METAR report that will be truncated.\n"
+                                + "Original report: [" + obsData
+                                + "]\nTruncated report: [" + truncatedData
+                                + "]");
+
+                obsData = truncatedData;
             }
+
             rpt.setReport(obsData);
         } else {
             // wmo_dd is a not_null field, so if we can't find it, exit now.

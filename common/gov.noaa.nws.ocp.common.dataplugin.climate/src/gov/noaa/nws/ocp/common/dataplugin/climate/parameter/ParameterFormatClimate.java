@@ -178,6 +178,11 @@ public final class ParameterFormatClimate {
 
     public static final double HALF_SNOW = (SIG_SNOW / 2);
 
+    /**
+     * The default timezone to use.
+     */
+    public static final String DEFAULT_IFPS_SITE_TIMEZONE = "GMT";
+
     private ParameterFormatClimate() {
 
     }

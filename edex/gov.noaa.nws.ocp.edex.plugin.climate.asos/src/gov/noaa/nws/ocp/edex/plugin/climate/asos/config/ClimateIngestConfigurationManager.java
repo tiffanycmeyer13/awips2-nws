@@ -65,8 +65,20 @@ public class ClimateIngestConfigurationManager
     /** Singleton instance of this class */
     private static ClimateIngestConfigurationManager instance = new ClimateIngestConfigurationManager();
 
+    /**
+     * Site-level localization file.
+     */
+    private final ILocalizationFile siteLocalizationFile;
+
     /** Private Constructor */
     private ClimateIngestConfigurationManager() {
+        // initialize site file object and add self as observer
+        IPathManager pm = PathManagerFactory.getPathManager();
+        LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
+                LocalizationLevel.SITE);
+
+        siteLocalizationFile = pm.getLocalizationFile(lc, CONFIG_FILE_NAME);
+        pm.addLocalizationPathObserver(CONFIG_FILE_NAME, this);
         try {
             readConfigXml();
         } catch (Exception e) {
@@ -88,36 +100,36 @@ public class ClimateIngestConfigurationManager
      * Read the XML configuration data for the current XML file name.
      */
     public void readConfigXml() throws SerializationException {
+        // localization file to use
+        ILocalizationFile localizationFile = siteLocalizationFile;
 
-        IPathManager pm = PathManagerFactory.getPathManager();
-        LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
-                LocalizationLevel.SITE);
+        if (!siteLocalizationFile.exists()) {
+            IPathManager pm = PathManagerFactory.getPathManager();
 
-        ILocalizationFile lf = pm.getLocalizationFile(lc, CONFIG_FILE_NAME);
-        pm.addLocalizationPathObserver(CONFIG_FILE_NAME, this);
-
-        if (!lf.exists()) {
-            logger.warn(lf.getPath()
+            logger.warn(siteLocalizationFile.getPath()
                     + " does not exist for this site. Base file will be used.");
 
-            lc = pm.getContext(LocalizationType.COMMON_STATIC,
-                    LocalizationLevel.BASE);
-            lf = pm.getLocalizationFile(lc, CONFIG_FILE_NAME);
+            LocalizationContext lc = pm.getContext(
+                    LocalizationType.COMMON_STATIC, LocalizationLevel.BASE);
+            ILocalizationFile baseLocalizationFile = pm.getLocalizationFile(lc,
+                    CONFIG_FILE_NAME);
 
-            if (!lf.exists()) {
-                logger.error(lf.getPath()
+            if (!baseLocalizationFile.exists()) {
+                logger.error(baseLocalizationFile.getPath()
                         + " base file path does not exist. Empty configuration will be used.");
                 return;
+            } else {
+                localizationFile = baseLocalizationFile;
             }
         }
 
         ClimateIngestConfigXML configXmltmp = null;
 
-        try (InputStream is = lf.openInputStream()) {
+        try (InputStream is = localizationFile.openInputStream()) {
             configXmltmp = jaxb.unmarshalFromInputStream(is);
         } catch (IOException | LocalizationException e) {
             throw new SerializationException(
-                    "Error unmarshalling " + lf.getPath(), e);
+                    "Error unmarshalling " + localizationFile.getPath(), e);
         }
 
         configXml = configXmltmp;

@@ -98,7 +98,7 @@ public abstract class DisplayStationPeriodAction extends AbstractHandler {
         dialogRL.marginBottom = 8;
         dialogRL.marginTop = 10;
         preDisplayDialog.setLayout(dialogRL);
-        Point size = new Point(306, 290);
+        Point size = new Point(306, 310);
         preDisplayDialog.setSize(size);
 
         // center on the current shell
@@ -293,8 +293,8 @@ public abstract class DisplayStationPeriodAction extends AbstractHandler {
      */
     private void openPeriodDialog(Shell shell, boolean mostRecentRun,
             PeriodType periodType, ClimateDate beginDate, ClimateDate endDate)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException, SerializationException {
+            throws ClimateQueryException, ClimateInvalidParameterException,
+            SerializationException {
         ManualGenerateClimateProdRequest request = new ManualGenerateClimateProdRequest(
                 periodType, beginDate, endDate, !mostRecentRun);
 
@@ -302,7 +302,7 @@ public abstract class DisplayStationPeriodAction extends AbstractHandler {
             DisplayStationPeriodDialog dialog = new DisplayStationPeriodDialog(
                     shell, (String) ThriftClient.sendRequest(request));
 
-            dialog.setCloseCallback(new ICloseCallback() {
+            dialog.addCloseCallback(new ICloseCallback() {
 
                 @Override
                 public void dialogClosed(Object returnValue) {
@@ -331,7 +331,7 @@ public abstract class DisplayStationPeriodAction extends AbstractHandler {
      */
     private void constructLatest(final PeriodType iPeriodType,
             final Shell shell) throws ClimateQueryException,
-                    ClimateInvalidParameterException, SerializationException {
+            ClimateInvalidParameterException, SerializationException {
         switch (iPeriodType) {
         case MONTHLY_RAD:
         case MONTHLY_NWWS:

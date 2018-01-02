@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,19 +35,23 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ProductSetStatus;
 import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.StateStatus;
+import gov.noaa.nws.ocp.common.dataplugin.climate.StateStatus.Status;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateSessionException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.DisplayClimateResponse;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.SendClimateProductsResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTypeManager;
 import gov.noaa.nws.ocp.edex.climate.creator.ClimateCreator;
 import gov.noaa.nws.ocp.edex.climate.formatter.ClimateFormatter;
 import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
+import gov.noaa.nws.ocp.edex.climate.prodgen.qc.CheckResult;
+import gov.noaa.nws.ocp.edex.climate.prodgen.qc.DefinedDataQualityCheck;
 import gov.noaa.nws.ocp.edex.climate.prodgen.transmit.ClimateProductNWWSSender;
 import gov.noaa.nws.ocp.edex.climate.prodgen.transmit.NWRProductForwarder;
 import gov.noaa.nws.ocp.edex.climate.prodgen.util.ClimateProdSetting;
@@ -56,6 +59,7 @@ import gov.noaa.nws.ocp.edex.climate.prodgen.util.RunType;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 
 /**
  * ClimateProdGenerateSession A CPG Session represents a State Machine for
@@ -75,6 +79,15 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguratio
  * Jun 02, 2017 34783      pwang       Add logic to control auto send, NWR copyTo, and if really dissemination
  * Jul 18, 2017 33104      amoore      Send Climate alerts if dissemination is set to false.
  * Jul 26, 2017 33104      amoore      Address review comments.
+ * Aug 21, 2017 33104      amoore      Better logging messages on failure.
+ * Sep 06, 2017 37721      amoore      Failure on Display finalization should fail CPG session
+ * Oct 10, 2017 39153      amoore      Less action-blocking from dissemination flag.
+ * Nov 03, 2017 36749      amoore      Remove redundant AlertViz method.
+ * Nov 06, 2017 36706      amoore      Address issue of all Climate AlertViz notifications showing up
+ *                                     as errors. This was due to lack of "CLIMATE" category definition
+ *                                     in AlertViz, which is pushed as separate task. Reorg of constants
+ *                                     and Alert levels.
+ * Nov 07, 2017 35729      pwang       Added logic to support site defined QC check for auto cli generation
  * </pre>
  *
  * @author pwang
@@ -86,20 +99,9 @@ public final class ClimateProdGenerateSession {
     private static final IUFStatusHandler logger = UFStatus
             .getHandler(ClimateProdGenerateSession.class);
 
-    // TODO put in common location
-    public final static String EDEX = "EDEX";
-
-    // TODO put in common location
-    public final static String CATEGORY = "Climate";
-
-    public final static String PLUGIN_ID = "ClimateProdGenerateSession";
-
     private final static int DEFAULT_DIS_WAIT = 20;
 
     private final static int DEFAULT_REV_WAIT = 10;
-
-    // TODO put in common location
-    public static final String cpgEndpoint = "climateNotify";
 
     // DAO
     private ClimateProdGenerateSessionDAO dao;
@@ -114,8 +116,8 @@ public final class ClimateProdGenerateSession {
     // CPG Session Workflow state
     private SessionState state;
 
-    // CPG Session State's status
-    private StateStatus status;
+    // CPG Session State's stateStatus
+    private StateStatus stateStatus;
 
     // global configuration
     private ClimateGlobal globalConfig;
@@ -123,8 +125,8 @@ public final class ClimateProdGenerateSession {
     // setting parameters
     private ClimateProdSetting prodSetting;
 
-    // TODO: ClimateCreatorResponse may not a great name for the report data
-    private ClimateCreatorResponse reportData = null;
+    // all report data
+    private ClimateRunData reportData = null;
 
     // Climate Product Data created by ClimateFormatter
     private ClimateProdData prodData = null;
@@ -133,12 +135,13 @@ public final class ClimateProdGenerateSession {
 
     private LocalDateTime lastUpdated;
 
-    // Session will expired even not at terminate status
+    // Session will expired even not at terminate stateStatus
     private LocalDateTime pendingExpiration;
 
     /**
      * Constructor Create a new CPG session
      * 
+     * @param dao
      * @param runTypeValue
      *            valid value will be 1 or 2
      * @param prodTypeValue
@@ -151,7 +154,7 @@ public final class ClimateProdGenerateSession {
         this.setRunTypeFromValue(runTypeValue);
         this.setProdTypeFromValue(prodTypeValue);
         this.state = SessionState.STARTED;
-        this.status = StateStatus.WORKING;
+        this.stateStatus = new StateStatus(Status.WORKING);
 
         initNewCPGSession();
     }
@@ -166,29 +169,25 @@ public final class ClimateProdGenerateSession {
         this.dao = dao;
 
         ClimateProdGenerateSessionData sessionData = null;
-        List<ClimateProdGenerateSessionData> sessionList = null;
 
         try {
-            sessionList = dao.getCPGSession(cpgSessionId);
+            sessionData = dao.getCPGSession(cpgSessionId);
         } catch (ClimateQueryException e) {
             logger.error("Retrieve CPG Session data from database failed! ", e);
             failCPGSession("Failed to retrieve session data from the database");
         }
 
-        if (sessionList == null || sessionList.isEmpty()) {
+        if (sessionData == null) {
             logger.error("No CPG Session exists for the Session ID: "
                     + cpgSessionId);
             return;
-        } else {
-            // For given session ID, only one record should be returned
-            sessionData = sessionList.get(0);
         }
 
         this.cpgSessionId = sessionData.getCpg_session_id();
         this.setRunTypeFromValue(sessionData.getRun_type());
         this.setProdTypeFromValue(sessionData.getProd_type());
         this.setStateFromValue(sessionData.getState());
-        this.status = getStatusFromCodeAndDesc(sessionData.getStatus(),
+        this.stateStatus = new StateStatus(sessionData.getStatus(),
                 sessionData.getStatus_desc());
 
         // deserialize staved objects
@@ -207,7 +206,7 @@ public final class ClimateProdGenerateSession {
             if (null == sessionData.getReport_data()) {
                 this.reportData = null;
             } else {
-                this.reportData = (ClimateCreatorResponse) DynamicSerializationManager
+                this.reportData = (ClimateRunData) DynamicSerializationManager
                         .getManager(SerializationType.Thrift)
                         .deserialize(sessionData.getReport_data());
             }
@@ -243,8 +242,8 @@ public final class ClimateProdGenerateSession {
         sessionData.setRun_type(this.runType.getValue());
         sessionData.setProd_type(this.prodType.getValue());
         sessionData.setState(this.state.getValue());
-        sessionData.setStatus(this.status.getCode());
-        sessionData.setStatus_desc(this.status.getDescription());
+        sessionData.setStatus(this.stateStatus.getStatus().getValue());
+        sessionData.setStatus_desc(this.stateStatus.getDescription());
         sessionData.setStart_at(Timestamp.valueOf(this.startedAt));
         sessionData.setLast_updated(Timestamp.valueOf(this.lastUpdated));
         sessionData
@@ -280,7 +279,6 @@ public final class ClimateProdGenerateSession {
             }
 
         } catch (SerializationException se) {
-            // TODO:
             logger.error("Serialization failed ", se);
             sessionData = null;
         }
@@ -301,26 +299,15 @@ public final class ClimateProdGenerateSession {
      * @param desc
      *            description about the message
      * @param msgBody
-     *            formated message contains details
+     *            formatted message contains details
      */
-    public void sendAlertVizMessage(Priority priority, String desc,
+    public static void sendAlertVizMessage(Priority priority, String desc,
             String msgBody) {
 
-        EDEXUtil.sendMessageAlertViz(priority, PLUGIN_ID, EDEX, CATEGORY, desc,
-                msgBody, null);
-    }
-
-    /**
-     * 
-     * @param priority
-     * @param desc
-     * @param msgBody
-     */
-    public void sendNotificationToAlertViz(Priority priority, String desc,
-            String msgBody) {
-
-        EDEXUtil.sendMessageAlertViz(priority, PLUGIN_ID, EDEX, CATEGORY, desc,
-                msgBody, null);
+        EDEXUtil.sendMessageAlertViz(priority,
+                ClimateMessageUtils.CPG_PLUGIN_ID,
+                ClimateAlertUtils.SOURCE_EDEX,
+                ClimateAlertUtils.CATEGORY_CLIMATE, desc, msgBody, null);
     }
 
     /**
@@ -335,8 +322,9 @@ public final class ClimateProdGenerateSession {
         StringBuilder sb = new StringBuilder();
         sb.append("ID=").append(this.getCPGSessionId()).append(",");
         sb.append("STATE=").append(this.state).append(",");
-        sb.append("STATUS_CODE=").append(this.status).append(",");
-        sb.append("STATUS_DESC=").append(this.status.getDescription())
+        sb.append("STATUS_CODE=").append(this.stateStatus.getStatus())
+                .append(",");
+        sb.append("STATUS_DESC=").append(this.stateStatus.getDescription())
                 .append(",");
         sb.append("LAST_UPDATED=").append(this.lastUpdated.toString())
                 .append(",");
@@ -350,17 +338,18 @@ public final class ClimateProdGenerateSession {
         String detailMsg = sb.toString().substring(0, sb.length() - 1);
 
         StatusMessage sm = new StatusMessage();
-        sm.setPriority(Priority.EVENTA);
-        sm.setPlugin(PLUGIN_ID);
-        sm.setCategory(CATEGORY);
+        sm.setPriority(Priority.INFO);
+        sm.setPlugin(ClimateMessageUtils.CPG_PLUGIN_ID);
+        sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
         sm.setMessage(desc);
         sm.setMachineToCurrent();
-        sm.setSourceKey(EDEX);
+        sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
         sm.setDetails(detailMsg);
         sm.setEventTime(new Date());
 
         try {
-            EDEXUtil.getMessageProducer().sendAsync(cpgEndpoint, sm);
+            EDEXUtil.getMessageProducer()
+                    .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
         } catch (Exception e) {
             logger.error("Could not send message to ClimateView", e);
         }
@@ -389,16 +378,17 @@ public final class ClimateProdGenerateSession {
 
         StatusMessage sm = new StatusMessage();
         sm.setPriority(Priority.INFO);
-        sm.setPlugin(PLUGIN_ID);
-        sm.setCategory(CATEGORY);
+        sm.setPlugin(ClimateMessageUtils.CPG_PLUGIN_ID);
+        sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
         sm.setMessage(desc);
         sm.setMachineToCurrent();
-        sm.setSourceKey(EDEX);
+        sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
         sm.setDetails(msgBody.toString());
         sm.setEventTime(new Date());
 
         try {
-            EDEXUtil.getMessageProducer().sendAsync(cpgEndpoint, sm);
+            EDEXUtil.getMessageProducer()
+                    .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
         } catch (Exception e) {
             logger.error("Could not send message to ClimateView");
         }
@@ -417,8 +407,40 @@ public final class ClimateProdGenerateSession {
             return;
         }
 
+        // QC check
+        DefinedDataQualityCheck qcChecker = new DefinedDataQualityCheck(
+                this.prodType);
+
+        CheckResult cr = null;
+
+        try {
+            cr = qcChecker.check(reportData);
+        } catch (Exception e) {
+            String msg = "Failed attempting QC check with exception: "
+                    + e.getMessage();
+            logger.error(msg, e);
+            failCPGSession(msg);
+            return;
+        }
+
+        if (!cr.isPassed()) {
+            /*
+             * Could not pass the site defined QC check for auto climate product
+             * generation. Fail session and advise manual generation.
+             */
+            String msg = "Failed defined QC check due to at least: "
+                    + cr.getDetails() + "Manual generation required.";
+            logger.warn(msg);
+            failCPGSession(msg);
+            return;
+        } else {
+            logger.debug(
+                    "Passed all QC checks. Details: [" + cr.getDetails() + "]");
+        }
+
         // Check if cancelled
-        if (this.getCurrentStatus() == StateStatus.CANCELLED) {
+        if (this.getCurrentStatus().getStatus()
+                .equals(StateStatus.Status.CANCELLED)) {
             logger.info("The CPG session: " + this.getCPGSessionId()
                     + " has been cancelled");
             return;
@@ -427,7 +449,7 @@ public final class ClimateProdGenerateSession {
         // Alert User for Display
         String msgDesc = "Climate Report Created, waiting for display. CPG Session ID = "
                 + this.cpgSessionId;
-        this.sendNotificationToAlertViz(Priority.SIGNIFICANT, msgDesc, "");
+        sendAlertVizMessage(Priority.INFO, msgDesc, "");
 
         int dispWait = this.globalConfig.getDisplayWait();
         if (dispWait < 0) {
@@ -439,7 +461,8 @@ public final class ClimateProdGenerateSession {
 
         Object waiter = new Object();
         synchronized (waiter) {
-            while (this.getCurrentStatus() != StateStatus.CANCELLED
+            while (!this.getCurrentStatus().getStatus()
+                    .equals(StateStatus.Status.CANCELLED)
                     && this.getCurrentState() != SessionState.DISPLAY
                     && secondsLeft-- > 0) {
                 // send time countdown info to the client
@@ -454,7 +477,8 @@ public final class ClimateProdGenerateSession {
         }
 
         // Check if cancelled
-        if (this.getCurrentStatus() == StateStatus.CANCELLED) {
+        if (this.getCurrentStatus().getStatus()
+                .equals(StateStatus.Status.CANCELLED)) {
             logger.info("The CPG session: " + this.getCPGSessionId()
                     + " has been cancelled");
             return;
@@ -472,7 +496,8 @@ public final class ClimateProdGenerateSession {
                 this.executeHeadlessDisplayCimate();
             } catch (ClimateSessionException e) {
                 logger.error("Failed to execute Headless Display", e);
-                failCPGSession("Failed to execute Headless Display !");
+                failCPGSession("Failed to execute Headless Display! "
+                        + e.getMessage());
                 return;
             }
 
@@ -480,13 +505,15 @@ public final class ClimateProdGenerateSession {
                 this.executeFormatClimate();
             } catch (ClimateSessionException e) {
                 logger.error("Failed to execute Format Climate", e);
-                failCPGSession("Failed to execute Format Climate !");
+                failCPGSession(
+                        "Failed to execute Format Climate! " + e.getMessage());
                 return;
             }
         }
 
         // Check if cancelled
-        if (this.getCurrentStatus() == StateStatus.CANCELLED) {
+        if (this.getCurrentStatus().getStatus()
+                .equals(StateStatus.Status.CANCELLED)) {
             logger.info("The CPG session: " + this.getCPGSessionId()
                     + " has been cancelled");
             return;
@@ -495,7 +522,7 @@ public final class ClimateProdGenerateSession {
         // Alert User for review
         msgDesc = "Formatted Climate Product generated, waiting for review. CPG Session ID = "
                 + this.cpgSessionId;
-        this.sendNotificationToAlertViz(Priority.SIGNIFICANT, msgDesc, "");
+        sendAlertVizMessage(Priority.INFO, msgDesc, "");
 
         int revWait = this.globalConfig.getReviewWait();
         if (revWait < 0) {
@@ -507,7 +534,8 @@ public final class ClimateProdGenerateSession {
 
         Object waiter2 = new Object();
         synchronized (waiter2) {
-            while (this.getCurrentStatus() != StateStatus.CANCELLED
+            while (!this.getCurrentStatus().getStatus()
+                    .equals(StateStatus.Status.CANCELLED)
                     && this.getCurrentState() != SessionState.REVIEW
                     && secondsLeft-- > 0) {
 
@@ -523,7 +551,8 @@ public final class ClimateProdGenerateSession {
         }
 
         // Check if cancelled
-        if (this.getCurrentStatus() == StateStatus.CANCELLED) {
+        if (this.getCurrentStatus().getStatus()
+                .equals(StateStatus.Status.CANCELLED)) {
             logger.info("The CPG session: " + this.getCPGSessionId()
                     + " has been cancelled");
             return;
@@ -557,8 +586,8 @@ public final class ClimateProdGenerateSession {
      * @param nonRecentRun
      * @return
      */
-    public ClimateCreatorResponse manualCreateDailyClimate(ClimateDate date,
-            boolean nonRecentRun) throws Exception {
+    public void manualCreateDailyClimate(ClimateDate date, boolean nonRecentRun)
+            throws Exception {
         try {
             this.executeCreateDailyClimate(date, nonRecentRun);
         } catch (ClimateSessionException e) {
@@ -566,8 +595,6 @@ public final class ClimateProdGenerateSession {
             failCPGSession("Failed to execute Create Daily Climate!");
             throw new Exception("Failed to execute Create Daily Climate", e);
         }
-
-        return reportData;
     }
 
     /**
@@ -578,8 +605,8 @@ public final class ClimateProdGenerateSession {
      * @param nonRecentRun
      * @return
      */
-    public ClimateCreatorResponse manualCreatePeriodClimate(ClimateDate begin,
-            ClimateDate end, boolean nonRecentRun) throws Exception {
+    public void manualCreatePeriodClimate(ClimateDate begin, ClimateDate end,
+            boolean nonRecentRun) throws Exception {
         try {
             this.executeCreatePeriodClimate(begin, end, nonRecentRun);
         } catch (ClimateSessionException e) {
@@ -587,8 +614,6 @@ public final class ClimateProdGenerateSession {
             failCPGSession("Failed to execute Create Period Climate!");
             throw new Exception("Failed to execute Create Period Climate", e);
         }
-
-        return reportData;
     }
 
     /**
@@ -613,7 +638,8 @@ public final class ClimateProdGenerateSession {
                 this.executeFormatClimate();
             } catch (ClimateSessionException e) {
                 logger.error("Failed to execute Format Climate", e);
-                failCPGSession("Failed to execute Format Climate!");
+                failCPGSession(
+                        "Failed to execute Format Climate! " + e.getMessage());
                 return null;
             }
         }
@@ -632,11 +658,11 @@ public final class ClimateProdGenerateSession {
 
         if (isSessionTerminated()) {
             // Can not cancel for terminated session
-            return this.status.getCode();
+            return this.stateStatus.getStatus().getValue();
         }
 
         // Update session state to cancelled
-        this.updateStateStatus(StateStatus.CANCELLED, reason);
+        this.updateStateStatus(StateStatus.Status.CANCELLED, reason);
 
         // Send a message to inform other client who may also access same
         // session
@@ -644,14 +670,14 @@ public final class ClimateProdGenerateSession {
                 + this.getCPGSessionId();
 
         // Alert user for cancel the session
-        this.sendNotificationToAlertViz(Priority.WARN, msgDesc, "");
+        sendAlertVizMessage(Priority.WARN, msgDesc, "");
 
         // Send notification to CPG Viewer
         Map<String, String> actions = new HashMap<>();
         actions.put("ACTION", "CANCEL");
         sendClimateNotifyMessage(msgDesc, actions);
 
-        return this.status.getCode();
+        return this.stateStatus.getStatus().getValue();
     }
 
     /**
@@ -720,8 +746,7 @@ public final class ClimateProdGenerateSession {
      */
     private void initNewCPGSession() {
         // Load global configuration
-        ClimateGlobalConfiguration cgc = new ClimateGlobalConfiguration();
-        this.globalConfig = cgc.getGlobal();
+        this.globalConfig = ClimateGlobalConfiguration.getGlobal();
 
         // Load settings for the prodType
         ClimateProductTypeManager cptManager = ClimateProductTypeManager
@@ -750,8 +775,7 @@ public final class ClimateProdGenerateSession {
                 String msgDetail = "ID=" + this.getCPGSessionId()
                         + ", STATE=START";
                 // Notify to AlertViz
-                this.sendNotificationToAlertViz(Priority.INFO, msgDesc,
-                        msgDetail);
+                sendAlertVizMessage(Priority.INFO, msgDesc, msgDetail);
 
                 // Notify to CPG View
                 Map<String, String> actions = new HashMap<>();
@@ -778,8 +802,14 @@ public final class ClimateProdGenerateSession {
      * @param reason
      */
     private void failCPGSession(String reason) {
-        // Set the session failed and update database
-        this.updateStateStatus(StateStatus.FAILED, reason);
+        /*
+         * Set the session failed and update database. Send information to CPG
+         * View.
+         */
+        this.updateStateStatus(StateStatus.Status.FAILED, reason);
+        // Send AlertViz message
+        sendAlertVizMessage(Priority.PROBLEM,
+                "CPG Session: [" + cpgSessionId + "] has failed!", reason);
     }
 
     /**
@@ -865,7 +895,7 @@ public final class ClimateProdGenerateSession {
     private void executeCreateClimate() throws ClimateSessionException {
 
         ClimateCreator creator = new ClimateCreator();
-        ClimateCreatorResponse report;
+        ClimateRunData report;
         try {
             report = creator.createClimate(prodType);
 
@@ -905,7 +935,7 @@ public final class ClimateProdGenerateSession {
             boolean manualNonRecentRun) throws ClimateSessionException {
 
         ClimateCreator creator = new ClimateCreator();
-        ClimateCreatorResponse report;
+        ClimateRunData report;
         try {
             report = creator.createClimate(manualNonRecentRun, this.prodType,
                     date);
@@ -945,7 +975,7 @@ public final class ClimateProdGenerateSession {
             boolean manualNonRecentRun) throws ClimateSessionException {
 
         ClimateCreator creator = new ClimateCreator();
-        ClimateCreatorResponse report;
+        ClimateRunData report;
         try {
             report = creator.createClimate(manualNonRecentRun, this.prodType,
                     begin, end);
@@ -987,7 +1017,9 @@ public final class ClimateProdGenerateSession {
         ClimateProdData prod;
         Map<String, ClimateProduct> cpMap;
         try {
-            cpMap = formatter.formatClimate(this.reportData);
+            // TODO: determine operational flag
+
+            cpMap = formatter.formatClimate(this.reportData/* , operational */);
         } catch (Exception e) {
             this.failCPGSession("Failed to execute formatClimate!");
             throw new ClimateSessionException(
@@ -1003,7 +1035,9 @@ public final class ClimateProdGenerateSession {
             this.setProdDataAndUpdateDatabase(prod);
         } else {
             throw new ClimateSessionException(
-                    "The climate product data was not generated by ClimateFormatter");
+                    "The climate product data was not generated by Formatter."
+                            + " Ensure that products were defined for type: ["
+                            + prodType.getPeriodName() + "] in Set Up Params.");
         }
         // Create succeed
         this.setState(SessionState.FORMATTED);
@@ -1016,13 +1050,13 @@ public final class ClimateProdGenerateSession {
         try {
             if (this.prodType.isDaily()) {
                 DailyClimateDAO dcDao = new DailyClimateDAO();
-                ClimateCreatorDailyResponse ccdr = (ClimateCreatorDailyResponse) this.reportData;
+                ClimateRunDailyData ccdr = (ClimateRunDailyData) this.reportData;
                 dcDao.processDisplayFinalization(this.prodType,
                         ccdr.getBeginDate(), ccdr.getReportMap());
             } else {
                 // Period
                 ClimatePeriodDAO cpDao = new ClimatePeriodDAO();
-                ClimateCreatorPeriodResponse ccpr = (ClimateCreatorPeriodResponse) this.reportData;
+                ClimateRunPeriodData ccpr = (ClimateRunPeriodData) this.reportData;
                 cpDao.processDisplayFinalization(this.prodType,
                         ccpr.getBeginDate(), ccpr.getEndDate(),
                         ccpr.getReportMap());
@@ -1031,7 +1065,10 @@ public final class ClimateProdGenerateSession {
             String msgDesc = "Called processDisplayFinalization with invalid parameter(s)";
             this.failCPGSession(msgDesc);
             throw new ClimateSessionException(msgDesc, e);
-
+        } catch (ClimateSessionException e) {
+            String msgDesc = "Failed to execute Display finalization";
+            failCPGSession(msgDesc);
+            throw new ClimateSessionException(msgDesc, e);
         }
 
         // Create succeed
@@ -1046,7 +1083,7 @@ public final class ClimateProdGenerateSession {
      * @param msmOverwriteApproved
      * @throws ClimateSessionException
      */
-    public void finalizeDisplayDailyCimate(ClimateCreatorDailyResponse userData)
+    public void finalizeDisplayDailyCimate(ClimateRunDailyData userData)
             throws ClimateSessionException {
 
         try {
@@ -1057,7 +1094,6 @@ public final class ClimateProdGenerateSession {
             String msgDesc = "Called processDisplayFinalization with invalid parameter(s)";
             this.failCPGSession(msgDesc);
             throw new ClimateSessionException(msgDesc, e);
-
         }
 
         // Create succeed
@@ -1075,8 +1111,8 @@ public final class ClimateProdGenerateSession {
      */
     public void finalizeDisplayPeriodCimate(
             Map<Integer, ClimatePeriodReportData> dataMap,
-            ClimateCreatorPeriodResponse userData,
-            Set<Integer> msmOverwriteApproved) throws ClimateSessionException {
+            ClimateRunPeriodData userData, Set<Integer> msmOverwriteApproved)
+                    throws ClimateSessionException {
 
         try {
             ClimatePeriodDAO cpDao = new ClimatePeriodDAO();
@@ -1087,7 +1123,10 @@ public final class ClimateProdGenerateSession {
             String msgDesc = "Called processDisplayFinalization with invalid parameter(s)";
             this.failCPGSession(msgDesc);
             throw new ClimateSessionException(msgDesc, e);
-
+        } catch (ClimateSessionException e) {
+            String msgDesc = "Error with Display finalization.";
+            this.failCPGSession(msgDesc);
+            throw new ClimateSessionException(msgDesc, e);
         }
 
         // Create succeed
@@ -1135,7 +1174,7 @@ public final class ClimateProdGenerateSession {
     /**
      * 
      * 
-     * Change to a new state need to reset the status to WORKING
+     * Change to a new state need to reset the stateStatus to WORKING
      * 
      * @param state
      *            the state to set
@@ -1147,9 +1186,8 @@ public final class ClimateProdGenerateSession {
         // Update lastUpdated;
         lastUpdated = LocalDateTime.now();
 
-        this.status = StateStatus.SUCCESS;
         String msg = this.state.name() + " Next: " + this.nextState();
-        this.status.setDescription(msg);
+        this.stateStatus = new StateStatus(StateStatus.Status.SUCCESS, msg);
 
         // Update session in the database
         try {
@@ -1157,8 +1195,8 @@ public final class ClimateProdGenerateSession {
             dao.updateCPGSessionState(this.cpgSessionId, this.state.getValue(),
                     this.lastUpdated);
 
-            // Update status accordingly
-            this.updateStateStatus(this.status, msg);
+            // Update stateStatus accordingly
+            this.updateStateStatus(this.stateStatus.getStatus(), msg);
 
         } catch (Exception e) {
             logger.error("Update Session State into database failed", e);
@@ -1171,51 +1209,34 @@ public final class ClimateProdGenerateSession {
     }
 
     /**
-     * Update status.
+     * Update stateStatus.
      * 
-     * @param status
+     * @param stateStatus
      * @param desc
      */
-    public void updateStateStatus(StateStatus status, String desc) {
+    public void updateStateStatus(StateStatus.Status status, String desc) {
 
-        this.status = status;
-        this.status.setDescription(desc);
+        this.stateStatus = new StateStatus(status, desc);
 
         // Update lastUpdated;
         lastUpdated = LocalDateTime.now();
 
-        // Update session's status in the database
+        // Update session's stateStatus in the database
         try {
-            dao.updateCPGSessionStatus(this.cpgSessionId, this.status.getCode(),
-                    this.status.getDescription(), this.lastUpdated);
+            dao.updateCPGSessionStatus(this.cpgSessionId,
+                    this.stateStatus.getStatus().getValue(),
+                    this.stateStatus.getDescription(), this.lastUpdated);
         } catch (Exception e) {
             // TODO do need to failed out?
             logger.error("Update Session Status into database failed", e);
         }
 
-        String msgDesc = "The CPG session Status will update to:" + this.status;
+        String msgDesc = "The CPG session Status will update to:"
+                + this.stateStatus.getStatus();
 
         Map<String, String> actions = new HashMap<>();
         actions.put("ACTION", "Update Status");
         sendClimateNotifyMessage(msgDesc, actions);
-    }
-
-    /**
-     * 
-     * @param value
-     * @param desc
-     * @return
-     */
-    private StateStatus getStatusFromCodeAndDesc(int value, String desc) {
-        for (StateStatus s : StateStatus.values()) {
-            if (s.getCode() == value) {
-                s.setDescription(desc);
-                return s;
-            }
-        }
-        // Invalid value
-        return StateStatus.UNKNOWN;
-
     }
 
     /**
@@ -1244,20 +1265,21 @@ public final class ClimateProdGenerateSession {
      * @return
      */
     public StateStatus getCurrentStatus() {
-        // Get CPG session status from DB, it could be changed by other thread
+        // Get CPG session stateStatus from DB, it could be changed by other
+        // thread
         try {
             return dao.getCurrentStateStatus(this.cpgSessionId);
         } catch (Exception e) {
             logger.error("Get current CPG Session state from database failed!",
                     e);
         }
-        return StateStatus.UNKNOWN;
+        return new StateStatus(StateStatus.Status.UNKNOWN);
     }
 
     /**
      * @return the reportData
      */
-    public ClimateCreatorResponse getReportData() {
+    public ClimateRunData getReportData() {
         return reportData;
     }
 
@@ -1267,8 +1289,8 @@ public final class ClimateProdGenerateSession {
      * @param reportData
      * @throws Exception
      */
-    public void setReportDataAndUpdateDatabase(
-            ClimateCreatorResponse reportData) throws Exception {
+    public void setReportDataAndUpdateDatabase(ClimateRunData reportData)
+            throws Exception {
         this.reportData = reportData;
 
         try {
@@ -1349,8 +1371,8 @@ public final class ClimateProdGenerateSession {
      */
     private boolean isSessionTerminated() {
         if (this.getCurrentState() == SessionState.SENT
-                || this.getCurrentStatus() == StateStatus.CANCELLED
-                || this.status == StateStatus.FAILED) {
+                || this.getCurrentStatus().equals(StateStatus.Status.CANCELLED)
+                || this.stateStatus.equals(StateStatus.Status.FAILED)) {
             return true;
         }
 
@@ -1455,7 +1477,7 @@ public final class ClimateProdGenerateSession {
                     + this.cpgSessionId;
             logger.error(msg);
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
             return res;
         }
 
@@ -1489,7 +1511,7 @@ public final class ClimateProdGenerateSession {
                     + this.cpgSessionId;
             logger.error(msg);
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
             return res;
         }
 
@@ -1515,12 +1537,12 @@ public final class ClimateProdGenerateSession {
         // Add sending NWWS products to the The response
         res.setSendingProducts(nwwsProdSet.getUnsentProducts());
 
-        if (nwwsProdSet == null || nwwsProdSet.isEmpty()) {
+        if (nwwsProdSet.isEmpty()) {
             String msg = "No NWWS product can be sent in the session: "
                     + this.cpgSessionId;
             logger.error(msg);
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
             return res;
         }
 
@@ -1532,35 +1554,34 @@ public final class ClimateProdGenerateSession {
         }
 
         // Store and transmit NWWS product
-        if (this.globalConfig.isAllowDisseminate()) {
-            for (String key : nwwsProdSet.getUnsentProducts().keySet()) {
-                ClimateProduct cp = nwwsProdSet.getUnsentProducts().get(key);
-
-                ClimateProductNWWSSender.transmitNWWSProduct(this, key, cp,
-                        operational, user);
-
-            }
-            nwwsProdSet.updateSetLevelStatusFromProductStatus();
-
-            // Update to DB
-            try {
-                this.updateWithNewProdData();
-            } catch (Exception e) {
-                String msg = "Update NWWS climate product status to DB failed for "
-                        + this.cpgSessionId;
-                logger.error(msg);
-
-                nwwsProdSet.setProdStatus(ProductSetStatus.HAS_ERROR, msg);
-                res.setSetLevelStatus(ProductSetStatus.HAS_ERROR, msg);
-                this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
-
-            }
-
-        } else {
+        if (!this.globalConfig.isAllowDisseminate()) {
             String message = "climate.allowDisseminate in globalDay.properties is set to false."
-                    + " NWWS products will not send to OUP";
+                    + " NWWS products will not be sent to OUP or stored in Text DB.";
             sendClimateNotifyMessage(message, null);
             logger.info(message);
+        }
+
+        for (String key : nwwsProdSet.getUnsentProducts().keySet()) {
+            ClimateProduct cp = nwwsProdSet.getUnsentProducts().get(key);
+
+            ClimateProductNWWSSender.transmitNWWSProduct(this, key, cp,
+                    operational, user, globalConfig.isAllowDisseminate());
+        }
+
+        nwwsProdSet.updateSetLevelStatusFromProductStatus();
+
+        // Update to DB
+        try {
+            this.updateWithNewProdData();
+        } catch (Exception e) {
+            String msg = "Update NWWS climate product status to DB failed for "
+                    + this.cpgSessionId;
+            logger.error(msg);
+
+            nwwsProdSet.setProdStatus(ProductSetStatus.HAS_ERROR, msg);
+            res.setSetLevelStatus(ProductSetStatus.HAS_ERROR, msg);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
+
         }
 
         // update pendingExpriation
@@ -1568,16 +1589,16 @@ public final class ClimateProdGenerateSession {
 
         // Check if all products have been sent
         if (this.prodData.isAllProductSent()) {
-            // Update Session level status
+            // Update Session level stateStatus
             this.setState(SessionState.SENT);
-            this.updateStateStatus(StateStatus.SUCCESS, "");
+            this.updateStateStatus(StateStatus.Status.SUCCESS, "");
         } else if (this.prodData.isAllNWWSProductSent()) {
-            // Update Product Set Level status for NWWS
+            // Update Product Set Level stateStatus for NWWS
             this.prodData.updateProductSetLevelStatus(ClimateProductType.NWWS,
                     ProductSetStatus.SENT, "");
         }
 
-        // Notify CPG View the status changed
+        // Notify CPG View the stateStatus changed
         Map<String, String> detailMsg = new HashMap<>();
         detailMsg.put("NWWS_SEND_STATUS", this.prodData
                 .getProductSetLevelStatus(ClimateProductType.NWWS).name());
@@ -1608,12 +1629,12 @@ public final class ClimateProdGenerateSession {
         // Add sending NWR products to the The response
         res.setSendingProducts(nwrProdSet.getUnsentProducts());
 
-        if (nwrProdSet == null || nwrProdSet.isEmpty()) {
+        if (nwrProdSet.isEmpty()) {
             String msg = "No NWR product can be sent in the session: "
                     + this.cpgSessionId;
             logger.error(msg);
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
             return res;
         }
 
@@ -1624,28 +1645,27 @@ public final class ClimateProdGenerateSession {
             return res;
         }
 
-        if (this.globalConfig.isAllowDisseminate()) {
-            // Forward to NWR
-            NWRProductForwarder.forwardToNWR(this, nwrProdSet, res,
-                    this.globalConfig.getCopyNWRTo(), user);
-
-            // Update database with modified status for sent products
-            try {
-                this.updateWithNewProdData();
-            } catch (Exception e) {
-                String msg = "Update NWR climate product status to DB failed for "
-                        + this.cpgSessionId;
-                logger.error(msg);
-                res.setSetLevelStatus(ProductSetStatus.HAS_ERROR, msg);
-                this.sendAlertVizMessage(Priority.PROBLEM, msg, null);
-
-            }
-
-        } else {
+        if (!globalConfig.isAllowDisseminate()) {
             String message = "climate.allowDisseminate in globalDay.properties is set to false."
-                    + " NWR products will not copy to the target NWRWave directory";
+                    + " NWR products will not be copied to the target NWRWave directory";
             sendClimateNotifyMessage(message, null);
             logger.info(message);
+        }
+
+        // Forward to NWR
+        NWRProductForwarder.forwardToNWR(this, nwrProdSet, res,
+                this.globalConfig.getCopyNWRTo(), user,
+                globalConfig.isAllowDisseminate());
+
+        // Update database with modified stateStatus for sent products
+        try {
+            this.updateWithNewProdData();
+        } catch (Exception e) {
+            String msg = "Update NWR climate product status to DB failed for "
+                    + this.cpgSessionId;
+            logger.error(msg);
+            res.setSetLevelStatus(ProductSetStatus.HAS_ERROR, msg);
+            sendAlertVizMessage(Priority.PROBLEM, msg, null);
         }
 
         // update pendingExpriation
@@ -1653,16 +1673,16 @@ public final class ClimateProdGenerateSession {
 
         // Check if all products have been sent
         if (this.prodData.isAllProductSent()) {
-            // Update Session level status
+            // Update Session level stateStatus
             this.setState(SessionState.SENT);
-            this.updateStateStatus(StateStatus.SUCCESS, "");
+            this.updateStateStatus(StateStatus.Status.SUCCESS, "");
         } else if (this.prodData.isAllNWRProductSent()) {
-            // Update Product Set Level status for NWR
+            // Update Product Set Level stateStatus for NWR
             this.prodData.updateProductSetLevelStatus(ClimateProductType.NWR,
                     ProductSetStatus.SENT, "");
         }
 
-        // Notify CPG View the status changed
+        // Notify CPG View the stateStatus changed
         Map<String, String> detailMsg = new HashMap<>();
         detailMsg.put("NWR_SEND_STATUS", this.prodData
                 .getProductSetLevelStatus(ClimateProductType.NWR).name());
@@ -1701,7 +1721,6 @@ public final class ClimateProdGenerateSession {
                 cp.setLastAction(ActionOnProduct.STORE, msg);
 
                 logger.info(msg);
-
             } else {
                 // Failed to store the product into the Text DB,
                 // not throw the exception so user can try late
@@ -1712,9 +1731,9 @@ public final class ClimateProdGenerateSession {
                 cp.setLastAction(ActionOnProduct.STORE, desc);
 
                 // Notify users
-                this.sendAlertVizMessage(Priority.PROBLEM, desc, null);
+                sendAlertVizMessage(Priority.PROBLEM, desc, null);
                 logger.error(
-                        desc + " ptoduct text: [" + cp.getProdText() + "]");
+                        desc + ". Product text: [" + cp.getProdText() + "]");
 
             }
         }

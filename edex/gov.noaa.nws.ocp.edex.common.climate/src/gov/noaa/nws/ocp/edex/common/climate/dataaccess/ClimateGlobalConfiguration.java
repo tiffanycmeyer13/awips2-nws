@@ -48,6 +48,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  *                                     the same place.
  * 18 AUG 2017  37104      amoore      Add IFPS office name and timezone.
  * 22 AUG 2017  37240      amoore      Add new settings to saving.
+ * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
+ * 20 OCT 2017  39784      amoore      Prefer SITE, then REGION, then BASE, not just BASE.
+ * 06 NOV 2017  35731      pwang       added properties for controlling if an product can be auto generated
  * </pre>
  * 
  * @author xzhang
@@ -58,88 +61,155 @@ public class ClimateGlobalConfiguration {
     /** The logger */
     private final static IUFStatusHandler logger = UFStatus
             .getHandler(ClimateGlobalConfiguration.class);
+
+    /**
+     * Directory of Global Day properties.
+     */
+    private static final String GLOBAL_DAY_DIR = "climate" + File.separator;
+
+    /**
+     * Name of Global Day properties.
+     */
+    private static final String GLOBAL_DAY_FILE = "globalDay.properties";
+
     /**
      * Location of Global Day properties.
      */
-    private static final String GLOBAL_DAY_FILE = "climate/globalDay.properties";
+    private static final String GLOBAL_DAY_PATH = GLOBAL_DAY_DIR
+            + GLOBAL_DAY_FILE;
 
     /**
-     * @return global configuration values; can be null.
+     * Localization levels to try to load, in order
+     */
+    private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
+            LocalizationLevel.SITE, LocalizationLevel.REGION,
+            LocalizationLevel.BASE };
+
+    /**
+     * @return global configuration values from SITE-REGION-BASE in that
+     *         preference order; can be null on error.
      */
     public static ClimateGlobal getGlobal() {
-        ClimateGlobal global = new ClimateGlobal();
+        ClimateGlobal resGlobal = new ClimateGlobal();
         Properties prop = new Properties();
 
         IPathManager pm = PathManagerFactory.getPathManager();
 
-        LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
-                LocalizationLevel.BASE);
+        boolean success = false;
 
-        File globalFile = pm.getFile(lc, GLOBAL_DAY_FILE);
+        for (int i = 0; (i < LOCALIZATIONS_TO_TRY.length) && !success; i++) {
+            LocalizationLevel level = LOCALIZATIONS_TO_TRY[i];
 
-        try (InputStream input = new FileInputStream(globalFile)) {
-            prop.load(input);
+            LocalizationContext lc = pm
+                    .getContext(LocalizationType.COMMON_STATIC, level);
 
-            global.setUseValidIm(
-                    "T".equals(prop.getProperty("climate.useValidIm")) ? true
-                            : false);
-            global.setUseValidPm(
-                    "T".equals(prop.getProperty("climate.useValidPm")) ? true
-                            : false);
-            global.setNoAsterisk(
-                    "T".equals(prop.getProperty("climate.noAsterisk")) ? true
-                            : false);
-            global.setNoColon("T".equals(prop.getProperty("climate.noColon"))
-                    ? true : false);
-            global.setNoMinus("T".equals(prop.getProperty("climate.noMinus"))
-                    ? true : false);
-            global.setNoSmallLetters(
-                    "T".equals(prop.getProperty("climate.noSmallLetters"))
-                            ? true : false);
-            global.setValidIm(prop.getProperty("climate.morning"));
-            global.setValidPm(prop.getProperty("climate.evening"));
-            global.setT1(Integer.parseInt(prop.getProperty("climate.T1")));
-            global.setT2(Integer.parseInt(prop.getProperty("climate.T2")));
-            global.setT3(Integer.parseInt(prop.getProperty("climate.T3")));
-            global.setT4(Integer.parseInt(prop.getProperty("climate.T4")));
-            global.setT5(Integer.parseInt(prop.getProperty("climate.T5")));
-            global.setT6(Integer.parseInt(prop.getProperty("climate.T6")));
-            global.setP1(Float.parseFloat(prop.getProperty("climate.P1")));
-            global.setP2(Float.parseFloat(prop.getProperty("climate.P2")));
-            global.setS1(Float.parseFloat(prop.getProperty("climate.S1")));
+            File globalFile = pm.getFile(lc, GLOBAL_DAY_PATH);
 
-            global.setDisplayWait(
-                    Integer.parseInt(prop.getProperty("climate.displayWait")));
-            global.setReviewWait(
-                    Integer.parseInt(prop.getProperty("climate.reviewWait")));
-            global.setAllowAutoSend(prop.getProperty("climate.allowAutoSend")
-                    .equalsIgnoreCase("true") ? true : false);
-            global.setCopyNWRTo(prop.getProperty("climate.copyNWRTo"));
-            global.setAllowDisseminate(
-                    prop.getProperty("climate.allowDisseminate")
-                            .equalsIgnoreCase("true") ? true : false);
-            global.setOfficeName(prop.getProperty("climate.siteofficename"));
-            global.setTimezone(prop.getProperty("climate.sitetimezone"));
+            try (InputStream input = new FileInputStream(globalFile)) {
+                prop.load(input);
 
-        } catch (FileNotFoundException e) {
-            logger.error(
-                    "Error finding globals file. Saving and returning default values.",
-                    e);
-            global = ClimateGlobal.getDefaultGlobalValues();
-            saveGlobal(global);
-        } catch (IOException e) {
-            logger.error("Error reading globals file. Returning null.", e);
-            global = null;
-        } catch (NumberFormatException e) {
-            logger.error("Failed to parse globals file. Returning null.", e);
-            global = null;
+                resGlobal.setUseValidIm(
+                        "T".equals(prop.getProperty("climate.useValidIm"))
+                                ? true : false);
+                resGlobal.setUseValidPm(
+                        "T".equals(prop.getProperty("climate.useValidPm"))
+                                ? true : false);
+                resGlobal.setNoAsterisk(
+                        "T".equals(prop.getProperty("climate.noAsterisk"))
+                                ? true : false);
+                resGlobal.setNoColon(
+                        "T".equals(prop.getProperty("climate.noColon")) ? true
+                                : false);
+                resGlobal.setNoMinus(
+                        "T".equals(prop.getProperty("climate.noMinus")) ? true
+                                : false);
+                resGlobal.setNoSmallLetters(
+                        "T".equals(prop.getProperty("climate.noSmallLetters"))
+                                ? true : false);
+                resGlobal.setValidIm(prop.getProperty("climate.intermediate"));
+                resGlobal.setValidPm(prop.getProperty("climate.evening"));
+                resGlobal.setT1(
+                        Integer.parseInt(prop.getProperty("climate.T1")));
+                resGlobal.setT2(
+                        Integer.parseInt(prop.getProperty("climate.T2")));
+                resGlobal.setT3(
+                        Integer.parseInt(prop.getProperty("climate.T3")));
+                resGlobal.setT4(
+                        Integer.parseInt(prop.getProperty("climate.T4")));
+                resGlobal.setT5(
+                        Integer.parseInt(prop.getProperty("climate.T5")));
+                resGlobal.setT6(
+                        Integer.parseInt(prop.getProperty("climate.T6")));
+                resGlobal.setP1(
+                        Float.parseFloat(prop.getProperty("climate.P1")));
+                resGlobal.setP2(
+                        Float.parseFloat(prop.getProperty("climate.P2")));
+                resGlobal.setS1(
+                        Float.parseFloat(prop.getProperty("climate.S1")));
+
+                resGlobal.setDisplayWait(Integer
+                        .parseInt(prop.getProperty("climate.displayWait")));
+                resGlobal.setReviewWait(Integer
+                        .parseInt(prop.getProperty("climate.reviewWait")));
+                resGlobal.setAllowAutoSend(
+                        prop.getProperty("climate.allowAutoSend")
+                                .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setCopyNWRTo(prop.getProperty("climate.copyNWRTo"));
+                resGlobal.setAllowDisseminate(
+                        prop.getProperty("climate.allowDisseminate")
+                                .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setOfficeName(
+                        prop.getProperty("climate.siteofficename"));
+                resGlobal.setTimezone(prop.getProperty("climate.sitetimezone"));
+
+                resGlobal.setAutoF6(prop.getProperty("climate.autoF6")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoAM(prop.getProperty("climate.autoAM")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoIM(prop.getProperty("climate.autoIM")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoPM(prop.getProperty("climate.autoPM")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoCLM(prop.getProperty("climate.autoCLM")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoCLS(prop.getProperty("climate.autoCLS")
+                        .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
+                        .equalsIgnoreCase("true") ? true : false);
+
+                // got to end without error; use this globalDay file
+                success = true;
+            } catch (FileNotFoundException e) {
+                logger.info("Could not find globalDay file ["
+                        + globalFile.getAbsolutePath()
+                        + "] at localization level: [" + level.toString()
+                        + "]. " + e.getMessage());
+            } catch (IOException e) {
+                logger.error("Error reading globals file. Returning null.", e);
+                return null;
+            } catch (NumberFormatException e) {
+                logger.error("Failed to parse globals file. Returning null.",
+                        e);
+                return null;
+            } catch (NullPointerException e) {
+                logger.error(
+                        "Failed to parse globals file due to some missing property. Returning null.");
+                return null;
+            }
         }
 
-        return global;
+        if (!success) {
+            logger.warn(
+                    "Could not find climate globals file. Saving and returning default values.");
+            resGlobal = ClimateGlobal.getDefaultGlobalValues();
+            saveGlobal(resGlobal);
+        }
+
+        return resGlobal;
     }
 
     /**
-     * Save the given global day settings.
+     * Save the given global day settings to SITE.
      * 
      * @param global
      *            settings to save
@@ -152,48 +222,52 @@ public class ClimateGlobalConfiguration {
         IPathManager pm = PathManagerFactory.getPathManager();
 
         LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
-                LocalizationLevel.BASE);
+                LocalizationLevel.SITE);
 
-        File globalDayPath = pm.getFile(lc, GLOBAL_DAY_FILE);
+        File globalDayParentPath = pm.getFile(lc, GLOBAL_DAY_DIR);
+        File globalDayFullPath = new File(globalDayParentPath, GLOBAL_DAY_FILE);
 
         try {
-            if (!globalDayPath.exists()) {
-                if (!globalDayPath.mkdirs()) {
-                    logger.error("The file: [" + globalDayPath.getAbsolutePath()
+            if (!globalDayParentPath.exists()) {
+                if (!globalDayParentPath.mkdirs()) {
+                    logger.error("The directory: ["
+                            + globalDayParentPath.getAbsolutePath()
                             + "] does not exist and a path could not be created.");
                 } else {
-                    logger.debug("The file: [" + globalDayPath.getAbsolutePath()
-                            + "] does not exist but the path was created.");
+                    logger.debug("The directory: ["
+                            + globalDayParentPath.getAbsolutePath()
+                            + "] did not exist but the path was created.");
                 }
             }
 
-            try (OutputStream output = new FileOutputStream(globalDayPath)) {
+            try (OutputStream output = new FileOutputStream(
+                    globalDayFullPath)) {
                 // set the properties value
-                prop.setProperty("climate.useValidIm",
-                        global.isUseValidIm() ? "T" : "F");
-                prop.setProperty("climate.useValidPm",
-                        global.isUseValidPm() ? "T" : "F");
+                prop.setProperty("climate.T1", String.valueOf(global.getT1()));
+                prop.setProperty("climate.T2", String.valueOf(global.getT2()));
+                prop.setProperty("climate.T3", String.valueOf(global.getT3()));
+                prop.setProperty("climate.T4", String.valueOf(global.getT4()));
+                prop.setProperty("climate.T5", String.valueOf(global.getT5()));
+                prop.setProperty("climate.T6", String.valueOf(global.getT6()));
+                prop.setProperty("climate.P1", String.valueOf(global.getP1()));
+                prop.setProperty("climate.P2", String.valueOf(global.getP2()));
+                prop.setProperty("climate.S1", String.valueOf(global.getS1()));
                 prop.setProperty("climate.noAsterisk",
                         global.isNoAsterisk() ? "T" : "F");
-                prop.setProperty("climate.noColon",
-                        global.isNoColon() ? "T" : "F");
+                prop.setProperty("climate.useValidPm",
+                        global.isUseValidPm() ? "T" : "F");
+                prop.setProperty("climate.evening",
+                        global.getValidPm().toFullString());
+                prop.setProperty("climate.useValidIm",
+                        global.isUseValidIm() ? "T" : "F");
+                prop.setProperty("climate.intermediate",
+                        global.getValidIm().toFullString());
                 prop.setProperty("climate.noMinus",
                         global.isNoMinus() ? "T" : "F");
                 prop.setProperty("climate.noSmallLetters",
                         global.isNoSmallLetters() ? "T" : "F");
-                prop.setProperty("climate.morning",
-                        global.getValidIm().toFullString());
-                prop.setProperty("climate.evening",
-                        global.getValidPm().toFullString());
-                prop.setProperty("climate.T1", global.getT1() + "");
-                prop.setProperty("climate.T2", global.getT2() + "");
-                prop.setProperty("climate.T3", global.getT3() + "");
-                prop.setProperty("climate.T4", global.getT4() + "");
-                prop.setProperty("climate.T5", global.getT5() + "");
-                prop.setProperty("climate.T6", global.getT6() + "");
-                prop.setProperty("climate.P1", global.getP1() + "");
-                prop.setProperty("climate.P2", global.getP2() + "");
-                prop.setProperty("climate.S1", global.getS1() + "");
+                prop.setProperty("climate.noColon",
+                        global.isNoColon() ? "T" : "F");
                 prop.setProperty("climate.displayWait",
                         Integer.toString(global.getDisplayWait()));
                 prop.setProperty("climate.reviewWait",
@@ -206,6 +280,21 @@ public class ClimateGlobalConfiguration {
                 prop.setProperty("climate.siteofficename",
                         global.getOfficeName());
                 prop.setProperty("climate.sitetimezone", global.getTimezone());
+
+                prop.setProperty("climate.autoF6",
+                        global.isAutoF6() ? "true" : "false");
+                prop.setProperty("climate.autoAM",
+                        global.isAutoAM() ? "true" : "false");
+                prop.setProperty("climate.autoIM",
+                        global.isAutoIM() ? "true" : "false");
+                prop.setProperty("climate.autoPM",
+                        global.isAutoPM() ? "true" : "false");
+                prop.setProperty("climate.autoCLM",
+                        global.isAutoCLM() ? "true" : "false");
+                prop.setProperty("climate.autoCLS",
+                        global.isAutoCLS() ? "true" : "false");
+                prop.setProperty("climate.autoCLA",
+                        global.isAutoCLA() ? "true" : "false");
 
                 // save properties
                 prop.store(output, null);

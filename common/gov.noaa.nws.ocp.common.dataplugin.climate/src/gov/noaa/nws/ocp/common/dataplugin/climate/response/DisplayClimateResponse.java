@@ -34,7 +34,7 @@ public class DisplayClimateResponse {
     private ClimateGlobal globalConfig;
 
     @DynamicSerializeElement
-    private ClimateCreatorResponse reportData = null;
+    private ClimateRunData reportData = null;
 
     /**
      * Empty constructor
@@ -85,7 +85,7 @@ public class DisplayClimateResponse {
     /**
      * @return the reportData
      */
-    public ClimateCreatorResponse getReportData() {
+    public ClimateRunData getReportData() {
         return reportData;
     }
 
@@ -93,7 +93,7 @@ public class DisplayClimateResponse {
      * @param reportData
      *            the reportData to set
      */
-    public void setReportData(ClimateCreatorResponse reportData) {
+    public void setReportData(ClimateRunData reportData) {
         this.reportData = reportData;
     }
 

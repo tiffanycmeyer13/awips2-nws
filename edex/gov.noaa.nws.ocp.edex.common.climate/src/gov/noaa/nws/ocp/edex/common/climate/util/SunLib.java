@@ -300,38 +300,6 @@ public final class SunLib {
     *
     *   This routine was adapted from a function written by George Trojan called Sun.C.
     *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *     day                 - The two digit integer day.
-    *     dlat                - latitude in degrees (double)
-    *     dlon                - longitude (East positive) in degrees (double) 
-    *     mon                 - The two digit integer month.
-    *     year                - The four digit integer year.
-    *
-    *    Output
-    *     isun                - Determines whether it is sunrise or sunset.
-    *
-    *    Local   
-    *     int rc              - integer value used for deciding a case statement
-    *     int temp_lat        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians.
-    *     int temp_lon        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians.
-    *  program output:
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   6/22/01     Doug Murphy               lat and lon no longer need to be
-    *                                         converted into radians before
-    *                                         being passed into RiseSet...
-    *                                         riset is now returned as local
-    *                                         time hrs
      * </pre>
      * 
      * @param date
@@ -372,36 +340,6 @@ public final class SunLib {
     *
     *   This routine was adapted from a function written by George Trojan called Sun.C.
     *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *     day                 - The two digit integer day.
-    *     dlat                - latitude in degrees (double)
-    *     dlon                - longitude (East positive) in degrees (double) 
-    *     mon                 - The two digit integer month.
-    *     year                - The four digit integer year.
-    *
-    *    Output
-    *     isun                - Determines whether it is sunrise or sunset.
-    *
-    *    Local
-    *     int rc              - integer value used for deciding a case statement
-    *     int temp_lat        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians.
-    *     int temp_lon        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians. 
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   6/22/01     Doug Murphy               lat and lon no longer need to be
-    *                                         converted into radians before
-    *                                         being passed into RiseSet...
-    *                                         riset is now returned as local time hrs
      * </pre>
      * 
      * @param date
@@ -445,38 +383,6 @@ public final class SunLib {
     *
     *   This routine was adapted from a function written by George Trojan called Sun.C.
     *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *     day                 - The two digit integer day.
-    *     dlat                - latitude in degrees (double)
-    *     dlon                - longitude (East positive) in degrees (double) 
-    *     mon                 - The two digit integer month.
-    *     year                - The four digit integer year.
-    *
-    *    Output
-    *     isun                - Determines whether it is sunrise or sunset.
-    *
-    *    Local   
-    *     int rc              - integer value used for deciding a case statement
-    *     int temp_lat        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians.
-    *     int temp_lon        - A temporary variable used so that a latitude in degrees
-    *                           can be used later in the programs without having to 
-    *                           convert back to radians.
-    *  program output:
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   6/22/01     Doug Murphy               lat and lon no longer need to be
-    *                                         converted into radians before
-    *                                         being passed into RiseSet...
-    *                                         riset is now returned as local
-    *                                         time hrs
      * </pre>
      * 
      * @param date

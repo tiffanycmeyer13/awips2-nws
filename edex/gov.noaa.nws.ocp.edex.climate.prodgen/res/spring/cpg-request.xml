@@ -16,137 +16,72 @@
 
     <bean id="cancelCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.CancelClimateProdGenerateHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.CancelClimateProdGenerateRequest" />
-        <constructor-arg ref="cancelCPGHandler" />
-    </bean>
 
     <bean id="manualCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ManualGenerateClimateProdHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.ManualGenerateClimateProdRequest" />
-        <constructor-arg ref="manualCPGHandler" />
-    </bean>
 
     <bean id="displayCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.DisplayClimateHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.DisplayClimateRequest" />
-        <constructor-arg ref="displayCPGHandler" />
-    </bean>
 
     <bean id="completeDisplayCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.CompleteDisplayClimateHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.CompleteDisplayClimateRequest" />
-        <constructor-arg ref="completeDisplayCPGHandler" />
-    </bean>
 
     <bean id="reviewCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ReviewClimateProdHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.ReviewClimateProdRequest" />
-        <constructor-arg ref="reviewCPGHandler" />
-    </bean>
 
     <bean id="saveClimateProdCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SaveModifiedClimateProdAfterReviewHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.SaveModifiedClimateProdAfterReviewRequest" />
-        <constructor-arg ref="saveClimateProdCPGHandler" />
-    </bean>
 
     <bean id="deleteClimateProdCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.DeleteClimateProdAfterReviewHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.DeleteClimateProdAfterReviewRequest" />
-        <constructor-arg ref="deleteClimateProdCPGHandler" />
-    </bean>
 
     <bean id="sendNWWSClimateProdCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SendNWWSClimateProductsHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.SendNWWSClimateProductsRequest" />
-        <constructor-arg ref="sendNWWSClimateProdCPGHandler" />
-    </bean>
     
     <bean id="sendNWRClimateProdCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SendNWRClimateProductsHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.SendNWRClimateProductsRequest" />
-        <constructor-arg ref="sendNWRClimateProdCPGHandler" />
-    </bean>
     
     <bean id="forwardClimateProdToNWRCPGHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ForwardProdToNWRForReviewHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.ForwardProdToNWRForReviewRequest" />
-        <constructor-arg ref="forwardClimateProdToNWRCPGHandler" />
-    </bean>
 
     <bean id="getClimateProdSessionHandler"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.GetClimateProdGenerateSessionHandler" />
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.GetClimateProdGenerateSessionRequest" />
-        <constructor-arg ref="getClimateProdSessionHandler" />
-    </bean>
 
     <!-- END Register Requests and Handlers -->
 
     <!-- Cron Job Section -->
-
-    <bean id="cpgDAO"
-        class="gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO" />
-
     <bean id="autoGenerateClimateProdAM"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="1" />
     </bean>
 
     <bean id="autoGenerateClimateProdPM"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="2" />
     </bean>
 
     <bean id="autoGenerateClimateProdIM"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="10" />
     </bean>
 
     <bean id="autoGenerateClimateProdMonthly"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="5" />
     </bean>
 
     <bean id="autoGenerateClimateProdSeasonal"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="7" />
     </bean>
 
     <bean id="autoGenerateClimateProdAnnual"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
-        <constructor-arg ref="cpgDAO" />
         <constructor-arg value="1" />
         <constructor-arg value="9" />
     </bean>
@@ -175,12 +110,8 @@
         <endpoint id="autoCpgF6Cron"
             uri="clusteredquartz://cpg/autocreateclimeF6/?cron=${cpg.f6.cron}" />
 
-        <route id="cpgAM">
-            <from uri="autoCpgAMCron" />
-            <to uri="jms-generic:queue:cpgAMWork" />
-        </route>
         <route id="cpgAMWork">
-            <from uri="jms-generic:queue:cpgAMWork" />
+            <from uri="autoCpgAMCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdAM" method="generateClimate" />
                 <doCatch>
@@ -190,12 +121,8 @@
             </doTry>
         </route>
 
-        <route id="cpgPM">
-            <from uri="autoCpgPMCron" />
-            <to uri="jms-generic:queue:cpgPMWork" />
-        </route>
         <route id="cpgPMWork">
-            <from uri="jms-generic:queue:cpgPMWork" />
+            <from uri="autoCpgPMCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdPM" method="generateClimate" />
                 <doCatch>
@@ -205,12 +132,8 @@
             </doTry>
         </route>
 
-        <route id="cpgIM">
-            <from uri="autoCpgIMCron" />
-            <to uri="jms-generic:queue:cpgIMWork" />
-        </route>
         <route id="cpgIMWork">
-            <from uri="jms-generic:queue:cpgIMWork" />
+            <from uri="autoCpgIMCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdIM" method="generateClimate" />
                 <doCatch>
@@ -220,12 +143,8 @@
             </doTry>
         </route>
 
-        <route id="cpgMon">
-            <from uri="autoCpgMonCron" />
-            <to uri="jms-generic:queue:cpgMonWork" />
-        </route>
         <route id="cpgMonWork">
-            <from uri="jms-generic:queue:cpgMonWork" />
+            <from uri="autoCpgMonCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdMonthly" method="generateClimate" />
                 <doCatch>
@@ -235,12 +154,8 @@
             </doTry>
         </route>
 
-        <route id="cpgSea">
-            <from uri="autoCpgSeaCron" />
-            <to uri="jms-generic:queue:cpgSeaWork" />
-        </route>
         <route id="cpgSeaWork">
-            <from uri="jms-generic:queue:cpgSeaWork" />
+            <from uri="autoCpgSeaCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdSeasonal" method="generateClimate" />
                 <doCatch>
@@ -250,12 +165,8 @@
             </doTry>
         </route>
 
-        <route id="cpgAnn">
-            <from uri="autoCpgAnnCron" />
-            <to uri="jms-generic:queue:cpgAnnWork" />
-        </route>
         <route id="cpgAnnWork">
-            <from uri="jms-generic:queue:cpgAnnWork" />
+            <from uri="autoCpgAnnCron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdAnnual" method="generateClimate" />
                 <doCatch>
@@ -265,12 +176,8 @@
             </doTry>
         </route>
 
-        <route id="cpgF6">
-            <from uri="autoCpgF6Cron" />
-            <to uri="jms-generic:queue:cpgF6Work" />
-        </route>
         <route id="cpgF6Work">
-            <from uri="jms-generic:queue:cpgF6Work" />
+            <from uri="autoCpgF6Cron" />
             <doTry>
                 <bean ref="autoGenerateClimateProdF6" method="generateClimate" />
                 <doCatch>
@@ -279,8 +186,9 @@
                 </doCatch>
             </doTry>
         </route>
-
     </camelContext>
 
-
+    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
+        <constructor-arg ref="cpg-request-camel" />
+    </bean>
 </beans>

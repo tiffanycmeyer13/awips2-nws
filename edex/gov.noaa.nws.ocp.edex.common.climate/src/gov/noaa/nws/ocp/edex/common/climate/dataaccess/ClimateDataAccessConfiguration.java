@@ -37,9 +37,8 @@ public class ClimateDataAccessConfiguration {
 
     /**
      * Get the name of the Climate database, based on environment variable first
-     * {@link ClimateDataAccessConfiguration#ENV_CLIMATE_DB_NAME}, property file
-     * second, and default to
-     * {@link ClimateDataAccessConfiguration#DEFAULT_CLIMATE_DB_NAME}.
+     * {@link ClimateDataAccessConfiguration#ENV_CLIMATE_DB_NAME}, and default
+     * to {@link ClimateDataAccessConfiguration#DEFAULT_CLIMATE_DB_NAME}.
      * 
      * TODO this is only meant for parallel operations. Once AWIPS 1 Climate is
      * dropped in favor of only using AWIPS 2 Climate, the Climate database
@@ -51,9 +50,6 @@ public class ClimateDataAccessConfiguration {
         // if appears in system property, the use that
         if (System.getProperty(ENV_CLIMATE_DB_NAME, "").equals("") == false) {
             return System.getProperty(ENV_CLIMATE_DB_NAME, "");
-        } else {
-            // use property file setting
-            // TODO: once the property file location is determined
         }
         // return DEFAULT_CLIMATE_DB_NAME;
         // for now, use the A2 DB name

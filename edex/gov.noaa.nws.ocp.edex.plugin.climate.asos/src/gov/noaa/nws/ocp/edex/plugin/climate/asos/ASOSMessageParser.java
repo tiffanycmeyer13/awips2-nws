@@ -3,8 +3,6 @@
  **/
 package gov.noaa.nws.ocp.edex.plugin.climate.asos;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.asos.ClimateASOSMessageRecord;
@@ -20,7 +18,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.asos.ClimateASOSMessageRecord;
  * ------------ ---------- ----------- --------------------------
  * Apr 7, 2016  16962      pwang       Initial creation
  * 05 MAY 2017  33104      amoore      Minor clean up.
- *
+ * 07 SEP 2017  37725      amoore      Fix time representations in SQL (needs :).
+ * 03 NOV 2017  36736      amoore      Make several parts and logic static.
  * </pre>
  *
  * @author pwang
@@ -32,11 +31,11 @@ public abstract class ASOSMessageParser {
     protected static final Pattern ASOS_MSG_TYPE = Pattern
             .compile("^\\w{3,4}\\s+(?<type>\\w{2})\\s+\\.*");
 
-    protected Set<String> namedGroups = null;
-
-    protected Pattern groupNamePattern = null;
-
-    protected Map<String, String> namedAsosMap = null;
+    /**
+     * Pattern for group names in regex.
+     */
+    protected static final Pattern GROUP_NAME_PATTERN = Pattern
+            .compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>");
 
     /**
      * parse must be implemented
@@ -58,4 +57,24 @@ public abstract class ASOSMessageParser {
         return "set" + prop;
     }
 
+    /**
+     * 
+     * @param time
+     *            some hour-minute time string without a colon in the middle.
+     *            Assumed there are two characters present for minutes, and 1 or
+     *            2 for hour.
+     * @return the same time, but with ":" inserted between hour and minute
+     */
+    protected static String adjustTimeString(String time) {
+        StringBuilder newTime = new StringBuilder();
+        if (time.length() < 4) {
+            newTime.append(time.substring(0, 1)).append(":")
+                    .append(time.substring(1));
+        } else {
+            newTime.append(time.substring(0, 2)).append(":")
+                    .append(time.substring(2));
+        }
+
+        return newTime.toString();
+    }
 }

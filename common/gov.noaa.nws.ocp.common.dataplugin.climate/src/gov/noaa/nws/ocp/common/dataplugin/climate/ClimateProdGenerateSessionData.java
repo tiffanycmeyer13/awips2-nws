@@ -36,8 +36,6 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 public class ClimateProdGenerateSessionData
         implements Comparable<ClimateProdGenerateSessionData> {
 
-    private static final long serialVersionUID = 1L;
-
     @Column(nullable = false)
     @DynamicSerializeElement
     private String cpg_session_id;

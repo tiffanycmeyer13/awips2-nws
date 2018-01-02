@@ -6,12 +6,6 @@ package gov.noaa.nws.ocp.common.dataplugin.climate.asos;
 import java.util.Calendar;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -31,14 +25,14 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
  *                                       insert/update will fail.
  * 13 APR 2017    33104      amoore      Address comments from review.
  * 05 MAY 2017    33104      amoore      Use common functionality.
+ * 31 OCT 2017    40231      amoore      Clean up of MSM/DSM parsing and records. Better
+ *                                       logging. Get rid of serialization tags.
  * </pre>
  * 
  * @author pwang
  * @version 1.0
  */
 
-@DynamicSerialize
-@XmlAccessorType(XmlAccessType.NONE)
 public class DailySummaryRecord extends ClimateASOSMessageRecord {
 
     /**
@@ -49,165 +43,121 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
     /**
      * maps to (COR) field in DSM.pdf documentation
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private boolean correction = false;
 
     /**
      * maps to ZZZZ for intermediate daily summary message, MISSING_VAL_4_DIGITS
      * when not intermediate report
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short messageValidTime;
 
     /**
      * have to derive from DSM creation time in the text database (Note Local
      * Standard Time time zone)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short year;
 
     /**
      * maps to DaDa field (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short day;
 
     /**
      * maps to MoMo field (01-12)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short month;
 
     /**
      * maps to TxTxTx field, max T in calendar day, reported in whole degrees
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short maxT;
 
     /**
      * reported in hours and minutes, Local Standard Time, using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String maxTTime;
 
     /**
      * maps to TnTnTn field, min T in calendar day, reported in whole degrees
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short minT;
 
     /**
      * reported in hours and minutes, Local Standard Time, using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String minTTime;
 
     /**
      * maps to MMM, max T from 7 a.m. to 7 p.m. Local Standard Time, in whole
      * degrees Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short maxTDaytime;
 
     /**
      * maps to NNN, max T from 19:00 previous calendar day to 08:00 Local
      * Standard Time, in whole degrees Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short minTNight;
 
     /**
      * maps to SLPmm, reported to the nearest 0.01 inches of Hg
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float minSeaLevelPressure;
 
     /**
      * maps to time after SLPmm, Local Standard Time, using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String minSeaLevelPressureTime;
 
     /**
      * maps to PPPP, reported in hundredths of an inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float totalPrecip;
 
     /**
      * maps to PnPPP, reported in hundredths of a inch from 0x:00 through 0x:59
      * Local Standard Time. 24 hours of the day.
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float hourlyPrecip[] = new float[24];
 
     /**
      * maps to FaFaFa, reported in tenths of miles per hour (mph)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float windSpeed2MinAvg;
 
     /**
      * maps to dd, Direction of the 2-minute fastest wind speed, reported in
      * tens of degrees
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short windDirection2MinFastest;
 
     /**
      * maps to fff, Speed of the 2-minute fastest wind speed, reported in mph
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short windSpeed2MinFastest;
 
     /**
      * maps to tttt, Time of the 2-minute fastest wind speed, in hours and
      * minutes (Local Standard Time) using 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String windSpeed2MinFastestTime;
 
     /**
      * maps to DD, Direction of the day's peak wind, reported in tens of degrees
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short peakWindDirection;
 
     /**
      * maps to FFF, Speed of the day's peak wind, reported in mph
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short peakWindSpeed;
 
     /**
      * maps to TTTT, peak wind time, reported in hours and minutes (Local
      * Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String peakWindTime;
 
     /**
@@ -215,65 +165,55 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
      * 8, 9, X (as 10) are currently available, though 6 was seen in some test
      * msg possible?). Up to 5 symbols.
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short[] wxSymbol = new short[5];
 
     /**
      * maps to SSS, Minutes of sunshine, in whole minutes (when available or if
      * augmentation is available)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short sunshineMinutes;
 
     /**
      * maps to SpSpSp, Percentage of sunshine observed, to the nearest whole
      * percent (when available or augmented)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short sunshinePercent;
 
     /**
      * maps to SwSwSw, reported in tenths of an inch (when available or
      * augmented)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float snowAmount;
 
     /**
      * maps to DDD, reported in whole inches (when available or augmented)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short depthOfSnow;
 
     /**
      * maps to CsCs, Average daily sky cover from sunrise to sunset, in tenths
      * of sky cover (when available or augmented)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float skyCoverDaytime;
 
     /**
      * maps to CmCm, Average daily sky cover, midnight to midnight Local
      * Standard Time, in tenths of sky cover (when available or augmented)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float skyCoverWholeDay;
 
     /**
      * maps to (Remarks)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String remarks;
 
-    public DailySummaryRecord() {
+    /**
+     * Constructor.
+     * 
+     * @param originalMessage
+     */
+    public DailySummaryRecord(String originalMessage) {
+        super(originalMessage);
         /*
          * set all the default/missing values, based on DSM documentation,
          * legacy C++ code, and possibly expected missing values in DB
@@ -1078,7 +1018,5 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         queryParams.put("station_code", getStationCode());
 
         return sb.toString();
-
     }
-
 }

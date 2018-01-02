@@ -15,4 +15,3 @@ Require-Bundle: com.raytheon.edex.common,
  javax.measure,
  gov.noaa.nws.ocp.common.dataplugin.climate
 Export-Package: gov.noaa.nws.ocp.common.dataplugin.climate.asos
-Import-Package: gov.noaa.nws.ocp.common.dataplugin.climate.parameter

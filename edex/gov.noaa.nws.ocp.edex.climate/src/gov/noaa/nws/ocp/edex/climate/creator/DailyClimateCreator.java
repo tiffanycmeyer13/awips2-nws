@@ -27,7 +27,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterBounds;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateDailyReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateCreatorDAO;
@@ -60,6 +60,23 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  *                                     for average wind speed.
  * 08 AUG 2017  33104      amoore      Fix logic branches improperly migrated.
  * 23 AUG 2017  37318      amoore      Fix precip logic branches improperly migrated.
+ * 02 OCT 2017  38590      amoore      Fix resultant wind calculation.
+ * 04 OCT 2017  38800      amoore      Handle possible null correction value from FSS.
+ * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
+ * 25 OCT 2017  39814      wpaintsil   Avoiding rounding until necessary in relative
+ *                                     humidity calculations.
+ * 25 OCT 2017  39813      amoore      Fix missing resultant wind issue where calculations
+ *                                     would not happen unless either DSM wind or gust was
+ *                                     missing. Reorg build of wind to be more side-by-side
+ *                                     comparable to legacy. Fix potential bug where if peak
+ *                                     gust was the first hour, it would be missed.
+ * 26 OCT 2017  40051      amoore      Fix humidity check logic against double max/min instead
+ *                                     of still using int max/min.
+ * 01 NOV 2017  39954      amoore      Fix and make clearer tallying of rain logic.
+ * 13 NOV 2017  39660      wpaintsil   Fix conditional checking for missing rainfall.
+ * 17 NOV 2017  41018      amoore      Handle case where legacy has precip values less than trace
+ *                                     from METAR decoding. Assign these values as trace.
+ * 13 DEC 2017  41565      wpaintsil   Fix IM/PM discrepancies.
  * </pre>
  * 
  * @author amoore
@@ -129,8 +146,8 @@ public final class DailyClimateCreator {
      * @return
      * @throws Exception
      */
-    protected ClimateCreatorDailyResponse createDailyClimate(
-            PeriodType periodType, ClimateDate beginDate, ClimateTime validTime,
+    protected ClimateRunDailyData createDailyClimate(PeriodType periodType,
+            ClimateDate beginDate, ClimateTime validTime,
             List<Station> climateStations, boolean cronOrManualMostRecent)
                     throws Exception {
 
@@ -202,8 +219,7 @@ public final class DailyClimateCreator {
                             lastYear.get(i), yClimate.get(i), tClimate.get(i)));
         }
 
-        return new ClimateCreatorDailyResponse(periodType, beginDate,
-                reportMap);
+        return new ClimateRunDailyData(periodType, beginDate, reportMap);
     }
 
     /**
@@ -213,38 +229,14 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             snowfall for last year.  It determines the 
-    *             monthly snowfall first, followed by the 
-    *             seasonal and lastly the annual snowfall.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        inform_id      - INFORMIX station id
-    *        l_date         - derived TYPE that contains the date for this
-    *                         climate summary for last year
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *        snow_season    - derived TYPE that contains the begin and end
-    *                         dates for the snowfall season
-    *        snow_year      - derived TYPE that contains the begin and end
-    *                         dates for the snowfall year
-    *
-    *      Output
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *
-    *      Local
-    *        missing        - flag for missing data
-    *
-    *      Non-system routines used
-    *        sum_snow      - * routine that sums the daily snowfall
-    *                        for this station for the period between
-    *                        a start and end date
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             snowfall for last year.  It determines the 
+     *             monthly snowfall first, followed by the 
+     *             seasonal and lastly the annual snowfall.
+     * 
+     *
      * </pre>
      * 
      * @param lastYearDate
@@ -313,38 +305,13 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             precipitation for last year.  It determines the 
-    *             monthly precipitation first, followed by the 
-    *             seasonal and lastly the annual precipitation.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        inform_id      - INFORMIX station id
-    *        l_date         - derived TYPE that contains the date for this
-    *                         climate summary for last year
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *        precip_season  - derived TYPE that contains the begin and end
-    *                         dates for the precipitation season
-    *        precip_year    - derived TYPE that contains the begin and end
-    *                         dates for theprecipitation year
-    *
-    *      Output
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *
-    *      Local
-    *        missing        - flag for missing data
-    *
-    *      Non-system routines used
-    *        sum_precip     - * routine that sums the daily heating
-    *                         degree days for this station for the
-    *                         period between a start and end date
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             precipitation for last year.  It determines the 
+     *             monthly precipitation first, followed by the 
+     *             seasonal and lastly the annual precipitation.
+     * 
      * </pre>
      * 
      * @param lastYearDate
@@ -412,37 +379,14 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             cooling degree days for last year.  It determines the 
-    *             monthly accumulated cooling degree days first, followed
-    *             by the seasonal and lastly the annual cooling degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        cool_season    - derived TYPE that contains the begin and end
-    *                         dates for the cooling degree day season
-    *        cool_year      - derived TYPE that contains the begin and end
-    *                         dates for the cooling degree day year
-    *        l_date         - derived TYPE that contains the date for this
-    *                         climate summary for last year
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *        inform_id      - INFORMIX station id
-    *
-    *      Output
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *
-    *      Local
-    *
-    *      Non-system routines used
-    *        sum_cool_degree_days  - * routine that sums the daily cooling
-    *                                degree days for this station for the
-    *                                period between a start and end date
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             cooling degree days for last year.  It determines the 
+     *             monthly accumulated cooling degree days first, followed
+     *             by the seasonal and lastly the annual cooling degree days.
+     * 
+     *
      * </pre>
      * 
      * @param lastYearDate
@@ -517,38 +461,14 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             heating degree days for last year.  It determines the 
-    *             monthly accumulated heating degree days first, followed
-    *             by the seasonal and lastly the annual heating degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        heat_season    - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day season
-    *        heat_year      - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day year
-    *        l_date         - derived TYPE that contains the date for this
-    *                         climate summary for last year
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *        inform_id      - INFORMIX station id
-    *
-    *      Output
-    *        last           - derived TYPE that holds the daily climate
-    *                         data for this station for last year
-    *
-    *      Local
-    *        missing        - flag for missing data
-    *
-    *      Non-system routines used
-    *        sum_heat_degree_days  - * routine that sums the daily heating
-    *                                degree days for this station for the
-    *                                period between a start and end date
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             heating degree days for last year.  It determines the 
+     *             monthly accumulated heating degree days first, followed
+     *             by the seasonal and lastly the annual heating degree days.
+     * 
+     *
      * </pre>
      * 
      * @param lastYearDate
@@ -626,30 +546,8 @@ public final class DailyClimateCreator {
     *   Purpose:  This routine calculates the percent sunshine from
     *             the observed # of minutes of sunshine and the
     *             the elapsed time between sunrise and sunset.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date           - date for this cclimate report
-    *        climate_stations - derived TYPE containing station info
-    *
-    *      Output
-    *        percent_sun      - percentage of sunshine
-    *
-    *      Local
-    *        minutes_of_daylight - # of minutes of daylight (i.e., time
-    *                              between sunrise and sunset
-    *        minutes_of_sun      - # of minutes of sunshine ("98" group)
-    *                              reported by the station
-    *
-    *      Non-system routines used
-    *        get_minutes_of_sun - gets the number of minutes of sunshine for
-    *                             a given station and date
-    *
-    *      Non-system functions used
-    *        daylight         - calculates the minutes between sunrise and sunset
      * 
+     *
      * </pre>
      * 
      * @param aDate
@@ -750,20 +648,7 @@ public final class DailyClimateCreator {
     *             sunrise and sunset.  The number of minutes between 
     *             sunrise and sunset is calculated only if both are not
     *             missing.
-    *              
-    *   Variables
-    *
-    *      Input
-    *        sunrise        - derived TYPE that contains the time of sunrise 
-    *        sunset         - derived TYPE that contains the time of sunset 
-    *
-    *      Output
-    *        daylight       - # of minutes between sunrise and sunset
-    *
-    *      Local
-    *        missing        - flag for missing
-    *        num_sunrise    - number of minutes from midnight for sunrise
-    *        num_sumset     - number of minutes from midnight for sunset
+     * 
      * </pre>
      * 
      * @param sunrise
@@ -812,53 +697,7 @@ public final class DailyClimateCreator {
     *      at 0800 UTC for the previous day.  If the station is closed at
     *      0800 UTC, it will be reported in the first six hourly group after
     *      the station reopens.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - the date for climate retrieval
-    *      now_time            - the current time including the hour for which metar retrieval is used
-    *      station_id          - station id of type int for which this function
-    *                is called
-    *
-    *    Output
-    *      minutes_of_sunshine - The function get_minutes_of_sunshine will return an integer minutes_of_sunshine.
-    *
-    *    Local
-    *    char
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below)
-    * 
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)  
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    3/21/01  Doug Murphy            cleaned out unnecessary code
-    *    2/06/03  Bob Morris             Replace call to nominal_time() with
-    *                                    convert_ticks_2_string()
+     *
      * </pre>
      * 
      * @param nowDate
@@ -924,127 +763,15 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *   June 1998     Jason P. Tuell        PRC/TDL
-    *   Sept 1998     David O. Miller       PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls building the daily wind climatology.
-    *             The daily wind climatology consists of the maximum wind
-    *             direction and speed, the time the maximum wind was observed,
-    *             the maximum gust direction and speed, the time the maximum
-    *             gust was observed and the resultant wind direction and speed.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_time         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_time           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *        itype              - flag which controls the type of climate
-    *                             summary being generated;
-    *                             =1  NWR morning daily climate summary
-    *                             =2  NWR evening daily climate summary
-    *                             =3  NWWS morning daily climate summary
-    *                             =4  NWWS evening daily climate summary
-    *                             =5  NWR monthly radio climate summary
-    *                             =6  NWWS monthly climate summary
-    *                             =7  NWWS annual climate summary
-    *        num_off_UTC        - number of hours off UTC; used to calculate local
-    *                             time
-    *
-    *      Output
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        qc                 - derived TYPE that contains the flags
-    *                             which specify the method used to ohtain
-    *                             the climate data
-    *
-    *      Local
-    *        a_gust             - derived TYPE containing the gust direction and
-    *                             speed from the METAR gust reports
-    *        a_peak_wind        - derived TYPE containing the peak wind direction and
-    *                             speed from the METAR peak wind remark
-    *        a_peak_wind_time   - time of peak wind from METAR peak wind remark
-    *        avg_wind_speed     - mean scalar wind speed
-    *        delta_hours        - number of hours between the start and end times
-    *        iday               - Julian date
-    *        ihour              - hour (UTC) for wind data retrieval
-    *        missing            - flag for missing data
-    *        now_date           - derived TYPE that contains base date for
-    *                             hourly wind retrieval
-    *        result             - derived TYPE that contains the resultant
-    *                             wind direction and speed
-    *        save_max_time      - derived TYPE containing the max wind time of
-    *                             occurance
-    *        save_max_wind      - derived TYPE containing the max wind speed and 
-    *                             direction
-    *        save_peak_time     - derived TYPE containing the max gust time of
-    *                             occurance
-    *        save_peak_wind     - derived TYPE containing the max gust speed and 
-    *                             direction
-    *        speci_time         - derived TYPE containing the max wind time of
-    *                             occurance from SPECI report
-    *        speci_wind         - derived TYPE containing the max gust speed and 
-    *                             direction from SPECI report
-    *        test_speed         - max wind speed; temporary holding variable
-    *        test_speed_max     - max gust speed; temporary holding variable
-    *        this_date          - derived TYPE that contains date for 
-    *                             hourly wind retrieval
-    *        winds              - derived TYPE that contains an array of
-    *                             hourly wind directions and speeds
-    *
-    *      Non-system functions used
-    *        calculate_delta_hours - This routine calculates the number of hours
-    *                                difference in the starting and ending periods 
-    *                                of a daily climate summary
-    *        julday                - returns a Julian day for an input date
-    *
-    *      Non-system routines used
-    *        build_resultant_wind  - given an input on wind directions and
-    *                                speeds, returns the resultant wind
-    *                                direction and speed
-    *        get_all_hourly_gusts  - obtains hourly gust directions and speeds
-    *                                for a specified period of time
-    *        get_all_speci_winds   - obtains SPECI wind directions and speeds
-    *                                for a specified period of time
-    *        get_hourly_peak_winds - obtains hourly gust directions and speeds
-    *                                for a specified period of time from the
-    *                                peak wind remarks
-    *        get_hourly_winds      - obtains hourly wind directions and speeds
-    *                                for a specified period of time
-    *        convert_julday        - returns a date for an input Julian date
-    *
-    *    MODIFICATION HISTORY
-    *    --------------------
-    *      David T. Miller        7/19/99  Small logic error in using the greatest 
-    *                                      speci wind found. Also, use the daily 
-    *                                      summary message if available
-    *      David T. Miller        8/13/99  Another small logic error in  trying to 
-    *                                      retrieve peak wind. Must add one more to 
-    *                                      delta_hour and separate hourlies from peaks
-    *                                      so can retrieve peak during last hour 
-    *                                      of the period
-    *      David T. Miller        8/31/99  Observed several instances where
-    *                                      A special wind gust was the 
-    *                                      highest gust of the day but
-    *                                      daily climate did not report it
-    *                                      as such.  Therefore, had to 
-    *                                      modify the call to get_all_speci_
-    *                                      winds so first call gets winds
-    *                                      and second call gets gusts.  
-    *                                      Modified this routine to retrieve
-    *                                      SPECI gusts.
-    *      David T. Miller        7/12/00  Changed references of wind speed 
-    *                                      data type from INTEGER to REAL.
-    *      Doug Murphy            2/16/01  The wind speeds taken from METAR's must
-    *                                      be converted from kts to mph. Wind 
-    *                                      speeds are now mph throughout climate.
+     *   Sept 1998     David O. Miller       PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls building the daily wind climatology.
+     *             The daily wind climatology consists of the maximum wind
+     *             direction and speed, the time the maximum wind was observed,
+     *             the maximum gust direction and speed, the time the maximum
+     *             gust was observed and the resultant wind direction and speed.
+     * 
      * </pre>
      * 
      * @param window
@@ -1097,289 +824,278 @@ public final class DailyClimateCreator {
             winds.add(ClimateWind.getMissingClimateWind());
         }
 
+        int windQC = ParameterFormatClimate.MISSING;
+        int gustQC = ParameterFormatClimate.MISSING;
+
+        ClimateTime maxWindTime = new ClimateTime(window.getStartTime());
+
         /*
-         * Check for daily summary message values and use if not missing
+         * Get all speci winds for a given time period
+         * 
+         * Determine the maximum value and time of the speci_wind
          */
-        if ((dailyClimateData.getMaxWind()
-                .getDir() == ParameterFormatClimate.MISSING)
-                || (dailyClimateData.getMaxGust()
-                        .getDir() == ParameterFormatClimate.MISSING)) {
+        ClimateWind speciWind = ClimateWind.getMissingClimateWind();
+        ClimateTime speciWindTime = ClimateTime.getMissingClimateTime();
 
-            int windQC = ParameterFormatClimate.MISSING;
-            int gustQC = ParameterFormatClimate.MISSING;
+        climateCreatorDAO.getAllSpeciWinds(window,
+                dailyClimateData.getInformId(), speciWind, speciWindTime, true);
 
-            ClimateTime maxWindTime = new ClimateTime(window.getStartTime());
+        // wind from special reports is current max
+        ClimateWind saveMaxWind = new ClimateWind(speciWind);
+        ClimateTime saveMaxWindTime = new ClimateTime(speciWindTime);
 
+        if (saveMaxWind.getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
+            // currently speed is in knots, convert to mph
+            saveMaxWind.setSpeed((float) (saveMaxWind.getSpeed()
+                    * ClimateUtilities.KNOTS_TO_MPH));
+            windQC = QCValues.MAX_WIND_FROM_SPECI;
+
+            // correct the hour by timezone
+            int newHour = saveMaxWindTime.getHour() + numOffUTC;
+
+            if (newHour < 0) {
+                newHour += TimeUtil.HOURS_PER_DAY;
+            } else if (newHour >= TimeUtil.HOURS_PER_DAY) {
+                newHour -= TimeUtil.HOURS_PER_DAY;
+            }
+            saveMaxWindTime.setHour(newHour);
+        }
+
+        /*
+         * Get all speci wind gusts for a given time period
+         * 
+         * Determine the maximum value and time of the speci_wind
+         */
+        ClimateWind speciGust = ClimateWind.getMissingClimateWind();
+        ClimateTime speciGustTime = ClimateTime.getMissingClimateTime();
+
+        climateCreatorDAO.getAllSpeciWinds(window,
+                dailyClimateData.getInformId(), speciGust, speciGustTime,
+                false);
+
+        // gust from special reports is current max
+        ClimateWind saveMaxGust = new ClimateWind(speciGust);
+        ClimateTime saveMaxGustTime = new ClimateTime(speciGustTime);
+
+        if (saveMaxGust.getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
+            // currently speed is in knots, convert to mph
+            saveMaxGust.setSpeed((float) (saveMaxGust.getSpeed()
+                    * ClimateUtilities.KNOTS_TO_MPH));
+            gustQC = QCValues.MAX_GUST_FROM_GUST;
+        }
+
+        for (int i = 0; i < deltaHours; i++) {
             /*
-             * Get all speci winds for a given time period
-             * 
-             * Determine the maximum value and time of the speci_wind
+             * Build the new date and time for the wind retrieval. Don't forget
+             * to adjust the date if we go into the next day.
              */
-            ClimateWind speciWind = ClimateWind.getMissingClimateWind();
-            ClimateTime speciWindTime = ClimateTime.getMissingClimateTime();
+            int ihour = window.getStartTime().getHour() + i;
 
-            climateCreatorDAO.getAllSpeciWinds(window,
-                    dailyClimateData.getInformId(), speciWind, speciWindTime,
-                    true);
+            ClimateDate currDate = new ClimateDate(window.getStart());
+            if (ihour >= TimeUtil.HOURS_PER_DAY) {
+                ihour -= TimeUtil.HOURS_PER_DAY;
+                // Set current date to next day of year
+                currDate.convertJulday(currDate.julday() + 1);
+            }
 
-            ClimateWind saveWind = new ClimateWind(speciWind);
-            ClimateTime saveWindTime = new ClimateTime(speciWindTime);
+            // ! current hour UTC time
+            currTime.setHour(ihour);
+            // ! current hour local time
+            maxWindTime.setHour(i);
 
-            if (saveWind.getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
-                // currently speed is in knots, convert to mph
-                saveWind.setSpeed((float) (saveWind.getSpeed()
-                        * ClimateUtilities.KNOTS_TO_MPH));
-                windQC = QCValues.MAX_WIND_FROM_SPECI;
+            if (i < deltaHours - 1) {
+                /*
+                 * Get the hourly winds from which to estimate maximum wind
+                 * speed and to calculate the resultant wind.
+                 */
+                climateCreatorDAO.getHourlyWinds(currDate, currTime,
+                        dailyClimateData.getInformId(), winds.get(i));
 
-                // correct the hour by timezone
-                int newHour = saveWindTime.getHour() + numOffUTC;
+                /*
+                 * Now test to see if the most recent wind is greater than a
+                 * previous value from either the hourly or SPECI winds. If so,
+                 * save the value and the time.
+                 */
+                if ((winds.get(i)
+                        .getSpeed() != ParameterFormatClimate.MISSING_SPEED)
+                        && (winds.get(i).getSpeed() != 0)) {
+                    // currently speed is in knots, convert to mph
+                    winds.get(i).setSpeed((float) (winds.get(i).getSpeed()
+                            * ClimateUtilities.KNOTS_TO_MPH));
+
+                    if (winds.get(i).getSpeed() >= maxWindSpeed) {
+                        maxWindSpeed = winds.get(i).getSpeed();
+
+                        if ((saveMaxWind
+                                .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
+                                || (maxWindSpeed >= saveMaxWind.getSpeed())) {
+                            saveMaxWind = new ClimateWind(winds.get(i));
+                            saveMaxWindTime = new ClimateTime(maxWindTime);
+                            windQC = QCValues.MAX_WIND_FROM_HOURLY;
+                        }
+                    }
+                }
+
+                /*
+                 * Get the wind gusts from all reports for a given station, date
+                 * and nominal time
+                 */
+                ClimateWind aGust = ClimateWind.getMissingClimateWind();
+                climateCreatorDAO.getAllHourlyGusts(currDate, currTime,
+                        dailyClimateData.getInformId(), aGust);
+
+                /*
+                 * Now test against to see if the most recent hourly gust is
+                 * greater than a previous value. If so, save the value and
+                 * time.
+                 */
+                if (aGust.getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
+                    // currently speed is in knots, convert to mph
+                    aGust.setSpeed((float) (aGust.getSpeed()
+                            * ClimateUtilities.KNOTS_TO_MPH));
+
+                    if (aGust.getSpeed() > maxGustSpeed) {
+                        maxGustSpeed = aGust.getSpeed();
+
+                        if ((saveMaxGust
+                                .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
+                                || (maxGustSpeed >= saveMaxGust.getSpeed())) {
+                            saveMaxGust = new ClimateWind(aGust);
+                            saveMaxGustTime = new ClimateTime(currTime);
+                            gustQC = QCValues.MAX_GUST_FROM_GUST;
+                        }
+                    }
+                }
+            }
+
+            if (i > 0) {
+                /*
+                 * Get the peak wind data from the hourly report for a given
+                 * station, date and time. The peak wind is a field that is
+                 * reported separately from the gusts in the METAR code, hence
+                 * the need for two different routines.
+                 */
+
+                ClimateWind aPeakWind = ClimateWind.getMissingClimateWind();
+                ClimateTime aPeakWindTime = ClimateTime.getMissingClimateTime();
+                climateCreatorDAO.getHourlyPeakWinds(currDate, currTime,
+                        dailyClimateData.getInformId(), aPeakWind,
+                        aPeakWindTime);
+
+                /*
+                 * Now test to see if the most recent hourly peak wind is
+                 * greater than a previous value. If so, save the value and the
+                 * time.
+                 */
+                if (aPeakWind
+                        .getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
+                    // currently speed is in knots, convert to mph
+                    aPeakWind.setSpeed((float) (aPeakWind.getSpeed()
+                            * ClimateUtilities.KNOTS_TO_MPH));
+
+                    if (aPeakWind.getSpeed() > maxGustSpeed) {
+                        maxGustSpeed = aPeakWind.getSpeed();
+
+                        if ((saveMaxGust
+                                .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
+                                || (maxGustSpeed >= saveMaxGust.getSpeed())) {
+                            saveMaxGust = new ClimateWind(aPeakWind);
+                            saveMaxGustTime = new ClimateTime(aPeakWindTime);
+                            gustQC = QCValues.MAX_GUST_FROM_PEAK;
+                        }
+                    }
+                }
+            }
+        } // end loop
+
+        /*
+         * Update the data structure with the max wind information. Check for
+         * daily summary message values and use if currently missing.
+         */
+        if (dailyClimateData.getMaxWind()
+                .getDir() == ParameterFormatClimate.MISSING) {
+            dailyClimateData.setMaxWind(saveMaxWind);
+            dailyClimateData.setMaxWindTime(saveMaxWindTime);
+            dailyClimateData.getDataMethods().setMaxWindQc(windQC);
+        }
+
+        /*
+         * Update the data structure with the gust information. Check for daily
+         * summary message values and use if currently missing.
+         */
+        if (dailyClimateData.getMaxGust()
+                .getDir() == ParameterFormatClimate.MISSING) {
+            dailyClimateData.setMaxGust(saveMaxGust);
+            dailyClimateData.setMaxGustTime(saveMaxGustTime);
+
+            if (dailyClimateData.getMaxGustTime()
+                    .getHour() != ParameterFormatClimate.MISSING_HOUR) {
+                // correct for time zone
+                int newHour = dailyClimateData.getMaxGustTime().getHour()
+                        + numOffUTC;
 
                 if (newHour < 0) {
                     newHour += TimeUtil.HOURS_PER_DAY;
                 } else if (newHour >= TimeUtil.HOURS_PER_DAY) {
                     newHour -= TimeUtil.HOURS_PER_DAY;
                 }
-                saveWindTime.setHour(newHour);
+                dailyClimateData.getMaxGustTime().setHour(newHour);
             }
 
-            /*
-             * Get all speci wind gusts for a given time period
-             * 
-             * Determine the maximum value and time of the speci_wind
-             */
-            ClimateWind speciGust = ClimateWind.getMissingClimateWind();
-            ClimateTime speciGustTime = ClimateTime.getMissingClimateTime();
+            dailyClimateData.getDataMethods().setMaxGustQc(gustQC);
+        }
 
-            climateCreatorDAO.getAllSpeciWinds(window,
-                    dailyClimateData.getInformId(), speciGust, speciGustTime,
-                    false);
+        /*
+         * Calculate resultant and average wind. From build_resultant_wind.f.
+         */
+        float avgWindSpeedSum = 0;
+        float sumX = 0;
+        float sumY = 0;
+        int validHours = 0;
 
-            ClimateWind saveGust = new ClimateWind(speciGust);
-            ClimateTime saveGustTime = new ClimateTime(speciGustTime);
+        for (ClimateWind wind : winds) {
+            if ((wind.getDir() != ParameterFormatClimate.MISSING) && (wind
+                    .getSpeed() != ParameterFormatClimate.MISSING_SPEED)) {
+                validHours++;
+                avgWindSpeedSum += wind.getSpeed();
 
-            if (saveGust.getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
-                // currently speed is in knots, convert to mph
-                saveGust.setSpeed((float) (saveGust.getSpeed()
-                        * ClimateUtilities.KNOTS_TO_MPH));
-                gustQC = QCValues.MAX_GUST_FROM_GUST;
-            }
-
-            for (int i = 0; i < deltaHours - 1; i++) {
-                /*
-                 * Build the new date and time for the wind retrieval. Don't
-                 * forget to adjust the date if we go into the next day.
-                 */
-                int ihour = window.getStartTime().getHour() + i;
-
-                ClimateDate currDate = new ClimateDate(window.getStart());
-                if (ihour >= TimeUtil.HOURS_PER_DAY) {
-                    ihour -= TimeUtil.HOURS_PER_DAY;
-                    // Set current date to next day of year
-                    currDate.convertJulday(currDate.julday() + 1);
-                }
-
-                // ! current hour UTC time
-                currTime.setHour(ihour);
-                // ! current hour local time
-                maxWindTime.setHour(i);
-
-                if (i < deltaHours) {
-                    /*
-                     * Get the hourly winds from which to estimate maximum wind
-                     * speed and to calculate the resultant wind.
-                     */
-                    climateCreatorDAO.getHourlyWinds(currDate, currTime,
-                            dailyClimateData.getInformId(), winds.get(i));
-
-                    /*
-                     * Now test to see if the most recent wind is greater than a
-                     * previous value from either the hourly or SPECI winds. If
-                     * so, save the value and the time.
-                     */
-                    if ((winds.get(i)
-                            .getSpeed() != ParameterFormatClimate.MISSING_SPEED)
-                            && (winds.get(i).getSpeed() != 0)) {
-                        // currently speed is in knots, convert to mph
-                        winds.get(i).setSpeed((float) (winds.get(i).getSpeed()
-                                * ClimateUtilities.KNOTS_TO_MPH));
-
-                        if (winds.get(i).getSpeed() >= maxGustSpeed) {
-                            maxGustSpeed = winds.get(i).getSpeed();
-
-                            if ((saveWind
-                                    .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
-                                    || (maxGustSpeed >= saveWind.getSpeed())) {
-                                saveWind = new ClimateWind(winds.get(i));
-                                saveWindTime = new ClimateTime(maxWindTime);
-                                windQC = QCValues.MAX_WIND_FROM_HOURLY;
-                            }
-                        }
-                    }
-                }
-
-                if ((i + 1) < deltaHours) {
-                    /*
-                     * Get the wind gusts from all reports for a given station,
-                     * date and nominal time
-                     */
-                    ClimateWind aGust = ClimateWind.getMissingClimateWind();
-                    climateCreatorDAO.getAllHourlyGusts(currDate, currTime,
-                            dailyClimateData.getInformId(), aGust);
-
-                    /*
-                     * Now test against to see if the most recent hourly gust is
-                     * greater than a previous value. If so, save the value and
-                     * time.
-                     */
-                    if (aGust
-                            .getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
-                        // currently speed is in knots, convert to mph
-                        aGust.setSpeed((float) (aGust.getSpeed()
-                                * ClimateUtilities.KNOTS_TO_MPH));
-
-                        if (aGust.getSpeed() > maxWindSpeed) {
-                            maxWindSpeed = aGust.getSpeed();
-
-                            if ((saveGust
-                                    .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
-                                    || (maxWindSpeed >= saveGust.getSpeed())) {
-                                saveGust = new ClimateWind(aGust);
-                                saveGustTime = new ClimateTime(currTime);
-                                gustQC = QCValues.MAX_GUST_FROM_GUST;
-                            }
-                        }
-                    }
-                }
-
-                if (i > 0) {
-                    /*
-                     * Get the peak wind data from the hourly report for a given
-                     * station, date and time. The peak wind is a field that is
-                     * reported separately from the gusts in the METAR code,
-                     * hence the need for two different routines.
-                     */
-
-                    ClimateWind aPeakWind = ClimateWind.getMissingClimateWind();
-                    ClimateTime aPeakWindTime = ClimateTime
-                            .getMissingClimateTime();
-                    climateCreatorDAO.getHourlyPeakWinds(currDate, currTime,
-                            dailyClimateData.getInformId(), aPeakWind,
-                            aPeakWindTime);
-
-                    /*
-                     * Now test to see if the most recent hourly peak wind is
-                     * greater than a previous value. If so, save the value and
-                     * the time.
-                     */
-                    if (aPeakWind
-                            .getSpeed() != ParameterFormatClimate.MISSING_SPEED) {
-                        // currently speed is in knots, convert to mph
-                        aPeakWind.setSpeed((float) (aPeakWind.getSpeed()
-                                * ClimateUtilities.KNOTS_TO_MPH));
-
-                        if (aPeakWind.getSpeed() > maxWindSpeed) {
-                            maxWindSpeed = aPeakWind.getSpeed();
-
-                            if ((saveGust
-                                    .getSpeed() == ParameterFormatClimate.MISSING_SPEED)
-                                    || (maxWindSpeed >= saveGust.getSpeed())) {
-                                saveGust = new ClimateWind(aPeakWind);
-                                saveGustTime = new ClimateTime(aPeakWindTime);
-                                gustQC = QCValues.MAX_GUST_FROM_PEAK;
-                            }
-                        }
-                    }
-                }
-
-                /*
-                 * Update the data structure with the max wind information
-                 */
-                if (dailyClimateData.getMaxWind()
-                        .getDir() == ParameterFormatClimate.MISSING) {
-                    dailyClimateData.setMaxWind(saveWind);
-                    dailyClimateData.setMaxWindTime(saveWindTime);
-                    dailyClimateData.getDataMethods().setMaxWindQc(windQC);
-                }
-
-                /*
-                 * Update the data structure with the gust information
-                 */
-                if (dailyClimateData.getMaxGust()
-                        .getDir() == ParameterFormatClimate.MISSING) {
-                    dailyClimateData.setMaxGust(saveGust);
-                    dailyClimateData.setMaxGustTime(saveGustTime);
-
-                    if (dailyClimateData.getMaxGustTime()
-                            .getHour() != ParameterFormatClimate.MISSING_HOUR) {
-                        // correct for time zone
-                        int newHour = dailyClimateData.getMaxGustTime()
-                                .getHour() + numOffUTC;
-
-                        if (newHour < 0) {
-                            newHour += TimeUtil.HOURS_PER_DAY;
-                        } else if (newHour >= TimeUtil.HOURS_PER_DAY) {
-                            newHour -= TimeUtil.HOURS_PER_DAY;
-                        }
-                        dailyClimateData.getMaxGustTime().setHour(newHour);
-                    }
-
-                    dailyClimateData.getDataMethods().setMaxGustQc(gustQC);
-                }
+                sumX += wind.getSpeed()
+                        * Math.sin(Math.toRadians(wind.getDir()));
+                sumY += wind.getSpeed()
+                        * Math.cos(Math.toRadians(wind.getDir()));
             }
         }
 
         /*
-         * Build the resultant wind direction and speed, and average wind, but
-         * only if daily summary message average was unavailable. Discrepancies
-         * #62 and #63, allowing a missing average wind speed QC value and
-         * saving on potentially unnecessary calculations for average wind
-         * speed.
+         * Only calculate the resultant and average wind if the number of hours
+         * is non-zero. Set to missing if there was no valid wind data (i.e.,
+         * num_hours= 0)
+         */
+        float avgWindSpeed;
+
+        if (validHours == 0) {
+            avgWindSpeed = ParameterFormatClimate.MISSING_SPEED;
+            dailyClimateData.setResultX(ParameterFormatClimate.MISSING_SPEED);
+            dailyClimateData.setResultY(ParameterFormatClimate.MISSING_SPEED);
+            dailyClimateData.setResultWind(ClimateWind.getMissingClimateWind());
+        } else {
+            dailyClimateData.setResultX(sumX / validHours);
+            dailyClimateData.setResultY(sumY / validHours);
+            dailyClimateData.setResultWind(ClimateUtilities
+                    .buildResultantWind(sumX, sumY, validHours));
+
+            avgWindSpeed = avgWindSpeedSum / validHours;
+        }
+
+        /*
+         * Only assign average wind speed if it is currently missing from DSM
+         * data.
          */
         if (dailyClimateData.getDataMethods()
                 .getAvgWindQc() == ParameterFormatClimate.MISSING) {
-            float avgWindSpeedSum = 0;
-            float sumX = 0;
-            float sumY = 0;
-            int validHours = 0;
-
-            for (ClimateWind wind : winds) {
-                if ((wind.getDir() != ParameterFormatClimate.MISSING) && (wind
-                        .getSpeed() != ParameterFormatClimate.MISSING_SPEED)) {
-                    validHours++;
-                    avgWindSpeedSum += wind.getSpeed();
-                    sumX += wind.getSpeed()
-                            * Math.sin(Math.toRadians(wind.getDir()));
-                    sumY += wind.getSpeed()
-                            * Math.cos(Math.toRadians(wind.getDir()));
-                }
-            }
-
-            /*
-             * Only calculate the resultant and average wind if the number of
-             * hours is less than zero. Set to missing if there was no valid
-             * wind data (i.e., num_hours= 0)
-             */
-            float avgWindSpeed;
-
-            if (validHours == 0) {
-                avgWindSpeed = ParameterFormatClimate.MISSING_SPEED;
-                dailyClimateData
-                        .setResultX(ParameterFormatClimate.MISSING_SPEED);
-                dailyClimateData
-                        .setResultY(ParameterFormatClimate.MISSING_SPEED);
-                dailyClimateData
-                        .setResultWind(ClimateWind.getMissingClimateWind());
-            } else {
-                dailyClimateData.setResultX(sumX / validHours);
-                dailyClimateData.setResultY(sumY / validHours);
-                dailyClimateData.setResultWind(ClimateUtilities
-                        .buildResultantWind(sumX, sumY, validHours));
-
-                avgWindSpeed = avgWindSpeedSum / validHours;
-                dailyClimateData.getDataMethods()
-                        .setAvgWindQc(QCValues.AVG_WIND_CALCULATED);
-                dailyClimateData.setAvgWindSpeed(avgWindSpeed);
-            }
+            dailyClimateData.getDataMethods()
+                    .setAvgWindQc(QCValues.AVG_WIND_CALCULATED);
+            dailyClimateData.setAvgWindSpeed(avgWindSpeed);
         }
     }
 
@@ -1398,52 +1114,7 @@ public final class DailyClimateCreator {
     *             mean    RH
     *             
     *             The relative humidity is calculated from the hourly
-    *             temperature and dewpoint.  
-    *
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_date         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *
-    *      Output
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *
-    *      Local
-    *        dew                - array of dewpoints
-    *        iday               - Julian date
-    c        ihour              - hour (UTC) for wind data retrieval
-    *        max_RH             - maximum RH
-    *        min_RH             - minimum RH
-    *        now_date           - derived TYPE that contains base date for
-    *                             hourly wind retrieval
-    *        this_date          - derived TYPE that contains date for 
-    *                             hourly wind retrieval
-    *        temp               - array of temperatures
-    *        dew                - array of dewpoints
-    *        
-    *
-    *
-    *      Non-system functions used
-    *        e_from_t           - returns vapor pressure (mb) for an input 
-    *                             temperature
-    *        julday             - returns a Julian day for an input date
-    *
-    *      Non-system routines used
-    *        build_resultant_wind - given an input on wind directions and
-    *                               speeds, returns the resultant wind
-    *                               direction and speed
-    *        get_hourly_winds     - obtains hourly wind directions and speeds
-    *                               for a specified period of time
-    *        convert_julday       _ returns a date for an input Julian date
+    *             temperature and dewpoint.
      * </pre>
      * 
      * @param window
@@ -1463,8 +1134,8 @@ public final class DailyClimateCreator {
         int hourMaxRH = 0;
         int hourMinRH = 0;
 
-        int minRH = Integer.MAX_VALUE;
-        int maxRH = Integer.MIN_VALUE;
+        double minRH = Double.MAX_VALUE;
+        double maxRH = Double.MIN_VALUE;
 
         /*
          * Retrieve 24 hours of temperatures and dewpoints from the data base.
@@ -1509,18 +1180,28 @@ public final class DailyClimateCreator {
 
             currTime.setHour(ihour);
 
-            int temperature = getTemp(tempDate, currTime, stationID);
+            double temperature = getTemp(tempDate, currTime, stationID);
 
-            int dewpoint = getDew(tempDate, currTime, stationID);
+            double dewpoint = getDew(tempDate, currTime, stationID);
 
             // Now calculate RH for each valid temperature and dewpoint.
             if ((temperature != ParameterFormatClimate.MISSING)
                     && (dewpoint != ParameterFormatClimate.MISSING)) {
-                int currHumidity = ClimateUtilities.nint(((ClimateUtilities
+                /*
+                 * Discrepancy with Legacy #69/DAI #74: In Legacy, humidity
+                 * calculations would round temp/dew values after unit
+                 * conversion of each, then round the resulting humidity, and
+                 * then do comparisons for max/min humidity. Rounding should not
+                 * be done until the last possible moment, and so in Migrated
+                 * values may be different, but additionally times may be
+                 * different as improper rounding may have been ignoring true
+                 * min/max relative humidity values.
+                 */
+                double currHumidity = ((ClimateUtilities
                         .vaporPressureFromTemperature(dewpoint))
                         / (ClimateUtilities
                                 .vaporPressureFromTemperature(temperature)))
-                        * 100);
+                        * 100;
 
                 /*
                  * Now determine the max and min RH and the hours at which they
@@ -1548,17 +1229,17 @@ public final class DailyClimateCreator {
         /*
          * Now set up the data structure if the various pieces aren't missing.
          */
-        if (maxRH != Integer.MIN_VALUE) {
-            dailyClimateData.setMaxRelHumid(maxRH);
+        if (maxRH != Double.MIN_VALUE) {
+            dailyClimateData.setMaxRelHumid(ClimateUtilities.nint(maxRH));
             dailyClimateData.setMaxRelHumidHour(hourMaxRH);
         }
 
-        if (minRH != Integer.MAX_VALUE) {
-            dailyClimateData.setMinRelHumid(minRH);
+        if (minRH != Double.MAX_VALUE) {
+            dailyClimateData.setMinRelHumid(ClimateUtilities.nint(minRH));
             dailyClimateData.setMinRelHumidHour(hourMinRH);
         }
 
-        if ((maxRH != Integer.MIN_VALUE) && (minRH != Integer.MAX_VALUE)) {
+        if ((maxRH != Double.MIN_VALUE) && (minRH != Double.MAX_VALUE)) {
             /*
              * mean RH is calculated as the average of max and min
              */
@@ -1572,170 +1253,51 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *   June 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the retrieval and determination
-    *             of the daily observed precipitation.  It calls a routine
-    *             that returns the precipitation that fell between
-    *             a specified starting and ending time for a given station.
-    *             It also sets the precip quality control flag.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_date         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *
-    *      Output
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        precip_qc          - flag which specifies the method used to
-    *                             determine the precipitation
-    *
-    *
-    *      Local
-    *        precip             - amount of precipitation that fell in a 
-    *                             specified period.  Value is returned as
-    *                             a real number with precision to the
-    *                             hundredths
-    *
-    *      Non-system routines used
-    *        compute_daily_precip - returns the amount of precipitation between
-    *                               the starting and ending periods for a given
-    *                               station
-    ********************************************************************************
-    * FILENAME:             compute_daily_precip.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:    3
-    * GENERAL INFORMATION:
-    *   MODULE 1:           compute_daily_amt
-    *   DESCRIPTION:        Contains the code to process the observed
-    *                       precipitation amount.
-    *   MODULE 2:           tally_rain_amount
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
-    *                       taking into account special precipitation situations
-    *                       such as a trace of rain, etc.
-    *   MODULE 3:           get_period_rain_amt
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
-    *                       amount over a user-specified period.
-    * ORIGINAL AUTHOR:      Bryon Lawrence
-    * CREATION DATE:        August 23, 1998
-    * ORGANIZATION:         GSC / TDL
-    * MACHINE:              HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/23/98      Bryon Lawrence    Original Coding
-    *          2        8/23/98      Bryon Lawrence    Original Coding
-    *          3        8/23/98      Bryon Lawrence    Original Coding
-    *          1        1/24/00      Bryon Lawrence    Fixed an error in this
-    *                                                  routine that was causing
-    *                                                  inflated rain amounts.
-    *          3        1/24/00      Bryon Lawrence    Slightly simplified the
-    *                                                  logic in this routine.
-    ********************************************************************************
-    * MODULE NUMBER:   1
-    * MODULE NAME:     compute_daily_precip
-    * PURPOSE:            This routine looks through decoded METAR data to
-    *                  determine how much rain fell during a user-specified time
-    *                  period. This routine checks to see if the 
-    *                  precipitation sensor was operational at the time
-    *                  time the observations were taken. If it wasn't, then
-    *                  the rain amount for the period is reported as missing.
-    *                  If no rain fell during the period, then the rain amount
-    *                  is reported as 0. If only a trace of rain occurred, then
-    *                  the rain amount is reported as a -2. If no METAR reports
-    *                  can be found in the period OR if the precipitation
-    *                  sensor on the automated observing system is not operational,
-    *                  then a precipitation amount of R_MISS is reported.
-    *
-    *                  Note that it is the responsibility of the user to
-    *                  open and close the connection with the HM database.
-    *                  This routine is designed to work with a version
-    *                  7.1 or newer of INFORMIX.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE    NAME                DESCRIPTION/UNITS
-    *      I   climate_date *begin_date         A pointer to a climate_date
-    *                                           structure.
-    *      I   climate_time *begin_time         A pointer to a climate_time
-    *                                           structure.
-    *      I   climate_date *end_date           A pointer to a climate_date
-    *                                           structure.
-    *      I   climate_time *end_time           A pointer to a climate_time
-    *                                           structure.
-    *      I   long         *station_id         A pointer to a memory location
-    *                                           containing the numeric identifier
-    *                                           of the station to process data 
-    *                                           for.
-    *      O   float        *precip_amount      The total rainfall accumulation. 
-    *                                           
-    * RETURNS:
-    *   DATA TYPE   NAME                        DESCRIPTION
-    *   STATUS      status                      Reports any fatal SQL or 
-    *                                           memory allocation errors.
-    *                                           (See below for a break down
-    *                                            of the error codes).
-    *
-    * APIs UTILIZED:
-    *   NAME                    HEADER FILE          DESCRIPTION
-    *   get_metar_conreal_val   hm_dbutils.h         Retrieves a 
-    *                                                FSS continous real value
-    *                                                for a specified element id
-    *                                                and nominal time. 
-    *   tally_rain_amount     compute_daily_precip.h Maintains a cumulative total
-    *                                                of all of the rain amounts
-    *                                                retrieved for a 12 hour
-    *                                                period.
-    *   log_write               log_write.h          Contains the C wrapper around
-    *                                                the C++ logstream.
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * These are documented in the body of the code.
-    *
-    * DATA FILES AND/OR DATABASE:
-    * In order for this routine to run, the FSS_report and the FSS_contin_real
-    * tables in the HM database must be populated with decoded METAR
-    * data.
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                        DESCRIPTION
-    *
-    *    STATUS_OK                         The routine executed correctly. 
-    *    MALLOC_ERROR                      Memory could not be dynamically 
-    *                                      allocated in the 
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the 
-    *                                      "condition" in a query that was 
-    *                                      expecting only one row in the 
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the 
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *
-    *    (Note that all of these error codes are defined in STATUS.h).
-    *
-    * MACROS
-    *    Name                     Header             Description
-    * CHECK_FOR_FATAL_ERROR  compute_daily_precip.h  Checks for fatal INFORMIX
-    *                                                errors.
-    * CREATE_INFORMIX_TIME   AEV_time_util.h         Converts a time value in UNIX
-    *                                                ticks to an INFORMIX 
-    *                                                compatible string.
+     *
+     *
+     *   Purpose:  This routine controls the retrieval and determination
+     *             of the daily observed precipitation.  It calls a routine
+     *             that returns the precipitation that fell between
+     *             a specified starting and ending time for a given station.
+     *             It also sets the precip quality control flag.
+     * 
+     *
+     ********************************************************************************
+     * FILENAME:             compute_daily_precip.c
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:    3
+     * GENERAL INFORMATION:
+     *   MODULE 1:           compute_daily_amt
+     *   DESCRIPTION:        Contains the code to process the observed
+     *                       precipitation amount.
+     *   MODULE 2:           tally_rain_amount
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
+     *                       taking into account special precipitation situations
+     *                       such as a trace of rain, etc.
+     *   MODULE 3:           get_period_rain_amt
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
+     *                       amount over a user-specified period.
+     ********************************************************************************
+     * MODULE NUMBER:   1
+     * MODULE NAME:     compute_daily_precip
+     * PURPOSE:            This routine looks through decoded METAR data to
+     *                  determine how much rain fell during a user-specified time
+     *                  period. This routine checks to see if the 
+     *                  precipitation sensor was operational at the time
+     *                  time the observations were taken. If it wasn't, then
+     *                  the rain amount for the period is reported as missing.
+     *                  If no rain fell during the period, then the rain amount
+     *                  is reported as 0. If only a trace of rain occurred, then
+     *                  the rain amount is reported as a -2. If no METAR reports
+     *                  can be found in the period OR if the precipitation
+     *                  sensor on the automated observing system is not operational,
+     *                  then a precipitation amount of R_MISS is reported.
+     *
+     *                  Note that it is the responsibility of the user to
+     *                  open and close the connection with the HM database.
+     *                  This routine is designed to work with a version
+     *                  7.1 or newer of INFORMIX.
+     *
      * </pre>
      * 
      * @param window
@@ -1750,7 +1312,8 @@ public final class DailyClimateCreator {
          */
         Calendar beginCal = window.getStart().getCalendarFromClimateDate();
         beginCal.set(Calendar.HOUR_OF_DAY, window.getStartTime().getHour());
-        beginCal.set(Calendar.MINUTE, window.getStartTime().getMin());
+        // expected data has 0 minute
+        beginCal.set(Calendar.MINUTE, 0);
         long beginBaseMilliTicks = beginCal.getTimeInMillis();
 
         int beginHour = window.getStartTime().getHour();
@@ -1769,7 +1332,8 @@ public final class DailyClimateCreator {
          */
         Calendar endCal = window.getEnd().getCalendarFromClimateDate();
         endCal.set(Calendar.HOUR_OF_DAY, window.getEndTime().getHour());
-        endCal.set(Calendar.MINUTE, window.getEndTime().getMin());
+        // expected data has 0 minute
+        endCal.set(Calendar.MINUTE, 0);
         long endBaseMilliTicks = endCal.getTimeInMillis();
 
         int endHour = window.getEndTime().getHour();
@@ -1843,6 +1407,7 @@ public final class DailyClimateCreator {
                      */
                     dailyClimateData.setPrecip(tallyRainAmount(
                             dailyClimateData.getPrecip(), result.getValue()));
+
                     sixHour = true;
                 } else {
                     missingOrError6Hour = true;
@@ -1882,9 +1447,11 @@ public final class DailyClimateCreator {
                         dailyClimateData.setPrecip(
                                 tallyRainAmount(dailyClimateData.getPrecip(),
                                         result.getValue()));
+
                         dailyClimateData.setPrecip(getPrecipRainAmount(-2, 0,
                                 dailyClimateData.getInformId(), baseMilliTicks,
                                 dailyClimateData.getPrecip()));
+
                         threeHour = true;
                         oneHour = true;
                     } else {
@@ -1907,6 +1474,7 @@ public final class DailyClimateCreator {
                     dailyClimateData.setPrecip(getPrecipRainAmount(-5, 0,
                             dailyClimateData.getInformId(), baseMilliTicks,
                             dailyClimateData.getPrecip()));
+
                     oneHour = true;
                 }
             }
@@ -2088,26 +1656,8 @@ public final class DailyClimateCreator {
                 oneHour = true;
             }
 
-            if (rainAmount != ClimateCreatorDAO.R_MISS) {
-                if (((rainAmount >= 0)
-                        || (rainAmount == ParameterFormatClimate.TRACE))
-                        && ((dailyClimateData
-                                .getPrecip() == ClimateCreatorDAO.R_MISS)
-                                || (dailyClimateData
-                                        .getPrecip() == ParameterFormatClimate.MISSING_PRECIP)
-                                || (dailyClimateData.getPrecip() == 0))) {
-                    dailyClimateData.setPrecip(rainAmount);
-                } else if ((rainAmount > 0)
-                        && (dailyClimateData.getPrecip() > 0)
-                        && (dailyClimateData
-                                .getPrecip() != ParameterFormatClimate.MISSING_PRECIP)) {
-                    dailyClimateData.setPrecip(
-                            dailyClimateData.getPrecip() + rainAmount);
-                } else if ((rainAmount > 0) && (dailyClimateData
-                        .getPrecip() == ParameterFormatClimate.TRACE)) {
-                    dailyClimateData.setPrecip(rainAmount);
-                }
-            }
+            dailyClimateData.setPrecip(
+                    tallyRainAmount(dailyClimateData.getPrecip(), rainAmount));
 
             /* Process the "tailing" hours. */
             rainAmount = ParameterFormatClimate.MISSING_PRECIP;
@@ -2173,26 +1723,8 @@ public final class DailyClimateCreator {
                 oneHour = true;
             }
 
-            if (rainAmount != ClimateCreatorDAO.R_MISS) {
-                if (((rainAmount >= 0)
-                        || (rainAmount == ParameterFormatClimate.TRACE))
-                        && ((dailyClimateData
-                                .getPrecip() == ClimateCreatorDAO.R_MISS)
-                                || (dailyClimateData
-                                        .getPrecip() == ParameterFormatClimate.MISSING_PRECIP)
-                                || (dailyClimateData.getPrecip() == 0))) {
-                    dailyClimateData.setPrecip(rainAmount);
-                } else if ((rainAmount > 0)
-                        && (dailyClimateData.getPrecip() > 0)
-                        && (dailyClimateData
-                                .getPrecip() != ParameterFormatClimate.MISSING_PRECIP)) {
-                    dailyClimateData.setPrecip(
-                            dailyClimateData.getPrecip() + rainAmount);
-                } else if ((rainAmount > 0) && (dailyClimateData
-                        .getPrecip() == ParameterFormatClimate.TRACE)) {
-                    dailyClimateData.setPrecip(rainAmount);
-                }
-            }
+            dailyClimateData.setPrecip(
+                    tallyRainAmount(dailyClimateData.getPrecip(), rainAmount));
         }
 
         /* Set the QC flag */
@@ -2228,6 +1760,7 @@ public final class DailyClimateCreator {
             dailyClimateData.getDataMethods()
                     .setPrecipQc(ParameterFormatClimate.MISSING);
         }
+
     }
 
     /**
@@ -2236,457 +1769,139 @@ public final class DailyClimateCreator {
      * <pre>
      * 
      * FILENAME:             build_daily_obs_temp.ec
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:    11
-    * GENERAL INFORMATION:
-    *   MODULE 1:    build_daily_obs_temp
-    *   DESCRIPTION: Determines the maximum and minimum temperatures in a time
-    *                period defined by the user.
-    *
-    *   MODULE 2:    get_24hr_maxmin_temp
-    *   DESCRIPTION: Looks into the HM database to see if there is a 24 hour
-    *                maximum and minimum temperature reported (a 4xxxxxxxx group 
-    *                in the METAR code).
-    *
-    *   MODULE 3:    get_6hr_maxmin_temp
-    *   DESCRIPTION: Looks in the HM database to see if there are 1xxxx and 2xxxx
-    *                6 hourly maximum and minimum temperature groups.
-    *
-    *   MODULE 4:    det_6h_max
-    *   DESCRIPTION: Looks for a 1xxxx group 6 hour maximum temperature.
-    *
-    *   MODULE 5:    det_6h_min
-    *   DESCRIPTION: Looks for a 2xxxx group 6 hour minimum temperature.
-    *              
-    *   MODULE 6:    det_pd_max
-    *   DESCRIPTION: Determines the maximum temperature for a user-specified
-    *                subperiod.
-    *              
-    *   MODULE 7:    det_pd_min
-    *   DESCRIPTION: Determines the minimum temperature for a user_specified
-    *                subperiod.
-    *              
-    *   MODULE 8:    get_pd_metar_max
-    *   DESCRIPTION: Determines the maximum temperature for a group of METARs.
-    *
-    *   MODULE 9:    get_pd_metar_min
-    *   DESCRIPTION: Determines the minimum temperature for a group of METARs.
-    *
-    *   MODULE 10:   get_pd_speci_max
-    *   DESCRIPTION: Determines the maximum temperature for a period of one
-    *                or more SPECI's.
-    *
-    *   MODULE 11:   get_pd_speci_min
-    *   DESCRIPTION: Determines the minimum temperature for a period of one
-    *                or more SPECI's.
-    *
-    * ORIGINAL AUTHOR:      Bryon Lawrence
-    * CREATION DATE:        September 29, 1998
-    * ORGANIZATION:         GSC / TDL
-    * MACHINE:              HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          2        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          3        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          4        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          5        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          6        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          7        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          8        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          9        9/29/98      Bryon Lawrence    Completed Original Coding
-    *         10        9/29/98      Bryon Lawrence    Completed Original Coding
-    *         10        4/01/99      Bryon Lawrence    Fixed duplicate cursor
-    *                                                  name problem by renaming
-    *                                                  the query cursor from
-    *                                                  querycursor to
-    *                                                  speci_curse.
-    *         11        9/29/98      Bryon Lawrence    Completed Original Coding
-    *          1 & 2    7/19/99      Dave Miller       Accounted for climate using 
-    *                                                  the Daily Summary Message
-    *                                                  for max and min temperatures
-    *          6 & 7    8/02/99      Bryon Lawrence    Corrected code causing METAR
-    *                                                  max/min times to be
-    *                                                  overwritten with SPECI
-    *                                                  max/min times.
-    *         1-10      01/26/05     Manan Dalal       Ported from Informix to Postgres
-     * 
-    * MODULE NUMBER:   1
-    * MODULE NAME:     build_daily_obs_temp 
-    * PURPOSE:         This utility determines the maximum and minimum temperatures
-    *          in a period defined by two user-specified times. This temperature
-    *          extreme information is taken from decoded METAR weather observations
-    *          stored in the HM database. The alogorithm used by this routine is
-    *          as follows:
-    *                       First the 24 hour temperature group is checked to
-    *                       determine the local daily climatological maximum
-    *                       and minimum.
-    *
-    *                       If the 24 hour group is not present or the user is not
-    *                       looking for a 24 hour maximum_minimum centered on
-    *                       local midnight, then this routine resorts to using
-    *                       the 1xxxx and 2xxxx maximum and minimum temperature
-    *                       groups reported every 6 hours.
-    *
-    *                       If the 1xxxx and 2xxxx groups are not present, then the
-    *                       hourly Txxxx groups are processed.
-    *
-    *                       If the hourly Txxxx groups are not present, then
-    *                       the hourly rounded temperatures are processed.
-    *
-    *                       If no maximum and minimum temperature information
-    *                       can be determined then these extremes are reported 
-    *                       as 9999.
-    *
-    *                       If the maximum or minimum temperature is determined
-    *                       from an hourly METAR observation, then the time
-    *                       of the extreme in question is recorded and sent back
-    *                       to the calling routine.
-    *
-    *                       Also, a quality control flag is sent back to the 
-    *                       calling routine, and this flag indicates
-    *                       exactly how the extreme temperature information
-    *                       was arrived at. 
-    *
-    *                       Assumptions: The calling routine is responsible for
-    *                                    establishing a connection with the
-    *                                    HM database.
-    *
-    *                                    The FSS_report and FSS_contin_real tables
-    *                                    in the HM database must be populated with
-    *                                    decoded METAR data information.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE    NAME                DESCRIPTION/UNITS
-    *      I   climate_date *begin_date         A pointer to a climate_date
-    *                                           structure.
-    *      I   climate_time *begin_time         A pointer to a climate_time
-    *                                           structure.
-    *      I   climate_date *end_date           A pointer to a climate_date
-    *                                           structure.
-    *      I   climate_time *end_time           A pointer to a climate_time
-    *                                           structure.
-    *      I   long         *station_id         A pointer to a memory location
-    *                                           containing the numeric identifier
-    *                                           of the station to process data 
-    *                                           for.
-    *      I   int          *itype              Flag indicating whether this
-    *                                           is an AM or PM run.
-    *      O   daily_climate_data *yesterday    The maximum and minimum
-    *                                           temperatures as well as the times
-    *                                           of these extremes (if determinable)
-    *                                           are written out to this structure.
-    *      O  int          *max_temp_qc         Contains quality control
-    *                                           information for the maximum
-    *                                           temperature.
-    *      O  int          *min_temp_qc         Contains the quality control
-    *                                           information for the minimum
-    *                                           temperature.
-    *
-    * RETURNS:
-    *   None.
-    *
-    * APIs UTILIZED:
-    *   NAME                    HEADER FILE          DESCRIPTION
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * These are documented in the body of the code.
-    *
-    * DATA FILES AND/OR DATABASE:
-    * In order for this routine to run, the FSS_report and the FSS_contin_real
-    * tables in the HM database must be populated with decoded METAR
-    * data.
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                        DESCRIPTION
-    *
-    *    STATUS_OK                         The routine executed correctly.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *
-    *    (Note that all of these error codes are defined in STATUS.h).
-    *
-    * MACROS
-    *    Name                     Header             Description
-    * CHECK_FOR_FATAL_ERROR  compute_daily_precip.h  Checks for fatal INFORMIX
-    *                                                errors.
-    * CREATE_INFORMIX_TIME   AEV_time_util.h         Converts a time value in UNIX
-    *                                                ticks to an INFORMIX
-    *                                                compatible string.
-    *******************************************************************************
-    * MODULE NUMBER:   2
-    * MODULE NAME:     get_24hr_maxmin_temp
-    * PURPOSE:         This routine searches for a "4" group in a decoded METAR 
-    *                  observation in the HM database.  The "4" group is the
-    *                  report of local maximum and minimum temperature, usually
-    *                  reported at 0000 LST (Local Standard Time). Since some
-    *                  reporting sites don't always report their "4" group 
-    *                  in the 0000 LST report, this routine searches from an 
-    *                  hour before 0000 LST to 4 hours after 0000 LST for this
-    *                  group. If this group cannot be found, then the maximum
-    *                  and minimum temperatures are returned with values of
-    *                  R_MISS.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the 
-    *                                           station to find the temperature
-    *                                           information for.
-    *   I      time_t      end_base_ticks       The time in UNIX ticks of the 
-    *                                           0000 LST hour.
-    *   O      float       *max_temp            The maximum temperature found in
-    *                                           the "4" group.
-    *   O      float       *min_temp            The minimum temperature found in
-    *                                           the "4" group.
-    *
-    * RETURNS:
-    *   DATA TYPE   NAME                        DESCRIPTION
-    *   STATUS      status                      Contains any error or diagnostic
-    *                                           codes generated in this routine.
-    *
-    * APIs UTILIZED:
-    *   NAME                     HEADER FILE    DESCRIPTION
-    *   get_metar_conreal_val    metar_utils.h  Retrieves a value from the 
-    *                                           fss_contin_real table in the 
-    *                                           hm database.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the code. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine references the following tables in the HM database:
-    *      FSS_report
-    *      FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                        DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *******************************************************************************
-    * MODULE NUMBER:  3
-    * MODULE NAME:    get_6hr_maxmin_temp
-    * PURPOSE:        This routine looks for maximum and minimum temperature 
-    *                 information provided by the 1xxxx and the 2xxxx groups
-    *                 in a METAR report. The number of 6 hour periods that this
-    *                 routine processes is determined by the calling routine.
-    *
-    *                 Important! It is the responsibility of the calling routine
-    *                 to ensure that the base time is divisible by six hours, 
-    *                 i.e. that the time is either 00Z, 06Z, 12Z, or 18Z.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the
-    *                                           station to retrieve the temperature
-    *                                           data for.
-    *   I      int         num_6hr_periods      The number of 6 hour periods to 
-    *                                           search over. 
-    *   I      time_t      end_base_ticks       The base time search for the
-    *                                           temperature infomation from.
-    *   O      float       *max_temp            The maximum temperature.
-    *   O      float       *min_temp            The minimum temperature.
-    *   O      int         *max_temp_qc         Indicates how the maximum
-    *                                           was arrived at. 
-    *   O      int         *min_temp_qc         Indicates how the minimum was
-    *                                           arrived at.
-    *                                           
-    * RETURNS:
-    *   DATA TYPE   NAME                        DESCRIPTION
-    *   STATUS      status                      Contains any error or 
-    *                                           diagnostic codes generated by 
-    *                                           this routine.
-    *
-    * APIs UTILIZED:
-    *   NAME                   HEADER FILE      DESCRIPTION
-    *   det_6h_max             N/A              Finds a 6 hour METAR temp max.
-    *   det_6h_min             N/A              Finds a 6 hour METAR temp min.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the code. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine references the following routines in the HM database.
-    *      fss_report
-    *      fss_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *******************************************************************************
-    * MODULE NUMBER:   4
-    * MODULE NAME:     det_6h_max
-    * PURPOSE:         This routine looks for the 1xxxx group which denotes 
-    *                  the 6 hour maximum temperature in a METAR. If this group
-    *                  cannot be found then this routine determines the 6 hour
-    *                  maximum by reading in all of the temperature reports 
-    *                  for the six hour period and taking the maximum. 
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           Contains the numeric identifier 
-    *                                           of the station to process the 
-    *                                           temperature data for.
-    *   I      time_t      beg_dtime            The beginning time of the 6 hour
-    *                                           period in UNIX ticks.
-    *   I      time_t      end_dtime            The ending time of the period
-    *                                           in UNIX ticks.
-    *   O      float       *maxtemp             The maximum temperature determined
-    *                                           by this routine.
-    *   O      char        *dqd                 The data quality description
-    *                                           associated with the maximum
-    *                                           temperature found by this routine.
-    *   O      int         *temp_flag           This indicates how the maximum
-    *                                           temperature was arrived at.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    * RETURNS:
-    * None.
-    *
-    * APIs UTILIZED:
-    *   NAME                     HEADER FILE      DESCRIPTION
-    *   convert_ticks_2_string   AEV_time_util.h  Converts a ticks value to an
-    *                                             Informix-compatible string.
-    *   det_pd_max               N/A              Determines the max temperature
-    *                                             over a period of time.
-    *   get_metar_conreal_val    metar_utils.h    Retrieves a continuous real
-    *                                             value from the HM database. 
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the routine. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine references the following tables in the HM database:
-    *    FSS_report
-    *    FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *******************************************************************************
-    * MODULE NUMBER:   5
-    * MODULE NAME:     det_6h_min
-    * PURPOSE:      This routine looks for the 2xxxx group which denotes 
-    *           the 6 hour minimum temperature in a METAR. If this group
-    *           cannot be found then this routine determines the 6 hour
-    *           minimum by reading in all of the temperature reports
-    *           for the six hour period and then taking the minimum.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier
-    *                                           of the station to retrieve the
-    *                                           temperature data for.
-    *   I      time_t      beg_dtime            The time (in UNIX ticks) of the
-    *                                           start of the period to determine
-    *                                           the min in.
-    *   I      time_t      end_dtime            The time (in UNIX ticks) of the
-    *                                           end of the period to determine
-    *                                           the min in.
-    *   O      float       *mintemp             The minimum temperature determined
-    *                                           by this routine.
-    *   O      char        *dqd                 The data quality descriptor flag 
-    *                                           associated with the data value
-    *                                           taken from the data tables in the
-    *                                           HM database. 
-    *   O      int         *temp_flag           Contains the numeric code that
-    *                                           indicates from where a temperature
-    *                                           value has come from.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    *  None.
-    *
-    * APIs UTILIZED:
-    *   NAME                       HEADER FILE       DESCRIPTION
-    *   convert_ticks_2_string     AEV_time_util.h   Converts a time in UNIX ticks
-    *                                                into an Informix-compatible
-    *                                                string.
-    *   det_pd_min                 N/A               Determines the min temperature
-    *                                                for a given time period.
-    *   get_metar_conreal_val      metar_utils.h     Reads a continuous real value
-    *                                                from the HM database.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of this code. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * The following tables in the HM database are referenced by this routine:
-    *     FSS_report
-    *     FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:    11
+     * GENERAL INFORMATION:
+     *   MODULE 1:    build_daily_obs_temp
+     *   DESCRIPTION: Determines the maximum and minimum temperatures in a time
+     *                period defined by the user.
+     *
+     *   MODULE 2:    get_24hr_maxmin_temp
+     *   DESCRIPTION: Looks into the HM database to see if there is a 24 hour
+     *                maximum and minimum temperature reported (a 4xxxxxxxx group 
+     *                in the METAR code).
+     *
+     *   MODULE 3:    get_6hr_maxmin_temp
+     *   DESCRIPTION: Looks in the HM database to see if there are 1xxxx and 2xxxx
+     *                6 hourly maximum and minimum temperature groups.
+     *
+     *   MODULE 4:    det_6h_max
+     *   DESCRIPTION: Looks for a 1xxxx group 6 hour maximum temperature.
+     *
+     *   MODULE 5:    det_6h_min
+     *   DESCRIPTION: Looks for a 2xxxx group 6 hour minimum temperature.
+     *              
+     *   MODULE 6:    det_pd_max
+     *   DESCRIPTION: Determines the maximum temperature for a user-specified
+     *                subperiod.
+     *              
+     *   MODULE 7:    det_pd_min
+     *   DESCRIPTION: Determines the minimum temperature for a user_specified
+     *                subperiod.
+     *              
+     *   MODULE 8:    get_pd_metar_max
+     *   DESCRIPTION: Determines the maximum temperature for a group of METARs.
+     *
+     *   MODULE 9:    get_pd_metar_min
+     *   DESCRIPTION: Determines the minimum temperature for a group of METARs.
+     *
+     *   MODULE 10:   get_pd_speci_max
+     *   DESCRIPTION: Determines the maximum temperature for a period of one
+     *                or more SPECI's.
+     *
+     *   MODULE 11:   get_pd_speci_min
+     *   DESCRIPTION: Determines the minimum temperature for a period of one
+     *                or more SPECI's.
+     *
+     * MODULE NUMBER:   1
+     * MODULE NAME:     build_daily_obs_temp 
+     * PURPOSE:         This utility determines the maximum and minimum temperatures
+     *          in a period defined by two user-specified times. This temperature
+     *          extreme information is taken from decoded METAR weather observations
+     *          stored in the HM database. The alogorithm used by this routine is
+     *          as follows:
+     *                       First the 24 hour temperature group is checked to
+     *                       determine the local daily climatological maximum
+     *                       and minimum.
+     *
+     *                       If the 24 hour group is not present or the user is not
+     *                       looking for a 24 hour maximum_minimum centered on
+     *                       local midnight, then this routine resorts to using
+     *                       the 1xxxx and 2xxxx maximum and minimum temperature
+     *                       groups reported every 6 hours.
+     *
+     *                       If the 1xxxx and 2xxxx groups are not present, then the
+     *                       hourly Txxxx groups are processed.
+     *
+     *                       If the hourly Txxxx groups are not present, then
+     *                       the hourly rounded temperatures are processed.
+     *
+     *                       If no maximum and minimum temperature information
+     *                       can be determined then these extremes are reported 
+     *                       as 9999.
+     *
+     *                       If the maximum or minimum temperature is determined
+     *                       from an hourly METAR observation, then the time
+     *                       of the extreme in question is recorded and sent back
+     *                       to the calling routine.
+     *
+     *                       Also, a quality control flag is sent back to the 
+     *                       calling routine, and this flag indicates
+     *                       exactly how the extreme temperature information
+     *                       was arrived at. 
+     *
+     *                       Assumptions: The calling routine is responsible for
+     *                                    establishing a connection with the
+     *                                    HM database.
+     *
+     *                                    The FSS_report and FSS_contin_real tables
+     *                                    in the HM database must be populated with
+     *                                    decoded METAR data information.
+     *
+     *******************************************************************************
+     * MODULE NUMBER:   2
+     * MODULE NAME:     get_24hr_maxmin_temp
+     * PURPOSE:         This routine searches for a "4" group in a decoded METAR 
+     *                  observation in the HM database.  The "4" group is the
+     *                  report of local maximum and minimum temperature, usually
+     *                  reported at 0000 LST (Local Standard Time). Since some
+     *                  reporting sites don't always report their "4" group 
+     *                  in the 0000 LST report, this routine searches from an 
+     *                  hour before 0000 LST to 4 hours after 0000 LST for this
+     *                  group. If this group cannot be found, then the maximum
+     *                  and minimum temperatures are returned with values of
+     *                  R_MISS.
+     *
+     *******************************************************************************
+     * MODULE NUMBER:  3
+     * MODULE NAME:    get_6hr_maxmin_temp
+     * PURPOSE:        This routine looks for maximum and minimum temperature 
+     *                 information provided by the 1xxxx and the 2xxxx groups
+     *                 in a METAR report. The number of 6 hour periods that this
+     *                 routine processes is determined by the calling routine.
+     *
+     *                 Important! It is the responsibility of the calling routine
+     *                 to ensure that the base time is divisible by six hours, 
+     *                 i.e. that the time is either 00Z, 06Z, 12Z, or 18Z.
+     *
+     *******************************************************************************
+     * MODULE NUMBER:   4
+     * MODULE NAME:     det_6h_max
+     * PURPOSE:         This routine looks for the 1xxxx group which denotes 
+     *                  the 6 hour maximum temperature in a METAR. If this group
+     *                  cannot be found then this routine determines the 6 hour
+     *                  maximum by reading in all of the temperature reports 
+     *                  for the six hour period and taking the maximum. 
+     *
+     *******************************************************************************
+     * MODULE NUMBER:   5
+     * MODULE NAME:     det_6h_min
+     * PURPOSE:      This routine looks for the 2xxxx group which denotes 
+     *           the 6 hour minimum temperature in a METAR. If this group
+     *           cannot be found then this routine determines the 6 hour
+     *           minimum by reading in all of the temperature reports
+     *           for the six hour period and then taking the minimum.
+     *
      * </pre>
      * 
      * @param window
@@ -2707,9 +1922,11 @@ public final class DailyClimateCreator {
         Calendar beginCal = window.getStart().getCalendarFromClimateDate();
         int beginHour = window.getStartTime().getHour();
         beginCal.set(Calendar.HOUR_OF_DAY, beginHour);
-        beginCal.set(Calendar.MINUTE, window.getStartTime().getMin());
+        // expected data has 0 minute
+        beginCal.set(Calendar.MINUTE, 0);
         long beginBaseMilliTicks = beginCal.getTimeInMillis();
 
+        // advance start millis to next hour if within 15 minutes of it
         if (window.getStartTime().getMin() > 44) {
             beginBaseMilliTicks += TimeUtil.MILLIS_PER_HOUR;
             beginHour++;
@@ -2722,7 +1939,8 @@ public final class DailyClimateCreator {
         Calendar endCal = window.getEnd().getCalendarFromClimateDate();
         int endHour = window.getEndTime().getHour();
         endCal.set(Calendar.HOUR_OF_DAY, endHour);
-        endCal.set(Calendar.MINUTE, window.getEndTime().getMin());
+        // expected data has 0 minute
+        endCal.set(Calendar.MINUTE, 0);
         long endBaseMilliTicks = endCal.getTimeInMillis();
 
         /* Compute the base start time. */
@@ -2875,6 +2093,7 @@ public final class DailyClimateCreator {
                         String adjustEndTimeString = ClimateDate
                                 .getFullDateTimeFormat()
                                 .format(adjustEndTimeCal.getTime());
+
                         /*
                          * try to get the value of the max temperature field for
                          * the time period's end time metar
@@ -2897,6 +2116,7 @@ public final class DailyClimateCreator {
                             ClimateCreatorDAO.ExtremeTempPeriodResult result = determinePeriodMax(
                                     dailyClimateData.getInformId(),
                                     adjustBeginMilliTime, adjustEndMilliTime);
+
                             if (!result.isMissing()) {
                                 value = result.getTemp();
                                 qcFlag = result.getFlag();
@@ -3024,7 +2244,9 @@ public final class DailyClimateCreator {
                     ClimateCreatorDAO.ExtremeTempPeriodResult maxResult = determinePeriodMax(
                             dailyClimateData.getInformId(), beginDTimeMilli,
                             endDTimeMilli);
+
                     if (!maxResult.isMissing()) {
+
                         float maxValue = maxResult.getTemp();
                         int maxFlag = maxResult.getFlag();
                         ClimateTime maxExtremeTime = maxResult.getTime();
@@ -3082,14 +2304,16 @@ public final class DailyClimateCreator {
 
                 /* Process the "tailing" hours. */
                 if (endOffset != 0) {
-                    long endDTimeMilli = endBaseMilliTicks;
-                    long beginDTimeMilli = endBaseMilliTicks
+                    long beginDTimeMilli = endBaseMilliTicks;
+                    long endDTimeMilli = endBaseMilliTicks
                             + (TimeUtil.MILLIS_PER_HOUR * endOffset);
 
                     ClimateCreatorDAO.ExtremeTempPeriodResult maxResult = determinePeriodMax(
                             dailyClimateData.getInformId(), beginDTimeMilli,
                             endDTimeMilli);
+
                     if (!maxResult.isMissing()) {
+
                         float maxValue = maxResult.getTemp();
                         int maxFlag = maxResult.getFlag();
                         ClimateTime maxExtremeTime = maxResult.getTime();
@@ -3206,85 +2430,13 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *
-    *   June 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the retrieval and construction of
-    *             the daily observed climatology.  It loops on the number 
-    *             of stations and builds the observed climatology one
-    *             station at a time, one weather element at a time.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date            - derived TYPE that contains valid date for
-    *                            this climate summary retrieval
-    *        climate_stations  - derived TYPE which contains the station ids
-    *                            and plain language stations names for the
-    *                            stations in this climate summary
-    *        itype             - flag which controls the type of climate
-    *                            summary being generated;
-    *                            =1  NWR morning daily climate summary
-    *                            =2  NWR evening daily climate summary
-    *                            =3  NWWS morning daily climate summary
-    *                            =4  NWWS evening daily climate summary
-    *                            =5  NWR monthly radio climate summary
-    *                            =6  NWWS monthly climate summary
-    *                            =7  NWWS annual climate summary
-    *        num_stations      - number of stations in this group
-    *        valid_time        - derived TYPE which contains the valid time
-    *                            (i.e., ending time) for this climate summary
-    *
-    *      Output
-    *        yesterday         - derived TYPE that contains the observed climate
-    *                            data for a given set of stations
-    *        qc                - derived TYPE that contains the qc flags
-    *
-    *      Local
-    *        begin_date       - derived TYPE that contains the starting
-    *                           date for data retrieval
-    *        begin_time       - derived TYPE that contains the starting
-    *                           time for data retrieval
-    *        end_date         - derived TYPE that contains the ending
-    *                           date for data retrieval
-    *        end_time         - derived TYPE that contains the ending
-    *                           time for data retrieval
-    *        i                - loop counter
-    *        ihour            - hour of the day 
-    *
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *        build_daily_obs_precip  - builds the precipitation climatology
-    *        build_daily_obs_rh      - builds the relative humidity climato
-    *        build_daily_obs_sky     - builds the sky condition climatology
-    *        build_daily_obs_snow    - builds the snow climatology
-    *        build_daily_obs_sun     - builds the percent sunshine
-    *        build_daily_obs_temp    - builds the temperature climatology
-    *        build_daily_obs_weather - builds the weather climatology
-    *        build_daily_obs_wind    - builds the wind climatology
-    *        determine_window        - determines the window for data
-    *                                  retrieval; adjusts for differences
-    *                                  between local and UTC
-    *
-    *  MODIFICATION HISTORY  
-    *     NAME                DATE    CHANGE
-    *     Dave Miller        7/19/99  Added routine to retrieve values from 
-    *                                 the ASOS DSM climate table.  Added checks
-    *                                 in this routine to see if the particular 
-    *                                 climate parameter is missing.  If not, 
-    *                                 skip that subroutine.
-    *     Doug Murphy       12/12/00  Added extra assumption for snowfall -
-    *                                 if precip total is 0 or the min temp
-    *                                 doesn't fall below 50, snowfall is 0.0
-    *                                 (SPR 1752/DR 6899)
-    *     Doug Murphy        1/30/01  Removed call to build_daily_obs_snow.
-    *                                 Added snow depth and avg wind qc methods.
-    *
-    *     Baoyu Yin          12/26/07 Added snow depth retrieval from DSM for
-    *                                 morning/evening/intermediate daily climate.
+     *   June 1998     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the retrieval and construction of
+     *             the daily observed climatology.  It loops on the number 
+     *             of stations and builds the observed climatology one
+     *             station at a time, one weather element at a time.
      * </pre>
      * 
      * @param aDate
@@ -3297,6 +2449,7 @@ public final class DailyClimateCreator {
      *            empty daily data list.
      * @throws ClimateException
      */
+
     private void buildDailyObsClimo(ClimateDate aDate,
             List<Station> climateStations, PeriodType itype,
             ClimateTime validTime, List<DailyClimateData> yesterdaysDatas)
@@ -3317,8 +2470,8 @@ public final class DailyClimateCreator {
             // Determine the window for retrieving the observations.
             // NOTE: the starting and ending times are UTC!!!!
 
-            ClimateDates window = DailyClimateDAO.determineWindow(aDate,
-                    currStation, itype, validTime);
+            ClimateDates window = determineWindow(aDate, currStation, itype,
+                    validTime);
 
             // *************************************************************************
             // 7-19-99
@@ -3328,6 +2481,7 @@ public final class DailyClimateCreator {
             try {
                 dailyClimateDao.retrieveDailySummary(aDate, yesterday, itype,
                         window.getEndTime(), currStation.getNumOffUTC());
+
             } catch (ClimateQueryException e) {
                 logger.error("Error with DSM query. Some data will be missing.",
                         e);
@@ -3361,7 +2515,8 @@ public final class DailyClimateCreator {
             if (yesterdayQC.getMaxTempQc() != QCValues.TEMP_FROM_DSM) {
                 if (yesterday.getMaxTempTime()
                         .getHour() != ParameterFormatClimate.MISSING_HOUR) {
-                    int ihour = yesterday.getMaxTempTime().getHour();
+                    int ihour = yesterday.getMaxTempTime().to24HourTime()
+                            .getHour();
                     ihour = ihour + currStation.getNumOffUTC();
                     if (ihour < 0) {
                         ihour = ihour + TimeUtil.HOURS_PER_DAY;
@@ -3377,7 +2532,8 @@ public final class DailyClimateCreator {
 
                 if (yesterday.getMinTempTime()
                         .getHour() != ParameterFormatClimate.MISSING_HOUR) {
-                    int ihour = yesterday.getMinTempTime().getHour();
+                    int ihour = yesterday.getMinTempTime().to24HourTime()
+                            .getHour();
                     ihour = ihour + currStation.getNumOffUTC();
                     if (ihour < 0) {
                         ihour = ihour + TimeUtil.HOURS_PER_DAY;
@@ -3388,7 +2544,6 @@ public final class DailyClimateCreator {
                     yesterday.getMinTempTime().setHour(ihour);
                 }
             }
-
             // Build/retrieve the daily observed precipitation climatology
             if (yesterday
                     .getPrecip() != ParameterFormatClimate.MISSING_PRECIP) {
@@ -3396,6 +2551,7 @@ public final class DailyClimateCreator {
             } else {
                 buildDailyObsPrecip(window, yesterday);
             }
+
             // Build/retrieve the daily observed snow climatology
             if (yesterday.getSnowDay() != ParameterFormatClimate.MISSING_SNOW) {
                 yesterdayQC.setSnowQc(QCValues.SNOW_FROM_DSM);
@@ -3508,86 +2664,25 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *   June 1998     Jason P. Tuell        PRC/TDL
-    *   June 1999     Jason P. Tuell        PRC/TDL
-    *               - Modified the info_file structure to allow two
-    *                   days worth of SR/SS data to be created
-    *
-    *   Purpose:  This routine controls calculating sunrise and sunset for 
-    *             the stations in the climate summary.  The date for which
-    *             sunrise and sunset are calculated vary according to the 
-    *             type of climate summary.  The morning climate summary 
-    *             provides the sunrise and sunset for the current day, i.e.,
-    *             the day after the day for which the climate summary is valid.
-    *             The sunrise and sunset for the evening climate summary are for
-    *             the following day.
-    *
-    *             NOTE:  There will be stations at higher latitudes 
-    *                    for which there will be be no sunrise or sunset.
-    *                    For example, stations above the Arctic circle
-    *                    will not have a sunrise or sunset at dates near the 
-    *                    summer or winter solstice.  The sunrise and sunset
-    *                    will be reported as missing for these cases.
-    *        
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date           - derived TYPE that defines the valid date of
-    *                           the climate summary
-    *        climate_stations - derived TYPE that contains the stations for
-    *                           this climate summary
-    *        itype            - type of climate summary;
-    *                           =1 morning NWR daily climate summary
-    *                           =2 evening NWR daily climate summary
-    *                           =3 morning NWWS daily climate summary
-    *                           =4 evening NWWS daily climate summary
-    *                           =5 monthly NWR climate summary
-    *                           =6 monthly NWWS climate summary
-    *                           =7 annual climate summary
-    *        num_stations     - number of stations in this climate summary
-    *
-    *      Output
-    *        sunrise          - derived TYPE that contains the times of sunrise 
-    *                           for the stations in this climate summary
-    *        sunset           - derived TYPE that contains the times of sunset
-    *                           for the stations in this climate summary           
-    *
-    *
-    *      Local
-    *        dlat             - decimal station latititude
-    *        dlon             - decimal station longitude
-    *        i                - loop index
-    *        iday             - Julian day for which to calculate sunrise 
-    *                           and sunset
-    *        is_dst           - flag returned from HWRUtils::stdTime.
-    *                           = 0; daylight savings time in effect at this time
-    *                           = 1; standard time in effect at this time
-    *        num_off_UTC      - hours off of UTC
-    *        ssday            - fractional day offset of input date for sunset
-    *
-    *
-    *      Non-system routines used
-    *        convert_fractional_date  - converts fractional days into local time
-    *        rise_set                 - library routine from HWR that returns
-    *                                   sunrise and sunset in terms of 
-    *                                   fractional days off the input date
-    *
-    *      Non-system functions used
-    *        julday           - returns Julian day for an input date
-    *
-    *     MODIFICATION HISTORY
-    *     --------------------
-    *       12/7/00    Doug Murphy           Call to determine DST now properly 
-    *                                        use the sunrise/sunset dates (s_date),
-    *                                        instead of the run date (a_date)
-    *       5/21/01    Doug Murphy           Added section which sets time zone
-    *       6/22/01    Doug Murphy           Had to move where DST is determined.
-    *                                        sunrise/sunset routine now requires
-    *                                        num_off_UTC and calculates the local
-    *                                        time of the sunrises/sunsets for us.
-    *
-    *     Sept, 2007  Mohammed Sikder      Code Modified for accommodating modified Alaska
-    *                                     Time Zone. DR_19422
+     *   June 1999     Jason P. Tuell        PRC/TDL
+     *               - Modified the info_file structure to allow two
+     *                   days worth of SR/SS data to be created
+     *
+     *   Purpose:  This routine controls calculating sunrise and sunset for 
+     *             the stations in the climate summary.  The date for which
+     *             sunrise and sunset are calculated vary according to the 
+     *             type of climate summary.  The morning climate summary 
+     *             provides the sunrise and sunset for the current day, i.e.,
+     *             the day after the day for which the climate summary is valid.
+     *             The sunrise and sunset for the evening climate summary are for
+     *             the following day.
+     *
+     *             NOTE:  There will be stations at higher latitudes 
+     *                    for which there will be be no sunrise or sunset.
+     *                    For example, stations above the Arctic circle
+     *                    will not have a sunrise or sunset at dates near the 
+     *                    summer or winter solstice.  The sunrise and sunset
+     *                    will be reported as missing for these cases.
      * </pre>
      * 
      * @param aDate
@@ -3603,6 +2698,7 @@ public final class DailyClimateCreator {
      * @param itype
      * @throws ClimateInvalidParameterException
      */
+
     private static void riseAndSet(ClimateDate aDate,
             List<Station> climateStations, List<ClimateTime[]> sunrise,
             List<ClimateTime[]> sunset, PeriodType itype)
@@ -3747,60 +2843,13 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *   July 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine retrieves the observed climo data for this
-    *             date last year.  It takes into account leap years because
-    *             there is no data from the previous year for 29 Feb.  It 
-    *             uses 28 Feb from the previous years for the 29 Feb in
-    *             leap years.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date           - derived TYPE that contains date for this
-    *                           climate summary
-    *        climate_stations - derived TYPE that contains the stations 
-    *                           for this climate summary
-    *        num_stations     - number of stations in this climate summary
-    *       
-    *
-    *      Output
-    *        last_year        - derived TYPE that contains the observed
-    *                           climo data for this date last year
-    *        last_year_qc     - derived TYPE that contains the qc flags
-    *
-    *      Local
-    *        cool_season      - derived TYPE that defines the date for the
-    *                           start of the cooling season
-    *        cool_year        - derived TYPE that defines the date for the
-    *                           start of the cooling year
-    *        heat_season      - derived TYPE that defines the date for the
-    *                           start of the heating season
-    *        heat_year        - derived TYPE that defines the date for the
-    *                           start of the heating year
-    *        i                - loop counter
-    *        l_date           - derived TYPE that contains the date for 
-    *                           last year
-    *        precip_season    - derived TYPE that defines the date for the
-    *                           start of the precipitation season
-    *        precip_year      - derived TYPE that defines the date for the
-    *                           start of the precipitation year
-    *        snow_season      - derived TYPE that defines the date for the
-    *                           start of the snow season
-    *        snow_season      - derived TYPE that defines the date for the
-    *                           start of the snow year
-    *
-    *      Non-system routines used
-    *        get_last year    - retrieve's the observed climo for 
-    *                           a given station and l_date
-    *        set_season       - This routine defines the dates for the start
-    *                           period for seasonal and annual accumulation 
-    *                           periods.
-    *
-    *      Non-system functions used
-    *        leap   - Returns TRUE if input year is a leap year
+     *
+     *
+     *   Purpose:  This routine retrieves the observed climo data for this
+     *             date last year.  It takes into account leap years because
+     *             there is no data from the previous year for 29 Feb.  It 
+     *             uses 28 Feb from the previous years for the 29 Feb in
+     *             leap years.
      * </pre>
      * 
      * @param aDate
@@ -3809,6 +2858,7 @@ public final class DailyClimateCreator {
      *            empty data list that will be filled out in this method.
      * @throws Exception
      */
+
     private void getClimoFromLastYear(ClimateDate aDate,
             List<Station> climateStations, List<DailyClimateData> lastYear)
                     throws Exception {
@@ -3923,80 +2973,16 @@ public final class DailyClimateCreator {
      * Migrated from sum_his_norms.f
      * 
      * <pre>
-    *   Jan 1999     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This subroutine controls the calculation of the derived
-    *             fields from the historical data base.  
-    *             These fields include heating and cooling degree
-    *             days, cumulative totals of snow, precipitation, heating 
-    *             cooling degree days, etc.  Derived fields are listed 
-    *             below:
-    *
-    *             precip
-    *               precip_month      monthly accumulated precip
-    *               precip_season     seasonal accumulated precip
-    *               precip_year       yearly accumulated precip
-    *
-    *             snow
-    *               snow_month        monthly accumulated snow
-    *               snow_season       seassonal accumulated snow
-    *               snow_year         yearly accumulated snow
-    *
-    *             num_heat            heating degree days yesterday
-    *             num_heat_month      monthly accumulated heating degree days
-    *             num_heat_season     seasonal accumulated heating degree days
-    *             num_heat_year       yearly accumulated heating degree days
-    *
-    *             num_cool            cooling degree days yesterday
-    *             num_cool_month      monthly accumulated cooling degree days
-    *             num_cool_season     seasonal accumulated cooling degree days
-    *             num_cool_year       yearly accumulated cooling degree days
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date           - derived TYPE that contains the date for this
-    *                           climate summary
-    *        climate_stations - derived TYPE that contains the stations (and 
-    *                           associated data) in this climate summary
-    *        num_stations     - number of stations in this climate summary
-    *        y_climate        - derived TYPE that contains the historical climate
-    *                           data
-    *
-    *      Output
-    *
-    *
-    *      Local
-    *        cool_season      - derived TYPE that defines the date for the
-    *                           start of the cooling season
-    *        cool_year        - derived TYPE that defines the date for the
-    *                           start of the cooling year
-    *        heat_season      - derived TYPE that defines the date for the
-    *                           start of the heating season
-    *        heat_year        - derived TYPE that defines the date for the
-    *                           start of the heating year
-    *        precip_season    - derived TYPE that defines the date for the
-    *                           start of the precipitation season
-    *        precip_year      - derived TYPE that defines the date for the
-    *                           start of the precipitation year
-    *        snow_season      - derived TYPE that defines the date for the
-    *                           start of the snow season
-    *        snow_season      - derived TYPE that defines the date for the
-    *                           start of the snow year
-    *        i               - loop counter
-    *
-    *      Non-system routines used
-    *        set_season      - set the dates that define the start of the season and 
-    *                          year for various parameters
-    *        update_his_cool - sum the cooling degree day climate data
-    *        update_his_heat -  update the heating degree day climate data
-    *        update_his_precip - update the precipitation climate data
-    *        update_his_snow - update the snowfall climate data
-    *
-    *      Non-system functions used
+     *   Jan 1999     Jason P. Tuell        PRC/TDL
      *
+     *
+     *   Purpose:  This subroutine controls the calculation of the derived
+     *             fields from the historical data base.  
+     *             These fields include heating and cooling degree
+     *             days, cumulative totals of snow, precipitation, heating 
+     *             cooling degree days, etc.  Derived fields are listed 
+     *             below:
+     * 
      * </pre>
      * 
      * @param aDate
@@ -4046,48 +3032,15 @@ public final class DailyClimateCreator {
      * Migrated from update_his_cool.f
      * 
      * <pre>
-    *   August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             historical cooling degree days.  It determines the monthly 
-    *             accumulated historical cooling degree days first, followed by the
-    *             seasonal and lastly the annual historical cooling degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date         - derived TYPE that contains the date for this
-    *                         climate summary
-    *        inform_id      - INFORMIX station id
-    *        cool_season    - derived TYPE that contains the begin and end
-    *                         dates for the cooling degree day season
-    *        cool_year      - derived TYPE that contains the begin and end
-    *                         dates for the cooling degree day year
-    *        y_climate      - derived TYPE that holds the historical climate
-    *                         data for this station
-    *
-    *      Output
-    *        y_climate      - derived TYPE that holds the daily historical climate
-    *                         data for this station
-    *
-    *      Local
-    *
-    *      Non-system routines used
-    *
-    *
-    *
-    *      Non-system functions used
-    *        sum_his_cool   - calculates the accumulated cooling degree days
-    *                         from the historical data base
-    *   Modifications  
-    *   May 1999        David T. Miller       PRC/TDL
-    *   January 2001    Doug Murphy           PRC/MDL
-    *                   sum_his_cool is now able to sum using dates that span
-    *                   the first of the year....removed those sections from this
-    *                   routine which called the sum routine twice in these cases
+     *   August 1998     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical cooling degree days.  It determines the monthly 
+     *             accumulated historical cooling degree days first, followed by the
+     *             seasonal and lastly the annual historical cooling degree days.
+     *
      * </pre>
      * 
      * @param aDate
@@ -4096,6 +3049,7 @@ public final class DailyClimateCreator {
      * @param coolYear
      * @param yClimate
      */
+
     private void updateHisCool(ClimateDate aDate, int stationId,
             ClimateDates coolSeason, ClimateDates coolYear,
             ClimateRecordDay yClimate) {
@@ -4131,47 +3085,13 @@ public final class DailyClimateCreator {
      * Migrated from update_his_heat.f
      * 
      * <pre>
-    *   August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             historical heating degree days.  It determines the monthly 
-    *             accumulated historical heating degree days first, followed by the
-    *             seasonal and lastly the annual historical heating degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date         - derived TYPE that contains the date for this
-    *                         climate summary
-    *        inform_id      - INFORMIX station id
-    *        heat_season    - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day season
-    *        heat_year      - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day year
-    *        y_climate      - derived TYPE that holds the historical climate
-    *                         data for this station
-    *
-    *      Output
-    *        y_climate      - derived TYPE that holds the daily historical climate
-    *                         data for this station
-    *
-    *      Local
-    *
-    *      Non-system routines used
-    *
-    *
-    *
-    *      Non-system functions used
-    *        sum_his_heat   - calculates the accumulated heating degree days
-    *                         from the historical data base
-    *     Modifications
-    *     May 1999         David T. Miller                PRC/TDL
-    *     January 2001     Doug Murphy                    PRC/MDL
-    *                      sum_his_heat is now able to sum using dates that span
-    *                      the first of the year....removed those sections from this
-    *                      routine which called the sum routine twice in these cases
+     *   August 1998     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical heating degree days.  It determines the monthly 
+     *             accumulated historical heating degree days first, followed by the
+     *             seasonal and lastly the annual historical heating degree days.
      * </pre>
      * 
      * @param aDate
@@ -4217,46 +3137,13 @@ public final class DailyClimateCreator {
      * Migrated from update_his_snow.f
      * 
      * <pre>
-    *   January 1999     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             historical snowfall.  It determines the monthly 
-    *             accumulated historical snowfall first, followed by the
-    *             seasonal and lastly the annual historical snowfall.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date         - derived TYPE that contains the date for this
-    *                         climate summary
-    *        inform_id      - INFORMIX station id
-    *        snow_season    - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day season
-    *        snow_year      - derived TYPE that contains the begin and end
-    *                         dates for the heating degree day year
-    *        y_climate      - derived TYPE that holds the historical climate
-    *                         data for this station
-    *
-    *      Output
-    *        y_climate      - derived TYPE that holds the daily historical climate
-    *                         data for this station
-    *
-    *      Local
-    *
-    *      Non-system routines used
-    
-    *
-    *
-    *      Non-system functions used
-    *
-    *      Modifications
-    *      May 1999             David T. Miller             PRC/TDL
-    *      January 2001         Doug Murphy                 PRC/MDL
-    *                           sum_his_snow is now able to sum using dates that span
-    *                           the first of the year....removed those sections from this
-    *                           routine which called the sum routine twice in these cases
+     *   January 1999     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical snowfall.  It determines the monthly 
+     *             accumulated historical snowfall first, followed by the
+     *             seasonal and lastly the annual historical snowfall.
      * </pre>
      * 
      * @param aDate
@@ -4265,6 +3152,7 @@ public final class DailyClimateCreator {
      * @param snowYear
      * @param yClimate
      */
+
     private void updateHisSnow(ClimateDate aDate, int stationId,
             ClimateDates snowSeason, ClimateDates snowYear,
             ClimateRecordDay yClimate) {
@@ -4298,47 +3186,14 @@ public final class DailyClimateCreator {
      * Migrated from update_his_precip.f
      * 
      * <pre>
-    *   January 1999     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the determination of accumulated
-    *             historical precipitation.  It determines the monthly 
-    *             accumulated historical precipitation first, followed by the
-    *             seasonal and lastly the annual historical precipitation.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        a_date         - derived TYPE that contains the date for this
-    *                         climate summary
-    *        inform_id      - INFORMIX station id
-    *        precip_season  - derived TYPE that contains the begin and end
-    *                         dates for the precipitation season
-    *        precip_year    - derived TYPE that contains the begin and end
-    *                         dates for the precipitation year
-    *        y_climate      - derived TYPE that holds the historical climate
-    *                         data for this station
-    *
-    *      Output
-    *        current        - derived TYPE that holds the daily historical climate
-    *                         data for this station
-    *
-    *      Local
-    *
-    *      Non-system routines used
-    *
-    *
-    *
-    *      Non-system functions used
-    *
-    *                                date
-    *      Modifications
-    *      May 1999          David T. Miller             PRC/TDL
-    *      January 2001      Doug Murphy                 PRC/MDL
-    *                        sum_his_precip is now able to sum using dates that span
-    *                        the first of the year....removed those sections from this
-    *                        routine which called the sum routine twice in these cases
+     *   January 1999     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical precipitation.  It determines the monthly 
+     *             accumulated historical precipitation first, followed by the
+     *             seasonal and lastly the annual historical precipitation.
+     * 
      * </pre>
      * 
      * @param aDate
@@ -4347,6 +3202,7 @@ public final class DailyClimateCreator {
      * @param precipYear
      * @param yClimate
      */
+
     private void updateHisPrecip(ClimateDate aDate, int stationId,
             ClimateDates precipSeason, ClimateDates precipYear,
             ClimateRecordDay yClimate) {
@@ -4381,72 +3237,20 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * void int get_dew     (   climate_date    *this_date,
-    *                           climate_time       *now_time,
-    *               long               *station_id
-    *                 
-    *                       )
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves up to 24 hours of hourly temperatures
-    *      for the period btween begin date and time and end date and time.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - the date for climate retrieval
-    *      now_time            - the current time including the hour for which metar retrieval is used
-    *      station_id          - station id of type int for which this function
-    *                is called
-    *
-    *    Output
-    *      dew_pt              - The function get_dew will return an integer dew_pt.
-    *
-    *    Local
-    *    char
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *      peak_wind           - The holding variable for a returned value in the metar retrieval function
-    *      peak_time           - The holding variable for a returned value in the metar retrieval function
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      dew_pt              - The value returned by the function
-    *      hour_dew            - The variable name for a value returned by a metar function.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struct
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the begining time. 
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)
-    *  
-    * Modification Log
-    * Name                    Date         Change
-    * Bob Morris              Feb 2003     - Get rid of call to nominal_time()
-    *                                        in favor of unused convert_ticks...
-    *                                      - Reordered "get" logic to make sense
+     *                           climate_time       *now_time,
+     *               long               *station_id
+     *                 
+     *                       )
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves up to 24 hours of hourly temperatures
+     *      for the period between begin date and time and end date and time.
+     *
      * </pre>
      * 
      * @param date
@@ -4454,7 +3258,8 @@ public final class DailyClimateCreator {
      * @param stationID
      * @return
      */
-    private int getDew(ClimateDate date, ClimateTime time, int stationID) {
+
+    private double getDew(ClimateDate date, ClimateTime time, int stationID) {
         Calendar cal = date.getCalendarFromClimateDate();
         cal.set(Calendar.HOUR_OF_DAY, time.getHour());
         cal.set(Calendar.MINUTE, time.getMin());
@@ -4462,7 +3267,7 @@ public final class DailyClimateCreator {
         String datetime = ClimateDate.getFullDateTimeFormat()
                 .format(cal.getTime());
 
-        int dewpoint;
+        double dewpoint;
         try {
             /*
              * This function will retrieve the dew_pt reported during a single
@@ -4478,8 +3283,8 @@ public final class DailyClimateCreator {
             if (result.isMissing()) {
                 dewpoint = ParameterFormatClimate.MISSING;
             } else {
-                dewpoint = (int) (ClimateUtilities
-                        .celsiusToFahrenheit(result.getValue()));
+                dewpoint = ClimateUtilities
+                        .celsiusToFahrenheit(result.getValue());
             }
         } catch (ClimateQueryException e) {
             logger.error(
@@ -4496,8 +3301,8 @@ public final class DailyClimateCreator {
                 if (result.isMissing()) {
                     dewpoint = ParameterFormatClimate.MISSING;
                 } else {
-                    dewpoint = (int) (ClimateUtilities
-                            .celsiusToFahrenheit(result.getValue()));
+                    dewpoint = ClimateUtilities
+                            .celsiusToFahrenheit(result.getValue());
                 }
             } catch (ClimateQueryException e2) {
                 logger.error(
@@ -4528,70 +3333,18 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * void int get_temp    (   climate_date    *this_date,
-    *                           climate_time       *now_time,
-    *               long               *station_id )
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves up to 24 hours of hourly temperatures
-    *      for the period btween begin date and time and end date and time.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - the date for climate retrieval
-    *      now_time            - the current time including the hour for which metar retrieval is used
-    *      station_id          - station id of type int for which this function
-    *                is called
-    *
-    *    Output
-    *      temperature         - The function get_dew will return an integer dew_pt.
-    *
-    *    Local
-    *    char
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *      peak_wind           - The holding variable for a returned value in the metar retrieval function
-    *      peak_time           - The holding variable for a returned value in the metar retrieval function
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      temperature         - The value returned by the function
-    *      hour_temp           - The variable name for a value returned by a metar function.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struct
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the begining time. 
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)  
-    *
-    * Modification Log
-    * Name                    Date         Change
-    * Bob Morris              Feb 2003     - Get rid of call to nominal_time()
-    *                                        in favor of unused convert_ticks...
-    *                                      - Re-order "get" logic to make sense
+     *                           climate_time       *now_time,
+     *               long               *station_id )
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves up to 24 hours of hourly temperatures
+     *      for the period between begin date and time and end date and time.
+     *
      * </pre>
      * 
      * @param date
@@ -4599,7 +3352,8 @@ public final class DailyClimateCreator {
      * @param stationID
      * @return
      */
-    private int getTemp(ClimateDate date, ClimateTime time, int stationID) {
+
+    private double getTemp(ClimateDate date, ClimateTime time, int stationID) {
         Calendar cal = date.getCalendarFromClimateDate();
         cal.set(Calendar.HOUR_OF_DAY, time.getHour());
         cal.set(Calendar.MINUTE, time.getMin());
@@ -4607,7 +3361,7 @@ public final class DailyClimateCreator {
         String datetime = ClimateDate.getFullDateTimeFormat()
                 .format(cal.getTime());
 
-        int temperature;
+        double temperature;
         try {
             /*
              * This function will retrieve the temperature reported during a
@@ -4623,8 +3377,8 @@ public final class DailyClimateCreator {
             if (result.isMissing()) {
                 temperature = ParameterFormatClimate.MISSING;
             } else {
-                temperature = (int) (ClimateUtilities
-                        .celsiusToFahrenheit(result.getValue()));
+                temperature = ClimateUtilities
+                        .celsiusToFahrenheit(result.getValue());
             }
 
         } catch (ClimateQueryException e) {
@@ -4642,8 +3396,8 @@ public final class DailyClimateCreator {
                 if (result.isMissing()) {
                     temperature = ParameterFormatClimate.MISSING;
                 } else {
-                    temperature = (int) (ClimateUtilities
-                            .celsiusToFahrenheit(result.getValue()));
+                    temperature = ClimateUtilities
+                            .celsiusToFahrenheit(result.getValue());
                 }
             } catch (ClimateQueryException e2) {
                 logger.error(
@@ -4669,131 +3423,44 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * FILENAME:            compute_daily_snow.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:   2
-    * GENERAL INFORMATION:
-    *       MODULE 1:      compute_daily_snow
-    *       DESCRIPTION:   Computes the snowfall amount for a station
-    *                      using snow reports gleaned from Supplemental Climate
-    *                      Data (SCD).
-    *       MODULE 2:      get_SCD_snow
-    *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
-    *                      based upon a user-inputted time range.
-    *
-    * ORIGINAL AUTHOR:     Bryon Lawrence
-    * CREATION DATE:       August 30, 1998
-    * ORGANIZATION:        TDL / GSC
-    * MACHINE:             HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/30/98      Bryon Lawrence    Original Coding
-    *                   1/09/01      Doug Murphy       Added check for AUTO METAR
-    *                                                  reports - snow depth is not
-    *                                                  assumed to be 0 in case of AUTO
-    *                   1/30/01      Doug Murphy       Added more robust snow depth
-    *                                                  code
-    *          2        8/31/98      Bryon Lawrence    Original Coding
-    *                   9/29/00      Doug Murphy       Removed extra include file
-    *          3        1/09/01      Doug Murphy       Original coding
-    *         ALL       1/26/05      Manan Dalal       Ported from Informix to Postgres
-    *         *******************************************************************************
-    * MODULE NUMBER: 1
-    * MODULE NAME: compute_daily_snow
-    * PURPOSE:
-    *    This routine computes the snow accumulation over a user-specified
-    *    period using SCD snow reports. The snow amount is computed between
-    *    a user-specified begin and end time. If no SCD reports could
-    *    be found then the snow amount is returned with a value of SNOW_MISS. If no
-    *    snow actually fell during the period, then a snow amount of 0 is 
-    *    returned. Actual snow amounts are reported to the nearest tenth of an
-    *    inch.
-    *
-    *    Note that it is often not possible to compute exactly how much snow
-    *    fell in during period based upon SCD data since the local time of 
-    *    the station may be offset from the 00, 06, 12, 18 GMT schedule of the 
-    *    SCDs.
-    *
-    *    This routine also tries to find the METAR-reported 12Z snow depth. If 
-    *    the 12Z METAR report cannot be found, then this will have a value of
-    *    SNOW_MISS. If the report existed but no snow depth was reported, then
-    *    the snow depth will be given a value of 0. The 12Z snow depth is also
-    *    reported to the nearest tenbth of an inch. 
-    *
-    *    Assumptions.....
-    *    It is the responsibility of the calling routine to establish a connection
-    *    with the hm database.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      c_date*     begin_date           The begin year, month, day of
-    *                                           the 24 hour period.
-    *   I      c_time*     begin_time           The begin hour of the 24 hour
-    *                                           period.
-    *   I      c_date*     end_date             The end year, month, day of the
-    *                                           24 hour period.
-    *   I      c_time*     end_time             The end hour of the 24 hour 
-    *                                           period.
-    *   I      int*        itype                The type of climate report
-    *   I      long*       station_id           The numeric identifier of the
-    *                                           the station to retrieve the
-    *   I      int*        qc                   Method of retrieval for snow amount
-    *   I      int*        depth_qc             Retrieval method for snow depth
-    *   O      float*      snow_amount          The cumulative snow amount.
-    *   O      float*      snow_12Z_depth       The 12Z METAR observed depth 
-    *                                           of snow.
-    *                                           
-    * RETURNS:
-    *   None.
-    *
-    * APIs UTILIZED:
-    *   NAME                        HEADER FILE          DESCRIPTION
-    *   convert_ticks_2_string      AEV_time_util.h      Converts a time in UNIX
-    *                                                    ticks into an INFORMIX
-    *                                                    compatible time string.
-    *   get_SCD_snow                compute_daily_snow.h Retrieves a snow
-    *                                                    accumulation from 
-    *                                                    a scheduled SCD report.
-    *   get_metar_conreal_val       adapt_utils.h        Searchs the
-    *                                                    FSS_contin_real table in
-    *                                                    the HM database.
-    *   
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * These are defined in the body of the code.
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following tables in the hm database:
-    * FSS_report, FSS_contin_real.
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *
-    *    STATUS_OK                         The routine executed correctly.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
-    *
-    *    (Note that all of these error codes are defined in STATUS.h).
-    *
-    * MACROS
-    *    Name                     Header             Description
-    * CHECK_FOR_FATAL_ERROR  compute_daily_precip.h  Checks for fatal INFORMIX
-    *                                                errors.
-    * CREATE_INFORMIX_TIME   AEV_time_util.h         Converts a time value in UNIX
-    *                                                ticks to an INFORMIX
-    *                                                compatible string.
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:   2
+     * GENERAL INFORMATION:
+     *       MODULE 1:      compute_daily_snow
+     *       DESCRIPTION:   Computes the snowfall amount for a station
+     *                      using snow reports gleaned from Supplemental Climate
+     *                      Data (SCD).
+     *       MODULE 2:      get_SCD_snow
+     *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
+     *                      based upon a user-inputted time range.
+     *
+     *         *******************************************************************************
+     * MODULE NUMBER: 1
+     * MODULE NAME: compute_daily_snow
+     * PURPOSE:
+     *    This routine computes the snow accumulation over a user-specified
+     *    period using SCD snow reports. The snow amount is computed between
+     *    a user-specified begin and end time. If no SCD reports could
+     *    be found then the snow amount is returned with a value of SNOW_MISS. If no
+     *    snow actually fell during the period, then a snow amount of 0 is 
+     *    returned. Actual snow amounts are reported to the nearest tenth of an
+     *    inch.
+     *
+     *    Note that it is often not possible to compute exactly how much snow
+     *    fell in during period based upon SCD data since the local time of 
+     *    the station may be offset from the 00, 06, 12, 18 GMT schedule of the 
+     *    SCDs.
+     *
+     *    This routine also tries to find the METAR-reported 12Z snow depth. If 
+     *    the 12Z METAR report cannot be found, then this will have a value of
+     *    SNOW_MISS. If the report existed but no snow depth was reported, then
+     *    the snow depth will be given a value of 0. The 12Z snow depth is also
+     *    reported to the nearest tenbth of an inch. 
+     *
+     *    Assumptions.....
+     *    It is the responsibility of the calling routine to establish a connection
+     *    with the hm database.
+     *
      * </pre>
      * 
      * @param window
@@ -4802,6 +3469,7 @@ public final class DailyClimateCreator {
      *            data to set. Assumed to already have inform ID (station ID)
      *            set.
      */
+
     private void computeDailySnow(ClimateDates window, PeriodType itype,
             DailyClimateData data) {
         /*
@@ -4809,7 +3477,8 @@ public final class DailyClimateCreator {
          */
         Calendar beginCal = window.getStart().getCalendarFromClimateDate();
         beginCal.set(Calendar.HOUR_OF_DAY, window.getStartTime().getHour());
-        beginCal.set(Calendar.MINUTE, window.getStartTime().getMin());
+        // expected data has 0 minute
+        beginCal.set(Calendar.MINUTE, 0);
         long beginBaseMilliTicks = beginCal.getTimeInMillis();
 
         int beginHour = window.getStartTime().getHour();
@@ -4828,7 +3497,8 @@ public final class DailyClimateCreator {
          */
         Calendar endCal = window.getEnd().getCalendarFromClimateDate();
         endCal.set(Calendar.HOUR_OF_DAY, window.getEndTime().getHour());
-        endCal.set(Calendar.MINUTE, window.getEndTime().getMin());
+        // expected data has 0 minute
+        endCal.set(Calendar.MINUTE, 0);
         long endBaseMilliTicks = endCal.getTimeInMillis();
 
         int endHour = window.getEndTime().getHour();
@@ -5035,7 +3705,12 @@ public final class DailyClimateCreator {
                 try {
                     String correction = climateCreatorDAO.getCorrection(
                             data.getInformId(), nominalTimeString);
-                    if (!correction.equals("A")) {
+                    if (correction == null) {
+                        logger.warn(
+                                "No METAR observation found for station ID: ["
+                                        + data.getInformId() + "] and time: ["
+                                        + nominalTimeString + "]");
+                    } else if (!correction.equals("A")) {
                         try {
                             FSSReportResult result = climateCreatorDAO
                                     .getMetarConreal(data.getInformId(),
@@ -5076,142 +3751,41 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * June 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the retrieval and determination
-    *             of the daily observed precipitation.  It calls a routine
-    *             that returns the precipitation that fell between
-    *             a specified starting and ending time for a given station.
-    *             It also sets the precip quality control flag.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_date         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *
-    *      Output
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        precip_qc          - flag which specifies the method used to
-    *                             determine the precipitation
-    *
-    *
-    *      Local
-    *        precip             - amount of precipitation that fell in a 
-    *                             specified period.  Value is returned as
-    *                             a real number with precision to the
-    *                             hundredths
-    *
-    *      Non-system routines used
-    *        compute_daily_precip - returns the amount of precipitation between
-    *                               the starting and ending periods for a given
-    *                               station
-    ********************************************************************************
-    * FILENAME:             compute_daily_precip.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:    3
-    * GENERAL INFORMATION:
-    *   MODULE 1:           compute_daily_amt
-    *   DESCRIPTION:        Contains the code to process the observed
-    *                       precipitation amount.
-    *   MODULE 2:           tally_rain_amount
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
-    *                       taking into account special precipitation situations
-    *                       such as a trace of rain, etc.
-    *   MODULE 3:           get_period_rain_amt
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
-    *                       amount over a user-specified period.
-    * ORIGINAL AUTHOR:      Bryon Lawrence
-    * CREATION DATE:        August 23, 1998
-    * ORGANIZATION:         GSC / TDL
-    * MACHINE:              HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/23/98      Bryon Lawrence    Original Coding
-    *          2        8/23/98      Bryon Lawrence    Original Coding
-    *          3        8/23/98      Bryon Lawrence    Original Coding
-    *          1        1/24/00      Bryon Lawrence    Fixed an error in this
-    *                                                  routine that was causing
-    *                                                  inflated rain amounts.
-    *          3        1/24/00      Bryon Lawrence    Slightly simplified the
-    *                                                  logic in this routine.
-    ********************************************************************************
-    * MODULE NUMBER: 3
-    * MODULE NAME:   get_period_rain_amt
-    * PURPOSE: Given the upper and lower bounds of a range of hours as offset
-    *          from a base time, this routine will determine the rainfall
-    *          that accumulated during that time period. If the hour bounds 
-    *          denote a period that is before the base time, then the 
-    *          the values must be negative. If the hour bounds denote a period
-    *          that is after the base time, then the values must be positive.
-    *
-    *          NOTE: It is the responsibility of the calling routine to
-    *                establish a connection with the HM database.
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *      I   int         bottom_time          The lower time bound of the 
-    *                                           period to retrieve a rainfall
-    *                                           total from. 
-    *      I   int         top_time             The upper time bound of the 
-    *                                           period to retrieve a rainfall 
-    *                                           total from.
-    *      I   long        station_id           The identifier of the station that
-    *                                           rainfall is being accumulated for.
-    *      I   time_t      base_time            The time the above time_bounds are
-    *                                           are added to / subtracted from.
-    *      O   float       *rain_amount         The rainfall amount determined
-    *                                           by this routine over the 
-    *                                           specified period for the 
-    *                                           specified station.
-    *      I   STATUS      *status              Contains any error or 
-    *                                           diagnostic codes created in
-    *                                           this routine. 
-    *                                            
-    * RETURNS:
-    * None.
-    *
-    * APIs UTILIZED:
-    *   NAME                  HEADER FILE            DESCRIPTION
-    *   get_metar_conreal_val metar_utils.h          Retrieves data from
-    *                                                the FSS_contin_real table.
-    *                                                This is where the rainfall
-    *                                                data is stored.
-    *   tally_rain_amount     compute_daily_precip.h Adds two rainfall amounts
-    *                                                together paying attention
-    *                                                too trace amounts, etc.
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    *  (These are defined in the body of the code).
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following tables in the HM database:
-    * FSS_report, FSS_contin_real.
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE            DESCRIPTION
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)
+     *
+     *
+     *   Purpose:  This routine controls the retrieval and determination
+     *             of the daily observed precipitation.  It calls a routine
+     *             that returns the precipitation that fell between
+     *             a specified starting and ending time for a given station.
+     *             It also sets the precip quality control flag.
+     * 
+     ********************************************************************************
+     * FILENAME:             compute_daily_precip.c
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:    3
+     * GENERAL INFORMATION:
+     *   MODULE 1:           compute_daily_amt
+     *   DESCRIPTION:        Contains the code to process the observed
+     *                       precipitation amount.
+     *   MODULE 2:           tally_rain_amount
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
+     *                       taking into account special precipitation situations
+     *                       such as a trace of rain, etc.
+     *   MODULE 3:           get_period_rain_amt
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
+     *                       amount over a user-specified period.
+     ********************************************************************************
+     * MODULE NUMBER: 3
+     * MODULE NAME:   get_period_rain_amt
+     * PURPOSE: Given the upper and lower bounds of a range of hours as offset
+     *          from a base time, this routine will determine the rainfall
+     *          that accumulated during that time period. If the hour bounds 
+     *          denote a period that is before the base time, then the 
+     *          the values must be negative. If the hour bounds denote a period
+     *          that is after the base time, then the values must be positive.
+     *
+     *          NOTE: It is the responsibility of the calling routine to
+     *                establish a connection with the HM database.
      * </pre>
      * 
      * @param bottomTime
@@ -5222,6 +3796,7 @@ public final class DailyClimateCreator {
      *            current precip value
      * @return new precip value
      */
+
     private float getPrecipRainAmount(int bottomTime, int topTime, int informId,
             long baseMilliTicks, float precip) {
         try {
@@ -5258,76 +3833,9 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * MODULE NUMBER:  7
-    * MODULE NAME:    det_pd_min
-    * PURPOSE:        This routine determines the minimum temperature in a 
-    *         user-specified time period.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the
-    *                                           station to retrieve the temperature
-    *                                           information for (as defined in the 
-    *                                           station_location table of the
-    *                                           HM database).
-    *   I      time_t      beg_dtime            The beginning time in UNIX ticks
-    *                                           representation of the time 
-    *                                           period to find the minimum
-    *                                           temperature in.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks
-    *                                           representation of the time period
-    *                                           to find the minimum temperature in.
-    *   I      float       *mintemp             The minimum temperature found in
-    *                                           this period.
-    *   O      char        *dqd                 The data quality descriptor flag
-    *                                           associated with the minimum
-    *                                           temperature retrieved from the
-    *                                           HM database.
-    *   O      int         *temp_flag           Contains a numeric code indicating
-    *                                           how the minimum temperature was
-    *                                           was arrived at.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    *   None.
-    *
-    * APIs UTILIZED:
-    *   NAME                     HEADER FILE        DESCRIPTION
-    *   convert_ticks_2_string   AEV_time_util.h    Converts a time in UNIX ticks
-    *                                               representation to an INFORMIX
-    *                                               comaptible string.
-    *   get_metar_conreal_val    metar_utils.h      Retrieves a continous datum
-    *                                               from the FSS_contin_real table
-    *                                               in the HM database.
-    *   get_pd_metar_min         N/A                This routine finds the minimum
-    *                                               temperature for a
-    *                                               user-specified period of
-    *                                               METARs.
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of this routine. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following routines in the HM database:
-    *    FSS_report
-    *    FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NAME:    det_pd_min
+     * PURPOSE:        This routine determines the minimum temperature in a 
+     *         user-specified time period.
      * </pre>
      * 
      * @param informId
@@ -5337,6 +3845,7 @@ public final class DailyClimateCreator {
      *            in milliseconds
      * @return
      */
+
     private ClimateCreatorDAO.ExtremeTempPeriodResult determinePeriodMin(
             int informId, long beginTimeMilli, long endTimeMilli) {
         Calendar beginCal = TimeUtil.newCalendar();
@@ -5416,14 +3925,21 @@ public final class DailyClimateCreator {
                      */
                     if (speciResult.getTemp() < metarResult.getTemp()) {
                         return new ClimateCreatorDAO.ExtremeTempPeriodResult(
-                                new ClimateTime(nominalCal),
-                                speciResult.getTemp(), speciResult.getFlag());
+                                speciResult.getTime(), speciResult.getTemp(),
+                                speciResult.getFlag());
                     } else {
                         return new ClimateCreatorDAO.ExtremeTempPeriodResult(
-                                new ClimateTime(beginCal),
-                                metarResult.getTemp(), metarResult.getFlag());
+                                metarResult.getTime(), metarResult.getTemp(),
+                                metarResult.getFlag());
                     }
                 }
+
+                /*
+                 * Just return the metar high if the speci result is missing.
+                 */
+                return new ClimateCreatorDAO.ExtremeTempPeriodResult(
+                        metarResult.getTime(), metarResult.getTemp(),
+                        metarResult.getFlag());
             }
         }
 
@@ -5435,109 +3951,35 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      *  June 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine controls the retrieval and determination
-    *             of the daily observed precipitation.  It calls a routine
-    *             that returns the precipitation that fell between
-    *             a specified starting and ending time for a given station.
-    *             It also sets the precip quality control flag.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_date         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *
-    *      Output
-    *        data               - derived TYPE that contains the observed
-    *                             climate data for a given station
-    *        precip_qc          - flag which specifies the method used to
-    *                             determine the precipitation
-    *
-    *
-    *      Local
-    *        precip             - amount of precipitation that fell in a 
-    *                             specified period.  Value is returned as
-    *                             a real number with precision to the
-    *                             hundredths
-    *
-    *      Non-system routines used
-    *        compute_daily_precip - returns the amount of precipitation between
-    *                               the starting and ending periods for a given
-    *                               station
-    ********************************************************************************
-    * FILENAME:             compute_daily_precip.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:    3
-    * GENERAL INFORMATION:
-    *   MODULE 1:           compute_daily_amt
-    *   DESCRIPTION:        Contains the code to process the observed
-    *                       precipitation amount.
-    *   MODULE 2:           tally_rain_amount
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
-    *                       taking into account special precipitation situations
-    *                       such as a trace of rain, etc.
-    *   MODULE 3:           get_period_rain_amt
-    *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
-    *                       amount over a user-specified period.
-    * ORIGINAL AUTHOR:      Bryon Lawrence
-    * CREATION DATE:        August 23, 1998
-    * ORGANIZATION:         GSC / TDL
-    * MACHINE:              HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/23/98      Bryon Lawrence    Original Coding
-    *          2        8/23/98      Bryon Lawrence    Original Coding
-    *          3        8/23/98      Bryon Lawrence    Original Coding
-    *          1        1/24/00      Bryon Lawrence    Fixed an error in this
-    *                                                  routine that was causing
-    *                                                  inflated rain amounts.
-    *          3        1/24/00      Bryon Lawrence    Slightly simplified the
-    *                                                  logic in this routine.
-    ********************************************************************************
-    * MODULE NUMBER:  2
-    * MODULE NAME:    tally_rain_amount 
-    * PURPOSE:        This routine adds a rain_amount to a "running" total
-    *                 taking into account trace amounts, missing values, etc.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I/O    float*      precip_amount        A pointer to the memory location
-    *                                           which contains the rain amount
-    *                                           accumulated over the period.
-    *   I      float       element_value        The rain fall amount to be added
-    *                                           to the cumulative rain amount.
-    *   I      STATUS      status               Contains the exit status from 
-    *                                           the get_metar_conreal_ele routine.
-    *                                           This is used to determine how
-    *                                           exactly to handle the value in
-    *                                           the element_value variable.
-    * RETURNS:
-    *   None.
-    *
-    * APIs UTILIZED:
-    *   None.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    *
-    * DATA FILES AND/OR DATABASE:
-    *   None.
-    *
-    * ERROR HANDLING:
-    *   None.
+     *
+     *
+     *   Purpose:  This routine controls the retrieval and determination
+     *             of the daily observed precipitation.  It calls a routine
+     *             that returns the precipitation that fell between
+     *             a specified starting and ending time for a given station.
+     *             It also sets the precip quality control flag.
+     * 
+     ********************************************************************************
+     * FILENAME:             compute_daily_precip.c
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:    3
+     * GENERAL INFORMATION:
+     *   MODULE 1:           compute_daily_amt
+     *   DESCRIPTION:        Contains the code to process the observed
+     *                       precipitation amount.
+     *   MODULE 2:           tally_rain_amount
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain amount
+     *                       taking into account special precipitation situations
+     *                       such as a trace of rain, etc.
+     *   MODULE 3:           get_period_rain_amt
+     *   DESCRIPTION:        Contains the code to maintain a cumulative rain 
+     *                       amount over a user-specified period.
+     ********************************************************************************
+     * MODULE NUMBER:  2
+     * MODULE NAME:    tally_rain_amount 
+     * PURPOSE:        This routine adds a rain_amount to a "running" total
+     *                 taking into account trace amounts, missing values, etc.
+     *
      * </pre>
      * 
      * @param precip
@@ -5546,26 +3988,74 @@ public final class DailyClimateCreator {
      *            retrieved precip value.
      * @return new precip value to use.
      */
+
     private static float tallyRainAmount(float precip, double elementValue) {
-        if ((elementValue == ParameterFormatClimate.MISSING)
-                && (precip == ParameterFormatClimate.MISSING_PRECIP
-                        || precip == ClimateCreatorDAO.R_MISS)) {
+        boolean basePrecipMissing = (ClimateUtilities.floatingEquals(precip,
+                ParameterFormatClimate.MISSING_PRECIP)
+                || ClimateUtilities.floatingEquals(precip,
+                        ClimateCreatorDAO.R_MISS));
+        boolean retrievedPrecipMissing = (ClimateUtilities.floatingEquals(
+                elementValue, ParameterFormatClimate.MISSING_PRECIP)
+                || ClimateUtilities.floatingEquals(elementValue,
+                        ClimateCreatorDAO.R_MISS));
+        /*
+         * legacy parsing of METARs allowed for precip values less than the
+         * trace value of -1, so cannot just return a potentially bad value.
+         * Clear out potentially bad trace indicators.
+         */
+        precip = precip < 0 ? ParameterFormatClimate.TRACE : precip;
+        elementValue = elementValue < 0 ? ParameterFormatClimate.TRACE
+                : elementValue;
+
+        /*
+         * Check what case we are in. Want to sum the 2 values, but should not
+         * directly sum TRACE or MISSING values as these are special indicators.
+         */
+        if (retrievedPrecipMissing && basePrecipMissing) {
+            /*
+             * both values are missing, so return 0 per Legacy logic.
+             */
             return 0;
-        } else if (((elementValue == ParameterFormatClimate.TRACE)
-                && ((precip == ClimateCreatorDAO.R_MISS) || (precip == 0)
-                        || (precip == ParameterFormatClimate.MISSING_PRECIP)))) {
-            return ParameterFormatClimate.TRACE;
-        } else if (((elementValue != ParameterFormatClimate.TRACE)
-                && ((precip == ClimateCreatorDAO.R_MISS)
-                        || (precip == ParameterFormatClimate.TRACE)
-                        || (precip == ParameterFormatClimate.MISSING_PRECIP)))
-                && (elementValue != ParameterFormatClimate.MISSING)) {
-            return (float) elementValue;
-        } else if ((elementValue != ParameterFormatClimate.TRACE)
-                && (elementValue != ParameterFormatClimate.MISSING)) {
-            return (float) (precip + elementValue);
-        } else {
+        } else if (retrievedPrecipMissing) {
+            /*
+             * retrieved value is missing but not base value, so just return
+             * base value
+             */
             return precip;
+        } else if (basePrecipMissing) {
+            /*
+             * base value is missing but not retrieved value, so just return
+             * retrieved value
+             */
+            return (float) elementValue;
+            /*
+             * no value below here is missing
+             */
+        } else if ((precip == ParameterFormatClimate.TRACE
+                && elementValue == ParameterFormatClimate.TRACE)) {
+            /*
+             * Both values are trace, so return trace
+             */
+            return ParameterFormatClimate.TRACE;
+        } else if ((precip == ParameterFormatClimate.TRACE
+                && elementValue != ParameterFormatClimate.TRACE)) {
+            /*
+             * base value is trace and retrieved value is not, so return
+             * retrieved value.
+             */
+            return (float) elementValue;
+        } else if ((precip != ParameterFormatClimate.TRACE
+                && elementValue == ParameterFormatClimate.TRACE)) {
+            /*
+             * retrieved value is trace and base value is not, so return base
+             * value.
+             */
+            return precip;
+        } else {
+            /*
+             * Neither value is missing or trace, so just return their sum
+             */
+            return precip + (float) elementValue;
         }
     }
 
@@ -5574,64 +4064,12 @@ public final class DailyClimateCreator {
      * 
      * <pre>
      * MODULE NUMBER:  6
-    * MODULE NAME:    det_pd_max
-    * PURPOSE:        This routine determines the maximum temperature in
-    *                 a user-specified time period. It does this by looking for
-    *                 the hourly temperature groups (Txxxxxxxx) and if these are
-    *                 not present then it looks through the rounded temperature 
-    *                 groups.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the
-    *                                           station to find the maximum and
-    *                                           minimum temperature information.
-    *   I      time_t      beg_dtime            The beginning time in ticks
-    *                                           of the time period.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks of
-    *                                           of the time period to find the
-    *                                           maximum time in.
-    *   O      float       *maxtemp             The maximum temperature of the 
-    *                                           time period.
-    * RETURNS:
-    *  None.
-    *
-    * APIs UTILIZED:
-    *   NAME                     HEADER FILE      DESCRIPTION
-    *   convert_ticks_2_string   AEV_time_util.h  Converts a time in UNIX ticks
-    *                                             into an INFORMIX-compatible
-    *                                             time string.
-    *   get_metar_conreal_val    metar_utils.h    Retrieves a continous real value
-    *                                             from the HM database.
-    *   get_pd_metar_max         N/A              This routine determines the
-    *                                             maximum temperature from a
-    *                                             period of METAR observations. 
-    *   
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the code. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following tables in the HM database:
-    *      FSS_report
-    *      FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NAME:    det_pd_max
+     * PURPOSE:        This routine determines the maximum temperature in
+     *                 a user-specified time period. It does this by looking for
+     *                 the hourly temperature groups (Txxxxxxxx) and if these are
+     *                 not present then it looks through the rounded temperature 
+     *                 groups.
      * </pre>
      * 
      * @param informId
@@ -5641,6 +4079,7 @@ public final class DailyClimateCreator {
      *            in milliseconds
      * @return
      */
+
     private ClimateCreatorDAO.ExtremeTempPeriodResult determinePeriodMax(
             int informId, long beginTimeMilli, long endTimeMilli) {
         Calendar beginCal = TimeUtil.newCalendar();
@@ -5726,17 +4165,229 @@ public final class DailyClimateCreator {
                      */
                     if (speciResult.getTemp() > metarResult.getTemp()) {
                         return new ClimateCreatorDAO.ExtremeTempPeriodResult(
-                                new ClimateTime(nominalCal),
-                                speciResult.getTemp(), speciResult.getFlag());
+                                speciResult.getTime(), speciResult.getTemp(),
+                                speciResult.getFlag());
                     } else {
                         return new ClimateCreatorDAO.ExtremeTempPeriodResult(
-                                new ClimateTime(beginCal),
-                                metarResult.getTemp(), metarResult.getFlag());
+                                metarResult.getTime(), metarResult.getTemp(),
+                                metarResult.getFlag());
                     }
                 }
+
+                /*
+                 * Just return the metar high if the speci result is missing.
+                 */
+                return new ClimateCreatorDAO.ExtremeTempPeriodResult(
+                        metarResult.getTime(), metarResult.getTemp(),
+                        metarResult.getFlag());
             }
         }
 
         return new ClimateCreatorDAO.ExtremeTempPeriodResult();
+    }
+
+    /**
+     * Migrated from determine_window.f
+     * 
+     * <pre>
+     *   July 1998     Jason P. Tuell        PRC/TDL
+     *   Oct. 1998     David O. Miller       PRC/TDL
+     *
+     *
+     *   Purpose:  This routine determines the starting and ending times
+     *             and dates for data retrievals for the different climate
+     *             summaries.  It only makes one assumption regarding the
+     *             valid_time for the evening climate summaries: the valid_time
+     *             must be later than or equal to 1300 local!!  (i.e., the 
+     *             evening climate summary must be run in the afternoon or
+     *             evening.  The begin and start times are only used
+     *             for building the daily summaries.
+     *
+     *             The month and year in the valid date is used to specify
+     *             month and year of the monthly climate summary.  The day
+     *             is used to specify the ending day of the month (typically
+     *             the last day of the month).  However, by using the day from
+     *             a_date, it allows the user to produce mid-month climate
+     *             summaries.
+     *
+     *             The year is used to determine the year for an annual 
+     *             climate summary.  In a normal run, the month and day will
+     *             be that of the last day of the year.  However, using the day
+     *             and year from a_date will enable the user to produce mid_year
+     *             climate summaries.
+     * 
+     * </pre>
+     * 
+     * @param aDate
+     * @param station
+     * @param itype
+     * @param validTime
+     */
+
+    public ClimateDates determineWindow(ClimateDate aDate, Station station,
+            PeriodType itype, ClimateTime validTime) {
+        ClimateDate beginDate = ClimateDate.getMissingClimateDate();
+        ClimateTime beginTime = ClimateTime.getMissingClimateTime();
+        ClimateDate endDate = ClimateDate.getMissingClimateDate();
+        ClimateTime endTime = ClimateTime.getMissingClimateTime();
+
+        switch (itype) {
+
+        // Daily climate summary. We need to take into account the
+        // differences in the different time zones.
+        // Keep in mind that the daily climate summary is done for
+        // midnight to midnight local standard time.
+
+        case MORN_NWWS:
+        case MORN_RAD:
+
+            beginTime.setMin(0);
+            endTime.setMin(59);
+
+            if (station.getNumOffUTC() < 0) {
+
+                int ihour = Math.abs(station.getNumOffUTC());
+                beginTime.setHour(ihour);
+                endTime.setHour(ihour - 1);
+
+                beginDate = new ClimateDate(aDate);
+                endDate.setYear(aDate.getYear());
+                // Get next day of year
+                int iday = aDate.julday() + 1;
+
+                // Set endDate to next day of year
+                endDate.convertJulday(iday);
+
+            } else if (station.getNumOffUTC() > 0) {
+                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                endTime.setHour(ihour - 1);
+
+                int iday = aDate.julday() - 1;
+                endDate = new ClimateDate(aDate);
+                beginDate.setYear(aDate.getYear());
+
+                beginDate.convertJulday(iday);
+
+            } else {
+
+                beginTime.setHour(0);
+                endTime.setHour(23);
+                beginDate = new ClimateDate(aDate);
+                endDate = new ClimateDate(aDate);
+
+            }
+            break;
+
+        case INTER_NWWS:
+        case INTER_RAD:
+        case EVEN_NWWS:
+        case EVEN_RAD:
+
+            // Evening and intermediate climate summary. These are
+            // generated for the period from midnight to valid_time, which
+            // the user specifies via the set up GUI.
+            beginTime.setMin(0);
+            endTime.setMin(0);
+
+            if (station.getNumOffUTC() < 0) {
+
+                int iday;
+                int ihour = Math.abs(station.getNumOffUTC());
+                beginTime.setHour(ihour);
+                int ihourValidUTC = ihour + validTime.getHour();
+
+                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
+                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
+                    // Get next day of year
+                    iday = aDate.julday() + 1;
+                } else {
+                    endTime.setHour(ihourValidUTC);
+                    // Get current day of year
+                    iday = aDate.julday();
+                }
+
+                beginDate = new ClimateDate(aDate);
+                endDate.setYear(aDate.getYear());
+
+                // Set endDate to next or current day of year
+                endDate.convertJulday(iday);
+
+            } else if (station.getNumOffUTC() > 0) {
+                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
+                beginTime.setHour(ihour);
+                int ihourValidUTC = beginTime.getHour() + validTime.getHour();
+
+                int iday = aDate.julday() - 1;
+                beginDate.convertJulday(iday);
+                beginDate.setYear(aDate.getYear());
+
+                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
+                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
+                    endDate = new ClimateDate(aDate);
+                } else {
+                    endTime.setHour(ihourValidUTC);
+                    endDate = new ClimateDate(beginDate);
+                }
+
+            } else {
+
+                beginTime.setHour(0);
+                endTime.setHour(validTime.getHour());
+                beginDate = new ClimateDate(aDate);
+                endDate = new ClimateDate(aDate);
+
+            }
+            break;
+        //
+        // Monthly climate report case
+        // Here we assume that the monthly reports are generated
+        // sometime after the last day of the month for which the
+        // report is valid
+        //
+        case MONTHLY_NWWS:
+        case MONTHLY_RAD:
+
+            beginDate.setDay(1);
+
+            int imon;
+
+            // You need to handle January as a special case
+            if (aDate.getMon() == 1) {
+                imon = 12;
+                beginDate.setMon(imon);
+                beginDate.setYear(aDate.getYear() - 1);
+            } else {
+                imon = aDate.getMon() - 1;
+                beginDate.setMon(imon);
+                beginDate.setYear(aDate.getYear());
+            }
+            // Now you need to handle leap years as a special case
+            // keeping replaced code for viewing by Creator implementor
+            endDate.setMon(beginDate.getMon());
+            endDate.setYear(beginDate.getYear());
+            endDate.setDay(ClimateUtilities.daysInMonth(endDate));
+            break;
+        // Annual climate report case
+        // Here we assume that the annual summary is generated in
+        // the next year for which the summary is valid
+        case ANNUAL_NWWS:
+        case ANNUAL_RAD:
+            beginDate.setDay(1);
+            beginDate.setMon(1);
+            beginDate.setYear(aDate.getYear() - 1);
+
+            endDate.setDay(
+                    ClimateUtilities.daysInMonth(beginDate.getYear(), 12));
+            endDate.setMon(12);
+            endDate.setYear(beginDate.getYear());
+            break;
+
+        default:
+            logger.error("Unknown period type [" + itype.getValue() + "]");
+            break;
+        }
+
+        return new ClimateDates(beginDate, endDate, beginTime, endTime);
     }
 }

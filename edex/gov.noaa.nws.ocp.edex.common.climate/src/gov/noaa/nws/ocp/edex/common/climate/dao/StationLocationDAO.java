@@ -6,9 +6,6 @@ package gov.noaa.nws.ocp.edex.common.climate.dao;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 
 /**
@@ -27,15 +24,20 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
  * 19 APR 2017  33104     amoore     Use query maps now that DB issue is fixed.
  * 03 MAY 2017  33104     amoore     Use abstract map.
  * 11 MAY 2017  33104     amoore     Minor query param fix.
+ * 08 SEP 2017  37809     amoore     For queries, cast to Number rather than specific number type.
  * </pre>
  * 
  * @author wkwock
  * @version 1.0
  */
 public class StationLocationDAO extends ClimateDAO {
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(StationLocationDAO.class);
 
+    /**
+     * 
+     * @param stationCode
+     * @return
+     * @throws Exception
+     */
     public Station fetchStation(String stationCode) throws Exception {
         StringBuilder query = new StringBuilder("SELECT ");
         query.append(
@@ -57,13 +59,13 @@ public class StationLocationDAO extends ClimateDAO {
                     try {
                         Object[] oa = (Object[]) result;
                         station = new Station();
-                        station.setInformId((Integer) oa[0]);
+                        station.setInformId(((Number) oa[0]).intValue());
                         // any of these values could be null, but are necessary
-                        station.setDlat((Double) oa[1]);
-                        station.setDlon((Double) oa[2]);
+                        station.setDlat(((Number) oa[1]).doubleValue());
+                        station.setDlon(((Number) oa[2]).doubleValue());
                         station.setIcaoId((String) oa[3]);
                         station.setStationName((String) oa[4]);
-                        station.setNumOffUTC((Short) oa[5]);
+                        station.setNumOffUTC(((Number) oa[5]).shortValue());
                         station.setStdAllYear((short) 0);
                     } catch (NumberFormatException nfe) {
                         throw new Exception("Failed to parse a number", nfe);

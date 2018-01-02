@@ -37,6 +37,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 22 FEB 2017  28609      amoore      Address TODOs. Fix comments.
  * 23 FEB 2017  29416      wkwock      Added displayWait and reviewWait.
  * 02 JUN 2017  34783      pwang       Added allowAutoSend and other two flags
+ * 10 JUL 2017  33104      amoore      Default to blocking dissemination.
+ * 18 AUG 2017  37104      amoore      Add IFPS office name and timezone.
+ * 06 NOV 2017  35731      pwang       Added properties for controlling if an product can be auto generated
  * </pre>
  * 
  * @author xzhang
@@ -182,14 +185,74 @@ public class ClimateGlobal {
      * Determine if climate products should be sent to NWRWave / NWWS
      */
     @DynamicSerializeElement
-    private boolean allowDisseminate = true;
+    private boolean allowDisseminate = false;
+
+    /**
+     * IFPS Site Office Name.
+     */
+    @DynamicSerializeElement
+    private String officeName = "National Weather Service";
+
+    /**
+     * IFPS Site Timezone.
+     */
+    @DynamicSerializeElement
+    private String timezone = "GMT";
+
+    /**
+     * Determine if F6 product should be generated via CluseredQuartz scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoF6 = true;
+
+    /**
+     * Determine if Daily AM product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoAM = true;
+
+    /**
+     * Determine if Daily IM product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoIM = true;
+
+    /**
+     * Determine if Daily PM product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoPM = true;
+
+    /**
+     * Determine if monthly product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoCLM = true;
+
+    /**
+     * Determine if seasonal product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoCLS = true;
+
+    /**
+     * Determine if annual product should be generated via CluseredQuartz
+     * scheduler
+     */
+    @DynamicSerializeElement
+    private boolean autoCLA = true;
 
     /**
      * Empty constructor.
      */
     public ClimateGlobal() {
     }
-    
+
     public int getDisplayWait() {
         return displayWait;
     }
@@ -374,6 +437,78 @@ public class ClimateGlobal {
         this.validPm = new ClimateTime(property.split(" "));
     }
 
+    public String getOfficeName() {
+        return officeName;
+    }
+
+    public void setOfficeName(String officeName) {
+        this.officeName = officeName;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
+
+    public boolean isAutoF6() {
+        return autoF6;
+    }
+
+    public void setAutoF6(boolean autoF6) {
+        this.autoF6 = autoF6;
+    }
+
+    public boolean isAutoAM() {
+        return autoAM;
+    }
+
+    public void setAutoAM(boolean autoAM) {
+        this.autoAM = autoAM;
+    }
+
+    public boolean isAutoIM() {
+        return autoIM;
+    }
+
+    public void setAutoIM(boolean autoIM) {
+        this.autoIM = autoIM;
+    }
+
+    public boolean isAutoPM() {
+        return autoPM;
+    }
+
+    public void setAutoPM(boolean autoPM) {
+        this.autoPM = autoPM;
+    }
+
+    public boolean isAutoCLM() {
+        return autoCLM;
+    }
+
+    public void setAutoCLM(boolean autoCLM) {
+        this.autoCLM = autoCLM;
+    }
+
+    public boolean isAutoCLS() {
+        return autoCLS;
+    }
+
+    public void setAutoCLS(boolean autoCLS) {
+        this.autoCLS = autoCLS;
+    }
+
+    public boolean isAutoCLA() {
+        return autoCLA;
+    }
+
+    public void setAutoCLA(boolean autoCLA) {
+        this.autoCLA = autoCLA;
+    }
+
     public void setDataToMissing() {
         noAsterisk = false;
         noColon = false;
@@ -405,7 +540,7 @@ public class ClimateGlobal {
         globals.setNoAsterisk(true);
 
         globals.setUseValidPm(true);
-        ClimateTime validPm = ClimateTime.getLocalTime();
+        ClimateTime validPm = ClimateTime.getLocalGMTTime();
         validPm.setAmpm(ClimateTime.PM_STRING);
         validPm.setHour(5);
         validPm.setMin(0);
@@ -413,7 +548,7 @@ public class ClimateGlobal {
         globals.setValidPm(validPm);
 
         globals.setUseValidIm(true);
-        ClimateTime validIm = ClimateTime.getLocalTime();
+        ClimateTime validIm = ClimateTime.getLocalGMTTime();
         validIm.setAmpm(ClimateTime.AM_STRING);
         validIm.setHour(9);
         validIm.setMin(0);

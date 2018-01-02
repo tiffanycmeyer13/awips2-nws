@@ -17,16 +17,20 @@ import com.raytheon.uf.common.message.StatusMessage;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
 import com.raytheon.uf.edex.plugin.text.db.TextDB;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProdSendRecord;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
+import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.rer.RecordClimateRawData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.rer.StationInfo;
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 
 /**
  * Migration of RecordClimate legacy adapt project. Provides functionality to
@@ -45,31 +49,18 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguratio
  * 03 MAY 2017  33104      amoore      Use abstract map.
  * 03 MAY 2017  33533      amoore      Store products in new sent product table.
  * 11 MAY 2017  33104      amoore      Logging.
+ * 10 OCT 2017  39132      amoore      Check against allowDisseminate flag.
+ * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting.
+ * 11 OCT 2017  39238      amoore      Shortened and correct DST-dependent timezones in
+ *                                     Formatted and RER headers.
+ * 16 OCT 2017  39138      wpaintsil   Use same "National Weather Service" header 
+ *                                     logic as Formatter.
  * </pre>
  * 
  * @author amoore
  *
  */
 public final class RecordClimate {
-
-    // TODO put in common location
-    public final static String EDEX = "EDEX";
-
-    // TODO put in common location
-    public final static String CATEGORY_INFO = "INFO";
-
-    // TODO put in common location
-    public static final String cpgEndpoint = "climateNotify";
-
-    /**
-     * Plugin ID for alerts.
-     */
-    public static final String PLUGIN_ID = "RecordClimate";
-
-    /**
-     * The default timezone to use.
-     */
-    private static final String DEFAULT_IFPS_SITE_TIMEZONE = "GMT";
 
     /**
      * The default site office name to use.
@@ -112,7 +103,7 @@ public final class RecordClimate {
             ClimateGlobal globals, boolean operational) {
         List<RecordReport> recordReports = createRERproducts(rawDatas,
                 stationInfoMap, yesterday, globals);
-        storeRERs(recordReports, operational);
+        storeRERs(recordReports, globals.isAllowDisseminate(), operational);
     }
 
     /**
@@ -121,11 +112,13 @@ public final class RecordClimate {
      * 
      * @param recordReports
      *            generated reports to store.
+     * @param disseminate
+     *            true to store products to textDB.
      * @param operational
      *            True if CAVE is in operational mode, false for test mode.
      */
     private static void storeRERs(List<RecordReport> recordReports,
-            boolean operational) {
+            boolean disseminate, boolean operational) {
         TextDB textdb = new TextDB();
 
         ClimateProdSendRecordDAO sendRecordDAO = new ClimateProdSendRecordDAO();
@@ -135,8 +128,13 @@ public final class RecordClimate {
                     + report.getAfosID() + "] and text body ["
                     + report.getReportText() + "].");
 
-            long insertTime = textdb.writeProduct(report.getAfosID(),
-                    report.getReportText(), operational, null);
+            long insertTime;
+            if (disseminate) {
+                insertTime = textdb.writeProduct(report.getAfosID(),
+                        report.getReportText(), operational, null);
+            } else {
+                insertTime = TimeUtil.newDate().getTime();
+            }
 
             if (insertTime != Long.MIN_VALUE) {
                 // store record of product to DB
@@ -158,19 +156,28 @@ public final class RecordClimate {
                 // send product alarm alert
                 try {
                     StatusMessage sm = new StatusMessage();
-                    sm.setPriority(Priority.EVENTA);
-                    sm.setPlugin(PLUGIN_ID);
-                    sm.setCategory(CATEGORY_INFO);
-                    sm.setMessage("RER product [" + report.getAfosID()
-                            + "] generated.");
+                    sm.setPriority(Priority.INFO);
+                    sm.setPlugin(ClimateMessageUtils.RER_PLUGIN_ID);
+                    sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
                     sm.setMachineToCurrent();
-                    sm.setSourceKey(EDEX);
-                    sm.setDetails("Stored RER report with AFOS ID ["
+                    sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
+
+                    if (disseminate) {
+                        sm.setMessage("RER product [" + report.getAfosID()
+                                + "] generated.");
+                    } else {
+                        sm.setMessage("RER product [" + report.getAfosID()
+                                + "] generated but not stored. Dissemination is disabled.");
+                    }
+
+                    sm.setDetails("RER report with AFOS ID ["
                             + report.getAfosID() + "] and text body ["
                             + report.getReportText() + "]");
+
                     sm.setEventTime(new Date(insertTime));
 
-                    EDEXUtil.getMessageProducer().sendAsync(cpgEndpoint, sm);
+                    EDEXUtil.getMessageProducer()
+                            .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
                 } catch (Exception e) {
                     logger.error("Could not send message to ClimateView", e);
                 }
@@ -178,11 +185,14 @@ public final class RecordClimate {
                 String details = "Error detected saving product to textdb. AFOS ID: ["
                         + report.getAfosID() + "], text body: ["
                         + report.getReportText() + "]";
-                EDEXUtil.sendMessageAlertViz(Priority.SIGNIFICANT,
-                        "Climate Record Event Report", "EDEX", "WARNINGS",
+                EDEXUtil.sendMessageAlertViz(Priority.PROBLEM,
+                        "Climate Record Event Report",
+                        ClimateAlertUtils.SOURCE_EDEX,
+                        ClimateAlertUtils.CATEGORY_CLIMATE,
                         "Failed to save RER product.", details, null);
                 logger.error(details);
             }
+
         }
     }
 
@@ -240,17 +250,26 @@ public final class RecordClimate {
          * ccc is the value of $ICWF_SITE.
          */
         String wfoSite = DEFAULT_IFPS_SITE_OFFICE_NAME;
-        String timeZone = DEFAULT_IFPS_SITE_TIMEZONE;
+        String timeZone = ParameterFormatClimate.DEFAULT_IFPS_SITE_TIMEZONE;
 
-        // We'll leave the site and time zone as initialized, unless found
-        // in env.
         String wfoEnv = globals.getOfficeName();
-        if (wfoEnv != null && !wfoEnv.isEmpty()) {
-            wfoSite = wfoEnv;
+        // The site name variable may or may not begin with the "National
+        // Weather Service" string.
+        if (wfoEnv != null && !wfoEnv.isEmpty()
+                && !wfoEnv.equalsIgnoreCase(DEFAULT_IFPS_SITE_OFFICE_NAME)) {
+            wfoSite = DEFAULT_IFPS_SITE_OFFICE_NAME + " " + wfoEnv;
         }
+
         String timeEnv = globals.getTimezone();
         if (timeEnv != null && !timeEnv.isEmpty()) {
             timeZone = timeEnv;
+        }
+
+        TimeZone tz = TimeZone.getTimeZone(timeZone);
+
+        if (!tz.getID().equalsIgnoreCase(timeZone)) {
+            logger.warn("RER tried to use globalDay timezone of: [" + timeZone
+                    + "], but Java parsed this as: [" + tz.getID() + "].");
         }
 
         List<RecordReport> recordReports = new ArrayList<>();
@@ -273,8 +292,13 @@ public final class RecordClimate {
             recordBuilder.append(wfoSite).append("\n");
 
             // get current datetime
-            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone(timeZone));
-            recordBuilder.append(getRERDateFormat().format(cal.getTime()));
+            Calendar cal = Calendar.getInstance(tz);
+            Date time = cal.getTime();
+            SimpleDateFormat[] formats = getRERDateFormat();
+            recordBuilder.append(formats[0].format(time)).append(" ")
+                    .append(tz.getDisplayName(tz.inDaylightTime(time),
+                            TimeZone.SHORT))
+                    .append(" ").append(formats[1].format(time));
 
             /*
              * Legacy comments:
@@ -432,13 +456,17 @@ public final class RecordClimate {
     }
 
     /**
-     * Datetime format for Record Climate.
+     * Datetime formats for Record Climate.
      * 
      * Legacy comments: For product text; e.g. 0237 PM EST THU JUL 16 2004
      * 
      * Fixed hour format for OB2, needs to be 12-h clock
+     * 
+     * Split into two formats, with intention of shortened timezone names (with
+     * logic of DST included) being placed in between.
      */
-    private static SimpleDateFormat getRERDateFormat() {
-        return new SimpleDateFormat("hhmm a z E MMM dd yyyy");
+    private static SimpleDateFormat[] getRERDateFormat() {
+        return new SimpleDateFormat[] { new SimpleDateFormat("hhmm a"),
+                new SimpleDateFormat("E MMM dd yyyy") };
     }
 }

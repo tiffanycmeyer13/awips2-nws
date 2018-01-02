@@ -3,6 +3,7 @@
  **/
 package gov.noaa.nws.ocp.edex.climate.formatter;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
 
 /**
@@ -275,68 +276,16 @@ public class ColumnSpaces {
     *             included in the NWWS climate summary and the position
     *             of that column.
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_avg_temp   - derived TYPE which contains the flags which
-    *                        control reporting the average temperature
-    *        do_cool       - derived TYPE which contains the flags which
-    *                        control reporting the cooling degree days
-    *        do_heat       - derived TYPE which contains the flags which
-    *                        control reporting the heating degree days
-    *        do_max_temp   - derived TYPE which contains the flags which
-    *                        control reporting the maximum temperature
-    *        do_min_temp   - derived TYPE which contains the flags which
-    *                        control reporting the minimum temperature
-    *        do_precip_day - derived TYPE which contains the flags which
-    *                        control reporting the liquid precipitation                         
-    *        do_precip_mon - derived TYPE which contains the flags which
-    *                        control reporting the monthly precipitation
-    *     do_precip_season - derived TYPE which contains the flags which
-    *                        control reporting the seasonal precipitation
-    *       do_precip_year - derived TYPE which contains the flags which
-    *                        control reporting the year precipitation
-    *        do_snow_day - derived TYPE which contains the flags which
-    *                        control reporting the snowfall
-    *
-    *      Output
-    *        tabs          - derived TYPE which contains the flags which
-    *                        contain the positions of the colums, width
-    *                        of the columns and whether a particular column
-    *                        should be reported
-    *
-    *      Local
-    *
-    *       NONE
-    *
-    *      Non-system routines used
-    *
-    *       NONE
-    *
-    *      Non-system functions used
-    *
-    *       NONE
-    *
-    * MODIFICATION LOG
-    * NAME          DATE        CHANGE
-    * David T. Miller   May 2000    If user doesn't want the actual values
-    *                   for the day of temp, precip, snow, or
-    *                   heating/cooling degree days, needed
-    *                   to set the actual position to zero
-    *                   so it could act as a flag in
-    *                   the build_NWWS_columns routine.
-    *                   Otherwise, format_climate aborts
-    *                   with an error.
      * </pre>
      * 
      * Used to set spacing for daily NWWS report.
      * 
      * @param settings
      */
-    public void setDailyTabs(ClimateProductType settings) {
+    public void setDailyTabs(ClimateProductType settings,
+            ClimateDate beginDate) {
         boolean snowReport = ClimateNWWSFormat
-                .reportWindow(settings.getControl().getSnowDates());
+                .reportWindow(settings.getControl().getSnowDates(), beginDate);
 
         if (settings.getControl().getTempControl().getMeanTemp().isMeasured()
                 || settings.getControl().getTempControl().getMaxTemp()
