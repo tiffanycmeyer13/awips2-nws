@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSH Common
+Bundle-SymbolicName: gov.noaa.nws.ocp.common.dataplugin.psh
+Bundle-Version: 1.17.0.qualifier
+Bundle-Vendor: NWS
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.serialization.comm;visibility:=reexport,
+ com.raytheon.uf.common.dataplugin,
+ gov.noaa.nws.ocp.common.localization.psh,
+ com.raytheon.uf.common.status
+Export-Package: gov.noaa.nws.ocp.common.dataplugin.psh,
+ gov.noaa.nws.ocp.common.dataplugin.psh.request,
+ gov.noaa.nws.ocp.common.dataplugin.psh.response
