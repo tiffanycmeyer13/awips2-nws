@@ -100,7 +100,7 @@
             <Heat Measured="true" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
             <HeatJuly1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
             <Cool Measured="true" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
-            <CoolJuly1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <CoolJan1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
             <EarlyFreeze Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
             <LateFreeze Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
         </DegreeDays>

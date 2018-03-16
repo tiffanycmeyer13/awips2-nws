@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 
@@ -39,18 +36,13 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
  * 02 MAY 2017  33104      amoore      Refactor query to constant.
  * 17 MAY 2017  33104      amoore      Use cleaner logic for replacing/updating stations.
  * 20 JUN 2017  33104      amoore      Address review comments.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
 public class ClimateStationsSetupDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateStationsSetupDAO.class);
-
     /**
      * Query for all stations.
      */
@@ -71,7 +63,7 @@ public class ClimateStationsSetupDAO extends ClimateDAO {
         super();
     }
 
-    /**
+     /**
      * Converted from get_master_stations.ecpp
      * 
      * Original comments:
@@ -90,23 +82,6 @@ public class ClimateStationsSetupDAO extends ClimateDAO {
      *       the contents of yesterday into the daily observed climate data
      *       base.
      * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                  description
-     * -------------------------------------------------------------------------------                  
-     *     Input  
-     * 
-     *     Output
-     *       all_stations       - structure containing all the stations from 
-     *                            the master climate station table
-     *       num_all_stations   - # of stations in the master station table
-     * 
-     *     Local
-     *      char  
-     * 
-     *       int
-     * 
      *     Revised
      *     Teresa Peachey/      1/20/05    Converted INFORMIX to POSTGRES SQL 
      *     Manan Dalal
@@ -115,6 +90,7 @@ public class ClimateStationsSetupDAO extends ClimateDAO {
      * @return list of stations in the DB.
      * @throws ClimateQueryException
      */
+    
     public List<Station> getMasterStations() throws ClimateQueryException {
         List<Station> stations = new ArrayList<>();
         try {
@@ -129,13 +105,14 @@ public class ClimateStationsSetupDAO extends ClimateDAO {
                              * they are all necessary for calculations.
                              */
                             Station station = new Station();
-                            station.setInformId((int) oa[0]);
+                            station.setInformId(((Number) oa[0]).intValue());
                             station.setIcaoId((String) oa[1]);
                             station.setStationName((String) oa[2]);
-                            station.setDlat((double) oa[4]);
-                            station.setDlon((double) oa[5]);
-                            station.setNumOffUTC((short) oa[6]);
-                            station.setStdAllYear((short) oa[7]);
+                            station.setDlat(((Number) oa[4]).doubleValue());
+                            station.setDlon(((Number) oa[5]).doubleValue());
+                            station.setNumOffUTC(((Number) oa[6]).shortValue());
+                            station.setStdAllYear(
+                                    ((Number) oa[7]).shortValue());
 
                             stations.add(station);
                         } catch (NullPointerException e) {
@@ -175,9 +152,9 @@ public class ClimateStationsSetupDAO extends ClimateDAO {
                     .executeSQLQuery(MASTER_STATIONS_IDS_QUERY);
             if ((results != null) && (results.length >= 1)) {
                 for (Object result : results) {
-                    if (result instanceof Integer) {
+                    if (result instanceof Number) {
                         try {
-                            ids.add((Integer) result);
+                            ids.add(((Number) result).intValue());
                         } catch (NullPointerException e) {
                             throw new ClimateQueryException(
                                     "Unexpected null result with query: ["

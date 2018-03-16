@@ -6,8 +6,7 @@ package gov.noaa.nws.ocp.edex.metartoclimate;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
-import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDao;
+import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDAO;
 
 /**
  * Created to extract purge method from MetarToClimateSvr.
@@ -21,6 +20,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDao;
  * Sep 23, 2016            pwang       Initial creation
  * 24 FEB 2017  27420      amoore      Address warnings in code.
  * 07 SEP 2017  37754      amoore      Throw exception on failure.
+ * 02 NOV 2017  37755      amoore      Take DAO in constructor.
  * </pre>
  *
  * @author pwang
@@ -34,22 +34,17 @@ public class ClimateMetarPurger {
     private static final transient IUFStatusHandler logger = UFStatus
             .getHandler(ClimateMetarPurger.class);
 
-    private final ClimateReportDao dao;
+    private final ClimateReportDAO dao;
 
-    private int purgeHours = 8;
+    private int purgeHours = 48;
 
     /**
      * Construct an instance of this transformer.
      * 
-     * @throws ClimateException
+     * @param reportDAO
      */
-    public ClimateMetarPurger() throws ClimateException {
-        try {
-            dao = new ClimateReportDao();
-        } catch (Exception e) {
-            throw new ClimateException("Error constructing ClimateReportDao",
-                    e);
-        }
+    public ClimateMetarPurger(ClimateReportDAO reportDAO) {
+        dao = reportDAO;
     }
 
     /**

@@ -40,7 +40,7 @@ public class ConfigParamsAction extends AbstractHandler {
                 .getShell();
         if (preferencesDlg == null || preferencesDlg.getShell().isDisposed()) {
             preferencesDlg = new ClimatePreferencesDialog(shell);
-            preferencesDlg.setCloseCallback(new ICloseCallback() {
+            preferencesDlg.addCloseCallback(new ICloseCallback() {
 
                 @Override
                 public void dialogClosed(Object returnValue) {

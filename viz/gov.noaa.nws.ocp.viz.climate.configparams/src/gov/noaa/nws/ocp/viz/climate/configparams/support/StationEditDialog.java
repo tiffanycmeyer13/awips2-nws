@@ -30,11 +30,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
@@ -43,7 +40,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.Request
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.StationLocationRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.configparams.ReplaceStationsServiceRequest;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
-import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 
 /**
  * 
@@ -74,10 +71,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * @author xzhang
  * @version 1.0
  */
-public class StationEditDialog extends CaveSWTDialog {
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(StationEditDialog.class);
-
+public class StationEditDialog extends ClimateCaveChangeTrackDialog {
     /**
      * Stations retrieved from DB this dialog session, so as not to need
      * repeated DB calls based on codes.
@@ -105,10 +99,10 @@ public class StationEditDialog extends CaveSWTDialog {
     private Color blackColor = null;
 
     /**
-     * Change listener
+     * Constructor.
+     * 
+     * @param parent
      */
-    protected UnsavedChangesListener changeListener = new UnsavedChangesListener();
-
     public StationEditDialog(Shell parent) {
         super(parent, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE
                 | SWT.PRIMARY_MODAL, CAVE.DO_NOT_BLOCK);
@@ -374,10 +368,10 @@ public class StationEditDialog extends CaveSWTDialog {
         deleteBtn.dispose();
 
         changeListener.setChangesUnsaved(true);
-        /*
-         * TODO table requires interaction to redraw, rather than automatically.
-         * #remove on the table object does not seem to remove the correct item.
-         */
+
+        // update table view
+        stationTable.redraw();
+        stationTable.update();
     }
 
     /**
@@ -413,16 +407,7 @@ public class StationEditDialog extends CaveSWTDialog {
         cancelBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                if (changeListener.isChangesUnsaved()) {
-                    boolean close = MessageDialog.openQuestion(shell,
-                            "Unsaved Changes",
-                            "Close this window? Unsaved changes will be lost.");
-                    if (close) {
-                        close();
-                    }
-                } else {
-                    close();
-                }
+                close();
             }
         });
     }
@@ -467,7 +452,7 @@ public class StationEditDialog extends CaveSWTDialog {
         }
 
         if (isSuccess) {
-
+            changeListener.setChangesUnsaved(false);
             // Set "returnValue" to "true" to indicate values have been changed.
             this.setReturnValue(true);
 
@@ -513,7 +498,7 @@ public class StationEditDialog extends CaveSWTDialog {
             ClimateRequest request = new ClimateRequest();
             request.setRequestType(RequestType.GET_STATIONS);
 
-            List<Station> existingStations = (ArrayList<Station>) ThriftClient
+            List<Station> existingStations = (List<Station>) ThriftClient
                     .sendRequest(request);
 
             changeListener.setIgnoreChanges(true);

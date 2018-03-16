@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodClimo;
@@ -39,18 +36,13 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 20 APR 2017  30166      amoore      Safer logic to avoid out of bounds.
  * 25 APR 2017  33104      amoore      Logging clean up.
  * 02 MAY 2017  33104      amoore      More query map replacements. Use abstract maps.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
  * </pre>
  * 
  * @author wkwock
  * @version 1.0
  */
 public class MonthClimateNormDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(MonthClimateNormDAO.class);
-
     /**
      * Constructor.
      */
@@ -122,10 +114,12 @@ public class MonthClimateNormDAO extends ClimateDAO {
                         // any of these values could be null
                         Object[] rowData = (Object[]) result;
                         if (rowData[3] != null) {
-                            climateRcd.setMaxTempNorm((float) rowData[3]);
+                            climateRcd.setMaxTempNorm(
+                                    ((Number) rowData[3]).floatValue());
                         }
                         if (rowData[4] != null) {
-                            climateRcd.setMaxTempRecord((short) rowData[4]);
+                            climateRcd.setMaxTempRecord(
+                                    ((Number) rowData[4]).shortValue());
                         }
                         List<ClimateDate> dayMaxTempRecordList = climateRcd
                                 .getDayMaxTempRecordList();
@@ -143,10 +137,12 @@ public class MonthClimateNormDAO extends ClimateDAO {
                         }
 
                         if (rowData[8] != null) {
-                            climateRcd.setMinTempNorm((float) rowData[8]);
+                            climateRcd.setMinTempNorm(
+                                    ((Number) rowData[8]).floatValue());
                         }
                         if (rowData[9] != null) {
-                            climateRcd.setMinTempRecord((short) rowData[9]);
+                            climateRcd.setMinTempRecord(
+                                    ((Number) rowData[9]).shortValue());
                         }
                         List<ClimateDate> dayMinTempRecordList = climateRcd
                                 .getDayMinTempRecordList();
@@ -164,102 +160,119 @@ public class MonthClimateNormDAO extends ClimateDAO {
                         }
 
                         if (rowData[13] != null) {
-                            climateRcd.setNormMeanTemp((float) rowData[13]);
+                            climateRcd.setNormMeanTemp(
+                                    ((Number) rowData[13]).floatValue());
                         }
                         if (rowData[14] != null) {
-                            climateRcd.setNormMeanMaxTemp((float) rowData[14]);
+                            climateRcd.setNormMeanMaxTemp(
+                                    ((Number) rowData[14]).floatValue());
                         }
                         if (rowData[15] != null) {
-                            climateRcd.setNormMeanMinTemp((float) rowData[15]);
+                            climateRcd.setNormMeanMinTemp(
+                                    ((Number) rowData[15]).floatValue());
                         }
                         if (rowData[16] != null) {
-                            climateRcd.setNormNumMaxGE90F((float) rowData[16]);
+                            climateRcd.setNormNumMaxGE90F(
+                                    ((Number) rowData[16]).floatValue());
                         }
                         if (rowData[17] != null) {
-                            climateRcd.setNormNumMaxLE32F((float) rowData[17]);
+                            climateRcd.setNormNumMaxLE32F(
+                                    ((Number) rowData[17]).floatValue());
                         }
                         if (rowData[18] != null) {
-                            climateRcd.setNormNumMinLE32F((float) rowData[18]);
+                            climateRcd.setNormNumMinLE32F(
+                                    ((Number) rowData[18]).floatValue());
                         }
                         if (rowData[19] != null) {
-                            climateRcd.setNormNumMinLE0F((float) rowData[19]);
+                            climateRcd.setNormNumMinLE0F(
+                                    ((Number) rowData[19]).floatValue());
                         }
                         if (rowData[20] != null) {
-                            climateRcd.setPrecipPeriodNorm((float) rowData[20]);
+                            climateRcd.setPrecipPeriodNorm(
+                                    ((Number) rowData[20]).floatValue());
                         }
                         if (rowData[21] != null) {
-                            climateRcd.setPrecipPeriodMax((float) rowData[21]);
+                            climateRcd.setPrecipPeriodMax(
+                                    ((Number) rowData[21]).floatValue());
                         }
                         List<ClimateDate> precipPeriodMaxYearList = climateRcd
                                 .getPrecipPeriodMaxYearList();
                         if (rowData[22] != null) {
-                            precipPeriodMaxYearList.set(0,
-                                    new ClimateDate(1, 1, (short) rowData[22]));
+                            precipPeriodMaxYearList.set(0, new ClimateDate(1, 1,
+                                    ((Number) rowData[22]).intValue()));
                         }
                         if (rowData[23] != null) {
-                            precipPeriodMaxYearList.set(1,
-                                    new ClimateDate(1, 1, (short) rowData[23]));
+                            precipPeriodMaxYearList.set(1, new ClimateDate(1, 1,
+                                    ((Number) rowData[23]).intValue()));
                         }
                         if (rowData[24] != null) {
-                            precipPeriodMaxYearList.set(2,
-                                    new ClimateDate(1, 1, (short) rowData[24]));
+                            precipPeriodMaxYearList.set(2, new ClimateDate(1, 1,
+                                    ((Number) rowData[24]).intValue()));
                         }
 
                         if (rowData[25] != null) {
-                            climateRcd.setPrecipPeriodMin((float) rowData[25]);
+                            climateRcd.setPrecipPeriodMin(
+                                    ((Number) rowData[25]).floatValue());
                         }
 
                         List<ClimateDate> precipPeriodMinYearList = climateRcd
                                 .getPrecipPeriodMinYearList();
                         if (rowData[26] != null) {
-                            precipPeriodMinYearList.set(0,
-                                    new ClimateDate(1, 1, (short) rowData[26]));
+                            precipPeriodMinYearList.set(0, new ClimateDate(1, 1,
+                                    ((Number) rowData[26]).intValue()));
                         }
                         if (rowData[27] != null) {
-                            precipPeriodMinYearList.set(1,
-                                    new ClimateDate(1, 1, (short) rowData[27]));
+                            precipPeriodMinYearList.set(1, new ClimateDate(1, 1,
+                                    ((Number) rowData[27]).intValue()));
                         }
                         if (rowData[28] != null) {
-                            precipPeriodMinYearList.set(2,
-                                    new ClimateDate(1, 1, (short) rowData[28]));
+                            precipPeriodMinYearList.set(2, new ClimateDate(1, 1,
+                                    ((Number) rowData[28]).intValue()));
                         }
 
                         if (rowData[29] != null) {
-                            climateRcd.setPrecipDayNorm((float) rowData[29]);
+                            climateRcd.setPrecipDayNorm(
+                                    ((Number) rowData[29]).floatValue());
                         }
                         if (rowData[30] != null) {
-                            climateRcd.setNumPrcpGE01Norm((float) rowData[30]);
+                            climateRcd.setNumPrcpGE01Norm(
+                                    ((Number) rowData[30]).floatValue());
                         }
                         if (rowData[31] != null) {
-                            climateRcd.setNumPrcpGE10Norm((float) rowData[31]);
+                            climateRcd.setNumPrcpGE10Norm(
+                                    ((Number) rowData[31]).floatValue());
                         }
                         if (rowData[32] != null) {
-                            climateRcd.setNumPrcpGE50Norm((float) rowData[32]);
+                            climateRcd.setNumPrcpGE50Norm(
+                                    ((Number) rowData[32]).floatValue());
                         }
                         if (rowData[33] != null) {
-                            climateRcd.setNumPrcpGE100Norm((float) rowData[33]);
+                            climateRcd.setNumPrcpGE100Norm(
+                                    ((Number) rowData[33]).floatValue());
                         }
 
                         if (rowData[34] != null) {
-                            climateRcd.setSnowPeriodNorm((float) rowData[34]);
+                            climateRcd.setSnowPeriodNorm(
+                                    ((Number) rowData[34]).floatValue());
                         }
                         if (rowData[35] != null) {
-                            climateRcd.setSnowPeriodRecord((float) rowData[35]);
+                            climateRcd.setSnowPeriodRecord(
+                                    ((Number) rowData[35]).floatValue());
                         }
 
                         List<ClimateDate> snowPeriodMaxYearList = climateRcd
                                 .getSnowPeriodMaxYearList();
                         if (rowData[36] != null) {
-                            snowPeriodMaxYearList.set(0,
-                                    new ClimateDate(0, 1, (short) rowData[36]));
+                            snowPeriodMaxYearList.set(0, new ClimateDate(0, 1,
+                                    ((Number) rowData[36]).intValue()));
                         }
                         if (rowData[37] != null) {
-                            snowPeriodMaxYearList.set(1,
-                                    new ClimateDate(1, 1, (short) rowData[37]));
+                            snowPeriodMaxYearList.set(1, new ClimateDate(1, 1,
+                                    ((Number) rowData[37]).intValue()));
                         }
                         if (rowData[38] != null) {
-                            snowPeriodMaxYearList.set(2,
-                                    new ClimateDate(1, 1, (short) rowData[38]));
+                            snowPeriodMaxYearList.set(2, new ClimateDate(1, 1,
+                                    ((Number) rowData[38]).intValue()));
                         }
 
                         ClimateDates snow24hDates = climateRcd.getSnow24HList()
@@ -294,18 +307,21 @@ public class MonthClimateNormDAO extends ClimateDAO {
                         }
 
                         if (rowData[42] != null) {
-                            climateRcd.setSnowMax24HRecord((float) rowData[42]);
+                            climateRcd.setSnowMax24HRecord(
+                                    ((Number) rowData[42]).floatValue());
                         }
 
                         if (rowData[46] != null) {
                             climateRcd.setSnowWaterPeriodNorm(
-                                    (float) rowData[46]);
+                                    ((Number) rowData[46]).floatValue());
                         }
                         if (rowData[47] != null) {
-                            climateRcd.setSnowGroundNorm((float) rowData[47]);
+                            climateRcd.setSnowGroundNorm(
+                                    ((Number) rowData[47]).floatValue());
                         }
                         if (rowData[48] != null) {
-                            climateRcd.setSnowGroundMax((short) rowData[48]);
+                            climateRcd.setSnowGroundMax(
+                                    ((Number) rowData[48]).shortValue());
                         }
 
                         List<ClimateDate> daySnowGroundMaxList = climateRcd
@@ -324,16 +340,20 @@ public class MonthClimateNormDAO extends ClimateDAO {
                         }
 
                         if (rowData[52] != null) {
-                            climateRcd.setNumSnowGETRNorm((float) rowData[52]);
+                            climateRcd.setNumSnowGETRNorm(
+                                    ((Number) rowData[52]).floatValue());
                         }
                         if (rowData[53] != null) {
-                            climateRcd.setNumSnowGE1Norm((float) rowData[53]);
+                            climateRcd.setNumSnowGE1Norm(
+                                    ((Number) rowData[53]).floatValue());
                         }
                         if (rowData[54] != null) {
-                            climateRcd.setNumHeatPeriodNorm((int) rowData[54]);
+                            climateRcd.setNumHeatPeriodNorm(
+                                    ((Number) rowData[54]).intValue());
                         }
                         if (rowData[55] != null) {
-                            climateRcd.setNumCoolPeriodNorm((int) rowData[55]);
+                            climateRcd.setNumCoolPeriodNorm(
+                                    ((Number) rowData[55]).intValue());
                         }
                     } catch (Exception e) {
                         throw new ClimateQueryException(
@@ -933,8 +953,8 @@ public class MonthClimateNormDAO extends ClimateDAO {
             Object[] results = getDao().executeSQLQuery(sql.toString(),
                     paramMap);
             if ((results != null) && (results.length >= 1)) {
-                if (results[0] instanceof Short) {
-                    month = (Short) results[0];
+                if (results[0] instanceof Number) {
+                    month = ((Number) results[0]).shortValue();
                 } else {
                     throw new ClimateQueryException(
                             "Unexpected return type from query, expected short, got "

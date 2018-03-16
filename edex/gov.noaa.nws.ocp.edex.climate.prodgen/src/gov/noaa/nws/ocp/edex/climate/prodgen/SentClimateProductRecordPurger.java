@@ -13,7 +13,9 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 
 /**
  * SentClimateProductRecordPurger
@@ -137,9 +139,9 @@ public class SentClimateProductRecordPurger {
         String detailMsg = "PURGER=SENT_RECORD, PURGE_COUNT=" + count;
 
         StatusMessage sm = new StatusMessage();
-        sm.setPriority(Priority.EVENTA);
-        sm.setPlugin(ClimateProdGenerateSession.PLUGIN_ID);
-        sm.setCategory(ClimateProdGenerateSession.CATEGORY);
+        sm.setPriority(Priority.INFO);
+        sm.setPlugin(ClimateMessageUtils.CPG_PLUGIN_ID);
+        sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
         sm.setMessage("Sent Product Record table was purged");
         sm.setMachineToCurrent();
         sm.setSourceKey("EDEX");
@@ -148,7 +150,7 @@ public class SentClimateProductRecordPurger {
 
         try {
             EDEXUtil.getMessageProducer()
-                    .sendAsync(ClimateProdGenerateSession.cpgEndpoint, sm);
+                    .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
         } catch (Exception e) {
             logger.error("Could not send message to ClimateView", e);
         }

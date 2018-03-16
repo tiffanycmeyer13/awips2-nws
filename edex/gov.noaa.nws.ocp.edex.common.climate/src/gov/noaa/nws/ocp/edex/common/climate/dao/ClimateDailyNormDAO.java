@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDayNorm;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
@@ -64,6 +61,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * 14 JUN 2017  35175      amoore      Remove redundant logic.
  * 21 JUN 2017  35179      amoore      Fix historical precip logic.
  * 07 JUL 2017  33104      amoore      Split Daily and Period norms into different classes.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 12 OCT 2017  39364      amoore      Wrong inequality for min temp record breaking check.
  * </pre>
  * 
  * @author amoore
@@ -71,19 +70,13 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  */
 public class ClimateDailyNormDAO extends ClimateDAO {
     /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateDailyNormDAO.class);
-
-    /**
      * Constructor.
      */
     public ClimateDailyNormDAO() {
         super();
     }
 
-    /**
+     /**
      * Converted from get_his_norms.ecpp
      * 
      * Original comments:
@@ -103,38 +96,6 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      * from the Informix database and store them in data structures referenced as 
      * y_climate (yesterday's climate) and t_climate (today's_climate).
      * 
-     * VARIABLES
-     * =========
-     * 
-     * name                  description
-     * -------------------------------------------------------------------------------                  
-     *  Input
-     *      climo_date        - derived TYPE that contains valid date for
-     *                          this climate summary retrieval
-     *      station_id        - derived TYPE which contains the station ids
-     *                          and plain language stations names for the
-     *                          stations in this climate summary
-     *  Output
-     *      y_climate         - derived TYPE that contains historical climate data
-     *                          for this date 
-     *  Local
-     *      db_status         L  The success/failure code returned by
-     *                           dbUtils and Informix functions.
-     *  Code Changes
-     *  David T. Miller   January 1999   Moved assignment of structure variables
-     *                               for the day_climate_norm table before the call
-     *                           to the mon_climate_norm table
-     *                    December 30 1999  Removed the SQL to retrieve from the monthly
-     *                                      table as it's handled by another routine
-     *                    July 2000      Added mean temperature and also null database 
-     *                                   checks.
-     *  Bob Morris        Dec 2002       - Changed date args to reference variables
-     *                                   to fix seg. faults under Linux.
-     *  Bob Morris        3/25/03        Fixed arguments in calls to risnull, need
-     *                                   to use defined constants for C-data 
-     *                                   types, not values (hard-coded, no less!)
-     *                                   for SQL data types.  OB2
-     *  Manan Dalal       Jan, 2005      Ported from Informix to Postgresql - OB6
      * </pre>
      * 
      * @param iDate
@@ -146,6 +107,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      * @return {@link ClimateRecordDay} instance, which may have missing data
      *         (except for station ID).
      */
+    
     public ClimateRecordDay getHistoricalNorms(ClimateDate iDate, int stationId)
             throws ClimateQueryException {
         ClimateRecordDay yClimate = ClimateRecordDay
@@ -181,68 +143,79 @@ public class ClimateDailyNormDAO extends ClimateDAO {
                         Object[] oa = (Object[]) result;
 
                         // any values could be null
-                        float ecMeanTemp = oa[0] != null ? (float) oa[0]
+                        float ecMeanTemp = oa[0] != null
+                                ? ((Number) oa[0]).floatValue()
                                 : ParameterFormatClimate.MISSING;
-                        short ecMaxTempMean = oa[1] != null ? (short) oa[1]
+                        short ecMaxTempMean = oa[1] != null
+                                ? ((Number) oa[1]).shortValue()
                                 : ParameterFormatClimate.MISSING;
-                        short ecMinTempMean = oa[2] != null ? (short) oa[2]
+                        short ecMinTempMean = oa[2] != null
+                                ? ((Number) oa[2]).shortValue()
                                 : ParameterFormatClimate.MISSING;
-                        short ecMaxTempRecord = oa[3] != null ? (short) oa[3]
+                        short ecMaxTempRecord = oa[3] != null
+                                ? ((Number) oa[3]).shortValue()
                                 : ParameterFormatClimate.MISSING;
-                        short ecMinTempRecord = oa[4] != null ? (short) oa[4]
+                        short ecMinTempRecord = oa[4] != null
+                                ? ((Number) oa[4]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMaxTempRecordYear1 = oa[5] != null
-                                ? (short) oa[5]
+                                ? ((Number) oa[5]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMaxTempRecordYear2 = oa[6] != null
-                                ? (short) oa[6]
+                                ? ((Number) oa[6]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMaxTempRecordYear3 = oa[7] != null
-                                ? (short) oa[7]
+                                ? ((Number) oa[7]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMinTempRecordYear1 = oa[8] != null
-                                ? (short) oa[8]
+                                ? ((Number) oa[8]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMinTempRecordYear2 = oa[9] != null
-                                ? (short) oa[9]
+                                ? ((Number) oa[9]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecMinTempRecordYear3 = oa[10] != null
-                                ? (short) oa[10]
+                                ? ((Number) oa[10]).shortValue()
                                 : ParameterFormatClimate.MISSING;
-                        float ecPrecipMean = oa[11] != null ? (float) oa[11]
+                        float ecPrecipMean = oa[11] != null
+                                ? ((Number) oa[11]).floatValue()
                                 : ParameterFormatClimate.MISSING;
                         float ecPrecipDayRecord = oa[12] != null
-                                ? (float) oa[12]
+                                ? ((Number) oa[12]).floatValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecPrecipDayRecordYear1 = oa[13] != null
-                                ? (short) oa[13]
+                                ? ((Number) oa[13]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecPrecipDayRecordYear2 = oa[14] != null
-                                ? (short) oa[14]
+                                ? ((Number) oa[14]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecPrecipDayRecordYear3 = oa[15] != null
-                                ? (short) oa[15]
+                                ? ((Number) oa[15]).shortValue()
                                 : ParameterFormatClimate.MISSING;
-                        float ecSnowDayMean = oa[16] != null ? (float) oa[16]
+                        float ecSnowDayMean = oa[16] != null
+                                ? ((Number) oa[16]).floatValue()
                                 : ParameterFormatClimate.MISSING;
-                        float ecSnowDayRecord = oa[17] != null ? (float) oa[17]
+                        float ecSnowDayRecord = oa[17] != null
+                                ? ((Number) oa[17]).floatValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecSnowDayRecordYear1 = oa[18] != null
-                                ? (short) oa[18]
+                                ? ((Number) oa[18]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecSnowDayRecordYear2 = oa[19] != null
-                                ? (short) oa[19]
+                                ? ((Number) oa[19]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         short ecSnowDayRecordYear3 = oa[20] != null
-                                ? (short) oa[20]
+                                ? ((Number) oa[20]).shortValue()
                                 : ParameterFormatClimate.MISSING;
                         /* unused */
                         @SuppressWarnings("unused")
-                        float ecSnowGroundMean = oa[21] != null ? (float) oa[21]
+                        float ecSnowGroundMean = oa[21] != null
+                                ? ((Number) oa[21]).floatValue()
                                 : ParameterFormatClimate.MISSING;
-                        int ecNumHeatMean = oa[22] != null ? (int) oa[22]
+                        int ecNumHeatMean = oa[22] != null
+                                ? ((Number) oa[22]).intValue()
                                 : ParameterFormatClimate.MISSING;
-                        int ecNumCoolMean = oa[23] != null ? (int) oa[23]
+                        int ecNumCoolMean = oa[23] != null
+                                ? ((Number) oa[23]).intValue()
                                 : ParameterFormatClimate.MISSING;
 
                         yClimate.setMaxTempYear(new int[] {
@@ -350,89 +323,108 @@ public class ClimateDailyNormDAO extends ClimateDAO {
 
                         // any values could be null
                         if (rowData[0] != null) {
-                            climateRcd.setMeanTemp((float) rowData[0]);
+                            climateRcd.setMeanTemp(
+                                    ((Number) rowData[0]).floatValue());
                         }
                         if (rowData[1] != null) {
-                            climateRcd.setMaxTempRecord((short) rowData[1]);
+                            climateRcd.setMaxTempRecord(
+                                    ((Number) rowData[1]).shortValue());
                         }
                         if (rowData[2] != null) {
-                            climateRcd.setMaxTempMean((short) rowData[2]);
+                            climateRcd.setMaxTempMean(
+                                    ((Number) rowData[2]).shortValue());
                         }
                         if (rowData[3] != null) {
-                            climateRcd.setMinTempRecord((short) rowData[3]);
+                            climateRcd.setMinTempRecord(
+                                    ((Number) rowData[3]).shortValue());
                         }
                         if (rowData[4] != null) {
-                            climateRcd.setMinTempMean((short) rowData[4]);
+                            climateRcd.setMinTempMean(
+                                    ((Number) rowData[4]).shortValue());
                         }
 
                         short[] maxTempYear = climateRcd.getMaxTempYear();
                         if (rowData[5] != null) {
-                            maxTempYear[0] = (short) rowData[5];
+                            maxTempYear[0] = ((Number) rowData[5]).shortValue();
                         }
                         if (rowData[6] != null) {
-                            maxTempYear[1] = (short) rowData[6];
+                            maxTempYear[1] = ((Number) rowData[6]).shortValue();
                         }
                         if (rowData[7] != null) {
-                            maxTempYear[2] = (short) rowData[7];
+                            maxTempYear[2] = ((Number) rowData[7]).shortValue();
                         }
 
                         short[] minTempYear = climateRcd.getMinTempYear();
                         if (rowData[8] != null) {
-                            minTempYear[0] = (short) rowData[8];
+                            minTempYear[0] = ((Number) rowData[8]).shortValue();
                         }
                         if (rowData[9] != null) {
-                            minTempYear[1] = (short) rowData[9];
+                            minTempYear[1] = ((Number) rowData[9]).shortValue();
                         }
                         if (rowData[10] != null) {
-                            minTempYear[2] = (short) rowData[10];
+                            minTempYear[2] = ((Number) rowData[10])
+                                    .shortValue();
                         }
 
                         if (rowData[11] != null) {
-                            climateRcd.setPrecipMean((float) rowData[11]);
+                            climateRcd.setPrecipMean(
+                                    ((Number) rowData[11]).floatValue());
                         }
                         if (rowData[12] != null) {
-                            climateRcd.setPrecipDayRecord((float) rowData[12]);
+                            climateRcd.setPrecipDayRecord(
+                                    ((Number) rowData[12]).floatValue());
                         }
 
                         short[] precipDayRecordYear = climateRcd
                                 .getPrecipDayRecordYear();
                         if (rowData[13] != null) {
-                            precipDayRecordYear[0] = (short) rowData[13];
+                            precipDayRecordYear[0] = ((Number) rowData[13])
+                                    .shortValue();
                         }
                         if (rowData[14] != null) {
-                            precipDayRecordYear[1] = (short) rowData[14];
+                            precipDayRecordYear[1] = ((Number) rowData[14])
+                                    .shortValue();
                         }
                         if (rowData[15] != null) {
-                            precipDayRecordYear[2] = (short) rowData[15];
+                            precipDayRecordYear[2] = ((Number) rowData[15])
+                                    .shortValue();
                         }
 
                         if (rowData[16] != null) {
-                            climateRcd.setSnowDayMean((float) rowData[16]);
+                            climateRcd.setSnowDayMean(
+                                    ((Number) rowData[16]).floatValue());
                         }
                         if (rowData[17] != null) {
-                            climateRcd.setSnowDayRecord((float) rowData[17]);
+                            climateRcd.setSnowDayRecord(
+                                    ((Number) rowData[17]).floatValue());
                         }
 
                         short[] snowDayRecordYear = climateRcd
                                 .getSnowDayRecordYear();
                         if (rowData[18] != null) {
-                            snowDayRecordYear[0] = (short) rowData[18];
+                            snowDayRecordYear[0] = ((Number) rowData[18])
+                                    .shortValue();
                         }
                         if (rowData[19] != null) {
-                            snowDayRecordYear[1] = (short) rowData[19];
+                            snowDayRecordYear[1] = ((Number) rowData[19])
+                                    .shortValue();
                         }
                         if (rowData[20] != null) {
-                            snowDayRecordYear[2] = (short) rowData[20];
+                            snowDayRecordYear[2] = ((Number) rowData[20])
+                                    .shortValue();
                         }
 
                         if (rowData[21] != null) {
-                            climateRcd.setSnowGround((float) rowData[21]);
+                            climateRcd.setSnowGround(
+                                    ((Number) rowData[21]).floatValue());
                         }
                         if (rowData[22] != null) {
-                            climateRcd.setNumHeatMean((int) rowData[22]);
+                            climateRcd.setNumHeatMean(
+                                    ((Number) rowData[22]).intValue());
                         }
                         if (rowData[23] != null) {
-                            climateRcd.setNumCoolMean((int) rowData[23]);
+                            climateRcd.setNumCoolMean(
+                                    ((Number) rowData[23]).intValue());
                         }
                     } catch (Exception e) {
                         throw new ClimateQueryException(
@@ -887,7 +879,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
         }
     }
 
-    /**
+     /**
      * Migrated from check_daily_records.ec
      * 
      * <pre>
@@ -909,33 +901,6 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      *  values against the record values stored in the database and updates if
      *  needed.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *------------------------------------------------------------------------------
-     *    Input
-     *
-     *   MODIFICATION HISTORY
-     *   ====================
-     *    May 2000      Doug Murphy Added checks to precip and snow for
-     *                  special cases where T is record and
-     *                  0 is observed and vice versa
-     *    November 2000     Doug Murphy     Added section to update end of records
-     *                                      period if necessary
-     *     3/30/01          Doug Murphy     We do NOT want to update a record 
-     *                                      value if it is missing
-     *     4/2/02           Gary Battel     We do not want to update a record year
-     *                                      if the precip or snow amount is 0.
-     *    03/25/03          Bob Morris      Fix args to rsetnull, use symbolic names
-     *                                      for ESQL-C data types, instead of hard-
-     *                                      coded ints for SQL data types. OB2
-     *    01/13/05          Gary Battel/    Conversion from INFORMIX to POSTGRES
-     *                      Manan Dalal 
-     *   
-     *    06/05/06          Darnell Early   Add code to check for dates of min and
-     *                                      max temp records for monthly climate
-     *                                      table
      * </pre>
      *
      * @param date
@@ -947,6 +912,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      * @return true if daily record(s) was updated; false otherwise.
      * @throws ClimateQueryException
      */
+    
     public boolean compareUpdateDailyRecords(ClimateDate date, int stationId,
             short maxTemp, short minTemp, float precip, float snow)
                     throws ClimateQueryException {
@@ -1006,7 +972,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
                 short[] year = Arrays.copyOf(dayRecord.getMinTempYear(),
                         dayRecord.getMinTempYear().length);
 
-                if (minTemp > dayRecord.getMinTempRecord()) {
+                if (minTemp < dayRecord.getMinTempRecord()) {
                     dayRecord.setMinTempRecord(minTemp);
                     dayRecord.setMinTempYear(
                             new short[] { (short) date.getYear(),
@@ -1200,11 +1166,11 @@ public class ClimateDailyNormDAO extends ClimateDAO {
     }
 
     /**
-     * Migrated from check_daily_records.ec helper function year_shuffle.
-     * 
-     * <pre>
-     * 
-     *  void year_shuffle ( int *year)
+    * Migrated from check_daily_records.ec helper function year_shuffle.
+    * 
+    * <pre>
+    * 
+    *  void year_shuffle ( int *year)
     *
     *   Doug Murphy        PRC/TDL             HP 9000/7xx
     *                                  December 1999
@@ -1215,16 +1181,11 @@ public class ClimateDailyNormDAO extends ClimateDAO {
     *  This function updates the dates of occurence for a given element's
     *  record.
     *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-     * </pre>
-     * 
-     * @param year
-     */
+    * </pre>
+    * 
+    * @param year
+    */
+    
     private static short[] yearShuffle(short[] year) {
         if (year[2] != ParameterFormatClimate.MISSING) {
             if ((year[1] < year[2] && year[1] < year[0]

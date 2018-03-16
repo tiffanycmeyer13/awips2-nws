@@ -103,10 +103,10 @@ public class NWRClimateReviewAction extends AbstractHandler {
         } catch (Exception e) {
             if (e instanceof NullPointerException) {
                 logger.error("NWRClimateReviewAction: " + command
-                        + " does not exist, exiting....");
+                        + " does not exist, exiting....", e);
             } else {
                 logger.error("NWRClimateReviewAction: Failed to invoke "
-                        + command + ", exiting....");
+                        + command + ", exiting....", e);
             }
         }
 

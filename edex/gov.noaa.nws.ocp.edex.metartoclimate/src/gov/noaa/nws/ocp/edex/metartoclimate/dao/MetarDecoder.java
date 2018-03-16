@@ -88,6 +88,11 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.RunwayVisRange;
  *                                     them. SIG can have a dissipation flag after location/type.
  * 07 SEP 2017  37754      amoore      Rename and split. Reorganize related methods for METAR decoding
  *                                     and storing.
+ * 28 FEB 2018  44624/27018amoore      Address bug found in ATAN where valid weather in main METAR body would not
+ *                                     get decoded correctly if the weather block contained multiple elements.
+ *                                     Additionally implement fix for DR 18585 against legacy, where the intensity
+ *                                     character for a weather block should apply to all elements therein, not just
+ *                                     the first element.
  * </pre>
  * 
  * @author amoore
@@ -117,7 +122,7 @@ public final class MetarDecoder {
      */
     public static void decodeMetar(DecodedMetar decodedMetar,
             ClimateReport report) throws ArrayIndexOutOfBoundsException,
-                    NumberFormatException, ClimateMetarDecodingException {
+            NumberFormatException, ClimateMetarDecodingException {
         String filteredReportText = MetarDecoderUtil
                 .stripControlAndPunctuation(report.getReport());
 
@@ -309,24 +314,11 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_AltStng()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valif altimeter report. if so return
-    TRUE; else FALSE. Store altimeter value in the Decoded_METAR structure.
-        
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_AltStng()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valif altimeter report. if so return
+     * TRUE; else FALSE. Store altimeter value in the Decoded_METAR structure.
      * </pre>
      * 
      * @param decodedMetar
@@ -335,6 +327,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return report index to start parsing at.
      */
+
     private static int parseAltimeter(DecodedMetar decodedMetar,
             ClimateReport report, String[] reportArray, int reportIndex) {
         if (reportIndex < reportArray.length) {
@@ -387,25 +380,13 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_TempGroup()
-    
-    FUNCTION DESCRIPTION
-    Determine is the current token is a valid tempearture group. If so return
-    TRUE; else FALSE. If valid, then store the temperature and dew point
-    values in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_TempGroup()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine is the current token is a valid tempearture group. If so return
+     * TRUE; else FALSE. If valid, then store the temperature and dew point
+     * values in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -414,6 +395,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return the report index to start parsing from.
      */
+
     private static int parseTempAndDew(DecodedMetar decodedMetar,
             ClimateReport report, String[] reportArray, int reportIndex) {
         if (reportIndex < reportArray.length) {
@@ -473,57 +455,27 @@ public final class MetarDecoder {
      * 
      * <pre>
      * 
-    FUNCTION NAME
-    hmPED_SkyCond()
-    
-    FUNCTION DESCRIPTION
-    Determines is a sky condition report is present. If so return TRUE; 
-    else FALSE.If present check to see what type of condition is present
-    and call the right routine to process that data.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            skycond Input   An address to a pointer to a character
-                    string that contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-                    
-    FUNCTION NAME
-    hmPED_CheckforSky()
-    
-    FUNCTION DESCRIPTION
-    Determines if the current token is an Sky condition indicator. 
-    If so return TRUE; else FALSE.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
-                    
-    FUNCTION NAME
-    hmPED_parseCldData()
-    
-    FUNCTION DESCRIPTION
-    Parse the cloud data in the current token.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character
-                    string that contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * FUNCTION NAME
+     * hmPED_SkyCond()
+     *
+     * FUNCTION DESCRIPTION
+     * Determines is a sky condition report is present. If so return TRUE; 
+     * else FALSE.If present check to see what type of condition is present
+     * and call the right routine to process that data.
+     *
+     *
+     * FUNCTION NAME
+     * hmPED_CheckforSky()
+     *
+     * FUNCTION DESCRIPTION
+     * Determines if the current token is an Sky condition indicator. 
+     * If so return TRUE; else FALSE.
+     *
+     * FUNCTION NAME
+     * hmPED_parseCldData()
+     * 
+     *FUNCTION DESCRIPTION
+     * Parse the cloud data in the current token.
      * </pre>
      * 
      * @param decodedMetar
@@ -531,6 +483,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return new report index to start parsing from.
      */
+
     private static int parseSkyConditions(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         for (int ccIndex = 0; ccIndex < DecodedMetar.NUM_CLOUD_CONDITIONS; ccIndex++) {
@@ -678,29 +631,20 @@ public final class MetarDecoder {
 
     /**
      * Parse present weather from METAR report. From hmPED_decodeMetar.c and
-     * hmPED_PresentWX.c.
+     * hmPED_PresentWX.c. This is a limited greed parser; it will continually
+     * grab blocks from the report until either encountering an invalid WX
+     * element or running out of space in the Decoded object (currently set to
+     * 10 elements).
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_PresentWX()
-    
-    FUNCTION DESCRIPTION
-    Determines if the current token is a valid weather group for the current
-    weather at the site. If so return TRUE; else FALSE. If valid store the
-    weather type in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_PresentWX()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determines if the current token is a valid weather group for the current
+     * weather at the site. If valid store the
+     * weather type in the Decoded_METAR structure.
+     *
      * </pre>
      * 
      * @param decodedMetar
@@ -708,31 +652,84 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return new index to start parsing from.
      */
+
     private static int parsePresentWeather(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
-        for (int wxIndex = 0; wxIndex < DecodedMetar.NUM_REWX; wxIndex++) {
+        /*
+         * keep filling out weather until encountering an invalid weather, or
+         * out of space
+         */
+        boolean foundInvalid = false;
+        // weather index count for insertion to Decoded object
+        int wxIndex = 0;
+        while (!foundInvalid
+                && wxIndex < decodedMetar.getCmnData().getWxObstruct().length) {
             if (reportIndex < reportArray.length) {
                 // do not increment index right away, as this is an optional
                 // field
-                String currWx = reportArray[reportIndex];
+                final String fullWx = reportArray[reportIndex];
+                String remainingWx = fullWx;
                 String intensity;
-                if (currWx.startsWith("+") || currWx.startsWith("-")) {
-                    intensity = currWx.substring(0, 1);
-                    currWx = currWx.substring(1);
+                if (fullWx.startsWith("+") || fullWx.startsWith("-")) {
+                    intensity = fullWx.substring(0, 1);
+                    remainingWx = fullWx.substring(1);
                 } else {
                     intensity = "";
                 }
 
-                if (MetarDecoderUtil.VALID_WX_SYMBOLS.contains(currWx)) {
-                    // store the weather type
-                    decodedMetar.getCmnData()
-                            .getWxObstruct()[wxIndex] = intensity + currWx;
+                /*
+                 * Keep parsing the weather block until empty or invalid weather
+                 */
+                while (!remainingWx.isEmpty() && !foundInvalid) {
+                    /*
+                     * Loop through all valid WX symbols and the given remaining
+                     * WX block searching to see if the remainder of the WX
+                     * block starts with the valid symbol
+                     */
+                    boolean foundMatch = false;
+                    for (int i = 0; i < MetarDecoderUtil.VALID_WX_SYMBOLS.size()
+                            && !foundMatch; i++) {
+                        String currValidWx = MetarDecoderUtil.VALID_WX_SYMBOLS
+                                .get(i);
+                        if (remainingWx.startsWith(currValidWx)) {
+                            // found valid WX
+                            foundMatch = true;
+                            /*
+                             * store new WX; per DR 18585, "intensity" character
+                             * should apply to the entire weather block, not
+                             * just the first element
+                             */
+                            String wxToStore = intensity + currValidWx;
+                            // space left in object?
+                            if (wxIndex < decodedMetar.getCmnData()
+                                    .getWxObstruct().length) {
+                                logger.debug("Storing weather: [" + wxToStore
+                                        + "] from weather block: [" + fullWx
+                                        + "]");
+                                decodedMetar.getCmnData()
+                                        .getWxObstruct()[wxIndex] = wxToStore;
+                                wxIndex++;
+                            } else {
+                                logger.warn("No space left to store weather: ["
+                                        + wxToStore + "] from weather block: ["
+                                        + fullWx + "]");
+                            }
+                            // cut remaining WX, removing the found symbol
+                            remainingWx = remainingWx
+                                    .substring(currValidWx.length());
+                        }
+                    }
 
+                    foundInvalid = !foundMatch;
+                }
+
+                if (!foundInvalid) {
                     // move to next report portion
                     reportIndex++;
                 } else {
                     // not a valid WX, so done with WX section
-                    logger.info("Invalid WX: [" + intensity + currWx
+                    logger.info("WX block: [" + fullWx
+                            + "] contains invalid WX(s): [" + remainingWx
                             + "]. Will stop decoding WX for this report.");
                     break;
                 }
@@ -742,6 +739,15 @@ public final class MetarDecoder {
                 break;
             }
         }
+
+        if (wxIndex >= decodedMetar.getCmnData().getWxObstruct().length) {
+            logger.warn(
+                    "While decoding METAR report, ran out of Present WX storage space, "
+                            + "which is a maximum of ["
+                            + decodedMetar.getCmnData().getWxObstruct().length
+                            + "] elements. More WX elements may have been present in the report.");
+        }
+
         return reportIndex;
     }
 
@@ -752,34 +758,18 @@ public final class MetarDecoder {
      * <pre>
      * 
      * FUNCTION DESCRIPTION
-    Determines if the Runway Visibility Range indicator is present. If so
-    return TRUE; else FALSE. If present store the visibility in the Decoded_
-    METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-                    
+     * Determines if the Runway Visibility Range indicator is present. If so
+     * return TRUE; else FALSE. If present store the visibility in the Decoded_
+     * METAR structure.
+     *
+     *               
      * FUNCTION NAME
-    hmPED_CheckforRVR()
-    
-    FUNCTION DESCRIPTION
-    Determines if the current token is an RVR indicator. If so return TRUE;
-    else FALSE.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
+     * hmPED_CheckforRVR()
+     *
+     * FUNCTION DESCRIPTION
+     * Determines if the current token is an RVR indicator. If so return TRUE;
+     * else FALSE.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -787,6 +777,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return
      */
+
     private static int parseRVRs(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         /*
@@ -918,25 +909,12 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_Visibility()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid visibility report. If so return
-    TRUE; else FALSE. If valid visibility call approprite routine to 
-    determine the visibility.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            visblty Input   An address to a pointer to a character
-                    string that contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_Visibility()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid visibility report. If so return
+     * TRUE; else FALSE. If valid visibility call approprite routine to 
+     * determine the visibility.
      * </pre>
      * 
      * @param decodedMetar
@@ -1328,24 +1306,11 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_WinData()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is valid wind data. if so return TRUE;
-    else FALSE. if valid, store all values in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            wind    Input   A pointer to a character
-                    string that contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_WinData()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is valid wind data. if so return TRUE;
+     * else FALSE. if valid, store all values in the Decoded_METAR structure.
      * </pre>
      * 
      * @param decodedMetar
@@ -1354,6 +1319,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return new report index to start parsing from.
      */
+
     private static int parseWindData(DecodedMetar decodedMetar,
             ClimateReport report, String[] reportArray, int reportIndex) {
         if (reportIndex < reportArray.length) {
@@ -1495,25 +1461,13 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_StnID()
-    
-    FUNCTION DESCRIPTION
-    Check to see if the current token is a valid station ID. If so return
-    TRUE; else FALSE. If it is valid store the station name in the Decoded_
-    METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            stnID   Input   A pointer to a character
-                    string that contains the current token.
-    PedCmnStruct    Mptr    Both    A pointer to a structure that contains
-                    the decoded data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_StnID()
+     *
+     * FUNCTION DESCRIPTION
+     * Check to see if the current token is a valid station ID. If so return
+     * TRUE; else FALSE. If it is valid store the station name in the Decoded_
+     * METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1522,9 +1476,10 @@ public final class MetarDecoder {
      * @return report index to parse next.
      * @throws ClimateMetarDecodingException
      */
+
     private static int parseStationID(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex)
-                    throws ClimateMetarDecodingException {
+            throws ClimateMetarDecodingException {
         String stationID = reportArray[reportIndex++];
         if (stationID.matches(MetarDecoderUtil.STATION_ID_REGEX)) {
             decodedMetar.getCmnData().setStationID(stationID);
@@ -1542,26 +1497,14 @@ public final class MetarDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_CodeName()
-    
-    FUNCTION DESCRIPTION
-    This routine determines if the current report is a METAR or SPECI report.
-    It checks to see if the string METAR or SPECI is present. If so it
-    returns TRUE; else FALSE. Also stores the type of report in the
-    Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char         codename   Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_CodeName()
+     * 
+     * FUNCTION DESCRIPTION
+     * This routine determines if the current report is a METAR or SPECI report.
+     *  It checks to see if the string METAR or SPECI is present. If so it
+     * returns TRUE; else FALSE. Also stores the type of report in the
+     * Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1569,6 +1512,7 @@ public final class MetarDecoder {
      * @param reportIndex
      * @return index for the rest of parsing to use.
      */
+
     private static int parseCodename(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         String reportType = reportArray[reportIndex++];

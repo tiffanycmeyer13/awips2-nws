@@ -27,6 +27,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 07 FEB 2017  28609      amoore      Comment clarification.
  * 21 FEB 2017  28609      amoore      Nullability clarification in getters.
  * 09 MAY 2017  33104      amoore      Remove unneeded PDO extension.
+ * 02 NOV 2017  37755      amoore      Do not truncate report text here.
  * </pre>
  *
  * @author pwang
@@ -264,11 +265,6 @@ public class ClimateReport {
      *            the report to set
      */
     public void setReport(String report) {
-        if (report != null) {
-            if (report.length() > 255) {
-                report = report.substring(0, 255);
-            }
-        }
         this.report = report;
     }
 

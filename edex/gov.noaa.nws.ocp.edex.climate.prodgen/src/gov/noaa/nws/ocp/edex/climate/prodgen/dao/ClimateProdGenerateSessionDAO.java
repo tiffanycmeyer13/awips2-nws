@@ -38,7 +38,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
  * ------------ ---------- ----------- --------------------------
  * Feb 7, 2017  20637     pwang     Initial creation
  * Jun 7, 2017  34790     pwang     Simplified CPG purge call
- *
+ * Sep 8, 2017  37809     amoore    For queries, cast to Number rather than specific number type.
+ * Nov 3, 2017  36749     amoore    Address review comments.
  * </pre>
  *
  * @author pwang
@@ -129,10 +130,10 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                 Object[] oa = (Object[]) result;
                 ClimateProdGenerateSessionData rec = new ClimateProdGenerateSessionData();
                 rec.setCpg_session_id((String) oa[0]);
-                rec.setRun_type((Integer) oa[1]);
-                rec.setProd_type((Integer) oa[2]);
-                rec.setState((Integer) oa[3]);
-                rec.setStatus((Integer) oa[4]);
+                rec.setRun_type(((Number) oa[1]).intValue());
+                rec.setProd_type(((Number) oa[2]).intValue());
+                rec.setState(((Number) oa[3]).intValue());
+                rec.setStatus(((Number) oa[4]).intValue());
                 rec.setStatus_desc((String) oa[5]);
                 rec.setGlobal_config((byte[]) oa[6]);
                 rec.setProd_setting((byte[]) oa[7]);
@@ -173,10 +174,11 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                 Object[] oa = (Object[]) result;
                 ClimateProdGenerateSessionDataForView rec = new ClimateProdGenerateSessionDataForView();
                 rec.setCpg_session_id((String) oa[0]);
-                rec.setRun_type((Integer) oa[1]);
-                rec.setProd_type(this.getPeriodTypeFromValue((Integer) oa[2]));
-                rec.setState(this.getStateFromValue((Integer) oa[3]));
-                rec.setStatus(this.getStatusFromValue((Integer) oa[4],
+                rec.setRun_type(((Number) oa[1]).intValue());
+                rec.setProd_type(this
+                        .getPeriodTypeFromValue(((Number) oa[2]).intValue()));
+                rec.setState(SessionState.valueOf(((Number) oa[3]).intValue()));
+                rec.setStateStatus(new StateStatus(((Number) oa[4]).intValue(),
                         (String) oa[5]));
                 rec.setStatus_desc((String) oa[5]);
                 rec.setProd_data(bytesToClimateProdData((byte[]) oa[6]));
@@ -200,8 +202,8 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
      * @return
      * @throws Exception
      */
-    public List<ClimateProdGenerateSessionData> getCPGSession(
-            String cpgSessionId) throws ClimateQueryException {
+    public ClimateProdGenerateSessionData getCPGSession(String cpgSessionId)
+            throws ClimateQueryException {
         ClimateProdGenerateSessionData cpgData = new ClimateProdGenerateSessionData();
         Map<String, Object> cols = cpgData.getColumnValues();
         String sql = getCPGSessionStatementByID(CPG_SESSION_TABLE_NAME,
@@ -213,16 +215,14 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                     "Unexpected results from query " + sql);
         }
 
-        List<ClimateProdGenerateSessionData> sessionList = new ArrayList<>();
-        ClimateProdGenerateSessionData rec;
         if (results[0] instanceof Object[]) {
             Object[] oa = (Object[]) results[0];
-            rec = new ClimateProdGenerateSessionData();
+            ClimateProdGenerateSessionData rec = new ClimateProdGenerateSessionData();
             rec.setCpg_session_id((String) oa[0]);
-            rec.setRun_type((Integer) oa[1]);
-            rec.setProd_type((Integer) oa[2]);
-            rec.setState((Integer) oa[3]);
-            rec.setStatus((Integer) oa[4]);
+            rec.setRun_type(((Number) oa[1]).intValue());
+            rec.setProd_type(((Number) oa[2]).intValue());
+            rec.setState(((Number) oa[3]).intValue());
+            rec.setStatus(((Number) oa[4]).intValue());
             rec.setStatus_desc((String) oa[5]);
             rec.setGlobal_config((byte[]) oa[6]);
             rec.setProd_setting((byte[]) oa[7]);
@@ -231,16 +231,13 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
             rec.setStart_at((Timestamp) oa[10]);
             rec.setLast_updated((Timestamp) oa[11]);
             rec.setPending_expire((Timestamp) oa[12]);
-            sessionList.add(rec);
 
+            return rec;
         } else {
             throw new ClimateQueryException(
                     "Unexpected return type from bias query, expected Object[], got "
                             + results[0].getClass().getName());
         }
-
-        return sessionList;
-
     }
 
     /**
@@ -250,7 +247,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
      * @return
      * @throws ClimateQueryException
      */
-    public List<ClimateProdGenerateSessionDataForView> getCPGSessionForView(
+    public ClimateProdGenerateSessionDataForView getCPGSessionForView(
             String cpgSessionId) throws ClimateQueryException {
         ClimateProdGenerateSessionDataForView cpgData = new ClimateProdGenerateSessionDataForView();
         Map<String, Object> cols = cpgData.getColumnValues();
@@ -263,30 +260,27 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                     "Unexpected results from query " + sql);
         }
 
-        List<ClimateProdGenerateSessionDataForView> sessionList = new ArrayList<>();
         if (results[0] instanceof Object[]) {
             Object[] oa = (Object[]) results[0];
             ClimateProdGenerateSessionDataForView rec = new ClimateProdGenerateSessionDataForView();
             rec.setCpg_session_id((String) oa[0]);
-            rec.setRun_type((Integer) oa[1]);
-            rec.setProd_type(this.getPeriodTypeFromValue((Integer) oa[2]));
-            rec.setState(this.getStateFromValue((Integer) oa[3]));
-            rec.setStatus(
-                    this.getStatusFromValue((Integer) oa[4], (String) oa[5]));
+            rec.setRun_type(((Number) oa[1]).intValue());
+            rec.setProd_type(
+                    this.getPeriodTypeFromValue(((Number) oa[2]).intValue()));
+            rec.setState(SessionState.valueOf(((Number) oa[3]).intValue()));
+            rec.setStateStatus(new StateStatus(((Number) oa[4]).intValue(),
+                    (String) oa[5]));
             rec.setStatus_desc((String) oa[5]);
             rec.setProd_data(bytesToClimateProdData((byte[]) oa[6]));
             rec.setStart_at((Timestamp) oa[7]);
             rec.setLast_updated((Timestamp) oa[8]);
-            sessionList.add(rec);
 
+            return rec;
         } else {
             throw new ClimateQueryException(
                     "Unexpected return type from bias query, expected Object[], got "
                             + results[0].getClass().getName());
         }
-
-        return sessionList;
-
     }
 
     /**
@@ -509,8 +503,8 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                             + cpgSessionId);
         }
 
-        Object ob = (Object) results[0];
-        return (int) ob;
+        Object ob = results[0];
+        return ((Number) ob).intValue();
 
     }
 
@@ -544,7 +538,8 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
         StateStatus currentStatus = null;
         if (results[0] instanceof Object[]) {
             Object[] oa = (Object[]) results[0];
-            currentStatus = getStatusFromValue((int) oa[0], (String) oa[1]);
+            currentStatus = new StateStatus(((Number) oa[0]).intValue(),
+                    (String) oa[1]);
         }
 
         return currentStatus;
@@ -697,42 +692,6 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
                 .append("::timestamp");
         sb.append(";");
         return sb.toString();
-    }
-
-    /**
-     * getStateFromValue
-     * 
-     * @param value
-     * @return
-     */
-    private SessionState getStateFromValue(int value) {
-        for (SessionState cstate : SessionState.values()) {
-            if (cstate.getValue() == value) {
-                return cstate;
-            }
-        }
-        // Invalid value
-        return SessionState.UNKNOWN;
-
-    }
-
-    /**
-     * getStatusFromValue
-     * 
-     * @param value
-     * @param desc
-     * @return
-     */
-    private StateStatus getStatusFromValue(int value, String desc) {
-        for (StateStatus s : StateStatus.values()) {
-            if (s.getCode() == value) {
-                s.setDescription(desc);
-                return s;
-            }
-        }
-        // Invalid value
-        return StateStatus.UNKNOWN;
-
     }
 
     /**

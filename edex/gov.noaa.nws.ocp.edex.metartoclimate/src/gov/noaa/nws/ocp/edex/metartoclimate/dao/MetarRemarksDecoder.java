@@ -489,26 +489,15 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_CHINO()
-    
-    FUNCTION DESCRIPTION
-    This routine check to see is the CHINO string is present in the meassage.
-    If so it returns TRUE; else False. This value is used to indicate that 
-    that staion is equipped with a secondary visibility sensor and that is 
-    it not working. Also if the string is detected it stores the location of
-    the inoperative sensor into the Mptr structure.
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_CHINO()
+     * 
+     * FUNCTION DESCRIPTION
+     * This routine check to see is the CHINO string is present in the meassage.
+     * If so it returns TRUE; else False. This value is used to indicate that 
+     * that staion is equipped with a secondary visibility sensor and that is 
+     * it not working. Also if the string is detected it stores the location of
+     * the inoperative sensor into the Mptr structure.
+     *
      * </pre>
      * 
      * @param decodedMetar
@@ -516,6 +505,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing at.
      */
+
     private static int parseNoSecondaryCeilingHeight(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -560,26 +550,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_VISNO()
-    
-    FUNCTION DESCRIPTION
-    Determine if the curren token is a VISNO indicator. If so return TRUE;
-    else FALSE. This indicator indicates that a secondary visibility sensor
-    at an automated site in not functioning. Store the location of the
-    sensor in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_VISNO()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the curren token is a VISNO indicator. If so return TRUE;
+     * else FALSE. This indicator indicates that a secondary visibility sensor
+     * at an automated site in not functioning. Store the location of the
+     * sensor in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -587,6 +565,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing at.
      */
+
     private static int parseNoSecondaryVisuals(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -630,26 +609,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_Ptendency()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current toke is a valid pressure tendency report. if so
-    return TRUE; else FALSE. This reports the 3 hour pressure tendency 
-    for the site and the pressure value is stored in the Decoded_METAR
-    structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_Ptendency()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine if the current toke is a valid pressure tendency report. if so
+     * return TRUE; else FALSE. This reports the 3 hour pressure tendency 
+     * for the site and the pressure value is stored in the Decoded_METAR
+     * structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -679,30 +646,19 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_T24MaxMinTemp()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valis 24 hour max min temperature
-    report. If so return TRUE; else FALSE. IF valid, store the max and min 
-    temperature values in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_T24MaxMinTemp()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valis 24 hour max min temperature
+     * report. If so return TRUE; else FALSE. IF valid, store the max and min 
+     * temperature values in the Decoded_METAR structure.
+     *
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parse24HourMaxMinTemps(DecodedMetar decodedMetar,
             String currReportSection) {
         if (currReportSection.substring(1, 5)
@@ -743,33 +699,21 @@ public final class MetarRemarksDecoder {
      * {@link MetarDecoderUtil#TEMP_AND_DEW_PREFIX}. From hmPED_TTdTenths.c.
      * 
      * <pre>
-     FUNCTION NAME
-    hmPED_TTdTenths()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid Hourly temperature and
-    dew point report. If so return TRUE; else FALSE. If valid, store the
-    temperature and dew point up to tenths of a degree in the Decoded_
-    METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * FUNCTION NAME
+     * hmPED_TTdTenths()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid Hourly temperature and
+     * dew point report. If so return TRUE; else FALSE. If valid, store the
+     * temperature and dew point up to tenths of a degree in the Decoded_
+     * METAR structure.
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseTempAndDew(DecodedMetar decodedMetar,
             int reportIndex, String currReportSection) {
         /*
@@ -842,30 +786,19 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SunshineDur()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid Sunshine Duration token. If so
-    return TRUE; else FALSE. If it is valid store the amount of sun in the
-    Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_SunshineDur()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid Sunshine Duration token. If so
+     * return TRUE; else FALSE. If it is valid store the amount of sun in the
+     * Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseSunshineDuration(DecodedMetar decodedMetar,
             String currReportSection) {
         if (currReportSection.matches(MetarDecoderUtil.SUNSHINE_REGEX)) {
@@ -896,30 +829,19 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SynopClouds()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid Synoptic Cloud report. If so
-    return TRUE; else FALSE. If valid, store the clode type in the
-    Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_SynopClouds()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid Synoptic Cloud report. If so
+     * return TRUE; else FALSE. If valid, store the clode type in the
+     * Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseSynopClouds(DecodedMetar decodedMetar,
             String currReportSection) {
         if (currReportSection
@@ -944,31 +866,19 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_WaterEquivSnow()
-    
-    FUNCTION DESCRIPTION
-    This routine determines in the water equivalent of snow is of the
-    correct format. If so it returns TRUE; else FALSE. If it is valid,
-    it calculates the water equivalent of the snow fallen, and stores it in
-    the Decode_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_WaterEquivSnow()
+     *
+     * FUNCTION DESCRIPTION
+     * This routine determines in the water equivalent of snow is of the
+     * correct format. If so it returns TRUE; else FALSE. If it is valid,
+     * it calculates the water equivalent of the snow fallen, and stores it in
+     * the Decode_METAR structure.
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseWaterEquivalent(DecodedMetar decodedMetar,
             String currReportSection) {
         String waterEquivString = currReportSection
@@ -991,30 +901,19 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-        hmPED_SnowDepth()
-    
-    FUNCTION DESCRIPTION
-        Determine if the current group is a snow depth data. If so return TRUE;
-        else FALSE. If it is snow depth data store the amount of snow in the
-        Decoded_METAR structure.
-    
-    PARAMETERS
-        Type            Name    I/O             Description
-        char            token   Input   A pointer to a character
-                                        string that contains the current token.
-        Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                                        the decoded METAR data.
-        int             NDEX    Both    A pointer to an integer that is the 
-                                        index into a array that contains the
-                                        individual groups of the METAR report.
-                                        being decoded. Upon entry, NDEX is
-                                        the current group of the METAR report
-                                        that is to be identified.
+     *   hmPED_SnowDepth()
+     *
+     * FUNCTION DESCRIPTION
+     *   Determine if the current group is a snow depth data. If so return TRUE;
+     *   else FALSE. If it is snow depth data store the amount of snow in the
+     *   Decoded_METAR structure.
+     *
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseSnowDepth(DecodedMetar decodedMetar,
             String currReportSection) {
         String snowDepthString = currReportSection
@@ -1036,30 +935,18 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_P24Precip()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid 24 hour precip report. If so
-    return true; else FALSE. If valid store the amount in the Decode_METAR
-    structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_P24Precip()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid 24 hour precip report. If so
+     * return true; else FALSE. If valid store the amount in the Decode_METAR
+     * structure.
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parse24HourPrecip(DecodedMetar decodedMetar,
             String currReportSection) {
         String precipValueString = currReportSection
@@ -1090,30 +977,18 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_P6Precip()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid 6 hour precip report. If so
-    return TRUE; else FALSE. If valid store the amount in the Decoded_METAR
-    structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_P6Precip()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid 6 hour precip report. If so
+     * return TRUE; else FALSE. If valid store the amount in the Decoded_METAR
+     * structure.
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parse3or6HourlyPrecip(DecodedMetar decodedMetar,
             String currReportSection) {
         String precipValueString = currReportSection.substring(
@@ -1143,34 +1018,20 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_HourlyPrecip()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid Hourly precip report. If so
-    return TRUE; else FALSE. If valid, store the precip amount in the
-    Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-    RETURNS
-    TRUE = the input string is a valid token.
-    FALSE = the input string is invalid or missing token.
+     * hmPED_HourlyPrecip()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid Hourly precip report. If so
+     * return TRUE; else FALSE. If valid, store the precip amount in the
+     * Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
      * @param reportArray
      * @param currReportSection
      */
+
     private static void parseHourlyPrecip(DecodedMetar decodedMetar,
             String currReportSection) {
         String precipValueString = currReportSection
@@ -1195,25 +1056,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SNINCR()
-    
-    FUNCTION DESCRIPTION
-    Determines if the SNINCR remark is present. If so return TRUE; else FALSE.
-    This tells the the snow at the current site has increased more that an
-    inche or more in the last hour.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a  pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_SNINCR()
+     *
+     * FUNCTION DESCRIPTION
+     * Determines if the SNINCR remark is present. If so return TRUE; else FALSE.
+     * This tells the the snow at the current site has increased more that an
+     * inche or more in the last hour.
+     *
      * </pre>
      * 
      * @param decodedMetar
@@ -1221,6 +1070,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing at.
      */
+
     private static int parseSnowIncrease(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         /*
@@ -1267,28 +1117,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SLP()
-    
-    FUNCTION DESCRIPTION
-    Determines if the SLP remark is present. If so return TRUE; else FALSE.
-    This indicates that a Sea Level Pressure value follows, and the pressure
-    value is stored in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-    RETURNS
-    TRUE = the input string is a valid token.
-    FALSE = the input string is invalid or missing token.
+     * hmPED_SLP()
+     *
+     * FUNCTION DESCRIPTION
+     * Determines if the SLP remark is present. If so return TRUE; else FALSE.
+     * This indicates that a Sea Level Pressure value follows, and the pressure
+     * value is stored in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1297,6 +1132,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseSLP(DecodedMetar decodedMetar, String[] reportArray,
             int reportIndex, String currReportSection) {
         if (currReportSection.equalsIgnoreCase(
@@ -1357,29 +1193,15 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SigClouds()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the input character string signals the
-    beginning of Significant Cloud data. If it is, then interrogate
-    subsquent report groups for direction,location, and movement of clouds and
-    store in the Decoded_METAR structure. Return TRUE, if significant clouds
-    is found. Otherwise, return FALSE.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-    int     count   Both    A counter for the array position to store
-                    the saved value.
+     * hmPED_SigClouds()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the input character string signals the
+     * beginning of Significant Cloud data. If it is, then interrogate
+     * subsquent report groups for direction,location, and movement of clouds and
+     * store in the Decoded_METAR structure. Return TRUE, if significant clouds
+     * is found. Otherwise, return FALSE.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1388,6 +1210,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing at.
      */
+
     private static int parseSignificantClouds(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         String sigCloudType = "";
@@ -1621,25 +1444,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_VrbSky()
-    
-    FUNCTION DESCRIPTION
-    Determione if the curren token is a valid variable sky condition report.
-    If so return TRUE; else FALSE. Store the sky condition in the Decoded_
-    METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address ot a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_VrbSky()
+     *
+     * FUNCTION DESCRIPTION
+     * Determione if the curren token is a valid variable sky condition report.
+     * If so return TRUE; else FALSE. Store the sky condition in the Decoded_
+     * METAR structure.
+     *
      * </pre>
      * 
      * @param decodedMetar
@@ -1648,6 +1459,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseVariableSky(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         String firstSky = currReportSection;
@@ -1722,25 +1534,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_Obscur()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid Obscuration report. If 
-    so return TRUE; else FALSE. If valid; store the type of obscuration in 
-    the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_Obscur()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid Obscuration report. If 
+     * so return TRUE; else FALSE. If valid; store the type of obscuration in 
+     * the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1749,6 +1549,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseObscuration(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         decodedMetar.setObscuration(currReportSection);
@@ -1850,26 +1651,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_Ceil2ndSite()
-    
-    FUNCTION DESCRIPTION
-    This routine determines whether or not the current group in combination
-    with the next one or more groups is a report of a ceiling at a 
-    secondary site.If so it returns TRUE; else FALSE. Also if values are
-    there, it stores them in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_Ceil2ndSite()
+     *
+     * FUNCTION DESCRIPTION
+     * This routine determines whether or not the current group in combination
+     * with the next one or more groups is a report of a ceiling at a 
+     * secondary site.If so it returns TRUE; else FALSE. Also if values are
+     * there, it stores them in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -1878,6 +1667,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseSecondSiteCeilingHeight(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         if (currReportSection
@@ -1939,31 +1729,20 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-        hmPED_VariableCIG()
-    
-    FUNCTION DESCRIPTION
-        Determine whether or not the current group in combination with the next
-        one or more groups is a report of variable ceiling. If valid return TRUE;
-        else FALSE. If valid, store the min and max ceiling in the Decoded_METAR
-        structure.
-    
-    PARAMETERS
-        Type            Name    I/O             Description
-        char            string  Input   An address to a pointer to a character
-                                        string that contains the current token.
-        Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                                        the decoded METAR data.
-        int             NDEX    Both    A pointer to an integer that is the 
-                                        index into a array that contains the
-                                        individual groups of the METAR report.
-                                        being decoded. Upon entry, NDEX is
-                                        the current group of the METAR report
-                                        that is to be identified.
+     *   hmPED_VariableCIG()
+     *
+     * FUNCTION DESCRIPTION
+     *   Determine whether or not the current group in combination with the next
+     *   one or more groups is a report of variable ceiling. If valid return TRUE;
+     *   else FALSE. If valid, store the min and max ceiling in the Decoded_METAR
+     *   structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseVariableCeilingHeight(DecodedMetar decodedMetar,
             String currReportSection) {
         String[] splitCig = currReportSection
@@ -1979,24 +1758,12 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_VIRGA()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a VIRGA indicator. If valid return
-    TRUE; else FALSE. Store the direction in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_VIRGA()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a VIRGA indicator. If valid return
+     * TRUE; else FALSE. Store the direction in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -2004,6 +1771,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to parse from.
      */
+
     private static int parseVIRGA(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         String currReportSection;
@@ -2037,25 +1805,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_GR()
-    
-    FUNCTION DESCRIPTION
-    Determine if the current token is a valid hail group. If so return TRUE;
-    else FALSE. if valid store the hail size in the Decoded_METAR
-    structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_GR()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine if the current token is a valid hail group. If so return TRUE;
+     * else FALSE. if valid store the hail size in the Decoded_METAR
+     * structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -2064,6 +1820,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseHail(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -2149,28 +1906,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_TSLoc()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the input character string signals the
-    beginning of Thuderstorm Loaction. If so store data and return TRUE;
-    else FALSE.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
-    RETURNS
-    TRUE = the input string is a valid token.
-    FALSE = the input string is invalid or missing token.
+     * hmPED_TSLoc()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the input character string signals the
+     * beginning of Thuderstorm Loaction. If so store data and return TRUE;
+     * else FALSE.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -2178,6 +1920,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing at.
      */
+
     private static int parseThunderStorm(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -2336,43 +2079,34 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * MODULE NUMBER: 1
-    * MODULE NAME:   hmPED_RecentWX
-    * PURPOSE:       This routine is a modification of the hmPED_RecentWX routine
-    *                originally supplied with the hmPED METAR decoder. It enhances
-    *                the ability of the original routine to parse the recent
-    *                weather string sometimes found in the remarks section
-    *                of a METAR. These enhancements were necessitated by the
-    *                requirements for Enhanced Aviation Verification (EAV) in
-    *                build 5.0 of AWIPS.
-    *
-    *                As an example of the operation of this decoder:
-    *                Given the following recent weather string in the remarks
-    *                section of a METAR:
-    *                       RAB30PLB35RAE40SNB45PLE50SNE55PLB55
-    *
-    *                This routine will parse it as follows:
-    *
-    *       wx_type: RA     wx_type: PL     wx_type: SN     wx_type: PL
-    *       beg time: HH30  beg time: HH35  beg time: HH45  beg time: HH55
-    *       end time: HH40  end time: HH50  end time: HH55  end time: ---- 
-    *
-    *                (where HH is the hour of the observation).
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE      NAME         DESCRIPTION/UNITS
-    *   I      char**         token        Contains the recent weather string
-    *                                      to be parsed.
-    *   I/O    Decoded_METAR* Mptr         Points to the structure to contain
-    *                                      the decoded portions of the recent
-    *                                      weather string.
-    *   I/O    int*           NDEX         Contains the number of the token
-    *                                      in the remarks group currently
-    *                                      being processed.
+     * MODULE NAME:   hmPED_RecentWX
+     * PURPOSE:       This routine is a modification of the hmPED_RecentWX routine
+     *                originally supplied with the hmPED METAR decoder. It enhances
+     *                the ability of the original routine to parse the recent
+     *                weather string sometimes found in the remarks section
+     *                of a METAR. These enhancements were necessitated by the
+     *                requirements for Enhanced Aviation Verification (EAV) in
+     *                build 5.0 of AWIPS.
+     *
+     *                As an example of the operation of this decoder:
+     *                Given the following recent weather string in the remarks
+     *                section of a METAR:
+     *                       RAB30PLB35RAE40SNB45PLE50SNE55PLB55
+     *
+     *                This routine will parse it as follows:
+     *
+     *       wx_type: RA     wx_type: PL     wx_type: SN     wx_type: PL
+     *       beg time: HH30  beg time: HH35  beg time: HH45  beg time: HH55
+     *       end time: HH40  end time: HH50  end time: HH55  end time: ---- 
+     *
+     *                (where HH is the hour of the observation).
+     *
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      */
+
     private static void parseRecentWeather(DecodedMetar decodedMetar,
             String currReportSection) {
         // parse all matches for each individual weather event
@@ -2570,24 +2304,12 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_HourlyPrecip()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current and subsequent groups from the
-    METAR report make up a valid report of lightning.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_HourlyPrecip()
+     *  
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current and subsequent groups from the
+     * METAR report make up a valid report of lightning.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -2596,6 +2318,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseLightningFrequency(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         if (currReportSection.equalsIgnoreCase(
@@ -2750,31 +2473,20 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_DVR()
-    
-    FUNCTION DESCRIPTION
-    The is routine determines is the Dispatch Visual Range remark is pressnt.
-    If so it returns TRUE; else FALSE. Also if the remark is there it stores
-    all relevant data into the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   A pointer to a character string that 
-                    contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_DVR()
+     * 
+     * FUNCTION DESCRIPTION
+     * The is routine determines is the Dispatch Visual Range remark is pressnt.
+     * If so it returns TRUE; else FALSE. Also if the remark is there it stores
+     * all relevant data into the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static void parseDispatchVisualRange(DecodedMetar decodedMetar,
             String currReportSection) {
         if (!currReportSection
@@ -2845,6 +2557,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing from.
      */
+
     private static int parseOtherVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -2922,25 +2635,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_Vsby2ndSite()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current group and subsequent groups from
-    the METAR report make up a valid report of visibility at a secondary
-    site. If valid return TRUE; else FALSE. If valid; store the values in 
-    the Decoded_METAR structure.
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   An adress to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_Vsby2ndSite()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current group and subsequent groups from
+     * the METAR report make up a valid report of visibility at a secondary
+     * site. If valid return TRUE; else FALSE. If valid; store the values in 
+     * the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -2949,6 +2651,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseSecondSiteVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         /*
@@ -3039,26 +2742,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_VariableVsby()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current and subsequent groups from the
-    METAR report make up a valid report of variable prevailing visibility.
-    If valid return TRUE; else FALSE. If valid, store the max and min
-    visibility values in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_VariableVsby()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current and subsequent groups from the
+     * METAR report make up a valid report of variable prevailing visibility.
+     * If valid return TRUE; else FALSE. If valid, store the max and min
+     * visibility values in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -3067,6 +2758,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseVariableVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         /*
@@ -3181,25 +2873,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-        hmPED_SectorVsby()
-    
-    FUNCTION DESCRIPTION
-        Determine if the current token is a sector visibility report. If so
-        return TRUE; else FALSE. If this is a sector visibility report store
-        the direction and visibility in the Decoded_METAR structure.
-    
-    PARAMETERS
-        Type            Name    I/O             Description
-        char            token   Input   An address to a pointer to a character
-                                        string that contains the current token.
-        Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                                        the decoded METAR data.
-        int             NDEX    Both    A pointer to an integer that is the 
-                                        index into a array that contains the
-                                        individual groups of the METAR report.
-                                        being decoded. Upon entry, NDEX is
-                                        the current group of the METAR report
-                                        that is to be identified.
+     *   hmPED_SectorVsby()
+     *
+     * FUNCTION DESCRIPTION
+     *   Determine if the current token is a sector visibility report. If so
+     *   return TRUE; else FALSE. If this is a sector visibility report store
+     *   the direction and visibility in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -3208,6 +2888,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseSectorVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         // copy only first two characters of direction
@@ -3285,26 +2966,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_SurfaceVsby()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current and subsequent groups from the
-    METAR report make up a valid report of surface visibility. If so return
-    TRUE; else FALSE. If a valid report, store the amount of visibility
-    present in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_SurfaceVsby()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current and subsequent groups from the
+     * METAR report make up a valid report of surface visibility. If so return
+     * TRUE; else FALSE. If a valid report, store the amount of visibility
+     * present in the Decoded_METAR structure.
+     * 
      * </pre>
      * 
      * @param decodedMetar
@@ -3313,6 +2982,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseSurfaceVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         // ensure next word is VIS
@@ -3404,26 +3074,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_TowerVsby()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current and subsquent groups from the
-    METAR report make up a valid report of tower visibility. If valid, return
-    TRUE; else FALSE. If a valid report, store the visibility value in the
-    Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            token   Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_TowerVsby()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current and subsquent groups from the
+     * METAR report make up a valid report of tower visibility. If valid, return
+     * TRUE; else FALSE. If a valid report, store the visibility value in the
+     * Decoded_METAR structure.
      * </pre>
      * 
      * @param decodedMetar
@@ -3431,6 +3088,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing from.
      */
+
     private static int parseTowerVisibility(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // ensure next word is VIS
@@ -3524,26 +3182,13 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_WindShift()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current and subsequent groups from the 
-    METAR report make up a valid report of wind shift and frontal passage,
-    if included. If valid return TRUE; else FALSE. If valid, store all data
-    in the Decoded_METAR structure.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_WindShift()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current and subsequent groups from the 
+     * METAR report make up a valid report of wind shift and frontal passage,
+     * if included. If valid return TRUE; else FALSE. If valid, store all data
+     * in the Decoded_METAR structure.
      * </pre>
      * 
      * @param decodedMetar
@@ -3551,6 +3196,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing from.
      */
+
     private static int parseWindShift(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // check next word
@@ -3618,24 +3264,11 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_PeakWind()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the current character string and subsequent
-    groups from the METAR report make up a valid report of peak wind.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address of a pointer to a character 
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_PeakWind()
+     * 
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the current character string and subsequent
+     * groups from the METAR report make up a valid report of peak wind.
      * </pre>
      * 
      * @param decodedMetar
@@ -3643,6 +3276,7 @@ public final class MetarRemarksDecoder {
      * @param reportIndex
      * @return report index to start parsing from.
      */
+
     private static int parsePeakWind(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex) {
         // ensure next work is WND
@@ -3727,27 +3361,14 @@ public final class MetarRemarksDecoder {
      * 
      * <pre>
      * FUNCTION NAME
-    hmPED_TornadicActiv()
-    
-    FUNCTION DESCRIPTION
-    Determine whether or not the input character string signals the
-    beginning of Tornadic Activity data. If it is, then interrogate
-    subsquent report groups for time, location, and movement of tornado and
-    store in the Decoded_METAR structure. Return TRUE, if tornadic activity
-    is found. Otherwise, return FALSE.
-    
-    PARAMETERS
-    Type        Name    I/O     Description
-    char            string  Input   An address to a pointer to a character
-                    string that contains the current token.
-    Decoded_METAR   Mptr    Both    A pointer to a structure that contains
-                    the decoded METAR data.
-    int     NDEX    Both    A pointer to an integer that is the 
-                    index into a array that contains the
-                    individual groups of the METAR report.
-                    being decoded. Upon entry, NDEX is
-                    the current group of the METAR report
-                    that is to be identified.
+     * hmPED_TornadicActiv()
+     *
+     * FUNCTION DESCRIPTION
+     * Determine whether or not the input character string signals the
+     * beginning of Tornadic Activity data. If it is, then interrogate
+     * subsquent report groups for time, location, and movement of tornado and
+     * store in the Decoded_METAR structure. Return TRUE, if tornadic activity
+     * is found. Otherwise, return FALSE.
      * </pre>
      * 
      * @param decodedMetar
@@ -3756,6 +3377,7 @@ public final class MetarRemarksDecoder {
      * @param currReportSection
      * @return report index to start parsing from.
      */
+
     private static int parseTornadicActivity(DecodedMetar decodedMetar,
             String[] reportArray, int reportIndex, String currReportSection) {
         if (currReportSection

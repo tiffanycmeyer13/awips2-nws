@@ -31,6 +31,9 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  * Apr 14, 2017  20637     pwang       Initial creation
  * May 05, 2017  34790     pwang       Re-designed status and error handling
  * Jul 26, 2017  33104     amoore      Better logging.
+ * Aug 22, 2017  37242     amoore      Better pathing for writing files. Use File
+ *                                     constructors for pathing rather than string
+ *                                     concatenation.
  * </pre>
  *
  * @author pwang
@@ -138,9 +141,8 @@ public abstract class ClimateProductNWRSender {
      */
     public void writeProductToFile(String destDirectory, String prodID,
             String product) throws Exception {
-        File fl = new File(destDirectory + prodID);
+        File fl = new File(destDirectory, prodID);
         FileUtil.bytes2File(product.getBytes(), fl, false);
-
     }
 
     /**

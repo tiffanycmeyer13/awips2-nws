@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Climate Viz Qualitycontrol
+Bundle-SymbolicName: gov.noaa.nws.ocp.viz.climate.qualitycontrol;singleton:=true
+Bundle-Version: 1.16.0.qualifier
+Bundle-Vendor: NWS
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: com.raytheon.viz.ui,
+ gov.noaa.nws.ocp.viz.common.climate
+Import-Package: com.raytheon.uf.viz.core.exception,
+ com.raytheon.uf.viz.core.requests

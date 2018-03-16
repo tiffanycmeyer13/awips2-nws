@@ -358,9 +358,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDegreeDaysListener());
         myHeatingDaysTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDegreeDaysListener());
-        myHeatingDaysTF
-                .addKeyListener(new DataFieldListener(myHeatingDaysComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myHeatingDaysTF.addKeyListener(new DataFieldListener(
+                myHeatingDaysComboBox, myPeriodDialog.getChangeListener()));
 
         // cooling days
         Composite coolingDaysComp = new Composite(degreeDaysComp, SWT.NONE);
@@ -410,9 +409,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDegreeDaysListener());
         myCoolingDaysTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDegreeDaysListener());
-        myCoolingDaysTF
-                .addKeyListener(new DataFieldListener(myCoolingDaysComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myCoolingDaysTF.addKeyListener(new DataFieldListener(
+                myCoolingDaysComboBox, myPeriodDialog.getChangeListener()));
     }
 
     /**
@@ -498,7 +496,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMinTempLess32DegTF.addKeyListener(
                 new DataFieldListener(myMinTempLess32DegComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         myMinTempLess0DegLabel = new MismatchLabel(tempDataRightBotFields,
                 SWT.NORMAL);
@@ -544,9 +542,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMinTempLess0DegTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myMinTempLess0DegTF
-                .addKeyListener(new DataFieldListener(myMinTempLess0DegComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myMinTempLess0DegTF.addKeyListener(new DataFieldListener(
+                myMinTempLess0DegComboBox, myPeriodDialog.getChangeListener()));
 
         Label minTempGreaterDegT4Label = new Label(tempDataRightBotFields,
                 SWT.NORMAL);
@@ -559,7 +556,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMinTempGreaterDegT4TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMinTempGreaterDegT4TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT4() == ParameterFormatClimate.MISSING) {
@@ -587,7 +584,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMinTempLessDegT5TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMinTempLessDegT5TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT5() == ParameterFormatClimate.MISSING) {
@@ -614,7 +611,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMinTempLessDegT6TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMinTempLessDegT6TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT6() == ParameterFormatClimate.MISSING) {
@@ -709,7 +706,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMinTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
         myMinTempTF.addKeyListener(new DataFieldListener(myMinTempComboBox,
-                myPeriodDialog.myUnsavedChangesListener));
+                myPeriodDialog.getChangeListener()));
 
         // dates of min temp
         Label minTempDatesLbl = new Label(tempDataRightTop, SWT.NORMAL);
@@ -723,7 +720,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         DataFieldListener minTempDatesListener = new DataFieldListener(
-                myMinTempComboBox, myPeriodDialog.myUnsavedChangesListener);
+                myMinTempComboBox, myPeriodDialog.getChangeListener());
         myMinTempDates[0].addKeyListener(minTempDatesListener);
         myMinTempDates[0].addSelectionListener(minTempDatesListener);
 
@@ -787,7 +784,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myAvgMinTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
         myAvgMinTempTF.addKeyListener(new DataFieldListener(
-                myAvgMinTempComboBox, myPeriodDialog.myUnsavedChangesListener));
+                myAvgMinTempComboBox, myPeriodDialog.getChangeListener()));
 
         // mean relative humidity
         Label meanRelHumLbl = new Label(tempDataRightTop, SWT.NORMAL);
@@ -806,7 +803,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMeanRelHumTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getRelHumListener());
         myMeanRelHumTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     /**
@@ -893,7 +890,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMaxTempGreater90DegTF.addKeyListener(
                 new DataFieldListener(myMaxTempGreater90DegComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         myMaxTempLess32DegLabel = new MismatchLabel(tempDataLeftBotFields,
                 SWT.NORMAL);
@@ -941,7 +938,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMaxTempLess32DegTF.addKeyListener(
                 new DataFieldListener(myMaxTempLess32DegComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         Label maxTempGreaterDegT1Label = new Label(tempDataLeftBotFields,
                 SWT.NORMAL);
@@ -954,7 +951,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMaxTempGreaterDegT1TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMaxTempGreaterDegT1TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT1() == ParameterFormatClimate.MISSING) {
@@ -982,7 +979,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMaxTempGreaterDegT2TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMaxTempGreaterDegT2TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT2() == ParameterFormatClimate.MISSING) {
@@ -1010,7 +1007,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMaxTempLessDegT3TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myMaxTempLessDegT3TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getT3() == ParameterFormatClimate.MISSING) {
@@ -1106,7 +1103,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMaxTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
         myMaxTempTF.addKeyListener(new DataFieldListener(myMaxTempComboBox,
-                myPeriodDialog.myUnsavedChangesListener));
+                myPeriodDialog.getChangeListener()));
 
         // dates of max temp
         Label maxTempDatesLbl = new Label(tempDataLeftTop, SWT.NORMAL);
@@ -1120,7 +1117,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         DataFieldListener maxTempDatesListener = new DataFieldListener(
-                myMaxTempComboBox, myPeriodDialog.myUnsavedChangesListener);
+                myMaxTempComboBox, myPeriodDialog.getChangeListener());
         myMaxTempDates[0].addKeyListener(maxTempDatesListener);
         myMaxTempDates[0].addSelectionListener(maxTempDatesListener);
 
@@ -1184,7 +1181,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myAvgMaxTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
         myAvgMaxTempTF.addKeyListener(new DataFieldListener(
-                myAvgMaxTempComboBox, myPeriodDialog.myUnsavedChangesListener));
+                myAvgMaxTempComboBox, myPeriodDialog.getChangeListener()));
 
         myMeanTempLbl = new MismatchLabel(tempDataLeftTop, SWT.NORMAL);
         myMeanTempLbl.setText("Mean Temperature (F)");
@@ -1230,7 +1227,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMeanTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
         myMeanTempTF.addKeyListener(new DataFieldListener(myMeanTempComboBox,
-                myPeriodDialog.myUnsavedChangesListener));
+                myPeriodDialog.getChangeListener()));
     }
 
     @Override

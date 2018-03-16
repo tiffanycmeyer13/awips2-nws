@@ -53,6 +53,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * 11 MAY 2017  33104      amoore      More Find Bugs minor issues.
  * 23 MAY 2017  33104      amoore      Fix duplicate logging.
  * 15 JUN 2017  35185      amoore      Add {@link #isMissing()}.
+ * 12 OCT 2017  39354      amoore      Copy constructor handles nulls.
  * </pre>
  * 
  * @author xzhang
@@ -94,10 +95,18 @@ public class ClimateDates {
      * @param other
      */
     public ClimateDates(ClimateDates other) {
-        start = new ClimateDate(other.getStart());
-        end = new ClimateDate(other.getEnd());
-        startTime = new ClimateTime(other.getStartTime());
-        endTime = new ClimateTime(other.getEndTime());
+        if (other.getStart() != null) {
+            start = new ClimateDate(other.getStart());
+        }
+        if (other.getEnd() != null) {
+            end = new ClimateDate(other.getEnd());
+        }
+        if (other.getStartTime() != null) {
+            startTime = new ClimateTime(other.getStartTime());
+        }
+        if (other.getEndTime() != null) {
+            endTime = new ClimateTime(other.getEndTime());
+        }
     }
 
     /**

@@ -11,27 +11,23 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.common.serialization.SerializationException;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProdGenerateSessionDataForView;
@@ -56,11 +52,11 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues.QCValueType;
 import gov.noaa.nws.ocp.viz.climate.display.common.DisplayValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.QCToolTip;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListener;
-import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
 
 /**
  * This class displays the Daily Station Climate values.
@@ -104,7 +100,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 
  * @author amoore
  */
-public class DisplayStationDailyDialog extends CaveSWTDialog {
+public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
     /**
      * Prefix for average wind speed label.
      */
@@ -119,12 +115,6 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
      * Prefix for max wind speed label.
      */
     private static final String MAXIMUM_WIND_SPEED_STRING = "Maximum Wind Speed";
-
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(DisplayStationDailyDialog.class);
 
     /**
      * Summary type field.
@@ -427,11 +417,6 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
     protected final ClimateTextListeners myDisplayListeners = new ClimateTextListeners();
 
     /**
-     * Unsaved changes listener.
-     */
-    protected UnsavedChangesListener myUnsavedChangesListener = new UnsavedChangesListener();
-
-    /**
      * Session ID.
      */
     protected final String mySessionID;
@@ -440,6 +425,12 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
      * Writeable flag.
      */
     private final boolean myWriteable;
+
+    /**
+     * Completed flag. True if user chose confirmed Abort or "Accept and
+     * Continue"
+     */
+    private boolean completed = false;
 
     /**
      * Constructor.
@@ -455,8 +446,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
     public DisplayStationDailyDialog(Shell parentShell, String sessionID)
             throws ClimateInvalidParameterException, SerializationException,
             VizException {
-        super(parentShell, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE,
-                ClimateLayoutValues.CLIMATE_DIALOG_CAVE_STYLE);
+        super(parentShell);
 
         DisplayClimateResponse dailyData = (DisplayClimateResponse) ThriftClient
                 .sendRequest(new DisplayClimateRequest(sessionID,
@@ -543,24 +533,19 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         // Initialize all of the controls
         initializeComponents();
         loadData();
+    }
 
-        // Add confirm dialog to x button.
-        shell.addListener(SWT.Close, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                boolean close = myWriteable ? MessageDialog.openConfirm(
-                        getShell(), "Close?", "Are you sure you wish to close? "
-                                + " Work will be lost.")
-                        : true;
+    /**
+     * If exiting not due to user-confirmed abort/"accept and continue", and
+     * this is a writeable set of data, confirm with user.
+     */
+    public boolean shouldClose() {
+        boolean close = !completed && myWriteable ? MessageDialog.openConfirm(
+                getShell(), "Close?",
+                "Are you sure you wish to close? " + " Work will be lost.")
+                : true;
 
-                if (close) {
-                    close();
-                } else {
-                    event.doit = false;
-                }
-
-            }
-        });
+        return close;
     }
 
     /**
@@ -606,11 +591,11 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         abortClimateRunMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                boolean abort = MessageDialog.openConfirm(getShell(), "Abort?",
+                completed = MessageDialog.openConfirm(getShell(), "Abort?",
                         "Are you sure you wish to abort? "
                                 + "Unsaved changes will be lost.");
 
-                if (abort) {
+                if (completed) {
                     /*
                      * Climate workflow should also be halted
                      */
@@ -639,13 +624,13 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 .addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent event) {
-                        boolean close = MessageDialog.openConfirm(getShell(),
+                        completed = MessageDialog.openConfirm(getShell(),
                                 "Continue?",
                                 "Are you sure you wish to accept all values for the stations?"
                                         + " Unsaved changes will be lost, and"
                                         + " climate execution will proceed to the next step.");
 
-                        if (close) {
+                        if (completed) {
                             /*
                              * send EDEX request for the Display headless
                              * functionality and continue CPG workflow.
@@ -690,7 +675,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
      * Set data for dialog.
      */
     private void loadData() {
-        myUnsavedChangesListener.setIgnoreChanges(true);
+        changeListener.setIgnoreChanges(true);
         // clear data first
         clearValues();
 
@@ -871,8 +856,8 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myData = null;
             }
 
-            myUnsavedChangesListener.setIgnoreChanges(false);
-            myUnsavedChangesListener.setChangesUnsaved(false);
+            changeListener.setIgnoreChanges(false);
+            changeListener.setChangesUnsaved(false);
         } else {
             logger.debug("Station Index [" + selectedStationIndex
                     + "] is not valid. No station data loaded.");
@@ -928,7 +913,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getPrecipListener());
         myPrecipTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getPrecipListener());
-        myPrecipTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myPrecipTF.addListener(SWT.Modify, changeListener);
 
         // snowfall label
         Label snowFallLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -941,7 +926,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getSnowFallListener());
         mySnowDayFallTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
-        mySnowDayFallTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        mySnowDayFallTF.addListener(SWT.Modify, changeListener);
 
         // minutes sun label
         Label minutesSunLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -954,7 +939,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getDefaultIntListener());
         myMinutesSunTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myMinutesSunTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinutesSunTF.addListener(SWT.Modify, changeListener);
 
         // percent sun label
         Label percentSunLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -967,7 +952,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getDefaultIntListener());
         myPercentPossSunTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
-        myPercentPossSunTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myPercentPossSunTF.addListener(SWT.Modify, changeListener);
 
         // avg sky cover label
         Label avgSkyCoverLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -980,7 +965,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getSkyCoverListener());
         mySkyCoverTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSkyCoverListener());
-        mySkyCoverTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        mySkyCoverTF.addListener(SWT.Modify, changeListener);
 
         // snow on ground label
         Label snowGroundLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -993,7 +978,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getSnowFallListener());
         mySnowOnGroundTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
-        mySnowOnGroundTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        mySnowOnGroundTF.addListener(SWT.Modify, changeListener);
 
         // max SLP label
         Label maxSLPLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -1005,7 +990,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         myMaxSLPTF.addListener(SWT.Verify, myDisplayListeners.getSlpListener());
         myMaxSLPTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSlpListener());
-        myMaxSLPTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxSLPTF.addListener(SWT.Modify, changeListener);
 
         // min SLP label
         Label minSLPLbl = new Label(otherDataDisplayComp, SWT.NORMAL);
@@ -1017,7 +1002,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         myMinSLPTF.addListener(SWT.Verify, myDisplayListeners.getSlpListener());
         myMinSLPTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSlpListener());
-        myMinSLPTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinSLPTF.addListener(SWT.Modify, changeListener);
     }
 
     /**
@@ -1055,93 +1040,92 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         myTSCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myTSCheckbox.setText("TS");
-        myTSCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myTSCheckbox.addListener(SWT.Selection, changeListener);
 
         myNegFZRACheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myNegFZRACheckbox.setText("-FZRA");
-        myNegFZRACheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myNegFZRACheckbox.addListener(SWT.Selection, changeListener);
 
         myFGCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myFGCheckbox.setText("FG");
-        myFGCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myFGCheckbox.addListener(SWT.Selection, changeListener);
 
         myMixedCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myMixedCheckbox.setText("MIXED");
-        myMixedCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myMixedCheckbox.addListener(SWT.Selection, changeListener);
 
         myGRCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myGRCheckbox.setText("GR");
-        myGRCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myGRCheckbox.addListener(SWT.Selection, changeListener);
 
         myFGFourthSMCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myFGFourthSMCheckbox.setText("FG <=1/4SM");
-        myFGFourthSMCheckbox.addListener(SWT.Selection,
-                myUnsavedChangesListener);
+        myFGFourthSMCheckbox.addListener(SWT.Selection, changeListener);
 
         myPosRACheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myPosRACheckbox.setText("+RA");
-        myPosRACheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myPosRACheckbox.addListener(SWT.Selection, changeListener);
 
         myPosSNCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myPosSNCheckbox.setText("+SN");
-        myPosSNCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myPosSNCheckbox.addListener(SWT.Selection, changeListener);
 
         myHZCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myHZCheckbox.setText("HZ");
-        myHZCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myHZCheckbox.addListener(SWT.Selection, changeListener);
 
         myRACheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myRACheckbox.setText("RA");
-        myRACheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myRACheckbox.addListener(SWT.Selection, changeListener);
 
         mySNCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         mySNCheckbox.setText("SN");
-        mySNCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        mySNCheckbox.addListener(SWT.Selection, changeListener);
 
         myBLSNCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myBLSNCheckbox.setText("BLSN");
-        myBLSNCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myBLSNCheckbox.addListener(SWT.Selection, changeListener);
 
         myNegRACheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myNegRACheckbox.setText("-RA");
-        myNegRACheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myNegRACheckbox.addListener(SWT.Selection, changeListener);
 
         myNegSNCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myNegSNCheckbox.setText("-SN");
-        myNegSNCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myNegSNCheckbox.addListener(SWT.Selection, changeListener);
 
         mySSCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         mySSCheckbox.setText("SS");
-        mySSCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        mySSCheckbox.addListener(SWT.Selection, changeListener);
 
         myFZRACheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myFZRACheckbox.setText("FZRA");
-        myFZRACheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myFZRACheckbox.addListener(SWT.Selection, changeListener);
 
         myPLCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myPLCheckbox.setText("PL");
-        myPLCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myPLCheckbox.addListener(SWT.Selection, changeListener);
 
         myFCCheckbox = new Button(observedWeatherCheckBoxesDisplayComp,
                 SWT.CHECK);
         myFCCheckbox.setText("FC");
-        myFCCheckbox.addListener(SWT.Selection, myUnsavedChangesListener);
+        myFCCheckbox.addListener(SWT.Selection, changeListener);
     }
 
     /**
@@ -1188,7 +1172,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
             public void widgetSelected(SelectionEvent event) {
                 if (myIsWindSpeedsKnots != myWindSpeedsKnotsCheckbox
                         .getSelection()) {
-                    myUnsavedChangesListener.setIgnoreChanges(true);
+                    changeListener.setIgnoreChanges(true);
 
                     // selection value changed
                     myIsWindSpeedsKnots = myWindSpeedsKnotsCheckbox
@@ -1334,7 +1318,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                                 .setDataValue(String.valueOf(newAvgWindSpd));
                     }
 
-                    myUnsavedChangesListener.setIgnoreChanges(false);
+                    changeListener.setIgnoreChanges(false);
                 }
             }
         });
@@ -1363,14 +1347,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getTempIntListener());
         myMaxTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
-        myMaxTempTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxTempTF.addListener(SWT.Modify, changeListener);
 
         myMaxTempTimeTF = new Text(myMaxTempTF,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMaxTempTimeTF.addFocusListener(
                 new TimeSelectorFocusListener(myMaxTempTimeTF));
         ClimateLayoutValues.assignFieldsRD(myMaxTempTimeTF);
-        myMaxTempTimeTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxTempTimeTF.addListener(SWT.Modify, changeListener);
 
         // max temp time label
         Label maxTempTimeLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1387,14 +1371,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getTempIntListener());
         myMinTempTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getTempIntListener());
-        myMinTempTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinTempTF.addListener(SWT.Modify, changeListener);
 
         myMinTempTimeTF = new Text(myMinTempTF,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMinTempTimeTF.addFocusListener(
                 new TimeSelectorFocusListener(myMinTempTimeTF));
         ClimateLayoutValues.assignFieldsRD(myMinTempTimeTF);
-        myMinTempTimeTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinTempTimeTF.addListener(SWT.Modify, changeListener);
 
         // min temp time label
         Label minTempTimeLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1416,14 +1400,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getRelHumListener());
         myMaxRelHumTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getRelHumListener());
-        myMaxRelHumTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxRelHumTF.addListener(SWT.Modify, changeListener);
 
         myMaxRelHumHourTF = new Text(maxHumFieldsComp,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMaxRelHumHourTF.addFocusListener(
                 new TimeSelectorFocusListener(myMaxRelHumHourTF, true));
         ClimateLayoutValues.assignShortFieldsRD(myMaxRelHumHourTF);
-        myMaxRelHumHourTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxRelHumHourTF.addListener(SWT.Modify, changeListener);
 
         // max hum time label
         Label maxHumTimeLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1445,14 +1429,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getRelHumListener());
         myMinRelHumTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getRelHumListener());
-        myMinRelHumTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinRelHumTF.addListener(SWT.Modify, changeListener);
 
         myMinRelHumHourTF = new Text(minHumFieldsComp,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMinRelHumHourTF.addFocusListener(
                 new TimeSelectorFocusListener(myMinRelHumHourTF, true));
         ClimateLayoutValues.assignShortFieldsRD(myMinRelHumHourTF);
-        myMinRelHumHourTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMinRelHumHourTF.addListener(SWT.Modify, changeListener);
 
         // min hum time label
         Label minHumTimeLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1469,14 +1453,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getWindDirListener());
         myMaxWindDirTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
-        myMaxWindDirTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxWindDirTF.addListener(SWT.Modify, changeListener);
 
         myMaxWindTimeTF = new Text(myMaxWindDirTF,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMaxWindTimeTF.addFocusListener(
                 new TimeSelectorFocusListener(myMaxWindTimeTF));
         ClimateLayoutValues.assignFieldsRD(myMaxWindTimeTF);
-        myMaxWindTimeTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxWindTimeTF.addListener(SWT.Modify, changeListener);
 
         // max wind direction time label
         Label maxWindDirTimeLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1506,7 +1490,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getWindSpdListener());
         myMaxWindSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
-        myMaxWindSpeedTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxWindSpeedTF.addListener(SWT.Modify, changeListener);
 
         // max wind speed spacer label
         Label maxWindSpeedSpacerLbl = new Label(labelsAndFieldsComp,
@@ -1524,14 +1508,14 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getWindDirListener());
         myMaxGustDirTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindDirListener());
-        myMaxGustDirTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxGustDirTF.addListener(SWT.Modify, changeListener);
 
         myMaxGustTimeTF = new Text(myMaxGustDirTF,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myMaxGustTimeTF.addFocusListener(
                 new TimeSelectorFocusListener(myMaxGustTimeTF));
         ClimateLayoutValues.assignFieldsRD(myMaxGustTimeTF);
-        myMaxGustTimeTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxGustTimeTF.addListener(SWT.Modify, changeListener);
 
         // max wind direction time label
         Label maxWindGustDirTimeLbl = new Label(labelsAndFieldsComp,
@@ -1562,7 +1546,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getWindSpdListener());
         myMaxGustSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
-        myMaxGustSpeedTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myMaxGustSpeedTF.addListener(SWT.Modify, changeListener);
 
         // max wind gust spacer label
         Label maxWindGustSpacerLbl = new Label(labelsAndFieldsComp, SWT.NORMAL);
@@ -1593,7 +1577,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                 myDisplayListeners.getWindSpdListener());
         myAvgWindSpeedTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getWindSpdListener());
-        myAvgWindSpeedTF.addListener(SWT.Modify, myUnsavedChangesListener);
+        myAvgWindSpeedTF.addListener(SWT.Modify, changeListener);
 
         // avg wind speed spacer label
         Label avgWindSpeedSpacerLbl = new Label(labelsAndFieldsComp,
@@ -1855,7 +1839,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
                         ? myStationList.getSelectionIndex() + 1 : 0);
         stationSelectionChanged(false);
 
-        myUnsavedChangesListener.setChangesUnsaved(false);
+        changeListener.setChangesUnsaved(false);
     }
 
     /**
@@ -1984,8 +1968,13 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         Label dateLbl = new Label(dateComp, SWT.NORMAL);
         dateLbl.setText("Date");
 
+        GC gc = new GC(dateLbl);
+        int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        int fontHeight = gc.getFontMetrics().getHeight();
+        gc.dispose();
+
         // Date field
-        RowData dateRD = new RowData(150, ClimateLayoutValues.FIELD_HEIGHT);
+        RowData dateRD = new RowData(20 * fontWidth, (3 * fontHeight) / 2);
         myDateTF = new Text(dateComp, SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         myDateTF.setEditable(false);
         myDateTF.setLayoutData(dateRD);
@@ -1996,8 +1985,8 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
         summaryTypeLbl.setText("Type of Summary");
 
         // Summary type field
-        RowData summaryTypeRD = new RowData(250,
-                ClimateLayoutValues.FIELD_HEIGHT);
+        RowData summaryTypeRD = new RowData(38 * fontWidth,
+                (3 * fontHeight) / 2);
         mySummaryTypeTF = new Text(dateComp,
                 SWT.SINGLE | SWT.BORDER | SWT.CENTER);
         mySummaryTypeTF.setEditable(false);
@@ -2019,7 +2008,7 @@ public class DisplayStationDailyDialog extends CaveSWTDialog {
             boolean load = true;
 
             if (myWriteable && warn && myPrevStationSelectionIndex != -1
-                    && myUnsavedChangesListener.isChangesUnsaved()) {
+                    && changeListener.isChangesUnsaved()) {
                 // confirm that work is done/willing to be lost for
                 // previous selection
                 load = MessageDialog.openConfirm(getShell(), "Load new data?",

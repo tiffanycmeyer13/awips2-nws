@@ -3,26 +3,8 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
 
-
-    <bean id="climateCPGBlotMonitor"
-        class="com.raytheon.uf.edex.database.health.DatabaseBloatMonitor">
-        <constructor-arg>
-            <bean
-                class="com.raytheon.uf.edex.database.health.PostgresBloatDao">
-                <constructor-arg value="climate" />
-            </bean>
-        </constructor-arg>
-        <constructor-arg ref="warningThresholds" />
-        <constructor-arg ref="criticalThresholds" />
-    </bean>
-
-    <bean factory-bean="dbMonitorRegistry" factory-method="registerMonitor">
-        <constructor-arg value="climateCPGBlotMonitor" />
-        <constructor-arg ref="climateCPGBlotMonitor" />
-    </bean>
-
     <bean id="climateCPGSessionPurger"
-        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdgenerateSessionPurger">
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionPurger">
         <property name="retentionHours" value="72" />
     </bean>
     
@@ -41,13 +23,8 @@
             uri="clusteredquartz://cpg/sentRecordPurger/?cron=${record.purger.cron}" />
 
         <!-- purge CPG sessions table -->
-        <route id="climateCPGPurge">
-            <from uri="climateCPGPurgeCron" />
-            <to uri="jms-generic:queue:climateCPGPurgeWork" />
-        </route>
-
         <route id="climateCPGPurgeWork">
-            <from uri="jms-generic:queue:climateCPGPurgeWork" />
+            <from uri="climateCPGPurgeCron" />
             <doTry>
                 <bean ref="climateCPGSessionPurger" method="purgeTerminatedCPGSession" />
                 <doCatch>
@@ -58,13 +35,8 @@
         </route>
         
         <!-- purge sent_prod_record table -->
-        <route id="climateSentRecordPurge">
-            <from uri="climateSendRecordPurgeCron" />
-            <to uri="jms-generic:queue:climateSentRecordPurgeWork" />
-        </route>
-
         <route id="climateSentRecordPurgeWork">
-            <from uri="jms-generic:queue:climateSentRecordPurgeWork" />
+            <from uri="climateSendRecordPurgeCron" />
             <doTry>
                 <bean ref="climateSentRecordPurger" method="purgeSentProductRecords" />
                 <doCatch>
@@ -73,6 +45,9 @@
                 </doCatch>
             </doTry>
         </route>
-
     </camelContext>
+    
+    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
+        <constructor-arg ref="cpg_purger-camel" />
+    </bean>
 </beans>

@@ -27,6 +27,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 19 SEP 2016  21378      amoore      Added convenience methods to check type.
  * 12 JAN 2017  20640      jwu         Add xml annotations & more attributes.
  * 23 JAN 2017  22134      amoore      Added necessary setter for new XML attribute.
+ * 06 NOV 2017  35731      pwang       added static method to return meaningful product name
  * </pre>
  * 
  * @author amoore
@@ -320,6 +321,25 @@ public enum PeriodType {
         }
 
         return ptype;
+    }
+
+    /**
+     * get the period type description
+     * 
+     * @param periodNum
+     * 
+     * @return
+     */
+    public static String getPeriodTypeDesc(int periodValue) {
+        PeriodType ptype = PeriodType.OTHER;
+
+        for (PeriodType typ : PeriodType.values()) {
+            if (typ.value == periodValue) {
+                ptype = typ;
+                break;
+            }
+        }
+        return ptype.getPeriodDescriptor();
     }
 
 }

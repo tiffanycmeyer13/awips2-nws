@@ -50,7 +50,7 @@ public class ClimateProdGenerateSessionDataForView
 
     @Column(nullable = false)
     @DynamicSerializeElement
-    private StateStatus status;
+    private StateStatus stateStatus;
 
     @DynamicSerializeElement
     private String status_desc;
@@ -79,7 +79,8 @@ public class ClimateProdGenerateSessionDataForView
         rval.put("run_type", run_type);
         rval.put("prod_type", prod_type);
         rval.put("state", state);
-        rval.put("status", status);
+        rval.put("status",
+                stateStatus == null ? null : stateStatus.getStatus());
         rval.put("status_desc", status_desc);
 
         // nullable
@@ -169,18 +170,18 @@ public class ClimateProdGenerateSessionDataForView
     }
 
     /**
-     * @return the status
+     * @return the stateStatus
      */
-    public StateStatus getStatus() {
-        return status;
+    public StateStatus getStateStatus() {
+        return stateStatus;
     }
 
     /**
-     * @param status
-     *            the status to set
+     * @param stateStatus
+     *            the stateStatus to set
      */
-    public void setStatus(StateStatus status) {
-        this.status = status;
+    public void setStateStatus(StateStatus status) {
+        this.stateStatus = status;
     }
 
     /**

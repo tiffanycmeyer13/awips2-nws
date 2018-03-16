@@ -8,9 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
@@ -36,18 +33,13 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
  * 21 MAR 2017  20632      amoore      Fix logging, comments on null values.
  * 25 APR 2017  30144      amoore      Clean up queries and variables.
  * 02 MAY 2017  33104      amoore      Refactor queries to constants. Use query maps.
+ * 01 MAR 2018  44624      amoore      Remove unused functionality.
  * </pre>
  * 
  * @author xzhang
  * @version 1.0
  */
 public class ClimoDatesDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimoDatesDAO.class);
-
     /**
      * Query to get all season dates.
      */
@@ -93,38 +85,6 @@ public class ClimoDatesDAO extends ClimateDAO {
      *       precip season and year and snow season and year from the 
      *       climo_dates table.
      * 
-     * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                  description
-     * -------------------------------------------------------------------------------                  
-     *     Input  
-     * 
-     *     Output
-     *       no_dates            - flag that indicates no dates were available
-     *                             = 0 dates were available
-     *                             = 1 dates were not available
-     *       precip_season       - structure containing the start and stop dates for
-     *                             the precip season
-     *       precip_year         - structure containing the start and stop dates for
-     *                             the precip year
-     *       snow_season         - structure containing the start and stop dates for
-     *                             the snow season
-     *       snow_season         - structure containing the start and stop dates for
-     *                             the snow year
-     * 
-     *     Local
-     *       day                 - character day
-     *       mon                 - character mon
-     * 
-     *   MODIFICATION HISTORY
-     *   --------------------
-     *     3/30/01     Doug Murphy      day and mon strings were not null terminated,
-     *                                  resulting in random summing errors
-     *     1/25/05     Teresa Peachey/  Convert Informix to Postgres SQL
-     *                 Manan Dalal
-     * 
      ******************************************************************************* 
      * </pre>
      * 
@@ -132,13 +92,13 @@ public class ClimoDatesDAO extends ClimateDAO {
      * @param precipYear
      * @param snowSeason
      * @param snowYear
-     * @return
+     * @return true if no dates could be found
      * @throws ClimateQueryException
      */
-    public int getSeason(ClimateDates precipSeason, ClimateDates precipYear,
+    public boolean getSeason(ClimateDates precipSeason, ClimateDates precipYear,
             ClimateDates snowSeason, ClimateDates snowYear)
-                    throws ClimateQueryException {
-        int noDates = 0;
+            throws ClimateQueryException {
+        boolean noDates = false;
         try {
             Object[] results = getDao().executeSQLQuery(ALL_SEASONS_QUERY);
             if ((results != null) && (results.length >= 1)) {
@@ -172,7 +132,7 @@ public class ClimoDatesDAO extends ClimateDAO {
 
             } else {
                 // no results
-                noDates = 1;
+                noDates = true;
                 logger.warn("Could not get season data using query: ["
                         + ALL_SEASONS_QUERY + "]");
             }
@@ -234,56 +194,6 @@ public class ClimoDatesDAO extends ClimateDAO {
                     e);
         }
         return snowPrecipDates;
-    }
-
-    /**
-     * insert into climo_dates table
-     * 
-     * @param precipSeason
-     * @param precipYear
-     * @param snowSeason
-     * @param snowYear
-     * @return number of rows affected
-     * @throws ClimateQueryException
-     */
-    public int insertClimoDates(ClimateDates precipSeason,
-            ClimateDates precipYear, ClimateDates snowSeason,
-            ClimateDates snowYear) throws ClimateQueryException {
-        Map<String, Object> queryParams = new HashMap<>();
-
-        StringBuilder query = new StringBuilder("INSERT INTO ");
-        query.append(ClimateDAOValues.CLIMO_DATES_TABLE_NAME);
-        query.append(" VALUES (:snowSeaStart, ");
-        queryParams.put("snowSeaStart",
-                snowSeason.getStart().toMonthDayDateString());
-        query.append(":snowYearStart, ");
-        queryParams.put("snowYearStart",
-                snowYear.getStart().toMonthDayDateString());
-        query.append(":precipSeaStart, ");
-        queryParams.put("precipSeaStart",
-                precipSeason.getStart().toMonthDayDateString());
-        query.append(":precipYearStart, ");
-        queryParams.put("precipYearStart",
-                precipYear.getStart().toMonthDayDateString());
-        query.append(":snowSeaEnd, ");
-        queryParams.put("snowSeaEnd",
-                snowSeason.getEnd().toMonthDayDateString());
-        query.append(":snowYearEnd, ");
-        queryParams.put("snowYearEnd",
-                snowYear.getEnd().toMonthDayDateString());
-        query.append(":precipSeaEnd, ");
-        queryParams.put("precipSeaEnd",
-                precipSeason.getEnd().toMonthDayDateString());
-        query.append(":precipYearEnd)");
-        queryParams.put("precipYearEnd",
-                precipYear.getEnd().toMonthDayDateString());
-
-        try {
-            return getDao().executeSQLUpdate(query.toString(), queryParams);
-        } catch (Exception e) {
-            throw new ClimateQueryException("Error with query: [" + query
-                    + "] and map: [" + queryParams + "]", e);
-        }
     }
 
     /**

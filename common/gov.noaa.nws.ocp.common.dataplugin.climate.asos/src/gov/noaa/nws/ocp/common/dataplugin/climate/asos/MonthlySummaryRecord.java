@@ -6,12 +6,6 @@ package gov.noaa.nws.ocp.common.dataplugin.climate.asos;
 import java.util.Calendar;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-
-import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
-import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 /**
@@ -28,14 +22,14 @@ import com.raytheon.uf.common.time.util.TimeUtil;
  *                                       Data plugin
  * 13 APR 2017    33104      amoore      Address comments from review.
  * 05 MAY 2017    33104      amoore      Use common functionality.
+ * 31 OCT 2017    40231      amoore      Clean up of MSM/DSM parsing and records. Better
+ *                                       logging. Get rid of serialization tags.
  * </pre>
  * 
  * @author pwang
  * @version 1.0
  */
 
-@DynamicSerialize
-@XmlAccessorType(XmlAccessType.NONE)
 public class MonthlySummaryRecord extends ClimateASOSMessageRecord {
     /**
      * Table to use.
@@ -45,632 +39,470 @@ public class MonthlySummaryRecord extends ClimateASOSMessageRecord {
     /**
      * maps to (COR) field in DSM.pdf documentation
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private boolean correction = false;
 
     /**
      * have to derive from DSM creation time in the text database (Note Local
      * Standard Time time zone)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short year;
 
     /**
      * maps to MoMo field (01-12)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short month;
 
     /**
      * maps to TxTxTx field, max T in calendar day, reported in whole degrees
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short maxT;
 
     /**
      * maps to DxDx's, up to 3 dates
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short[] maxTDates = new short[3];
 
     /**
      * maps to TnTnTn field, min T in calendar day, reported in whole degrees
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short minT;
 
     /**
      * maps to DnDn's, up to 3 dates
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short[] minTDates = new short[3];
 
     /**
      * Average daily maximum temperature, reported to the nearest 0.1 degree
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float avgDailyMaxT;
 
     /**
      * Average daily minimum temperature, reported to the nearest 0.1 degree
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float avgDailyMinT;
 
     /**
      * Average monthly temperature, reported to the nearest 0.1 degree
      * Fahrenheit
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float avgMonthlyT;
 
     /**
      * Number of days with a maximum temperature of less than or equal to 32°F
      * (encoded as two digits)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysMaxTBelow32;
 
     /**
      * Number of days with a maximum temperature of greater than or equal to
      * 90°F (or 70°F in Alaska) (encoded as two digits)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysMaxTAbove90;
 
     /**
      * Number of days with a minimum temperature of less than or equal to 32°F
      * (encoded as two digits)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysMinTBelow32;
 
     /**
      * Number of days with a minimum temperature of less than or equal to 0°F
      * (encoded as two digits)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysMinTBelow0;
 
     /**
      * Monthly total of heating degree days
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short totalHeatingDegreeDays;
 
     /**
      * Monthly total of cooling degree days
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short totalCoolingDegreeDays;
 
     /**
      * Monthly mean station pressure, reported to the nearest 0.005 inch of Hg
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float meanStationPressure;
 
     /**
      * Monthly mean sea-level pressure, reported to the nearest 0.01 inch of Hg
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float meanSeaLevelPressure;
 
     /**
      * Monthly max sea-level pressure, reported to monththe nearest 0.01 inch of
      * Hg
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float maxSeaLevelPressure;
 
     /**
      * Date of occurrence of SLPmm (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String maxSeaLevelPressureDate;
 
     /**
      * Time of occurrence of SLPmm, reported in hours and minutes (Local
      * Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String maxSeaLevelPressureTime;
 
     /**
      * (+) indicates last of several occurrences
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String multiMaxSLP;
 
     /**
      * Monthly minimum sea-level pressure, reported to the nearest 0.01 inch of
      * Hg
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float minSeaLevelPressure;
 
     /**
      * Date of occurrence of SLPnn (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String minSeaLevelPressureDate;
 
     /**
      * Time of occurrence of SLPnn, reported in hours and minutes (Local
      * Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String minSeaLevelPressureTime;
 
     /**
      * (+) indicates last of several occurrences
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String multiMinSLP;
 
     /**
      * Monthly total precipitation (water equivalent), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float totalPrecip;
 
     /**
      * Number of days with precipitation greater than or equal to 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysPrecipAbove01;
 
     /**
      * Number of days with precipitation greater than or equal to 0.10 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysPrecipAbove10;
 
     /**
      * Number of days with precipitation greater than or equal to 0.50 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysPrecipAbove50;
 
     /**
      * Number of days with precipitation greater than or equal to 1 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short daysPrecipAbove100;
 
     /**
      * Greatest precipitation in 24 hours (water equivalent) reported to the
      * nearest 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float max24HourPrecip;
 
     /**
      * start date of occurrence of PmPmPmPm (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short max24HourPrecipStartDate;
 
     /**
      * end date of occurrence of PmPmPmPm (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short max24HourPrecipEndDate;
 
     /**
      * (+) indicates last of several occurrences
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private boolean multiMax24HourPrecip = false;
 
     /**
      * Short-duration precipitation (5-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip5min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip5minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip5minTime;
 
     /**
      * Short-duration precipitation (10-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip10min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip10minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip10minTime;
 
     /**
      * Short-duration precipitation (15-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip15min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip15minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip15minTime;
 
     /**
      * Short-duration precipitation (20-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip20min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip20minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip20minTime;
 
     /**
      * Short-duration precipitation (30-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip30min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip30minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip30minTime;
 
     /**
      * Short-duration precipitation (45-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip45min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip45minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip45minTime;
 
     /**
      * Short-duration precipitation (60-minute maximum), reported to the nearest
      * 0.01 inchmonth
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip60min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip60minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip60minTime;
 
     /**
      * Short-duration precipitation (80-minute maximum), reported to the nearest
      * 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip80min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip80minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip80minTime;
 
     /**
      * Short-duration precipitation (100-minute maximum), reported to the
      * nearest 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip100min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip100minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip100minTime;
 
     /**
      * Short-duration precipitation (120-minute maximum), reported to the
      * nearest 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip120min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip120minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip120minTime;
 
     /**
      * Short-duration precipitation (150-minute maximum), reported to the
      * nearest 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip150min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip150minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip150minTime;
 
     /**
      * Short-duration precipitation (180-minute maximum), reported to the
      * nearest 0.01 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float precip180min;
 
     /**
      * Date on which the short-duration precipitation ended (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip180minDate;
 
     /**
      * Time of the ending of the specified short-duration precipitation,
      * reported in hours and minutes (Local Standard Time) using a 24-hour clock
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String precip180minTime;
 
     /**
      * Hours of sunshine, reported to the nearest 0.1 hour
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float sunshineHours;
 
     /**
      * Percentage of sunshine observed, to the nearest whole percent
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short sunshinePercent;
 
     /**
      * Greatest snowfall in 24 hours, to the nearest 0.1 inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private float max24HourSnow;
 
     /**
      * start date of occurrence of the greatest snowfall SmSmSm
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short max24HourSnowStartDate;
 
     /**
      * end date of occurrence of the greatest snowfall SmSmSm
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short max24HourSnowEndDate;
 
     /**
      * (+) indicates last of several occurrencess
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private boolean multiMax24HourSnow = false;
 
     /**
      * Greatest snow depth during the month, reported to the nearest whole inch
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short maxSnowDepth;
 
     /**
      * Date of occurrence of the greatest snow depth SgSgSg (01-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short maxSnowDepthDate;
 
     /**
      * (+) indicates last of several occurrences
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private boolean multiMaxSnowDepth = false;
 
     /**
      * Number of clear days (00-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short clearDays;
 
     /**
      * Number of partly cloudy days (00-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short partlyCloudyDays;
 
     /**
      * Number of cloudy days (00-31)
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private short cloudyDays;
 
     /**
      * if available, one or more from ET|Epr|EP|ES|ESw|ESd|EC
      */
-    @DynamicSerializeElement
-    @XmlAttribute
     private String remarks;
 
-    public MonthlySummaryRecord() {
+    /**
+     * Constructor.
+     * 
+     * @param originalMessage
+     */
+    public MonthlySummaryRecord(String originalMessage) {
+        super(originalMessage);
         /*
          * set all the default/missing values, based on DSM documentation,
          * legacy C++ code, and possibly expected missing values in DB
@@ -2049,8 +1881,12 @@ public class MonthlySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(TABLE_NAME);
         sb.append(" WHERE month=:month");
         queryParams.put("month", month);
-        sb.append(" AND year=:year");
-        queryParams.put("year", year);
+        /*
+         * Task 29300 - currently a constraint is no duplicate station code and
+         * month (year unconsidered)
+         */
+        // sb.append(" AND year=:year");
+        // queryParams.put("year", year);
         sb.append(" AND station_code=:station_code");
         queryParams.put("station_code", getStationCode());
         return sb.toString();
@@ -2387,10 +2223,21 @@ public class MonthlySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(", remarks=:remarks");
         queryParams.put("remarks", remarks);
 
+        /*
+         * Task 29300 - currently a constraint is no duplicate station code and
+         * month (year unconsidered)
+         */
+        sb.append(", year=:year");
+        queryParams.put("year", year);
+
         sb.append(" WHERE month=:month");
         queryParams.put("month", month);
-        sb.append(" AND year=:year");
-        queryParams.put("year", year);
+        /*
+         * Task 29300 - currently a constraint is no duplicate station code and
+         * month (year unconsidered)
+         */
+        // sb.append(" AND year=:year");
+        // queryParams.put("year", year);
         sb.append(" AND station_code=:stationCode");
         queryParams.put("stationCode", getStationCode());
 

@@ -71,7 +71,7 @@ public class NWWSClimateReviewAction extends AbstractHandler {
         // Open the dialog.
         NWWSClimateReviewDialog climateReviewDialogNWWS = new NWWSClimateReviewDialog(
                 shell, sid);
-        climateReviewDialogNWWS.setCloseCallback(new ICloseCallback() {
+        climateReviewDialogNWWS.addCloseCallback(new ICloseCallback() {
 
             @Override
             public void dialogClosed(Object returnValue) {

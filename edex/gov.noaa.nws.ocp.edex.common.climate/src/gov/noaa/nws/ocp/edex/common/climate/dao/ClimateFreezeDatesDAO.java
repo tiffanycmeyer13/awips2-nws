@@ -7,9 +7,6 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
@@ -42,12 +39,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * @version 1.0
  */
 public class ClimateFreezeDatesDAO extends ClimateDAO {
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateFreezeDatesDAO.class);
-
     /**
      * Constant used to set column values to null if value is missing.
      */
@@ -83,30 +74,6 @@ public class ClimateFreezeDatesDAO extends ClimateDAO {
     *  database table. Consists of three modules which each retrieve a separate
     *      set of dates. 
     *
-    *   VARIABLES
-    *   =========
-    *
-    *   name           description
-    *-------------------------------------------------------------------------------                   
-    * Input 
-    *   module         tells routine which select statement to use
-    *                   module 1:   retrieves observed first and
-    *                       last freeze dates for season
-    *                   module 2:   retrieves normal and record
-    *                       first and last freeze dates
-    *                   module 3:   used for annual climate reports,
-    *                       retrieves last freeze of last 
-    *                       season and first freeze for
-    *                       current season
-    *                      
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   3/25/03    Bob Morris                Fixed arguments in calls to risnull and
-    *                                        rsetnull, need to use defined constants
-    *                                        for C-data types, not values (hard-coded,
-    *                                        no less!) for SQL data types.  OB2
-    *   1/18/05    Gary Battel/              Conversion from INFORMIX to POSTGRES
-    *              Manan Dalal
      * </pre>
      * 
      * @param module
@@ -435,22 +402,6 @@ public class ClimateFreezeDatesDAO extends ClimateDAO {
      *
      *  This function updates/inserts into the freeze date data base.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *-------------------------------------------------------------------------------                   
-     *    Input
-     *
-     *   MODIFICATION HISTORY
-     *   ====================
-     *      7/18/00  Doug Murphy           Added NULL checks  
-     *      3/25/03  Bob Morris            Fixed arguments in calls to risnull and
-     *                                     rsetnull, need to use defined constants
-     *                                     for C-data types, not values (hard-coded,
-     *                                     no less!) for SQL data types.  OB2
-     *      1/19/05  Gary Battel/          Conversion from INFORMIX to POSTGRES OB6
-     *               Manan Dalal
      * </pre>
      * 
      * @param type

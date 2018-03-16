@@ -6,7 +6,6 @@ package gov.noaa.nws.ocp.edex.metartoclimate.dao;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +95,9 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  *                                     construction. Minor review comments. Split decoding logic into
  *                                     separate class.
  * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 31 OCT 2017  38077      amoore      Fix missing weather issues.
+ * 02 NOV 2017  37755      amoore      Peak wind speed was missing from final storage, post-decoding,
+ *                                     when checking for different hydromet IDs.
  * </pre>
  * 
  * @author amoore
@@ -134,48 +136,6 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      */
     private static final String METAR_HYDROMET_ID_QUERY = "SELECT element_id FROM hydromet_element"
             + " WHERE product_name = 'MTR'";
-
-    private static class FSSWeatherElement {
-        private int id = 0;
-
-        private String weather = "";
-
-        /**
-         * Empty constructor.
-         */
-        public FSSWeatherElement() {
-        }
-
-        /**
-         * @return the id
-         */
-        public int getId() {
-            return id;
-        }
-
-        /**
-         * @param id
-         *            the id to set
-         */
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        /**
-         * @return the weather
-         */
-        public String getWeather() {
-            return weather;
-        }
-
-        /**
-         * @param weather
-         *            the weather to set
-         */
-        public void setWeather(String weather) {
-            this.weather = weather;
-        }
-    }
 
     /**
      * FSS time zone ID.
@@ -225,11 +185,11 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
     private final List<Integer> hydrometIDs = new ArrayList<>();
 
     /**
-     * An array of WX_string_id structures. This array will contain all the
+     * A map of WX_string_id structures. This array will contain all the
      * possible primitive weather groupings that are allowed in a METAR report.
      * This will be used for testing the validity of a METAR wx group.
      */
-    private final List<FSSWeatherElement> fssWeatherElements = new ArrayList<>();
+    private final Map<String, Integer> fssWeatherElements = new HashMap<>();
 
     /**
      * Constructor.
@@ -251,6 +211,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                     if (result instanceof Number) {
                         try {
                             int oa = ((Number) result).intValue();
+                            logger.debug("Adding Hydromet ID: [" + oa + "]");
                             hydrometIDs.add(oa);
                         } catch (Exception e) { // if casting failed
                             throw new Exception(
@@ -287,10 +248,12 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                     if (result instanceof Object[]) {
                         try {
                             Object[] oa = (Object[]) result;
-                            FSSWeatherElement data = new FSSWeatherElement();
-                            data.setId(((Number) oa[0]).intValue());
-                            data.setWeather((String) oa[1]);
-                            fssWeatherElements.add(data);
+                            Integer id = ((Number) oa[0]).intValue();
+                            String element = (String) oa[1];
+                            logger.debug("Adding weather element ID [" + id
+                                    + "] and string [" + element
+                                    + "] to list of weather types.");
+                            fssWeatherElements.put(element, id);
                         } catch (Exception e) {
                             // if casting failed
                             throw new Exception(
@@ -314,16 +277,6 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                     e);
         }
 
-        /*
-         * Sort weather elements lexigraphically. From sort_wx_array.c.
-         */
-        fssWeatherElements.sort(new Comparator<FSSWeatherElement>() {
-
-            @Override
-            public int compare(FSSWeatherElement o1, FSSWeatherElement o2) {
-                return o1.getWeather().compareTo(o2.getWeather());
-            }
-        });
     }
 
     /**
@@ -711,8 +664,8 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                     break;
                 case MetarUtils.METAR_WX:
                     fssSourceStatus = writeFSSCategoryMulti(fssReportInstance,
-                            hydrometID, fssWeatherElements,
-                            surfaceObs.getPresentWx(), fssSourceStatus);
+                            hydrometID, surfaceObs.getPresentWx(),
+                            fssSourceStatus);
 
                     /*
                      * Determine if there was any information regarding the
@@ -722,8 +675,8 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                      * database. From write_wx_period.ecpp.
                      */
                     fssSourceStatus = writeWxPeriod(fssReportInstance,
-                            hydrometID, fssWeatherElements,
-                            surfaceObs.getWeatherBeginEnd(), fssSourceStatus);
+                            hydrometID, surfaceObs.getWeatherBeginEnd(),
+                            fssSourceStatus);
                     break;
                 case MetarUtils.METAR_WIND_SPEED:
                     if (surfaceObs
@@ -743,6 +696,14 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                         writeFSSCategorySingle(fssReportInstance, hydrometID,
                                 VARIABLE_WIND_DIR_VALUE, METAR_WIND_DIR_SCALE,
                                 qcMetar.getWindDirDqd());
+                    }
+                    break;
+                case MetarUtils.METAR_PEAK_WIND_SPEED:
+                    if (surfaceObs
+                            .getPeakWindSpeed() != (float) MetarDecoderUtil.MISSING_DATA) {
+                        writeFSSContinuousReal(fssReportInstance, hydrometID,
+                                surfaceObs.getPeakWindSpeed(),
+                                qcMetar.getPeakWindSpdDqd());
                     }
                     break;
                 case MetarUtils.METAR_PEAK_WIND_DIR:
@@ -1021,7 +982,8 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                     break;
                 default:
                     logger.warn("Unexpected hydromet element ID: [" + hydrometID
-                            + "].");
+                            + "] for report instance: [" + fssReportInstance
+                            + "]");
                     break;
                 }
             }
@@ -1113,36 +1075,13 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER: 1
-    * MODULE NAME:   write_FSS_cloud_layer
-    * PURPOSE:
-    *       This routine writes out the cloud information returned from a METAR
-    *       report. This information includes the cloud coverage, the cloud height,
-    *       and the cloud type. This information is written out to the 
-    *       FSS_cloud_layer table in the INFORMIX database.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   Input  long        report_instance      Contains the unique identifier
-    *                                           assigned to this METAR report.
-    *   Input  int         cloud_hgt_id         Contains the element id of the 
-    *                                           METAR cloud height.
-    *   Input  int         cloud_cover_id       Contains the element_id of the
-    *                                           METAR cloud cover.
-    *   Input  int         cloud_type_id        Contains the element_id of the 
-    *                                           METAR cloud type.
-    *   Input  float       cloud_hgt            The cloud height in 100's of ft.
-    *   Input  float       cloud_cover          The coverage of the cloud
-    *                                           layer being processed in tenths.
-    *   Input  int         cloud_type           Numeric identifier of the 
-    *                                           cloud type: 2 = CU 3 = TCB
-    *   Input  int         layer_number         The current layer number being
-    *                                           processed.
-    *   Input  char        cloud_hgt_dqd        The data quality descriptor flag
-    *                                           for the cloud height element.
-    *   Input  char        cloud_cover_dqd      The data quality descriptor flag
-    *                                           for the cloud cover element.
-    *   Input  char        cloud_type_dqd       The data quality descriptor flag 
-    *                                           for the cloud type element.
+     * MODULE NAME:   write_FSS_cloud_layer
+     * PURPOSE:
+     *       This routine writes out the cloud information returned from a METAR
+     *       report. This information includes the cloud coverage, the cloud height,
+     *       and the cloud type. This information is written out to the 
+     *       FSS_cloud_layer table in the INFORMIX database.
+     *
      * </pre>
      * 
      * @param reportInstance
@@ -1155,6 +1094,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * @param cloudTypeDqd
      * @throws ClimateQueryException
      */
+
     private void writeFSSCloudLayer(int reportInstance, float cloudHeight,
             float cloudCover, int cloudType, int cloudLayers,
             String cloudHgtDqd, String cloudCoverDqd, String cloudTypeDqd)
@@ -1279,25 +1219,11 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER: 1
-    * MODULE NAME:   write_FSS_categ_single
-    * PURPOSE:       This routine writes a categorical or discrete weather element
-    *                out to the FSS_categ_single table in the verification 
-    *                database.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   Input  long        report_instance      The unique identifier assigned to
-    *                                           to this METAR report.
-    *   Input  int         element_id           The identifier representing the
-    *                                           weather element currently being
-    *                                           processed.
-    *   Input  float       element_value        The value of the weather element
-    *                                           currently being processed.
-    *   Input  float       scale_factor         The factor by which element_value
-    *                                           needs to be multiplied by so that
-    *                                           it can be recognized by the 
-    *                                           verification database.
-    *   Input  char        dqd                  The data quality descriptor flag.
+     * MODULE NAME:   write_FSS_categ_single
+     * PURPOSE:       This routine writes a categorical or discrete weather element
+     *                out to the FSS_categ_single table in the verification 
+     *                database.
+     * 
      * </pre>
      * 
      * @param reportInstance
@@ -1307,6 +1233,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * @param dqd
      * @throws ClimateQueryException
      */
+
     private void writeFSSCategorySingle(int reportInstance, int elementID,
             float value, float scale, String dqd) throws ClimateQueryException {
         Map<String, Object> queryParams = new HashMap<>();
@@ -1373,37 +1300,36 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER: 1
-    * MODULE NAME:   write_wx_period
-    * PURPOSE:       The begin and end times of precipitation can be specified
-    *                in the remarks section of a METAR report. For example, if
-    *                rain began at 11:25 and ended at 11:40, then the sheduled
-    *                METAR issued at 11:51 would have a group in its remarks
-    *                section resembling RAB25E40. See section 8.5.5 in the
-    *                December 1995 version of the Federal Meteorological
-    *                Handbook Number 1 (FMH 1) for more details.
-    *
-    *                This routine will store the begin and end times of
-    *                precipitation for up to 10 weather types. The times
-    *                consist of a hour and a minute in the wx_period table in the
-    *                hmdb database. Along with this information is the id of the
-    *                weather element that the times correspond to and the id 
-    *                of the METAR report that the times correspond to.
-    *
-    *                The addition of this information is necessary for 
-    *                Enhanced Aviation Verification (EAV) in build 5.0 of 
-    *                AWIPS.
+     * MODULE NAME:   write_wx_period
+     * PURPOSE:       The begin and end times of precipitation can be specified
+     *                in the remarks section of a METAR report. For example, if
+     *                rain began at 11:25 and ended at 11:40, then the sheduled
+     *                METAR issued at 11:51 would have a group in its remarks
+     *                section resembling RAB25E40. See section 8.5.5 in the
+     *                December 1995 version of the Federal Meteorological
+     *                Handbook Number 1 (FMH 1) for more details.
+     *
+     *                This routine will store the begin and end times of
+     *                precipitation for up to 10 weather types. The times
+     *                consist of a hour and a minute in the wx_period table in the
+     *                hmdb database. Along with this information is the id of the
+     *                weather element that the times correspond to and the id 
+     *                of the METAR report that the times correspond to.
+     *
+     *                The addition of this information is necessary for 
+     *                Enhanced Aviation Verification (EAV) in build 5.0 of 
+     *                AWIPS.
      * </pre>
      * 
      * @param reportInstance
      * @param elementID
-     * @param possibleWeatherElements
      * @param decodedWeatherElements
      * @param sourceStatus
      * @return new source status, as it may have changed.
      * @throws ClimateQueryException
      */
+
     private int writeWxPeriod(int reportInstance, int elementID,
-            List<FSSWeatherElement> possibleWeatherElements,
             RecentWx[] decodedWeatherElements, int sourceStatus)
                     throws ClimateQueryException {
         int weatherElementCount = 0;
@@ -1441,7 +1367,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
             String weatherElement = "";
             int passes = 0;
             do {
-                String weatherComponent = "";
+                StringBuilder weatherComponentBldr = new StringBuilder();
 
                 if (decodedWeatherElement.length() >= 2) {
                     weatherElement += decodedWeatherElement.substring(0, 2);
@@ -1450,22 +1376,16 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
 
                 /* Build the weather group. */
                 if (!intensity.isEmpty() && passes == 0) {
-                    weatherComponent = intensity;
+                    weatherComponentBldr.append(intensity);
                 }
 
-                weatherComponent += descriptor;
-                weatherComponent += weatherElement;
-                int fssWeatherElementID = Integer.MAX_VALUE;
-                for (FSSWeatherElement fssWeatherElement : possibleWeatherElements) {
-                    if (weatherComponent
-                            .equals(fssWeatherElement.getWeather())) {
-                        fssWeatherElementID = fssWeatherElement.getId();
-                        break;
-                    }
-                }
+                weatherComponentBldr.append(descriptor);
+                weatherComponentBldr.append(weatherElement);
+                Integer fssWeatherElementID = fssWeatherElements
+                        .get(weatherComponentBldr.toString());
 
-                if (fssWeatherElementID == Integer.MAX_VALUE) {
-                    logger.warn(weatherComponent
+                if (fssWeatherElementID == null) {
+                    logger.warn(weatherComponentBldr
                             + " not recognized as valid weather component.");
                     MetarDecoderUtil.setSourceStatus(QCMetar.DECODER_ERROR,
                             sourceStatus);
@@ -1583,58 +1503,38 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER: 1
-    * MODULE NAME:   write_FSS_categ_multi
-    * PURPOSE:       Given a two-dimensional array of METAR weather groups,
-    *                this routine parses each group into its basic weather
-    *                components. Once this is done, the routine searches 
-    *                a master table of valid METAR weather data to determine
-    *                if these weather components are valid. If a weather 
-    *                component is valid, a numeric id representing it is written
-    *                out to the FSS_categ_multi table. If the component is invalid
-    *                the routine generates a warning message and sets a decoder
-    *                error flag.
-    *
-    *                Examples: 
-    *                Given the following weather group: SHRASNPE
-    *                
-    *                This routine produces the following weather components:
-    *                SHRA, SHSN, SHPE.
-    *                 
-    *                Given the following weather group: +RASN
-    *       
-    *                This routine produces the following weather components:
-    *                +RA, SN.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   Input  long        report_instance      The instance id (as found in the
-    *                                           FSS report table) of this report.
-    *   Input  int         element_id           The element id that represents the
-    *                                           METAR wx elements.
-    *   Input  WX_string_id *wx_Ptr             The pointer to the array of
-    *                                           WX_string_id structures.
-    *   Input  int         num_wx_elements      The number of elements in the 
-    *                                           array pointed to by wx_Ptr.
-    *   Input  char[][]    present_wx           Contains the weather groups
-    *                                           retrieved from the METAR report.
-    *   Output int*        wx_element_count     A pointer to the count of the
-    *                                           number of valid weather elements
-    *                                           found for this METAR report.
-    *   Output int*        source_status        A pointer to the status of the 
-    *                                           validity of a particular weather
-    *                                           string.
+     * MODULE NAME:   write_FSS_categ_multi
+     * PURPOSE:       Given a two-dimensional array of METAR weather groups,
+     *                this routine parses each group into its basic weather
+     *                components. Once this is done, the routine searches 
+     *                a master table of valid METAR weather data to determine
+     *                if these weather components are valid. If a weather 
+     *                component is valid, a numeric id representing it is written
+     *                out to the FSS_categ_multi table. If the component is invalid
+     *                the routine generates a warning message and sets a decoder
+     *                error flag.
+     *
+     *                Examples: 
+     *                Given the following weather group: SHRASNPE
+     *                
+     *                This routine produces the following weather components:
+     *                SHRA, SHSN, SHPE.
+     *                 
+     *                Given the following weather group: +RASN
+     *       
+     *                This routine produces the following weather components:
+     *                +RA, SN.
      * </pre>
      * 
      * @param reportInstance
      * @param elementID
-     * @param possibleWeatherElements
      * @param decodedWeatherElements
      * @param sourceStatus
      * @return new source status, as it may have changed.
      * @throws ClimateQueryException
      */
+
     private int writeFSSCategoryMulti(int reportInstance, int elementID,
-            List<FSSWeatherElement> possibleWeatherElements,
             String[] decodedWeatherElements, int sourceStatus)
                     throws ClimateQueryException {
 
@@ -1668,39 +1568,40 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
             /*
              * Process the individual weather components in the weather group.
              */
-            StringBuilder weatherElement = new StringBuilder();
+            StringBuilder weatherElementBldr = new StringBuilder();
             int passes = 0;
             do {
-                StringBuilder weatherComponent = new StringBuilder();
+                StringBuilder weatherComponentBldr = new StringBuilder();
 
                 if (decodedWeatherElement.length() >= 2) {
-                    weatherElement
+                    weatherElementBldr
                             .append(decodedWeatherElement.substring(0, 2));
                     decodedWeatherElement = decodedWeatherElement.substring(2);
                 }
 
                 /* Build the weather group. */
                 if (!intensity.isEmpty() && passes == 0) {
-                    weatherComponent.append(intensity);
+                    weatherComponentBldr.append(intensity);
                 }
 
-                weatherComponent.append(descriptor);
-                weatherComponent.append(weatherElement);
-                int fssWeatherElementID = Integer.MAX_VALUE;
-                for (FSSWeatherElement fssWeatherElement : possibleWeatherElements) {
-                    if (weatherComponent
-                            .equals(fssWeatherElement.getWeather())) {
-                        fssWeatherElementID = fssWeatherElement.getId();
-                        break;
-                    }
-                }
+                weatherComponentBldr.append(descriptor);
+                weatherComponentBldr.append(weatherElementBldr);
+                Integer fssWeatherElementID = fssWeatherElements
+                        .get(weatherComponentBldr.toString());
 
-                if (fssWeatherElementID == Integer.MAX_VALUE) {
-                    logger.warn(weatherComponent
-                            + " not recognized as valid weather component.");
+                if (fssWeatherElementID == null) {
+                    logger.error(weatherComponentBldr
+                            + " not recognized as valid weather component in report instance ["
+                            + reportInstance + "].");
+
                     MetarDecoderUtil.setSourceStatus(QCMetar.DECODER_ERROR,
                             sourceStatus);
                 } else {
+                    logger.debug(weatherComponentBldr
+                            + " is a valid weather component with ID ["
+                            + fssWeatherElementID + "] in report instance ["
+                            + reportInstance + "].");
+
                     weatherElementCount++;
                     int weatherElementNumber = weatherElementCount;
                     int fssElementValue = fssWeatherElementID;

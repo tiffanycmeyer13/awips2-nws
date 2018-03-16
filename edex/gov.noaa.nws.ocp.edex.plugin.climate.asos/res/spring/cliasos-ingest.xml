@@ -1,27 +1,32 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
   http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    
+    <bean id="cliasosPluginName" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="cliasos" />
+    </bean>
+    
     <bean class="com.raytheon.uf.common.logback.appender.ThreadBasedAppender"
         factory-method="registerThreadPattern">
         <constructor-arg value="cliasos" />
         <constructor-arg value="Ingest.cliasos.*" />
     </bean>
+    
     <bean id="cliasosDecoder"
         class="gov.noaa.nws.ocp.edex.plugin.climate.asos.ClimateASOSMessageDecoder"/>
+    
     <bean id="cliasosDistRegistry" factory-bean="distributionSrv"
         factory-method="register">
         <constructor-arg ref="cliasosPluginName" />
         <constructor-arg value="jms-durable:queue:Ingest.cliasos" />
     </bean>
+    
     <camelContext id="cliasos-camel"
         xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
         <!-- Begin CLI-ASOS routes -->
         <route id="cliasosIngestRoute">
             <from uri="jms-durable:queue:Ingest.cliasos" />
-            <setHeader headerName="pluginName">
-                <constant>cliasos</constant>
-            </setHeader>
             <doTry>
                 <pipeline>
                     <bean ref="stringToFile" />

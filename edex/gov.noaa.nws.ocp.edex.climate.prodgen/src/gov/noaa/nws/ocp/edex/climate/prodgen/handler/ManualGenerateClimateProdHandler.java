@@ -9,7 +9,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.ManualGenerateClimateProdRequest;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * ManualGenerateClimateProdHandler
@@ -41,17 +40,9 @@ public class ManualGenerateClimateProdHandler
         // Create a CPG session
         int runType = 2; // 2 : manual
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Create a new CPG Session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, runType, request.getProdType().getValue());
+                .getCPGSession(runType, request.getProdType().getValue());
 
         if (session.getState() != SessionState.STARTED) {
             throw new Exception(
@@ -59,7 +50,6 @@ public class ManualGenerateClimateProdHandler
         }
 
         // Call to create Daily or Period Climate
-        // TODO change manual methods to void return
         if (request.getProdType().isDaily()) {
             session.manualCreateDailyClimate(request.getBeginDate(),
                     request.isNonRecentRun());

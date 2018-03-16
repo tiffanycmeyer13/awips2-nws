@@ -7,6 +7,7 @@ import java.sql.Time;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Objects;
+import java.util.TimeZone;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -47,6 +48,11 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 13 APR 2017  33104      amoore      Address comments from review.
  * 02 MAY 2017  33104      amoore      Remove SQL string method. Fill out constructors.
  * 11 MAY 2017  33104      amoore      More Find Bugs minor issues.
+ * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
+ * 09 NOV 2017  39660      wpaintsil   getLocalTime should use the local time zone. 
+ *                                     Ensure 24hr format for valid time.
+ * 15 NOV 2017  40760      wpaintsil   Prevent validTime returned from getDailyValidTime
+ *                                     from having missing minutes.
  * </pre>
  * 
  * @author xzhang
@@ -118,9 +124,9 @@ public class ClimateTime {
     private String zone;
 
     /**
-     * If global configuration is missing, use this default valid time (5pm).
+     * If global configuration is missing, use this default valid time (11pm).
      */
-    public static final int DEFAULT_VALID_TIME_HOUR = 17;
+    public static final int DEFAULT_VALID_TIME_HOUR = 23;
 
     /**
      * Empty contructor.
@@ -258,8 +264,8 @@ public class ClimateTime {
     }
 
     /**
-     * Construct from {"hh", "mm", "ampm", "zone"}. If not formatted correctly,
-     * set data to missing.
+     * Construct from {"hh", "mm", "ampm", "zone"}. Zone is optional. If not
+     * formatted correctly, set data to missing.
      * 
      * @param ss
      */
@@ -270,6 +276,11 @@ public class ClimateTime {
                 this.min = Integer.parseInt(ss[1]);
                 this.ampm = ss[2];
                 this.zone = ss[3];
+            } else if (ss.length == 3) {
+                this.hour = Integer.parseInt(ss[0]);
+                this.min = Integer.parseInt(ss[1]);
+                this.ampm = ss[2];
+                zone = "";
             } else {
                 logger.warn("The string array: [" + Arrays.toString(ss)
                         + "] is not of the expected length or greater. Time data will be set to missing.");
@@ -416,31 +427,7 @@ public class ClimateTime {
     *   Purpose:  
     *          This subroutine will convert 24-hour time (military time)
     *          to standard 12-hour time and will add AM/PM.
-    *
-    *   Variables
-    *
-    *      INPUT
-    *        t_time - 24-hour time
-    *
-    *      OUTPUT
-    *        t_time - 12-hour time
-    *
-    *      LOCAL
-    *
-    *         NONE
-    *
-    *      INCLUDE files
-    *
-    *  TYPE_time.I                 - Defines the derived TYPE used to specify the
-    *                                 time.
-    *
-    *      Non-system routines used
-    *
-    *  NONE
-    *
-    *      Non-system functions used
-    *
-    *  NONE
+     *
      * </pre>
      * 
      * @return {@link ClimateTime} instance with 12 hour format.
@@ -483,10 +470,11 @@ public class ClimateTime {
      */
     public ClimateTime to24HourTime() {
         ClimateTime time24Hour = new ClimateTime(this);
+        time24Hour.setAmpm("");
 
-        if (ampm != null) {
+        if (ampm != null && !ampm.isEmpty()) {
             if (ampm.equals(AM_STRING)) {
-                if (hour == TimeUtil.HOURS_PER_HALF_DAY) {
+                if (hour >= TimeUtil.HOURS_PER_HALF_DAY) {
                     time24Hour.setHour(hour - TimeUtil.HOURS_PER_HALF_DAY);
                 }
             } else {
@@ -509,11 +497,32 @@ public class ClimateTime {
     }
 
     /**
-     * @return object based on local time.
+     * @return object based on local time (GMT, 12hr format).
      */
-    public static ClimateTime getLocalTime() {
-        Calendar cal = TimeUtil.newCalendar();
+    public static ClimateTime getLocalGMTTime() {
+        return getLocalTime(null);
+    }
 
+    /**
+     * @return object based on local time (local time zone, 12hr format).
+     * @param timeZone
+     *            the time zone string
+     */
+    public static ClimateTime getLocalTime(String timeZone) {
+        Calendar cal;
+        if (timeZone == null) {
+            cal = TimeUtil.newCalendar();
+        } else {
+            TimeZone localTimeZone = TimeZone.getTimeZone(timeZone);
+
+            cal = TimeUtil.newCalendar(localTimeZone);
+
+            if (!localTimeZone.getID().equalsIgnoreCase(timeZone)) {
+                logger.warn("Formatter tried to use globalDay timezone of: ["
+                        + timeZone + "], but Java parsed this as: ["
+                        + localTimeZone.getID() + "].");
+            }
+        }
         return new ClimateTime(cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE),
                 cal.get(Calendar.AM_PM) == Calendar.AM ? AM_STRING : PM_STRING);
     }
@@ -607,29 +616,36 @@ public class ClimateTime {
     }
 
     /**
+     * Partial logic from read_globals.c.
+     * 
      * @param periodType
-     * @return the appropriate valid time for the given daily period type, or
-     *         missing if the global configuration is missing.
+     * @return the appropriate valid time for the given daily period type, or a
+     *         default time if the global configuration is missing.
      */
     public static ClimateTime getDailyValidTime(PeriodType periodType,
             ClimateGlobal globals) {
-        ClimateTime validTime = getMissingClimateTime();
+        ClimateTime validTime = new ClimateTime(DEFAULT_VALID_TIME_HOUR);
 
         if (globals == null) {
             logger.warn(
-                    "Global configuration is null. Valid time will be set to 5pm.");
-            validTime = new ClimateTime(DEFAULT_VALID_TIME_HOUR);
+                    "Global configuration is null. Valid time will be set to default of "
+                            + DEFAULT_VALID_TIME_HOUR);
         } else if (periodType.isDaily()) {
-            ClimateTime localTime = getLocalTime();
+            ClimateTime localTime = getLocalTime(globals.getTimezone())
+                    .to24HourTime();
 
             switch (periodType) {
             case EVEN_NWWS:
             case EVEN_RAD:
                 // evening case
                 if (globals.isUseValidPm()) {
-                    validTime = new ClimateTime(globals.getValidPm());
+                    validTime = new ClimateTime(globals.getValidPm())
+                            .to24HourTime();
 
-                    // legacy set valid hour to local hour no matter what
+                    if (localTime.getHour() < validTime.getHour()) {
+                        validTime.setHour(localTime.getHour());
+                    }
+                } else {
                     validTime.setHour(localTime.getHour());
                 }
                 break;
@@ -637,9 +653,13 @@ public class ClimateTime {
             case INTER_RAD:
                 // intermediate case
                 if (globals.isUseValidIm()) {
-                    validTime = new ClimateTime(globals.getValidIm());
+                    validTime = new ClimateTime(globals.getValidIm())
+                            .to24HourTime();
 
-                    // legacy set valid hour to local hour no matter what
+                    if (localTime.getHour() < validTime.getHour()) {
+                        validTime.setHour(localTime.getHour());
+                    }
+                } else {
                     validTime.setHour(localTime.getHour());
                 }
                 break;
@@ -649,6 +669,7 @@ public class ClimateTime {
                         + periodType + "]");
             }
         }
+
         return validTime;
     }
 }

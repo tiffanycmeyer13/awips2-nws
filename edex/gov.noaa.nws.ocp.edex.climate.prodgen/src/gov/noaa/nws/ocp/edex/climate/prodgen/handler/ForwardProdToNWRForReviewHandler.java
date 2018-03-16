@@ -10,7 +10,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.ForwardProdToNWRForReviewRequest;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * Handler for when user is ready to review NWR products (forward to NWR Waves).
@@ -37,22 +36,13 @@ public class ForwardProdToNWRForReviewHandler
 
         String cpgSessionId = request.getCpgSessionID();
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Get existing session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, cpgSessionId);
+                .getCPGSession(cpgSessionId);
 
         if (session.getState() == SessionState.SENT) {
-            session.sendAlertVizMessage(Priority.WARN,
-                    "Warning: NWR products had been sent before, ensure you want to resend!",
-                    null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.WARN,
+                    "The same NWR products had been sent before!", null);
         }
 
         return session.sendAllNWRProducts(request.isOperational(),

@@ -7,11 +7,10 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
-import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
 
 /**
  * Converted from: /include/TYPE_period_data_method.h. Values should reference
- * appropriate constants from {@link QCValues}.
+ * appropriate constants from QCValues.
  * 
  * <pre>
  * 

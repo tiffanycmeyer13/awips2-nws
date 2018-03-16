@@ -11,11 +11,10 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import gov.noaa.nws.ocp.common.dataplugin.climate.SessionState;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.CompleteDisplayClimateRequest;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory;
-import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
 
 /**
  * CompleteDisplayClimateHandler
@@ -49,33 +48,27 @@ public class CompleteDisplayClimateHandler
 
         String cpgSessionId = request.getCpgSessionID();
 
-        ClimateProdGenerateSessionDAO dao = null;
-        try {
-            dao = new ClimateProdGenerateSessionDAO();
-        } catch (Exception e) {
-            throw new Exception(
-                    "ClimateProdGenerateSessionDAO object creation failed", e);
-        }
-
         // Get existing session
         ClimateProdGenerateSession session = ClimateProdGenerateSessionFactory
-                .getCPGSession(dao, cpgSessionId);
+                .getCPGSession(cpgSessionId);
 
         if (session.getState() != SessionState.DISPLAY) {
-            String msg = "Display report data only, no action on the report data allowed when the state becomes " + session.getState();
-            session.sendAlertVizMessage(Priority.WARN, msg, null);
+            String msg = "Display report data only, no action on the report data allowed when the state becomes "
+                    + session.getState();
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.WARN, msg,
+                    null);
             return null;
         }
 
         // Finalize the displayClimate
         if (session.getProdType().isDaily()) {
-            ClimateCreatorDailyResponse modifiedDailyData = (ClimateCreatorDailyResponse) request
+            ClimateRunDailyData modifiedDailyData = (ClimateRunDailyData) request
                     .getUserData();
             session.finalizeDisplayDailyCimate(modifiedDailyData);
             session.setReportDataAndUpdateDatabase(modifiedDailyData);
         } else {
             // Period cases
-            ClimateCreatorPeriodResponse modifiedPeriodData = (ClimateCreatorPeriodResponse) request
+            ClimateRunPeriodData modifiedPeriodData = (ClimateRunPeriodData) request
                     .getUserData();
             // orgPeriodDataMap will be updated in the method
             // finalizeDisplayPeriodCimate

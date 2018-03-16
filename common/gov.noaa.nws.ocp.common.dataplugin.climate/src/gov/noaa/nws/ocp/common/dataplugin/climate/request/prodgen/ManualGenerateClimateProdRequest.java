@@ -16,7 +16,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
  * The request should only be issued when user manually generate a climate
  * product EDEX plugin will 1) instantiate a new ClimateProdGenerateSession and
  * added into the session map Then call manualCreateClimate and return the
- * object of ClimateCreatorResponse to the caller
+ * object of ClimateRunData to the caller
  * 
  * <pre>
  *

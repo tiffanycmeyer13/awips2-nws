@@ -4,38 +4,12 @@
     
     <bean id="finddaterequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.qualitycontrol.FindDateServiceHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.FindDateRequest"/>
-      <constructor-arg ref="finddaterequest"/>
-    </bean>
-    
     <bean id="detfreezedatesrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.qualitycontrol.DetFreezeDatesServiceHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.qualitycontrol.DetFreezeDatesRequest"/>
-      <constructor-arg ref="detfreezedatesrequest"/>
-    </bean>
-    
     <bean id="updatefreezedbrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.UpdateFreezeDBHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.UpdateFreezeDBRequest"/>
-      <constructor-arg ref="updatefreezedbrequest"/>
-    </bean>
-    
-    
     <bean id="compareupdatedailyrecordsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.CompareUpdateDailyRecordsHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.CompareUpdateDailyRecordsRequest"/>
-      <constructor-arg ref="compareupdatedailyrecordsrequest"/>
-    </bean>
-    
     <bean id="compareupdateperiodrecordsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.CompareUpdatePeriodRecordsHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.CompareUpdatePeriodRecordsRequest"/>
-      <constructor-arg ref="compareupdateperiodrecordsrequest"/>
-    </bean>
-    
 </beans>

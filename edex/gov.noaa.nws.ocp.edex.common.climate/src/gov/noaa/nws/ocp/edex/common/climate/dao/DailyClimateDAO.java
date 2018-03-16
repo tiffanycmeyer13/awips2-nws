@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -25,6 +23,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.QueryData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.SLP;
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
+import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateSessionException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateDailyReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
@@ -85,18 +84,19 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 30 JUN 2017  35729      amoore      Move #determineWindow from ClimateCreator to Daily DAO.
  * 08 AUG 2017  33104      amoore      Logic branch fix. Minor cleanup of logging and comments.
  * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
+ * 06 SEP 2017  37721      amoore      Failure on Display finalization should fail CPG session
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
+ * 23 OCT 2017  39818      amoore      Fix trace counting for 24-hour precip/snow when original count
+ *                                     is 0. If no result found on trace, 0 is ok, not set to missing.
+ * 24 OCT 2017  39817      amoore      Clean up 24-hour precip calculations while investigating validity of
+ *                                     calculations. Handle trace better in hourly precip count.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
 public class DailyClimateDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(DailyClimateDAO.class);
-
     /**
      * Constructor.
      */
@@ -186,56 +186,6 @@ public class DailyClimateDAO extends ClimateDAO {
      *    This function updates the daily climate data base.  It enters
      *         the contents of yesterday into the daily observed climate data
      *         base.
-     *   
-     *      VARIABLES
-     *      =========
-     *   
-     *      name                  description
-     *   -------------------------------------------------------------------------------                  
-     *       Input  
-     *         sta_id         - station id of type int for which this function
-     *                  is called
-     *         l_date              - The "yyyy-dd-mm" for last year.
-     *         last_year           - structure containing the daily climate data 
-     *                               for a given station
-     *       Output
-     *         last_year           - structure containing the daily climate data 
-     *                               for a given station        
-     *   
-     *       Local
-     *        char  
-     *          hold_max_temp_time - character string for the time of maximum temperature
-     *          hold_min_temp_time - character string for the time of minimum temparture
-     *          hold_max_wind_time - character string for the time of maximum wind
-     *          hold_max_rh_time   - character string for the maximum relative humidity
-     *          hold_min_rh_time   - character string for the minimum relative humidity
-     *          max_temp_hour      - character string for the max_temp_hour
-     *          max_temp_min       - character string for the max_temp_min  
-     *          min_temp_hour      - character string for the min_temp_hour 
-     *          min_temp_min       - character string for the min_temp_min
-     *          max_wind_hour      - character string for the max_wind_hour 
-     *          max_wind_min       - character string for the max_wind_min
-     *          max_rh_hr          - character string for the max_rh_hour
-     *          max_rh_min         - character string for the max_rh_min    
-     *          min_rh_hr          - character string for the min_rh_hour 
-     *          min_rh_min         - character string for the min_rh_min 
-     *        int
-     *          db_status          - The success/failure code returned by dbUtils and Informix functions. 
-     *          time_status        - Used to convert time and date to an INFORMIX readable string.
-     *   
-     *      MODIFICATION HISTORY
-     *    Date        Developer       Comments
-     *    ----        ---------       --------
-     *        2/2/2000        Doug Murphy Addition of NULL checks
-     *        7/14/2000        David T. Miller Wind speed data types changed
-     *        2/5/2001         Doug Murphy     Added snow depth and avg wind qc methods,
-     *                                         minutes of sun, slp, and three wx types
-     *        12/11/2002       Bob Morris      Changed date arg(s) to reference vars.
-     *                                         to fix seg. faults under Linux
-     *        3/25/03          Bob Morris      Fixed arguments in calls to risnull, need to use
-     *                                         defined constants for C-data types, not values
-     *                                         (hard-coded, no less!) for SQL data types.  OB2
-     *        1/26/05          Manan Dalal     Ported from Informix to Postgresql. OB6
      * 
      ****************************************************************************** 
      * </pre>
@@ -250,6 +200,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @return QueryData
      * @throws ClimateQueryException
      */
+
     public QueryData getLastYear(ClimateDate date, int stationId,
             DailyClimateData data) throws ClimateQueryException {
 
@@ -638,30 +589,6 @@ public class DailyClimateDAO extends ClimateDAO {
      *  This function sums the daily heating degree days in the daily
      *       climate data base between the period begin_date and end_date.
      * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                  description
-     * ---------------------------------------------------------------------------- 
-     *    Input
-     *       begin_date          - starting date for summation
-     *       end_date            - ending date for summation
-     *       station_id         - station id of type int for which this function
-     *                is called
-     * 
-     *     Output
-     *       sum_heat            - sum of daily heating degree days between
-     *                             start date and end date
-     * 
-     *       Local
-     * 
-     *     MODIFICATION HISTORY
-     *     ====================
-     *        9/29/00    Doug Murphy         Removed unnecessary include files
-     *       Dec 2002    Bob Morris          Changed date args to reference variables
-     *                                       to fix seg. faults under Linux.
-     *       1/20/05     Teresa Peachey/     Converted Informix to Postgres SQL
-     *                   Manan Dalal
      * 
      * </pre>
      * 
@@ -670,6 +597,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+
     public int sumHeatDegreeDays(ClimateDate beginDate, ClimateDate endDate,
             long stationId) {
         int sumHeat = ParameterFormatClimate.MISSING_DEGREE_DAY;
@@ -687,8 +615,8 @@ public class DailyClimateDAO extends ClimateDAO {
         paramMap.put("endDate", endDate.getCalendarFromClimateDate());
         paramMap.put("stationId", stationId);
 
-        sumHeat = (int) queryForOneValue(query.toString(), paramMap,
-                ParameterFormatClimate.MISSING_DEGREE_DAY);
+        sumHeat = ((Number) queryForOneValue(query.toString(), paramMap,
+                ParameterFormatClimate.MISSING_DEGREE_DAY)).intValue();
 
         return sumHeat;
     }
@@ -714,29 +642,7 @@ public class DailyClimateDAO extends ClimateDAO {
      *  This function sums the daily cooling degree days in the daily
      *       climate data base between the period begin_date and end_date.
      * 
-     *    VARIABLES
-     *    =========
      * 
-     *    name                  description
-     * -----------------------------------------------------------------------------     *    Input
-     *       begin_date          - starting date for summation
-     *       end_date            - ending date for summation
-     *       station_id         - station id of type int for which this function
-     *                is called
-     * 
-     *     Output
-     *       sum_cool            - sum of daily cooling degree days between
-     *                             start date and end date
-     * 
-     *       Local
-     * 
-     *     MODIFICATION HISTORY
-     *     ====================
-     *        9/29/00    Doug Murphy         Removed unnecessary include files
-     *       Dec 2002    Bob Morris          Changed date args to reference variables
-     *                                       to fix seg. faults under Linux.
-     *       1/20/05     Teresa Peachey/     Converted Informix to POSTGRES SQL
-     *                   Manan Dalal
      * </pre>
      * 
      * @param beginDate
@@ -744,6 +650,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+
     public int sumCoolDegreeDays(ClimateDate beginDate, ClimateDate endDate,
             long stationId) {
         int sumCool = ParameterFormatClimate.MISSING_DEGREE_DAY;
@@ -761,8 +668,8 @@ public class DailyClimateDAO extends ClimateDAO {
         paramMap.put("endDate", endDate.getCalendarFromClimateDate());
         paramMap.put("stationId", stationId);
 
-        sumCool = (int) queryForOneValue(query.toString(), paramMap,
-                ParameterFormatClimate.MISSING_DEGREE_DAY);
+        sumCool = ((Number) queryForOneValue(query.toString(), paramMap,
+                ParameterFormatClimate.MISSING_DEGREE_DAY)).intValue();
 
         return sumCool;
     }
@@ -788,40 +695,6 @@ public class DailyClimateDAO extends ClimateDAO {
      *  This function sums the daily heating degree days in the daily
      *       climate data base between the period begin_date and end_date.
      * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                  description
-     * ------------------------------------------------------------------------------
-     *     Input
-     *       begin_date          - starting date for summation
-     *       end_date            - ending date for summation
-     *       station_id         - station id of type int for which this function
-     *                is called
-     * 
-     *     Output
-     *       sum_heat            - sum of daily heating degree days between
-     *                             start date and end date
-     * 
-     *       Local
-     * 
-     *  Modification log
-     *     Feb 2000              David T. Miller             PRC/TDL
-     *                           If trace occurred during the period, this routine
-     *                           would set it to zero.  Added a check and another
-     *                           ESQL call to account for this occurrence.
-     *     April 2000       David T. Miller             PRC/TDL
-     *              Made check for trace more specific as YTD sums not
-     *                           correct if only trace observed.
-     *     August 2000           David T. Miller             PRC/TDL
-     *                           Slight correction to if test for null needed
-     *     September 2000        Doug Murphy                 PRC/TDL
-     *                           Removed unnecessary include files
-     *     Dec 2002              Bob Morris                  SAIC/MDL
-     *                           - Changed date args to reference variables
-     *                           to fix seg. faults under Linux.
-     *     Jan 2005              Manan Dalal                 NGIT/MDL
-     *                           - Ported code from Informix to Postgresql
      ******************************************************************************** 
      * </pre>
      * 
@@ -830,6 +703,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+
     public float sumPrecip(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float sumPrecip = ParameterFormatClimate.MISSING_PRECIP;
@@ -875,38 +749,6 @@ public class DailyClimateDAO extends ClimateDAO {
      * This function sums the daily snowfall in the daily
      *      climate data base between the period begin_date and end_date.
      * 
-     *   VARIABLES
-     *   =========
-     * 
-     *   name                  description
-     * ------------------------------------------------------------------------------
-     *    Input
-     *      begin_date          - starting date for summation
-     *      end_date            - ending date for summation
-     *      station_id         - station id of type int for which this function
-     *               is called
-     * 
-     *    Output
-     *      sum_snow            - sum of daily snowfall between
-     *                            start date and end date
-     * 
-     *      Local
-     * 
-     *  Modification log
-     *    Feb 2000              David T. Miller             PRC/TDL
-     *                          If trace occurred during the period, this routine
-     *                          would set it to zero.  Added a check and another
-     *                          ESQL call to account for this occurrence.
-     *    April 2000            David T. Miller        PRC/TDL
-     *                          Made check for trace more specific as YTD totals 
-     *                          not summing correctly if only trace observed.
-     *    September 2000        Doug Murphy                 PRC/TDL
-     *                          Removed unnecessary include files
-     *    Dec 2002              Bob Morris                  SAIC/MDL
-     *                          - Changed date args to reference variables
-     *                          to fix seg. faults under Linux.
-     *    Jan 2005              Manan Dalal                 NGIT/MDL
-     *                          - Ported from Informix to Postgresql
      * </pre>
      * 
      * @param beginDate
@@ -914,6 +756,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
+
     public float sumSnow(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float sumSnow = ParameterFormatClimate.MISSING_PRECIP;
@@ -987,10 +830,10 @@ public class DailyClimateDAO extends ClimateDAO {
                             // values could be null
                             data.setDir(oa[0] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[0]);
+                                    : ((Number) oa[0]).shortValue());
                             data.setSpeed(oa[1] == null
                                     ? ParameterFormatClimate.MISSING_SPEED
-                                    : (float) oa[1]);
+                                    : ((Number) oa[1]).floatValue());
                             list.add(data);
                         } catch (Exception e) {
                             // if casting failed
@@ -1066,10 +909,10 @@ public class DailyClimateDAO extends ClimateDAO {
                             // values could be null
                             data.setDir(oa[0] == null
                                     ? ParameterFormatClimate.MISSING
-                                    : (short) oa[0]);
+                                    : ((Number) oa[0]).shortValue());
                             data.setSpeed(oa[1] == null
                                     ? ParameterFormatClimate.MISSING_SPEED
-                                    : (float) oa[1]);
+                                    : ((Number) oa[1]).floatValue());
                             list.add(data);
                         } catch (Exception e) {
                             // if casting failed
@@ -1113,41 +956,10 @@ public class DailyClimateDAO extends ClimateDAO {
      *      the monthly variables.  So, decided to pull those
      *      and use here.
      * 
-     * 
-     * Variables
-     * 
-     *    Input   begin_date   beginning and ending dates of the period
-     *            end_date
-     *       period            holds period data structure values
-     *                         See TYPE_period_data.h
-     *       table_columns     represents two arrays of database column names
-     *       period_type       flag indicating which period should be built
-     * 
-     * 
-     *    Output  period
-     * 
-     * 
-     *    Local   See variable list below
-     * 
-     * 
-     *    Non-system routines used
-     * 
-     *    Non-system functions used
-     * 
-     * Modification log
-     * Name                        Date          Change
-     * David T. Miller             Jul 2000      Added a null data check for the 
-     *                                         24-hour precipitation database retrieval
-     * Doug Murphy                 10/23/00      Added check of daily db precip and
-     *                                         snow totals to find max 24-hour total
-     * Doug Murphy                  7/17/01      Removed fill_period_dir
-     * Manan Dalal                 01/26/05      Ported from Informix to Postgresql
-     * 
-     * ASDT Changes:
-     * Andrew Moore                 7/27/16      Cleanup some C-structure code. This
-     *                                           method only ever called for monthly.
-     *                                           So remove periodType input and flags.
      * </pre>
+     * 
+     * Expected to be called by F6 builder only, and so the beginDate should be
+     * the first day of a month.
      * 
      * @param beginDate
      * @param endDate
@@ -1155,6 +967,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @return
      * @throws ClimateQueryException
      */
+
     public PeriodData buildMonthObsClimo(ClimateDate beginDate,
             ClimateDate endDate, int informid) throws ClimateQueryException {
         PeriodData oPeriodData = PeriodData.getMissingPeriodData();
@@ -1225,8 +1038,8 @@ public class DailyClimateDAO extends ClimateDAO {
         avgMaxTempQuery.append(" AND max_temp!= :missingValue ");
         avgMaxTempQuery.append(" AND min_temp != :missingValue");
 
-        avgmaxT = (float) queryForOneValue(avgMaxTempQuery.toString(),
-                keyParamMap, (float) ParameterFormatClimate.MISSING);
+        avgmaxT = ((Number) queryForOneValue(avgMaxTempQuery.toString(),
+                keyParamMap, ParameterFormatClimate.MISSING)).floatValue();
         oPeriodData.setMaxTempMean(avgmaxT);
 
         /* number of days for max temp thresholds */
@@ -1241,14 +1054,15 @@ public class DailyClimateDAO extends ClimateDAO {
         String avgMaxTempOver90Query = maxTempBaseString
                 + " AND max_temp >= 90";
         oPeriodData.setNumMaxGreaterThan90F(
-                (int) queryForOneValue(avgMaxTempOver90Query, keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(avgMaxTempOver90Query, keyParamMap,
+                        ParameterFormatClimate.MISSING)).intValue());
 
         String avgMaxTempOverUnder32Query = maxTempBaseString
                 + " AND max_temp <= 32";
         oPeriodData.setNumMaxLessThan32F(
-                (int) queryForOneValue(avgMaxTempOverUnder32Query, keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(avgMaxTempOverUnder32Query,
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /********************
          * minimum temperature section
@@ -1306,8 +1120,8 @@ public class DailyClimateDAO extends ClimateDAO {
         avgMinTempQuery.append(" AND max_temp!= :missingValue");
         avgMinTempQuery.append(" AND min_temp != :missingValue");
 
-        float avgminT = (float) queryForOneValue(avgMinTempQuery.toString(),
-                keyParamMap, (float) ParameterFormatClimate.MISSING);
+        float avgminT = ((Number) queryForOneValue(avgMinTempQuery.toString(),
+                keyParamMap, ParameterFormatClimate.MISSING)).floatValue();
         oPeriodData.setMinTempMean(avgminT);
 
         /* number of days for min temp thresholds */
@@ -1322,13 +1136,13 @@ public class DailyClimateDAO extends ClimateDAO {
         String avgMinTempUnder32Query = minTempBaseString
                 + " AND min_temp <= 32";
         oPeriodData.setNumMinLessThan32F(
-                (int) queryForOneValue(avgMinTempUnder32Query, keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(avgMinTempUnder32Query, keyParamMap,
+                        ParameterFormatClimate.MISSING)).intValue());
 
         String avgMinTempUnder0Query = minTempBaseString + " AND min_temp <= 0";
         oPeriodData.setNumMinLessThan0F(
-                (int) queryForOneValue(avgMinTempUnder0Query, keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(avgMinTempUnder0Query, keyParamMap,
+                        ParameterFormatClimate.MISSING)).intValue());
 
         if ((avgmaxT != ParameterFormatClimate.MISSING)
                 && (avgminT != ParameterFormatClimate.MISSING)) {
@@ -1451,29 +1265,29 @@ public class DailyClimateDAO extends ClimateDAO {
                 if ((results != null) && (results.length >= 1)) {
                     // some trace result exists
                     oPeriodData.setPrecipMax24H(ParameterFormatClimate.TRACE);
+                    // clear existing dates
+                    oPeriodData.getPrecip24HDates().clear();
+
                     for (Object result : results) {
-                        if (result instanceof Object[]) {
-                            Object[] oa = (Object[]) result;
+                        if (result instanceof Date) {
                             /* dates with max 24H precip */
                             oPeriodData.getPrecip24HDates()
                                     .add(new ClimateDates(
-                                            new ClimateDate((Date) oa[0]),
-                                            new ClimateDate((Date) oa[0])));
+                                            new ClimateDate((Date) result),
+                                            new ClimateDate((Date) result)));
                         } else {
                             throw new Exception(
-                                    "Unexpected return type from query, expected Object[], got "
+                                    "Unexpected return type from query, expected java.sql.Date, got "
                                             + result.getClass().getName());
                         }
                     }
                 } else {
-                    logger.warn(
+                    // max precip is 0, no trace could be found
+                    logger.info(
                             "Could not get trace 24 hour precip data using query: ["
                                     + precipTraceQuery + "] and map: ["
                                     + keyParamMap
-                                    + "]. Setting 24-hour precip max to missing.");
-                    oPeriodData.setPrecipMax24H(
-                            ParameterFormatClimate.MISSING_PRECIP);
-                    oPeriodData.getPrecip24HDates().clear();
+                                    + "]. 24-hour precip max is 0.");
                 }
             } catch (Exception e) {
                 throw new ClimateQueryException(
@@ -1568,12 +1382,12 @@ public class DailyClimateDAO extends ClimateDAO {
             } else {
                 beginDate24HourCheck.setYear(beginDate.getYear());
             }
-        } else {
-            beginDate24HourCheck = beginDate;
-        }
 
-        beginDate24HourCheck
-                .setDay(ClimateUtilities.daysInMonth(beginDate24HourCheck));
+            beginDate24HourCheck
+                    .setDay(ClimateUtilities.daysInMonth(beginDate24HourCheck));
+        } else {
+            beginDate24HourCheck = new ClimateDate(beginDate);
+        }
 
         String startDay = beginDate24HourCheck.toMonthDayDateString();
         String endDay = endDate.toMonthDayDateString();
@@ -1631,33 +1445,42 @@ public class DailyClimateDAO extends ClimateDAO {
                     e);
         }
 
-        String firstRecord = beginDate.getYear() + "-" + startDay;
-        if (spanflag) {
-            firstRecord = beginDate24HourCheck.getYear() + "-" + startDay;
-        }
+        String firstRecord = beginDate24HourCheck.getYear() + "-" + startDay;
 
-        float maxValue = 0.0f;
-        float[] precipValues = precipHourMap.get(firstRecord);
-        List<Integer> maxValueDays = new ArrayList<>();
-        maxValueDays.add(-1);
-        maxValueDays.add(-1);
+        float currentMaxPrecipValue = 0.0f;
+        float[] currentPrecipValues = precipHourMap.get(firstRecord);
+        int[] maxPrecipValueDays = new int[] { -1, -1 };
 
         for (int i = 1; i <= endDate.getDay(); i++) {
             String key = String.format("%4d-%02d-%02d", beginDate.getYear(),
                     beginDate.getMon(), i);
-            maxValue = checkMaxPrecipValue(precipValues, precipHourMap.get(key),
-                    maxValue, maxValueDays, i);
-            precipValues = precipHourMap.get(key);
+            currentMaxPrecipValue = checkMaxPrecipValue(currentPrecipValues,
+                    precipHourMap.get(key), currentMaxPrecipValue,
+                    maxPrecipValueDays, i);
+            currentPrecipValues = precipHourMap.get(key);
         }
 
-        if (maxValue != 0.0 && maxValue >= oPeriodData.getPrecipMax24H()) {
-            oPeriodData.setPrecipMax24H(maxValue);
+        // calculated max has a valid value
+        if (currentMaxPrecipValue != 0.0f
+                // AND current max is missing
+                && ((oPeriodData
+                        .getPrecipMax24H() == ParameterFormatClimate.MISSING_PRECIP)
+                        // OR calculated is >= current max (since calculated is
+                        // not 0, handles possibility of max being trace)
+                        || (currentMaxPrecipValue >= oPeriodData
+                                .getPrecipMax24H())
+                        // OR current max is 0 and calculated is trace
+                        || (currentMaxPrecipValue == ParameterFormatClimate.TRACE
+                                && oPeriodData.getPrecipMax24H() == 0.0f))) {
+
+            oPeriodData.setPrecipMax24H(currentMaxPrecipValue);
             List<ClimateDates> precip24HMaxDates = new ArrayList<>();
             precip24HMaxDates.add((new ClimateDates(
-                    maxValueDays.get(0) == 0 ? beginDate24HourCheck
-                            : new ClimateDate(maxValueDays.get(0),
+                    maxPrecipValueDays[0] == 0
+                            ? new ClimateDate(beginDate24HourCheck)
+                            : new ClimateDate(maxPrecipValueDays[0],
                                     beginDate.getMon(), beginDate.getYear()),
-                    new ClimateDate(maxValueDays.get(1), beginDate.getMon(),
+                    new ClimateDate(maxPrecipValueDays[1], beginDate.getMon(),
                             beginDate.getYear()))));
             oPeriodData.setPrecip24HDates(precip24HMaxDates);
         }
@@ -1685,13 +1508,14 @@ public class DailyClimateDAO extends ClimateDAO {
         keyParamMap.put("missingValue", (int) ParameterFormatClimate.MISSING);
 
         oPeriodData.setSnowMax24H(
-                (float) queryForOneValue(maxSnow24HQuery.toString(),
-                        keyParamMap, (float) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(maxSnow24HQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .floatValue());
 
         // don't need missing value for now
         keyParamMap.remove("missingValue");
 
-        if (oPeriodData.getSnowMax24H() == 0.0) {
+        if (ClimateUtilities.floatingEquals(oPeriodData.getSnowMax24H(), 0.0)) {
             /* check for trace amounts */
             StringBuilder maxSnow24HTraceQuery = new StringBuilder(
                     "SELECT MAX(snow) FROM ");
@@ -1702,9 +1526,20 @@ public class DailyClimateDAO extends ClimateDAO {
             maxSnow24HTraceQuery
                     .append(" AND station_id = :stationId AND snow = -1.0 ");
 
-            oPeriodData.setSnowMax24H((float) queryForOneValue(
+            float traceSnow = ((Number) queryForOneValue(
                     maxSnow24HTraceQuery.toString(), keyParamMap,
-                    (float) ParameterFormatClimate.MISSING));
+                    ParameterFormatClimate.MISSING)).floatValue();
+
+            /*
+             * if trace snow value is missing, then 0 was true max. If not,
+             * trace is max
+             */
+            if (ClimateUtilities.floatingEquals(traceSnow,
+                    ParameterFormatClimate.MISSING)) {
+                oPeriodData.setSnowMax24H(0);
+            } else {
+                oPeriodData.setSnowMax24H(ParameterFormatClimate.TRACE);
+            }
         }
 
         /* dates with max 24H snowfall */
@@ -1766,8 +1601,8 @@ public class DailyClimateDAO extends ClimateDAO {
         maxSnowPosQuery.append(
                 " AND station_id = :stationId AND snow::numeric >= 0.001 ");
         /* return greater than zero but not a trace */
-        int snowDays = (int) queryForOneValue(maxSnowPosQuery.toString(),
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int snowDays = ((Number) queryForOneValue(maxSnowPosQuery.toString(),
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         /* now return the trace amounts */
         StringBuilder maxSnowTraceQuery = new StringBuilder(
@@ -1778,8 +1613,9 @@ public class DailyClimateDAO extends ClimateDAO {
         maxSnowTraceQuery
                 .append(" AND station_id = :stationId AND snow <= -1.0 ");
         oPeriodData.setNumSnowGreaterThanTR(
-                (int) queryForOneValue(maxSnowTraceQuery.toString(),
-                        keyParamMap, (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(maxSnowTraceQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /*
          * add to get total days GE trace
@@ -1795,8 +1631,9 @@ public class DailyClimateDAO extends ClimateDAO {
         maxSnowInchQuery
                 .append(" AND station_id = :stationId AND snow >= 1.0 ");
         oPeriodData.setNumSnowGreaterThan1(
-                (int) queryForOneValue(maxSnowInchQuery.toString(), keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(maxSnowInchQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /* 24 Hour snow */
 
@@ -1827,13 +1664,12 @@ public class DailyClimateDAO extends ClimateDAO {
                 if ((results != null) && (results.length >= 1)) {
 
                     for (Object result : results) {
-                        if (result instanceof Object[]) {
-                            Object[] oa = (Object[]) result;
+                        if (result instanceof Date) {
                             oPeriodData.getSnowGroundMaxDateList().add(0,
-                                    new ClimateDate((Date) oa[0]));
+                                    new ClimateDate((Date) result));
                         } else {
                             throw new Exception(
-                                    "Unexpected return type from query, expected Object[], got "
+                                    "Unexpected return type from query, expected java.sql.Date, got "
                                             + result.getClass().getName());
                         }
                     }
@@ -1864,8 +1700,9 @@ public class DailyClimateDAO extends ClimateDAO {
         heatingDaysQuery.append(" AND heat != ")
                 .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
         oPeriodData.setNumHeatTotal(
-                (int) queryForOneValue(heatingDaysQuery.toString(), keyParamMap,
-                        ParameterFormatClimate.MISSING_DEGREE_DAY));
+                ((Number) queryForOneValue(heatingDaysQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING_DEGREE_DAY))
+                                .intValue());
 
         ClimateDate july1Date = new ClimateDate(1, 7, beginDate.getYear());
 
@@ -1876,8 +1713,9 @@ public class DailyClimateDAO extends ClimateDAO {
         keyParamMap.put("beginDate", july1Date.getCalendarFromClimateDate());
 
         oPeriodData.setNumHeat1July(
-                (int) queryForOneValue(heatingDaysQuery.toString(), keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(heatingDaysQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /* change the beginning date back */
         keyParamMap.put("beginDate", ecStartDate);
@@ -1895,15 +1733,17 @@ public class DailyClimateDAO extends ClimateDAO {
         coolingDaysQuery.append(" AND cool != ")
                 .append(ParameterFormatClimate.MISSING_DEGREE_DAY);
         oPeriodData.setNumCoolTotal(
-                (int) queryForOneValue(coolingDaysQuery.toString(), keyParamMap,
-                        ParameterFormatClimate.MISSING_DEGREE_DAY));
+                ((Number) queryForOneValue(coolingDaysQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING_DEGREE_DAY))
+                                .intValue());
 
         keyParamMap.put("beginDate", new ClimateDate(1, 1, beginDate.getYear())
                 .getCalendarFromClimateDate());
 
         oPeriodData.setNumCool1Jan(
-                (int) queryForOneValue(coolingDaysQuery.toString(), keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(coolingDaysQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /* change the beginning date back */
         keyParamMap.put("beginDate", ecStartDate);
@@ -1914,12 +1754,13 @@ public class DailyClimateDAO extends ClimateDAO {
         meanSkyCoverQuery.append(" FROM ")
                 .append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
         meanSkyCoverQuery
-                .append(" WHERE date >= :beginDat  AND date<= :endDate ");
+                .append(" WHERE date >= :beginDate  AND date<= :endDate ");
         meanSkyCoverQuery.append(" AND station_id = :stationId");
 
         oPeriodData.setMeanSkyCover(
-                (float) queryForOneValue(meanSkyCoverQuery.toString(),
-                        keyParamMap, (float) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(meanSkyCoverQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .floatValue());
 
         /****************** number cloudy days ***************************/
         /*
@@ -1960,8 +1801,9 @@ public class DailyClimateDAO extends ClimateDAO {
                 " AND station_id = :stationId AND avg_sky_cover::numeric >= 0.8125");
 
         oPeriodData.setNumMostlyCloudyDays(
-                (int) queryForOneValue(cloudyDaysQuery.toString(), keyParamMap,
-                        (int) ParameterFormatClimate.MISSING));
+                ((Number) queryForOneValue(cloudyDaysQuery.toString(),
+                        keyParamMap, ParameterFormatClimate.MISSING))
+                                .intValue());
 
         /****************** number partly cloudy days **********************/
         if (oPeriodData
@@ -1980,8 +1822,9 @@ public class DailyClimateDAO extends ClimateDAO {
                     " AND station_id = :stationId AND avg_sky_cover::numeric >= 0.3125");
 
             oPeriodData.setNumPartlyCloudyDays(
-                    (int) queryForOneValue(partlyCloudyDaysQuery.toString(),
-                            keyParamMap, (int) ParameterFormatClimate.MISSING));
+                    ((Number) queryForOneValue(partlyCloudyDaysQuery.toString(),
+                            keyParamMap, ParameterFormatClimate.MISSING))
+                                    .intValue());
 
             oPeriodData
                     .setNumPartlyCloudyDays(oPeriodData.getNumPartlyCloudyDays()
@@ -2001,8 +1844,9 @@ public class DailyClimateDAO extends ClimateDAO {
                     " AND station_id = :stationId AND avg_sky_cover >= 0.0");
 
             oPeriodData.setNumFairDays(
-                    (int) queryForOneValue(fairDaysQuery.toString(),
-                            keyParamMap, (int) ParameterFormatClimate.MISSING));
+                    ((Number) queryForOneValue(fairDaysQuery.toString(),
+                            keyParamMap, ParameterFormatClimate.MISSING))
+                                    .intValue());
             oPeriodData.setNumFairDays(oPeriodData.getNumFairDays()
                     - oPeriodData.getNumPartlyCloudyDays()
                     - oPeriodData.getNumMostlyCloudyDays());
@@ -2021,8 +1865,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numThunderString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_THUNDER_STORM_INDEX + 1);
 
-        int thunderDays = (int) queryForOneValue(numThunderString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int thunderDays = ((Number) queryForOneValue(numThunderString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (thunderDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumThunderStorms(thunderDays);
@@ -2032,8 +1876,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numMixedPrecipString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_MIXED_PRECIP_INDEX + 1);
 
-        int mixedDays = (int) queryForOneValue(numMixedPrecipString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int mixedDays = ((Number) queryForOneValue(numMixedPrecipString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (mixedDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumMixedPrecip(mixedDays);
@@ -2043,8 +1887,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numHeavyRainString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_HEAVY_RAIN_INDEX + 1);
 
-        int heavyRainDays = (int) queryForOneValue(numHeavyRainString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int heavyRainDays = ((Number) queryForOneValue(numHeavyRainString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (heavyRainDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumHeavyRain(heavyRainDays);
@@ -2053,8 +1897,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numRainString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_RAIN_INDEX + 1);
 
-        int rainDays = (int) queryForOneValue(numRainString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int rainDays = ((Number) queryForOneValue(numRainString, keyParamMap,
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (rainDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumRain(rainDays);
@@ -2063,8 +1907,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numLightRainString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_LIGHT_RAIN_INDEX + 1);
 
-        int lightRainDays = (int) queryForOneValue(numLightRainString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int lightRainDays = ((Number) queryForOneValue(numLightRainString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (lightRainDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumLightRain(lightRainDays);
@@ -2074,8 +1918,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numFreezingRainString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_FREEZING_RAIN_INDEX + 1);
 
-        int freezeRainDays = (int) queryForOneValue(numFreezingRainString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int freezeRainDays = ((Number) queryForOneValue(numFreezingRainString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (freezeRainDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumFreezingRain(freezeRainDays);
@@ -2084,9 +1928,9 @@ public class DailyClimateDAO extends ClimateDAO {
         String numLightFreezingRainString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_LIGHT_FREEZING_RAIN_INDEX + 1);
 
-        int lightFreezeRainDays = (int) queryForOneValue(
+        int lightFreezeRainDays = ((Number) queryForOneValue(
                 numLightFreezingRainString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (lightFreezeRainDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumLightFreezingRain(lightFreezeRainDays);
@@ -2096,8 +1940,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numHailString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_HAIL_INDEX + 1);
 
-        int hailDays = (int) queryForOneValue(numHailString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int hailDays = ((Number) queryForOneValue(numHailString, keyParamMap,
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (hailDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumHail(hailDays);
@@ -2107,8 +1951,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numHeavySnowString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_HEAVY_SNOW_INDEX + 1);
 
-        int heavySnowDays = (int) queryForOneValue(numHeavySnowString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int heavySnowDays = ((Number) queryForOneValue(numHeavySnowString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (heavySnowDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumHeavySnow(heavySnowDays);
@@ -2117,8 +1961,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numSnowString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_SNOW_INDEX + 1);
 
-        int regSnowDays = (int) queryForOneValue(numSnowString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int regSnowDays = ((Number) queryForOneValue(numSnowString, keyParamMap,
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (regSnowDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumSnow(regSnowDays);
@@ -2127,8 +1971,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numLightSnowString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_LIGHT_SNOW_INDEX + 1);
 
-        int lightSnowDays = (int) queryForOneValue(numLightSnowString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int lightSnowDays = ((Number) queryForOneValue(numLightSnowString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (lightSnowDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumLightSnow(lightSnowDays);
@@ -2138,8 +1982,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numIcePelletsString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_ICE_PELLETS_INDEX + 1);
 
-        int icePelletsDays = (int) queryForOneValue(numIcePelletsString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int icePelletsDays = ((Number) queryForOneValue(numIcePelletsString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (icePelletsDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumIcePellets(icePelletsDays);
@@ -2149,8 +1993,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numFogString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_FOG_INDEX + 1);
 
-        int fogDays = (int) queryForOneValue(numFogString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int fogDays = ((Number) queryForOneValue(numFogString, keyParamMap,
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (fogDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumFog(fogDays);
@@ -2159,8 +2003,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numFogQuarterSMString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_FOG_QUARTER_SM_INDEX + 1);
 
-        int heavyFogDays = (int) queryForOneValue(numFogQuarterSMString,
-                keyParamMap, (int) ParameterFormatClimate.MISSING);
+        int heavyFogDays = ((Number) queryForOneValue(numFogQuarterSMString,
+                keyParamMap, ParameterFormatClimate.MISSING)).intValue();
 
         if (heavyFogDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumFogQuarterSM(heavyFogDays);
@@ -2170,8 +2014,8 @@ public class DailyClimateDAO extends ClimateDAO {
         String numHazeString = getDailyWeatherCountQuery(
                 DailyClimateData.WX_HAZE_INDEX + 1);
 
-        int hazeDays = (int) queryForOneValue(numHazeString, keyParamMap,
-                (int) ParameterFormatClimate.MISSING);
+        int hazeDays = ((Number) queryForOneValue(numHazeString, keyParamMap,
+                ParameterFormatClimate.MISSING)).intValue();
 
         if (hazeDays != ParameterFormatClimate.MISSING) {
             oPeriodData.setNumHaze(hazeDays);
@@ -2215,32 +2059,6 @@ public class DailyClimateDAO extends ClimateDAO {
      *  Retrieves the ASOS monthly summary message sea_level pressure values for a station and
      *  given month.
      * 
-     *    VARIABLES
-     *    =========
-     * 
-     *    name                    description
-     * -------------------------------------------------------------------------------                    
-     *     Input
-     *      adate       - The valid date of the climate parameters
-     *      wxstring            - Character string to hold the weather parameters
-     * 
-     *     Output
-     *      wxstring           - See above
-     * 
-     *     Local   
-     *      tempstr             - temporary string
-     *      year                - holds year value of DSM converted from database value
-     *      ec_******           - holds climate values retrieved from database table
-     *   
-     *   MODIFICATION HISTORY
-     *   ====================
-     *     3/10/01    Doug Murphy             Added section which retrieves the daily
-     *                                        pressure values from daily_climate when an MSM
-     *                                        is unavailable. 
-     *     3/25/03    Bob Morris              Fixed arguments in calls to risnull, need to use
-     *                                        defined constants for C-data types, not values
-     *                                        (hard-coded, no less!) for SQL data types.  OB2
-     *     1/26/05    Manan Dalal             Ported from Informix to Postgresql
      ******************************************************************************* 
      * </pre>
      * 
@@ -2249,6 +2067,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @return
      * @throws ClimateQueryException
      */
+
     public SLP retrieveMsmPrs(ClimateDate aDate, Station station)
             throws ClimateQueryException {
         SLP slp = SLP.getMissingSLP();
@@ -2282,13 +2101,13 @@ public class DailyClimateDAO extends ClimateDAO {
                         // values could be null
                         slp.setMaxSLP(oa[0] == null
                                 ? ParameterFormatClimate.MISSING_SLP
-                                : (float) oa[0]);
+                                : ((Number) oa[0]).floatValue());
                         slp.setDayMaxSLP(oa[1] == null
                                 ? ParameterFormatClimate.MISSING_DATE
                                 : Integer.parseInt((String) oa[1]));
                         slp.setMinSLP(oa[2] == null
                                 ? ParameterFormatClimate.MISSING_SLP
-                                : (float) oa[2]);
+                                : ((Number) oa[2]).floatValue());
                         slp.setDayMinSLP(oa[3] == null
                                 ? ParameterFormatClimate.MISSING_DATE
                                 : Integer.parseInt((String) oa[3]));
@@ -2347,8 +2166,8 @@ public class DailyClimateDAO extends ClimateDAO {
                             // max SLP could be null
                             slp.setMaxSLP(oa[0] == null
                                     ? ParameterFormatClimate.MISSING_SLP
-                                    : (float) oa[0]);
-                            slp.setDayMaxSLP((int) oa[1]);
+                                    : ((Number) oa[0]).floatValue());
+                            slp.setDayMaxSLP(((Number) oa[1]).intValue());
                         } catch (Exception e) {
                             // if casting failed
                             throw new Exception(
@@ -2398,8 +2217,8 @@ public class DailyClimateDAO extends ClimateDAO {
                             // min SLP could be null
                             slp.setMinSLP(oa[0] == null
                                     ? ParameterFormatClimate.MISSING_SLP
-                                    : (float) oa[0]);
-                            slp.setDayMinSLP((int) oa[1]);
+                                    : ((Number) oa[0]).floatValue());
+                            slp.setDayMinSLP(((Number) oa[1]).intValue());
                         } catch (Exception e) {
                             // if casting failed
                             throw new Exception(
@@ -2431,148 +2250,19 @@ public class DailyClimateDAO extends ClimateDAO {
      * 
      * <pre>
      *    Name:
-    *       retrieve_daily_sum.ec
-    *       GFS1-NHD:A14950.0000-SRC;12
-    *
-    *    Status:
-    *       DELIVERED
-    *    
-    *    History:
-    *       Revision 12 (DELIVERED)
-    *         Created:  28-JAN-2005 18:01:53 DALAL
-    *           Ported from Informix to Postgresql
-    *         Updated:  28-JAN-2005 17:48:00 DALAL
-    *           Item revision 12 created from revision 11 with status
-    *           $TO_BE_DEFINED
-    *       
-    *       Revision 11 (DELIVERED)
-    *         Created:  17-DEC-2002 18:41:05 MORRIS
-    *           Fixed out-of-bounds addressing in char array.
-    *         Updated:  17-DEC-2002 17:08:10 MORRIS
-    *           Updated attribute(s)
-    *       
-    *       Revision 10 (DELIVERED)
-    *         Created:  25-NOV-2002 20:10:40 PCMS
-    *           Added 'exter "C"' to the non linux prototypes.
-    *         Updated:  25-NOV-2002 19:38:46 PCMS
-    *           Updated attribute(s)
-    *       
-    *       Revision 9 (REVIEW)
-    *         Created:  14-NOV-2002 14:05:19 WAGNER
-    *           Changes made by Joe Lang.
-    *         Updated:  13-NOV-2002 18:56:49 WAGNER
-    *           Updated attribute(s)
-    *       
-    *       Revision 8 (INITIALIZE)
-    *         Created:  24-OCT-2002 20:49:00 BATTEL
-    *           Added header block for manual PCMS extraction
-    *         Updated:  24-OCT-2002 20:42:00 BATTEL
-    *           Updated attribute(s)
-    *       
-    *       Revision 7 (DELIVERED)
-    *         Created:  12-MAR-2001 19:04:18 MURPHY
-    *           Added minutes of sun, three wx types
-    *         Updated:  12-MAR-2001 18:42:38 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 6 (DELIVERED)
-    *         Created:  29-AUG-2000 14:07:01 MURPHY
-    *           Stupid mistake
-    *         Updated:  29-AUG-2000 14:06:29 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 5 (BUILD_RELEASE)
-    *         Created:  24-AUG-2000 20:09:59 MURPHY
-    *           Added mph to knot conversion
-    *         Updated:  24-AUG-2000 20:09:34 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 4 (DELIVERED)
-    *         Created:  24-AUG-2000 20:03:16 MURPHY
-    *           Added a conversion to convert wind speeds from mph (as
-    *           stored in DSM db)
-    *           to knots
-    *         Updated:  24-AUG-2000 20:02:28 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 3 (DELIVERED)
-    *         Created:  08-FEB-2000 23:01:53 DMILLER
-    *           updated for build 5
-    *         Updated:  08-FEB-2000 23:01:34 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 2 (DELIVERED)
-    *         Created:  19-AUG-1999 16:59:44 DMILLER
-    *           add average wind speed retrieval from the daily summary
-    *           message data table
-    *         Updated:  19-AUG-1999 16:30:40 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 1 (DELIVERED)
-    *         Created:  02-AUG-1999 16:53:19 DMILLER
-    *           Need to include daily summary message values into climate
-    *           routines
-    *
-    *    Change Document History:
-    *       1:
-    *          Change Document:   GFS1-NHD_STDR_886
-    *          Action Date:       11-FEB-2005 00:23:58
-    *          Relationship Type: In Response to
-    *          Status:           TEST COORDINATE
-    *          Title:             CLIMATE: Climate needs to migrate to Postgres SQL
-    *          
-    * retrieve_daily_sum.ec
-    *
-    * David T. Miller   April 1999
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    * Retrieves the ASOS daily summary message climate values for a station and
-    * given date.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                    description
-    *-------------------------------------------------------------------------------                    
-    *    Input
-    *     adate       - The valid date of the climate parameters
-    *     yesterday           - Structure to hold the daily climate parameters
-    *     end_time            - The end of the climate reporting period
-    *     itype               - The type of climate report
-    *     UTC_offset          - station's number of hours offset from UTC
-    *
-    *    Output
-    *     yesterday           - See above
-    *
-    *    Local   
-    *     tempstr             - temporary string, holds MM-DD or HH:MM value
-    *     tempstr2            - temporary string number two, holds MM, DD, HH, or MM
-    *     tempint             - temporary integer
-    *     tempint2            - temporary integer number two
-    *     local_hour          - holds the local hour converted from end_time
-    *     year                - holds year value of DSM converted from database value
-    *     ec_******           - holds climate values retrieved from database table
-    *   
-    *   MODIFICATION HISTORY
-    *   ====================
-    *    08/24/00  Doug Murphy            Wind speeds are now stored in mph, need to
-    *                                     convert values to knots for consistency in climate
-    *    02/14/01  Doug Murphy            No longer need to convert from MPH to KTS, as
-    *                                     the wind speed will be mph throughout climate.
-    *                                     Added snow depth, minutes of sun, and min pressure
-    *                                     to structure elements returned.
-    *    12/16/02  Bob Morris             Fixed out-of-bounds addressing of tempstr
-    *                                     for Linux/OB2.  It's picky like that.
-    *    01/26/05  Manan Dalal            Ported from Informix to Postgresql
-    *    12/26/07  Baoyu Yin              Added retrieving snow_ground from ASOS for 
-    *                                     morning/evening/intermediate daily climate.
-    *
-    *    03/02/2011  Xiaochuan        Fix the memory over size problem. tempstr 
-    *                     need to hold time as hh:mm:ss also. Increase
-    *                     the size for tempstr to char tempstr[9]; 
-    *                     Using snprintf() instead of sprintf().
+     *       retrieve_daily_sum.ec
+     *       GFS1-NHD:A14950.0000-SRC;12
+     *
+     * retrieve_daily_sum.ec
+     *
+     * David T. Miller   April 1999
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     * Retrieves the ASOS daily summary message climate values for a station and
+     * given date.
+     * 
      * </pre>
      * 
      * @param aDate
@@ -2583,6 +2273,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @param numOffUTC
      * @throws ClimateQueryException
      */
+
     public void retrieveDailySummary(ClimateDate aDate,
             DailyClimateData yesterday, PeriodType itype, ClimateTime endTime,
             short numOffUTC) throws ClimateQueryException {
@@ -2612,8 +2303,8 @@ public class DailyClimateDAO extends ClimateDAO {
         yearQuery.append(" AND day_of_year = :dayOfYear");
         yearQuery.append(" ORDER BY year DESC");
 
-        int year = (short) queryForOneValue(yearQuery.toString(), paramMap,
-                (short) -1);
+        int year = ((Number) queryForOneValue(yearQuery.toString(), paramMap,
+                -1)).intValue();
         if (year == -1) {
             logger.warn("Daily Summary Message not available for station ["
                     + stationCode
@@ -2623,14 +2314,14 @@ public class DailyClimateDAO extends ClimateDAO {
             return;
         }
 
-        // get valid time (only an hour, or missing value)
+        // get valid time (only an hour, or missing value) of DSM
         StringBuilder validTimeQuery = new StringBuilder(
                 "SELECT to_char(valid_time, 'HH24:MI') FROM ");
         validTimeQuery.append(ClimateDAOValues.CLI_ASOS_DAILY_TABLE_NAME);
         validTimeQuery.append(" WHERE station_code = :stationCode");
         validTimeQuery.append(" AND day_of_year = :dayOfYear");
 
-        String validTimeString = (String) queryForOneValue(
+        String dsmValidTimeString = (String) queryForOneValue(
                 validTimeQuery.toString(), paramMap, "");
 
         /*
@@ -2638,11 +2329,12 @@ public class DailyClimateDAO extends ClimateDAO {
          * 
          * check to see if valid time is null
          */
-        int validTimeHour;
-        if (!validTimeString.isEmpty()) {
-            validTimeHour = Integer.parseInt(validTimeString.substring(0, 2));
+        int dsmValidTimeHour;
+        if (!dsmValidTimeString.isEmpty()) {
+            dsmValidTimeHour = Integer
+                    .parseInt(dsmValidTimeString.substring(0, 2));
         } else {
-            validTimeHour = 99;
+            dsmValidTimeHour = 99;
         }
 
         /*
@@ -2653,13 +2345,16 @@ public class DailyClimateDAO extends ClimateDAO {
          * intermediate hour, use this dsm.
          */
         int localHour = endTime.getHour() + numOffUTC;
+        logger.debug("The local hour for the station with informId ["
+                + yesterday.getInformId() + "] is [" + localHour
+                + "] for DSM date [" + aDate.toFullDateString() + "]");
         if (localHour < 0) {
             localHour += TimeUtil.HOURS_PER_DAY;
         } else if (localHour >= TimeUtil.HOURS_PER_DAY) {
             localHour -= TimeUtil.HOURS_PER_DAY;
         }
 
-        int runTimeDiffFromValidTime = Math.abs(validTimeHour - localHour);
+        int runTimeDiffFromValidTime = Math.abs(dsmValidTimeHour - localHour);
 
         /*
          * Legacy documentation:
@@ -2673,7 +2368,12 @@ public class DailyClimateDAO extends ClimateDAO {
          * intermediate in this case
          */
         if (year == aDate.getYear()) {
-            if ((validTimeHour >= TimeUtil.HOURS_PER_DAY
+            logger.debug(
+                    "The DSM valid time hour for the station with informId ["
+                            + yesterday.getInformId() + "] is ["
+                            + dsmValidTimeHour + "] for DSM date ["
+                            + aDate.toFullDateString() + "]");
+            if ((dsmValidTimeHour >= TimeUtil.HOURS_PER_DAY
                     && (itype.equals(PeriodType.MORN_NWWS)
                             || itype.equals(PeriodType.MORN_RAD)))
                     || ((!itype.equals(PeriodType.MORN_NWWS)
@@ -2748,7 +2448,7 @@ public class DailyClimateDAO extends ClimateDAO {
                             // min pressure (SLP)
                             yesterday.setMinSlp(oa[4] == null
                                     ? ParameterFormatClimate.MISSING_SLP
-                                    : (float) oa[4]);
+                                    : ((Number) oa[4]).floatValue());
                             // precip/equivalent water
                             yesterday.setPrecip(oa[5] == null
                                     ? ParameterFormatClimate.MISSING_PRECIP
@@ -3025,57 +2725,6 @@ public class DailyClimateDAO extends ClimateDAO {
      *      the contents of yesterday into the daily observed climate data
      *      base.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *-------------------------------------------------------------------------------                   
-     *   Input  
-     *      station_id          - station id of type int for which this function
-     *                is called
-     *      yesterday           - structure containing the daily climate data 
-     *                            for a given station
-     *
-     *    Output
-     *        
-     *
-     *    Local
-     *     char  
-     *       hold_climo_date    - character string for the climate date
-     *       hold_max_temp_time - character string for the time of maximum temperature
-     *       hold_min_temp_time - character string for the time of minimum temparture
-     *       hold_max_wind_time - character string for the time of maximum wind
-     *       hold_max_gust_time - character string for the time of maximum wind 
-     *       hold_max_rh_time   - character string for the maximum relative humidity
-     *       hold_min_rh_time   - character string for the minimum relative humidity
-     *     int
-     *       db_status          - The success/failure code returned by dbUtils and Informix functions. 
-     *       time_status        - Used to convert time and date to an INFORMIX readable string.
-     *        
-     * Modification Log
-     * Name                   Date           Change
-     * ---------------------------------------------------------------------------       
-     * David T. Miller        Jul 2000       Added NINT definition for resultant
-     *                                       wind speed since climate wind datatype
-     *                                       was changed to a float but not in hmdb
-     *                                       (unnecessary).  May have to change
-     *                                       database at another time/build.
-     *
-     *                                       Also, improved the database insert and
-     *                                       update calls so wouldn't get an error
-     *                                       if record existed.
-     *                                           
-     *                                       Restored the insert call
-     * Doug Murphy             2/14/01       Added snow depth and avg wind spd qc methods,
-     *                                       minutes of sun, slp, and 3 wx types
-     * Bob Morris              Dec 2002      - Changed date args to reference variables
-     *                                       to fix seg. faults under Linux.
-     * Bob Morris             03/25/03       - Fix args to rsetnull, use symbolic names
-     *                                       for ESQL-C data types, instead of hard-
-     *                                       coded ints for SQL data types. OB2
-     * Manan Dalal             Jan 2005      - Ported from Informix to Postgresql
-     * Manan Dalal             Mar 2005      - Added Indicators to allow null values
-     *
      * </pre>
      * 
      * Update daily climate data for a station with the given ID at the given
@@ -3090,6 +2739,7 @@ public class DailyClimateDAO extends ClimateDAO {
      * @return true if updated, false otherwise.
      * @throws Exception
      */
+
     public boolean updateDailyDataForStationAndDate(ClimateDate iDate,
             int iStationID, DailyClimateData iData) throws Exception {
         Object[] results = queryDailyDataForStationAndDate(iStationID, iDate);
@@ -3235,7 +2885,7 @@ public class DailyClimateDAO extends ClimateDAO {
                 getDao().executeSQLUpdate(update.toString(), queryParams);
             } catch (Exception e) {
                 throw new Exception(
-                        "Error querying the climate database with query: ["
+                        "Error updating the climate database with query: ["
                                 + update + "] and map: [" + queryParams + "]",
                         e);
             }
@@ -3369,7 +3019,7 @@ public class DailyClimateDAO extends ClimateDAO {
                 getDao().executeSQLUpdate(insert.toString(), queryParams);
             } catch (Exception e) {
                 throw new Exception(
-                        "Error querying the climate database with query: ["
+                        "Error inserting into the climate database with query: ["
                                 + insert + "] and map: [" + queryParams + "]",
                         e);
             }
@@ -3619,48 +3269,17 @@ public class DailyClimateDAO extends ClimateDAO {
      * Migrated from build_p_resultant_wind.ec
      * 
      * <pre>
-        December 1999     David T. Miller                      PRC/TDL
-    
-    Purpose:  This routine retrieves resultant wind x, y, and number of observations
-              from the daily_climate table and builds the monthly, seasonal, or yearly
-          resultant wind direction and speed for the period.
-    
-             SEE TSP-88-07-R1, 1 Feb 93, p.A3-1 for a definition
-             of the resultant wind direction and speed
-    
-              Also see build_resultant_wind.f
-    
-    Variables
-    
-      Input
-        *period            - pointer to the period_data structure
-    
-      Output
-    
-      Local
-        deg_to_rad         - conversion factor for degrees to radians
-        idir               - integer wind direction obtained from the
-                             inverse tangent of the ratio of the x
-                             to the y component
-        num_hours          - number of hours for which there is good
-                             wind data; used to calculate resultant wind
-        pi                 - pi (i.e., 3.14159.......)
-        precision          - small amount to be added to sums so as to
-                             avoid division by 0 problems.
-        sum_speed          - sum of the scalar wind speed
-        sum_x              - sum of the x components of the wind
-        sum_y              - sum of the y components of the wind
-        x_wind             - x component of the wind for a given hour
-        y_wind             - y component of the wind for a given hour
-    
-      Non-system routines used
-    
-      Non-system functions used
-    
-    Modification Log
-    Name                      Date         Change
-    David T. Miller           Jul 2000     slight change for wind speed datatype change
-    Manan Dalal               Jan 2005     Ported from Informix to Postgresql
+     *   December 1999     David T. Miller                      PRC/TDL
+     *
+     *   Purpose:  This routine retrieves resultant wind x, y, and number of observations
+     *   from the daily_climate table and builds the monthly, seasonal, or yearly
+     *   resultant wind direction and speed for the period.
+     *
+     *        SEE TSP-88-07-R1, 1 Feb 93, p.A3-1 for a definition
+     *        of the resultant wind direction and speed
+     * 
+     *         Also see build_resultant_wind.f
+     *
      * </pre>
      * 
      * Get resultant wind for the given date range and set in the given
@@ -3675,7 +3294,7 @@ public class DailyClimateDAO extends ClimateDAO {
      */
     public void buildPResultantWind(ClimateDate beginDate, ClimateDate endDate,
             PeriodData periodData, PeriodType type)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         int stationID = periodData.getInformId();
 
@@ -3729,11 +3348,12 @@ public class DailyClimateDAO extends ClimateDAO {
      *            date for report.
      * @param dataMap
      *            mapping of data for processing.
-     * @return true if process completed.
+     * @throws ClimateSessionException
+     *             on exception processing
      */
-    public boolean processDisplayFinalization(PeriodType periodType,
-            ClimateDate date,
-            HashMap<Integer, ClimateDailyReportData> dataMap) {
+    public void processDisplayFinalization(PeriodType periodType,
+            ClimateDate date, HashMap<Integer, ClimateDailyReportData> dataMap)
+            throws ClimateSessionException {
         // climate norm DAO for updating norm records
         ClimateDailyNormDAO climateNormDAO = new ClimateDailyNormDAO();
 
@@ -3747,13 +3367,11 @@ public class DailyClimateDAO extends ClimateDAO {
                 ClimateDAOUtils.buildDerivedData(date, data.getInformId(),
                         data);
             } catch (ClimateQueryException e) {
-                /*
-                 * TODO should exception be tolerated for this step? For this
-                 * iteration? For this execution?
-                 */
-                logger.error("Error building derived data for date ["
-                        + date.toFullDateString() + "] and station ID ["
-                        + data.getInformId() + "]", e);
+                throw new ClimateSessionException(
+                        "Error building derived data for date ["
+                                + date.toFullDateString() + "] and station ID ["
+                                + data.getInformId() + "]",
+                        e);
             }
 
             if (PeriodType.MORN_NWWS.equals(periodType)
@@ -3769,13 +3387,12 @@ public class DailyClimateDAO extends ClimateDAO {
                     updateDailyDataForStationAndDate(date, data.getInformId(),
                             data);
                 } catch (Exception e) {
-                    /*
-                     * TODO should exception be tolerated for this step? For
-                     * this iteration? For this execution?
-                     */
-                    logger.error("Error building derived data for date ["
-                            + date.toFullDateString() + "] and station ID ["
-                            + data.getInformId() + "]", e);
+                    throw new ClimateSessionException(
+                            "Error updating data for date ["
+                                    + date.toFullDateString()
+                                    + "] and station ID [" + data.getInformId()
+                                    + "]",
+                            e);
                 }
 
                 /*
@@ -3788,281 +3405,14 @@ public class DailyClimateDAO extends ClimateDAO {
                             (short) data.getMinTemp(), data.getPrecip(),
                             data.getSnowDay());
                 } catch (ClimateQueryException e) {
-                    /*
-                     * TODO should exception be tolerated for this step? For
-                     * this iteration? For this execution?
-                     */
-                    logger.error("Error building derived data for date ["
-                            + date.toFullDateString() + "] and station ID ["
-                            + data.getInformId() + "]", e);
+                    throw new ClimateSessionException(
+                            "Error updating record data for date ["
+                                    + date.toFullDateString()
+                                    + "] and station ID [" + data.getInformId()
+                                    + "]",
+                            e);
                 }
             }
         }
-        return true;
-    }
-
-    /**
-     * Migrated from determine_window.f
-     * 
-     * <pre>
-     *   July 1998     Jason P. Tuell        PRC/TDL
-    *   Oct. 1998     David O. Miller       PRC/TDL
-    *
-    *
-    *   Purpose:  This routine determines the starting and ending times
-    *             and dates for data retrievals for the different climate
-    *             summaries.  It only makes one assumption regarding the
-    *             valid_time for the evening climate summaries: the valid_time
-    *             must be later than or equal to 1300 local!!  (i.e., the 
-    *             evening climate summary must be run in the afternoon or
-    *             evening.  The begin and start times are only used
-    *             for building the daily summaries.
-    *
-    *             The month and year in the valid date is used to specify
-    *             month and year of the monthly climate summary.  The day
-    *             is used to specify the ending day of the month (typically
-    *             the last day of the month).  However, by using the day from
-    *             a_date, it allows the user to produce mid-month climate
-    *             summaries.
-    *
-    *             The year is used to determine the year for an annual 
-    *             climate summary.  In a normal run, the month and day will
-    *             be that of the last day of the year.  However, using the day
-    *             and year from a_date will enable the user to produce mid_year
-    *             climate summaries.
-    *              
-    *   Variables
-    *
-    *      Input
-    *        a_date      - derived structure that defines the local date 
-    *                      (day, mon, year) of the climate summary
-    *        a_time      - time program was started (UTC!!!)
-    *        station     - derived TYPE that contains the stations for this 
-    *                      climate summary
-    *        itype       - type of climate summary;
-    *                      =1 morning NWR daily climate summary
-    *                      =2 evening NWR daily climate summary
-    *                      =3 morning NWWS daily climate summary
-    *                      =4 evening NWWS daily climate summary
-    *                      =5 monthly NWR climate summary
-    *                      =6 monthly NWWS climate summary
-    *                      =7 annual climate summary
-    *                      =10 NWR intermediate daily summary
-    *                      =11 NWWS intermediate daily summary
-    *        valid_time  - ending time (LST) for evening climate summaries
-    *                      not used for any other climate summaries
-    *        
-    *
-    *      Output
-    *        begin_date  - derived TYPE that specifies the starting date
-    *                      for data retrieval
-    *        begin_time  - derived TYPE that specifies the starting time
-    *                      for data retrieval (note - not used for 
-    *                      monthly and annual summaries)
-    *        end_date    - derived TYPE that specifies the ending date
-    *                      for data retrieval
-    *        end_time    - derived TYPE that specifies the ending time
-    *                      for data retrieval (note - not used for 
-    *                      monthly and annual summaries)
-    *
-    *      Local
-    *        iday            - julian day of the year
-    *        ihour           - hour of the day
-    *        ihour_valid_UTC - UTC equivalent of valid_time%ihour
-    *        leap            - LOGICAL variable returned from function leap
-    *                          = TRUE  input year is a leap year
-    *                          = FALSE input year isn't a leap year
-    *        is_dst          - flag returned from HWRUtils::stdTime.
-    *                          = 0; daylight savings time in effect at this time
-    *                          = 1; standard time in effect at this time
-    *        num_off_UTC     - hours off of UTC
-    *
-    *      Non-system routines used
-    *        convert_julday             - calculates date for an input Julian day;
-    *                                     date is returned in the DATE derived type
-    *        determine_daylight_savings - This routine will set up the arguements
-    *                                     needed by and will call det_dst.c.
-    *
-    *      Non-system functions used
-    *        julday  - calculates julian date for an input date
-    *        leap    - determines if input year is a leap year
-    *
-    *  MODIFICATION HISTORY
-    *   DATE           NAME                 CHANGE
-    *  11/05/01     Doug Murphy             For stations offset GT than GMT (Guam), 
-    *                                       the window was not being properly set 
-    *                                       for intermediate/evening reports
-     * </pre>
-     * 
-     * @param aDate
-     * @param station
-     * @param itype
-     * @param validTime
-     */
-    public static ClimateDates determineWindow(ClimateDate aDate,
-            Station station, PeriodType itype, ClimateTime validTime) {
-        ClimateDate beginDate = ClimateDate.getMissingClimateDate();
-        ClimateTime beginTime = ClimateTime.getMissingClimateTime();
-        ClimateDate endDate = ClimateDate.getMissingClimateDate();
-        ClimateTime endTime = ClimateTime.getMissingClimateTime();
-
-        switch (itype) {
-
-        // Daily climate summary. We need to take into account the
-        // differences in the different time zones.
-        // Keep in mind that the daily climate summary is done for
-        // midnight to midnight local standard time.
-
-        case MORN_NWWS:
-        case MORN_RAD:
-
-            beginTime.setMin(0);
-            endTime.setMin(59);
-
-            if (station.getNumOffUTC() < 0) {
-
-                int ihour = -station.getNumOffUTC();
-                beginTime.setHour(ihour);
-                endTime.setHour(ihour - 1);
-
-                beginDate = new ClimateDate(aDate);
-                endDate.setYear(aDate.getYear());
-                // Get next day of year
-                int iday = aDate.julday() + 1;
-
-                // Set endDate to next day of year
-                endDate.convertJulday(iday);
-
-            } else if (station.getNumOffUTC() > 0) {
-                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
-                beginTime.setHour(ihour);
-                endTime.setHour(ihour - 1);
-
-                int iday = aDate.julday() - 1;
-                endDate = new ClimateDate(aDate);
-                beginDate.setYear(aDate.getYear());
-
-                beginDate.convertJulday(iday);
-
-            } else {
-
-                beginTime.setHour(0);
-                endTime.setHour(23);
-                beginDate = new ClimateDate(aDate);
-                endDate = new ClimateDate(aDate);
-
-            }
-            break;
-
-        case INTER_NWWS:
-        case INTER_RAD:
-        case EVEN_NWWS:
-        case EVEN_RAD:
-
-            // Evening and intermediate climate summary. These are
-            // generated for the period from midnight to valid_time, which
-            // the user specifies via the set up GUI.
-            beginTime.setMin(0);
-            endTime.setMin(0);
-
-            if (station.getNumOffUTC() < 0) {
-
-                int iday;
-                int ihour = -station.getNumOffUTC();
-                beginTime.setHour(ihour);
-                int ihourValidUTC = ihour + validTime.getHour();
-
-                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
-                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
-                    // Get next day of year
-                    iday = aDate.julday() + 1;
-                } else {
-                    endTime.setHour(ihourValidUTC);
-                    // Get current day of year
-                    iday = aDate.julday();
-                }
-
-                beginDate = new ClimateDate(aDate);
-                endDate.setYear(aDate.getYear());
-
-                // Set endDate to next or current day of year
-                endDate.convertJulday(iday);
-
-            } else if (station.getNumOffUTC() > 0) {
-                int ihour = TimeUtil.HOURS_PER_DAY - station.getNumOffUTC();
-                beginTime.setHour(ihour);
-                int ihourValidUTC = beginTime.getHour() + validTime.getHour();
-
-                int iday = aDate.julday() - 1;
-                beginDate.convertJulday(iday);
-                beginDate.setYear(aDate.getYear());
-
-                if (ihourValidUTC >= TimeUtil.HOURS_PER_DAY) {
-                    endTime.setHour(ihourValidUTC - TimeUtil.HOURS_PER_DAY);
-                    endDate = new ClimateDate(aDate);
-                } else {
-                    endTime.setHour(ihourValidUTC);
-                    endDate = new ClimateDate(beginDate);
-                }
-
-            } else {
-
-                beginTime.setHour(0);
-                endTime.setHour(validTime.getHour());
-                beginDate = new ClimateDate(aDate);
-                endDate = new ClimateDate(aDate);
-
-            }
-            break;
-        //
-        // Monthly climate report case
-        // Here we assume that the monthly reports are generated
-        // sometime after the last day of the month for which the
-        // report is valid
-        //
-        case MONTHLY_NWWS:
-        case MONTHLY_RAD:
-
-            beginDate.setDay(1);
-
-            int imon;
-
-            // You need to handle January as a special case
-            if (aDate.getMon() == 1) {
-                imon = 12;
-                beginDate.setMon(imon);
-                beginDate.setYear(aDate.getYear() - 1);
-            } else {
-                imon = aDate.getMon() - 1;
-                beginDate.setMon(imon);
-                beginDate.setYear(aDate.getYear());
-            }
-            // Now you need to handle leap years as a special case
-            // keeping replaced code for viewing by Creator implementor
-            endDate.setMon(beginDate.getMon());
-            endDate.setYear(beginDate.getYear());
-            endDate.setDay(ClimateUtilities.daysInMonth(endDate));
-            break;
-        // Annual climate report case
-        // Here we assume that the annual summary is generated in
-        // the next year for which the summary is valid
-        case ANNUAL_NWWS:
-        case ANNUAL_RAD:
-            beginDate.setDay(1);
-            beginDate.setMon(1);
-            beginDate.setYear(aDate.getYear() - 1);
-
-            endDate.setDay(
-                    ClimateUtilities.daysInMonth(beginDate.getYear(), 12));
-            endDate.setMon(12);
-            endDate.setYear(beginDate.getYear());
-            break;
-
-        default:
-            logger.error("Unknown period type [" + itype.getValue() + "]");
-            break;
-        }
-
-        return new ClimateDates(beginDate, endDate, beginTime, endTime);
     }
 }

@@ -25,8 +25,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParame
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
@@ -104,60 +104,16 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *   Purpose:  This routine is the driver responsible for building the
     *             NWR monthly, seasonal, and annual climate summary.
     *
-    *   Variables
-    *
-    *      Input
-    *
-    *    CLIMATE_STATIONS - derived TYPE which contains the station ids and plain
-    *                       language stations names for the stations in this climate
-    *                       summary.           
-    *          DO_CELSIUS - Flag for reporting temperatures in Celsius
-    *                       - TRUE  report temps in Celsius
-    *                       - FALSE don't report temps in Celsius
-    *               ITYPE - flag that determines the type of climate summary
-    *                       - 1 morning weather radio daily climate summary
-    *                       - 2 evening weather radio daily climate summary
-    *                       - 3 nwws morning daily climate summary
-    *                       - 4 nwws evening daily climate summary
-    *                       - 5 monthly radio climate summary
-    *                       - 6 monthly nwws climate summary
-    *        NUM_STATIONS - number of stations in this group to be summarized.
-    *          NWR_HEADER - structure containing the opening data for the CRS.
-    *          VALID_TIME - structure containing the valid time which includes hour,
-    *                       minutes, AMPM, and zone.
-    *
-    *      Output
-    *
-    *         OUTPUT_FILE - file where data is output.
-    *
-    *      Local
-    *        i                  - loop index
-    *
-    *      Non-system routines used - none
-    *
-    *      Non-system functions used - none
-    *
-    *  CHANGE LOG   NAME              DATE        CHANGES
-    *               David T. Miller   Oct 1 1999  removed num
-    *                                             and num_stations from the 
-    *                                             merge phrases routine arguments
-    *                                             list since they aren't neceesary
-    *                                             since the escape b sequence was
-    *                                             moved to merge header.
-    *    5/07/01   Doug Murphy            Made code more efficient - not necessary
-    *                                     to pass along entire arrays (only done
-    *                                     for precip...others need to be updated
-    *                                     if time allows)
      * </pre>
      */
     @Override
     public Map<String, ClimateProduct> buildText(
-            ClimateCreatorResponse reportData)
+            ClimateRunData reportData)
                     throws ClimateInvalidParameterException,
                     ClimateQueryException {
         Map<String, ClimateProduct> prod = new HashMap<>();
 
-        Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateCreatorPeriodResponse) reportData)
+        Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateRunPeriodData) reportData)
                 .getReportMap();
 
         StringBuilder productText = new StringBuilder();
@@ -173,7 +129,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             ClimatePeriodReportData report = reportMap.get(stationId);
             if (report == null) {
                 logger.warn("The station with informId " + stationId
-                        + " defined in the ClimateProductType settings object was not found in the ClimateCreatorResponse report map.");
+                        + " defined in the ClimateProductType settings object was not found in the ClimateRunData report map.");
                 continue;
             }
 
@@ -202,13 +158,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             }
 
             // precipitation phrases
-            String precipPhrase = buildNWRPeriodPrecip(report);
+            String precipPhrase = buildNWRPeriodPrecip(report,
+                    reportData.getBeginDate());
             if (precipPhrase.length() > 0) {
                 productText.append(precipPhrase + spaces);
             }
 
             // degree day phrases
-            String heatCoolPhrase = buildNWRPeriodHeatAndCool(report);
+            String heatCoolPhrase = buildNWRPeriodHeatAndCool(report,
+                    reportData.getBeginDate());
             if (heatCoolPhrase.length() > 0) {
                 productText.append(heatCoolPhrase + spaces);
             }
@@ -237,91 +195,23 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from build_NWR_period_wind.f.
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_wind.f.
+    * 
+    * <pre>
     *   October  1999     David Zipper       PRC/TDL
     *   November 1999     Bonnie Reed        PRC/TDL
     *
     *   Purpose: The purpose of this program is to create the wind portion
     *            of the NOAA weather radio. Sentence structure output is 
     *            documented in the climate design notebook.
+    *            
+    * </pre>
     * 
-    *        Variables
-    *
-    *        Input
-    *
-    *             do_wind - structure containint the wind flags which control
-    *                       generation of various portions of the wind phrase
-    *               itype - declares either monthly or seasonal report
-    *                 num - number of stations in this group to be
-    *                       summarized
-    *             h_climo - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *              p_data - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         wind_phrase - character buffer containing the wind
-    *                       sentences structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *
-    *
-    *        Output
-    *         wind_phrase - character buffer containing the wind sentences
-    *
-    *        Local
-    *          gdirection - the direction of the max wind gust
-    *                ilen - number of characters in a string
-    *          mdirection - the direction of the max wind
-    *         num_decimal - number that accounts for the decimal place
-    *          rdirection - the direction of the resultant wind
-    *           wind_mph1 - value of the wind in mph (converted from knots)
-    *             avg_mph - character string for the average windspeed
-    *            wind_mph - character string for the max windspeed
-    *            gust_mph - character string for the gust wind
-    *              direct - holds the number of characters in the wind direction
-    *             direct1 - holds the number of characters in the wind direction
-    *             direct2 - holds the number of characters in the wind direction
-    *                 mon - the character value of the month (January) 
-    *         c_wind      - Character string used to hold the relative 
-    *                       humidity value once it has been converted to
-    *                       character from numeric format.
-    *         num_char    - Number of characters in a string.
-    *         num_char1   - Number of characters in a string.
-    *         num_digits  - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *         num_digits1 - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *      MODIFICATION HISTORY
-    *      --------------------
-    *        12/28/00   Doug Murphy             Max wind direction was using
-    *                                           the max gust direction
-    *         2/15/01   Doug Murphy             Wind speeds are now mph
-    *                                           throughout climate... no need
-    *                                           to convert from knots now
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     * @throws ClimateInvalidParameterException
-     */
+    * @param reportData
+    * @return
+    * @throws ClimateInvalidParameterException
+    */
+  
     private String buildNWRPeriodWind(ClimatePeriodReportData reportData)
             throws ClimateInvalidParameterException {
         StringBuilder windPhrase = new StringBuilder();
@@ -348,11 +238,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 int windMph1 = ClimateUtilities
                         .nint(periodData.getAvgWindSpd());
 
-                windPhrase.append(windMph1 + " miles per hour");
+                windPhrase.append(windMph1).append(" miles per hour");
             }
 
             if (periodData.getAvgWindSpd() > 0) {
-                windPhrase.append(PERIOD + SPACE + SPACE);
+                windPhrase.append(PERIOD).append(SPACE).append(SPACE);
             }
         }
 
@@ -366,12 +256,13 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             int windMph = ClimateUtilities
                     .nint(periodData.getMaxWindList().get(0).getSpeed());
 
-            windPhrase.append("The " + MAXIMUM + " wind was " + windMph + SPACE
-                    + mileMiles(windMph != 1) + " per hour");
+            windPhrase.append("The ").append(MAXIMUM).append(" wind was ")
+                    .append(windMph).append(SPACE)
+                    .append(mileMiles(windMph != 1)).append(" per hour");
 
             if (periodData.getMaxWindList().get(0)
                     .getDir() != ParameterFormatClimate.MISSING) {
-                windPhrase.append(" from the " + whichDirection(
+                windPhrase.append(" from the ").append(whichDirection(
                         periodData.getMaxWindList().get(0).getDir(), false));
             }
 
@@ -381,15 +272,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     && periodData.getMaxWindDayList().get(0)
                             .getMon() != ParameterFormatClimate.MISSING_DATE) {
 
-                windPhrase.append(" and occurred on "
-                        + DateFormatSymbols.getInstance()
+                windPhrase.append(" and occurred on ")
+                        .append(DateFormatSymbols.getInstance()
                                 .getMonths()[periodData.getMaxWindDayList()
-                                        .get(0).getMon() - 1]
-                        + SPACE
-                        + periodData.getMaxWindDayList().get(0).getDay());
+                                        .get(0).getMon() - 1])
+                        .append(SPACE)
+                        .append(periodData.getMaxWindDayList().get(0).getDay());
             }
 
-            windPhrase.append(PERIOD + SPACE + SPACE);
+            windPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The maximum wind gust was __ mile(s) per hour from the <direction>
@@ -402,11 +293,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             int windMph = ClimateUtilities
                     .nint(periodData.getMaxGustList().get(0).getSpeed());
 
-            windPhrase.append("The " + MAXIMUM + " wind gust was " + windMph
-                    + SPACE + mileMiles(windMph != 1) + " per hour");
+            windPhrase.append("The ").append(MAXIMUM).append(" wind gust was ")
+                    .append(windMph).append(SPACE)
+                    .append(mileMiles(windMph != 1)).append(" per hour");
             if (periodData.getMaxGustList().get(0)
                     .getDir() != ParameterFormatClimate.MISSING) {
-                windPhrase.append(" from the " + whichDirection(
+                windPhrase.append(" from the ").append(whichDirection(
                         periodData.getMaxGustList().get(0).getDir(), false));
             }
 
@@ -416,14 +308,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getDay() != ParameterFormatClimate.MISSING_DATE
                     && periodData.getMaxGustDayList().get(0)
                             .getMon() != ParameterFormatClimate.MISSING_DATE) {
-                windPhrase.append(" and occurred on "
-                        + DateFormatSymbols.getInstance()
+                windPhrase.append(" and occurred on ")
+                        .append(DateFormatSymbols.getInstance()
                                 .getMonths()[periodData.getMaxGustDayList()
-                                        .get(0).getMon() - 1]
-                        + SPACE
-                        + periodData.getMaxGustDayList().get(0).getDay());
+                                        .get(0).getMon() - 1])
+                        .append(SPACE)
+                        .append(periodData.getMaxGustDayList().get(0).getDay());
             }
-            windPhrase.append(PERIOD + SPACE + SPACE);
+            windPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The resultant wind was __ mile(s) per hour from the <direction>."
@@ -434,16 +326,17 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 int windMph = ClimateUtilities
                         .nint(periodData.getResultWind().getSpeed());
 
-                windPhrase.append("The resultant wind was " + windMph + SPACE
-                        + mileMiles(windMph != 1) + " per hour");
+                windPhrase.append("The resultant wind was ").append(windMph)
+                        .append(SPACE).append(mileMiles(windMph != 1))
+                        .append(" per hour");
 
                 if (periodData.getResultWind()
                         .getDir() != ParameterFormatClimate.MISSING) {
-                    windPhrase.append(" from the " + whichDirection(
+                    windPhrase.append(" from the ").append(whichDirection(
                             periodData.getResultWind().getDir(), false));
                 }
 
-                windPhrase.append(PERIOD + SPACE + SPACE);
+                windPhrase.append(PERIOD).append(SPACE).append(SPACE);
             }
         }
 
@@ -451,9 +344,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from build_NWR_period_heat_and_cool.f
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_heat_and_cool.f
+    * 
+    * <pre>
     *    November 1999  Bonnie Reed            PRC/TDL
     *
     *
@@ -467,134 +360,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *        are set such...i.e only use the heating degree days sentences when
     *        only heating degree days sentences are turned on (TRUE).
     * 
-    *   Variables
     *
-    *      Input
-    *                itype - declares either a monthly report or seasonal report
-    *               a_date - date structure containing valid date for
-    *                        for the climate summary.  See the structure
-    *                        definition for more details
-    *       do_cool_report - structure containg the flags which control
-    *                        generation of various portions of the
-    *                        defintion for more details.
-    *       do_heat_report - structure containg the flags which control
-    *                        generation of various portions of the
-    *                        heating days sentences. See the structure
-    *                        definition for more details
-    *                  num - number of stations in this group to be
-    *                        summarized
-    *              h_climo - structure containing historical climatology
-    *                        for a given date.  See the structure 
-    *                        definition for more details
-    *               p_data - structure containing the observed climate
-    *                        data.  See the structure definition for
-    *                        more details
-    * heat_and_cool_phrase - character buffer containing the cooling degree
-    *                        day sentences       
-    *
-    *      Output
-    * heat_and_cool_phrase - character buffer containing the cooling degree
-    *                       day sentences       
-    *
-    *      Local
-    *
-    *                c_cool - character form of the cooling degree day total
-    *             c_efreeze - character form of early freezing day
-    *                c_heat - character form of the heating degree day total
-    *             c_lfreeze - character form of late freezing day
-    *                c_norm - character form of the normal value
-    *            delta_heat - the difference between two values
-    *            delta_cool - the difference between two values
-    *        delta_num_cool - the difference between two values
-    *        delta_num_heat - the difference between two values      
-    *             frez_norm - character form of normal freezing days
-    *                  ilen - number of characters in a string
-    *                   mon - character string of the word month (January)
-    *              num_char - Number of characters in a string.
-    *            num_digits - The number of digits in a given number; 
-    *                         necessary for the conversion of numeric values 
-    *                         to character.
-    *                plural - character either set to "day" or "days" 
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *
-    *
-    *      INCLUDE files
-    *
-    *      DEFINE_general_phrases.I - Contains character strings need to build all
-    *                                 types of sentences.
-    *       DEFINE_precip_phrases.I - Contains character strings needed to build
-    *                                 precip sentences.
-    *    PARAMETER_format_climate.I - Contains all paramters used to dimension
-    *                                 arrays, etc.  This INCLUDE file must always
-    *                                 come first.
-    *          TYPE_climate_dates.I - Defines the derived TYPE "climate_dates";
-    *                                 note that it uses the dervied TYPE "date" - 
-    *                                 the "date" file must be INCLUDED before this
-    *                                 one.
-    *     TYPE_climate_record_day.I - Defines the derived TYPE used to store the
-    *                                 historical climatological record for a given
-    *                                 site for a given day.  Uses derived TYPE
-    *                                 "wind" so that INCLUDE file must come before
-    *                                 this one.
-    *                   TYPE_date.I - Defines the derived TYPE "date";
-    *                                 This INCLUDE file must always come before any
-    *                                 other INCLUDE file which uses the "date" TYPE.
-    *     TYPE_daily_climate_data.I - Defines the derived TYPE used to store the
-    *                                 observed climatological data.  Note that
-    *                                 INCLUDE file defining the wind TYPE must be 
-    *                                 specified before this file.
-    *     TYPE_do_weather_element.I - Defines the derived TYPE used to hold the
-    *                                 controlling logic for producing
-    *                                 sentences/reports for a given variable.
-    *   TYPE_report_climate_norms.I - Defines the derived TYPE used to hold the
-    *                                 flags which control reporting the
-    *                                 climatological norms for different
-    *                                 meteorological variables.
-    *                   TYPE_time.I - Defines the derived TYPE used to specify the
-    *                                 time.
-    *                   TYPE_wind.I - Defines the derived TYPE used to specify wind
-    *                                 speed,and direction.
-    *
-    *      Non-system routines used
-    *         CONVERT_CHARACTER_INT - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *                   PICK_DIGITS - Returns the number of digits in a number.
-    *
-    *                        STRLEN - C function: returns the number of characters in a
-    *                                 string; string must be terminated with the NULL
-    *                                 character.
-    *
-    *                    DECIDE_DAY - FORTRAN function:  returns either the singular or
-    *                       plural version of the word "day" as well as the
-    *                       number of characters in the word.
-    *
-    * MODIFICATION HISTORY
-    * ====================
-    *   3/29/01     Doug Murphy                 Fixed stuttering departure sentences:
-    *                                           they were saying "which is which is
-    *                                           normal."
-    *   4/10/01     Doug Murphy                 Added code which adds commas to
-    *                                           values of 1000 or greater... also did
-    *                                           some minor revision to make code 
-    *                                           cleaner
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
-    private String buildNWRPeriodHeatAndCool(
-            ClimatePeriodReportData reportData) {
+    * </pre>
+    * 
+    * @param reportData
+    * @return
+    */
+  
+    private String buildNWRPeriodHeatAndCool(ClimatePeriodReportData reportData,
+            ClimateDate beginDate) {
         StringBuilder heatCoolPhrase = new StringBuilder();
 
         DegreeDaysControlFlags degreeFlag = currentSettings.getControl()
@@ -603,7 +377,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         PeriodData periodData = reportData.getData();
         PeriodClimo hClimo = reportData.getClimo();
 
-        if (reportWindow(currentSettings.getControl().getHeatDates())) {
+        if (reportWindow(currentSettings.getControl().getHeatDates(),
+                beginDate)) {
 
             // Measured heating degree day
             heatCoolPhrase.append(heatCoolPhraseHelper(degreeFlag.getTotalHDD(),
@@ -616,7 +391,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
         }
 
-        if (reportWindow(currentSettings.getControl().getCoolDates())) {
+        if (reportWindow(currentSettings.getControl().getCoolDates(),
+                beginDate)) {
 
             // Measured cooling degree day
             heatCoolPhrase.append(heatCoolPhraseHelper(degreeFlag.getTotalCDD(),
@@ -635,12 +411,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .getDay() != ParameterFormatClimate.MISSING_DATE
                 && periodData.getEarlyFreeze()
                         .getMon() != ParameterFormatClimate.MISSING_DATE) {
-            heatCoolPhrase
-                    .append("The first freeze day occurred on "
-                            + DateFormatSymbols.getInstance()
-                                    .getMonths()[periodData.getEarlyFreeze()
-                                            .getMon() - 1]
-                            + SPACE + periodData.getEarlyFreeze().getDay());
+            heatCoolPhrase.append("The first freeze day occurred on ")
+                    .append(DateFormatSymbols.getInstance()
+                            .getMonths()[periodData.getEarlyFreeze().getMon()
+                                    - 1])
+                    .append(SPACE).append(periodData.getEarlyFreeze().getDay());
 
             if (degreeFlag.getEarlyFreeze().isNorm()
                     && hClimo.getEarlyFreezeNorm()
@@ -648,13 +423,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     && hClimo.getEarlyFreezeNorm()
                             .getMon() != ParameterFormatClimate.MISSING_DATE) {
 
-                heatCoolPhrase.append(" and the normal earliest freeze date is "
-                        + DateFormatSymbols.getInstance()
+                heatCoolPhrase
+                        .append(" and the normal earliest freeze date is ")
+                        .append(DateFormatSymbols.getInstance()
                                 .getMonths()[hClimo.getEarlyFreezeNorm()
-                                        .getMon() - 1]
-                        + SPACE + hClimo.getEarlyFreezeNorm().getDay());
+                                        .getMon() - 1])
+                        .append(SPACE)
+                        .append(hClimo.getEarlyFreezeNorm().getDay());
             }
-            heatCoolPhrase.append(PERIOD + SPACE + SPACE);
+            heatCoolPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         if (degreeFlag.getLateFreeze().isMeasured()
@@ -662,12 +439,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .getDay() != ParameterFormatClimate.MISSING_DATE
                 && periodData.getLateFreeze()
                         .getMon() != ParameterFormatClimate.MISSING_DATE) {
-            heatCoolPhrase
-                    .append("The last freeze day occurred on "
-                            + DateFormatSymbols.getInstance()
-                                    .getMonths()[periodData.getLateFreeze()
-                                            .getMon() - 1]
-                            + SPACE + periodData.getLateFreeze().getDay());
+            heatCoolPhrase.append("The last freeze day occurred on ")
+                    .append(DateFormatSymbols.getInstance()
+                            .getMonths()[periodData.getLateFreeze().getMon()
+                                    - 1])
+                    .append(SPACE).append(periodData.getLateFreeze().getDay());
 
             if (degreeFlag.getLateFreeze().isNorm()
                     && hClimo.getLateFreezeNorm()
@@ -675,14 +451,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     && hClimo.getLateFreezeNorm()
                             .getMon() != ParameterFormatClimate.MISSING_DATE) {
 
-                heatCoolPhrase
-                        .append(" and the normal latest freeze date is "
-                                + DateFormatSymbols.getInstance()
-                                        .getMonths()[hClimo.getLateFreezeNorm()
-                                                .getMon() - 1]
-                                + SPACE + hClimo.getLateFreezeNorm().getDay());
+                heatCoolPhrase.append(" and the normal latest freeze date is ")
+                        .append(DateFormatSymbols.getInstance()
+                                .getMonths()[hClimo.getLateFreezeNorm().getMon()
+                                        - 1])
+                        .append(SPACE)
+                        .append(hClimo.getLateFreezeNorm().getDay());
             }
-            heatCoolPhrase.append(PERIOD + SPACE + SPACE);
+            heatCoolPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return heatCoolPhrase.toString();
@@ -713,14 +489,16 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             if (degreeValue == 0) {
                 heatCoolPhrase.append("There were no");
             } else {
-                heatCoolPhrase.append("There " + wasWere(degreeValue != 1)
-                        + SPACE + String.format(INT_COMMAS, degreeValue));
+                heatCoolPhrase.append("There ")
+                        .append(wasWere(degreeValue != 1)).append(SPACE)
+                        .append(String.format(INT_COMMAS, degreeValue));
 
             }
 
-            heatCoolPhrase.append(SPACE + heatCool + " degree "
-                    + dayDays(degreeValue != 1)
-                    + (periodString.isEmpty() ? " this period" : periodString));
+            heatCoolPhrase.append(SPACE).append(heatCool).append(" degree ")
+                    .append(dayDays(degreeValue != 1))
+                    .append((periodString.isEmpty() ? " this period"
+                            : periodString));
 
             if (degreeFlag.isDeparture()
                     && normValue != ParameterFormatClimate.MISSING_DEGREE_DAY) {
@@ -730,10 +508,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (deltaDegDay != 0) {
 
-                    heatCoolPhrase.append(
-                            String.format(INT_COMMAS, Math.abs(deltaDegDay))
-                                    + SPACE + aboveBelow(deltaDegDay > 0)
-                                    + " the normal amount");
+                    heatCoolPhrase
+                            .append(String.format(INT_COMMAS,
+                                    Math.abs(deltaDegDay)))
+                            .append(SPACE).append(aboveBelow(deltaDegDay > 0))
+                            .append(" the normal amount");
 
                 } else {
                     heatCoolPhrase.append("normal");
@@ -749,27 +528,27 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (deltaDegDay != 0) {
                     if (degreeFlag.isDeparture()) {
-                        heatCoolPhrase.append(
-                                " of " + String.format(INT_COMMAS, normValue)
-                                        + SPACE + dayDays(normValue != 1));
+                        heatCoolPhrase.append(" of ")
+                                .append(String.format(INT_COMMAS, normValue))
+                                .append(SPACE).append(dayDays(normValue != 1));
                     } else {
-                        heatCoolPhrase
-                                .append(".  The normal number of " + heatCool
-                                        + " degree days" + periodString + " is "
-                                        + String.format(INT_COMMAS, normValue));
+                        heatCoolPhrase.append(".  The normal number of ")
+                                .append(heatCool).append(" degree days")
+                                .append(periodString).append(" is ")
+                                .append(String.format(INT_COMMAS, normValue));
                     }
                 }
             }
 
-            heatCoolPhrase.append(PERIOD + SPACE + SPACE);
+            heatCoolPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
         return heatCoolPhrase.toString();
     }
 
     /**
-     * Migrated from build_NWR_period_precip.f.
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_precip.f.
+    * 
+    * <pre>
     *   October  1999     Dan Zipper TDL/PRC
     *   November 1999     Bonnie Reed TDL/PRC
     *
@@ -778,87 +557,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *             There are three basic types of precipitation sentences:
     *             liquid precip (i.e., rainfall) sentences, snowfall
     *             sentences, and depth of snow on the ground sentences.
+    * </pre>
     * 
-    *   Variables
-    *
-    *      Input
-    *    do_liquid_precip - structure containing the flags which control generation
-    *                       of various portions of the liquid precip sentences.
-    *                       See the structure definition for more details.
-    *      do_snow_precip - structure containing the flags which control generation
-    *                       of various portions of the snowfall sentences.
-    *                       See the structure definition for more details.
-    *             h_climo - structure containing historical climatology for a given
-    *                       date.  See the structure definition for more details
-    *              p_data - structure containing the observed climate data.
-    *                       See the structure definition for more details
-    *               itype - declares either a monthly report or seasonal report
-    *       global_values - structure containing the definitions of different
-    *                       global elements.
-    *       precip_phrase - character buffer containing the precip
-    *                       sentences structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details.
-    *
-    *      Output
-    *       precip_phrase - character buffer containing the precipitation sentences.
-    *
-    *      Local
-    *            big_null - string of null characters used to intialize
-    *                       character strings to null
-    *
-    *      INCLUDE files
-    *  PARAMETER_format_climate.I - contains all paramters used to
-    *                               dimension arrays, etc.  This 
-    *                               INCLUDE file must always come
-    *                               first.
-    *        TYPE_climate_dates.I - defines the derived TYPE 
-    *                               "climate_dates"; note that it 
-    *                               uses the dervied TYPE "date" - 
-    *                               the "date" file must be INCLUDEd
-    *                               before this one
-    *         TYPE_period_climo.I - defines the derived TYPE used to
-    *                               store the historical climatological
-    *                               record for a given site for a given
-    *                               day.  Uses derived TYPE "wind" so
-    *                               that INCLUDE file must come before
-    *                               this one
-    *                 TYPE_date.I - defines the derived TYPE "date";
-    *                               This INCLUDE file must always 
-    *                               come before any other INCLUDE file
-    *                               which uses the "date" TYPE
-    *          TYPE_period_data.I - defines the derived TYPE used to 
-    *                               store the observed climatological
-    *                               data.  Note that INCLUDE file
-    *                               defining the wind TYPE must be 
-    *                               specified before this file
-    * TYPE_do_p_weather_element.I - defines the derived TYPE used to
-    *                               hold the controlling logic for
-    *                               producing sentences/reports for
-    *                               a given variable
-    *                 TYPE_time.I - defines the derived TYPE used to
-    *                               specify the time
-    *                 TYPE_wind.I - defines the derived TYPE used to
-    *                               specify wind speed,and direction
-    *
-    *      Non-system routines used
-    *     build_NWR_period_liquid_precip - builds the sentences for rainfall
-    *       build_NWR_snow_precip - builds the sentences for snowfall
-    *        build_NWR_snow_depth - builds the sentences for snowdepth
-    *
-    *      Non-system functions used
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *    5/07/01   Doug Murphy            Made code more efficient - not necessary
-    *                                     to pass along entire arrays
-     * </pre>
-     * 
-     * @param reportData
-     * @param report
-     * @return
-     */
-    private String buildNWRPeriodPrecip(ClimatePeriodReportData reportData) {
+    * @param reportData
+    * @param report
+    * @return
+    */
+
+    private String buildNWRPeriodPrecip(ClimatePeriodReportData reportData,
+            ClimateDate beginDate) {
         StringBuilder precipPhrase = new StringBuilder();
 
         // Build liquid precip phrases
@@ -869,7 +576,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         precipPhrase.append(buildNWRLiquidStormAvg(reportData));
 
         // Build snow precip phrases
-        if (reportWindow(currentSettings.getControl().getSnowDates())) {
+        if (reportWindow(currentSettings.getControl().getSnowDates(),
+                beginDate)) {
             precipPhrase.append(buildNWRSnowPrecip(reportData));
 
             precipPhrase.append(buildNWRSnowTotals(reportData));
@@ -882,9 +590,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from build_NWR_p_snow_water_ground.f.
-     * 
-     * <pre>
+    * Migrated from build_NWR_p_snow_water_ground.f.
+    * 
+    * <pre>
     *    November 1999    Bonnie Reed    PRC/TDL
     *
     *   Purpose:  This routine controls building the period rainfall sentences in 
@@ -902,84 +610,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *               or half_snow of one another.  We will consider such values
     *               as being equal if they are within this.
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_snow_precip - structure containing the flags which control the 
-    *                         generation of various portions of the precip sentences.
-    *                         See the structure definition for more details.
-    *                 itype - declares either a monthly report or seasonal report
-    *               h_climo - structure containing historical climatology
-    *                         for a given date.  See structure definition for more
-    *                         details.
-    *                p_data - structure containing the observed climate data for the
-    *                         month or season.
-    *         precip_phrase - character buffer containing the precip
-    *                         sentences structure containing the observed climate
-    *                         data.  See the structure definition for
-    *                         more details.
-    *
-    *      Output
-    *        precip_phrase - character buffer containing the precip sentences
-    *
-    *      Local
-    *            c_norm - character form of the normal value
-    *            c_snow - character form of the snow value
-    *             c_val - character form of a value
-    *       date_length - length of the date_phrase
-    *       date_phrase - character string holding dates of occurrence
-    *             delta - the difference between two values
-    *       delta_value - the difference between two values
-    *        difference - character string set to either "above" or "below"
-    *            hr_beg - character form of the beginning hour
-    *              ilen - number of characters in a string
-    *             ileni - number of characters in a string
-    *           iplural - character string either set to "inch" or "inches"
-    *               mon - character string of the word month (January)
-    *          num_char - Number of characters in a string.
-    *       num_decimal - number that accounts for the decimal place
-    *        num_digits - The number of digits in a given number; 
-    *                     necessary for the conversion of numeric values 
-    *                     to character.
-    *       num_digits1 - The number of digits in a given number; 
-    *                     necessary for the conversion of numeric values 
-    *                     to character.
-    *            plural - character either set to "day" or "days"
-    *         val_delta - the difference between two values
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *       date_sentence - FORTRAN function: used to produce sentence portion
-    *                       pertaining to dates of occurrence
-    *         decide_inch - FORTRAN function: returns either the singular or
-    *                       plural version of the word "inch" as well as the
-    *                       number of characters in the word.
-    *
-    *
-    *   Include Files
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *     2/12/01  Doug Murphy              Avg. snow depth is reported as an int
-    *                                       even though it remains a real in the structure
-    *     5/01/01  Doug Murphy              Added enhancement to include all three
-    *                                       dates of occurrence for the max snow
-    *                                       depth if available
-    *     3/27/03  Gary Battel              Converted trace of snow used in
-    *                                       calculations from -1, so that it isn't
-    *                                       considered less than 0
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * </pre>
+    * 
+    * @param reportData
+    * @return
+    */
+  
     private String buildNWRSnowWaterGround(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1004,15 +640,16 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             String amount = periodData.getSnowWater() < 0 ? A_TRACE
                     : (String.format(FLOAT_TWO_DECIMALS1,
                             periodData.getSnowWater()) + " inches");
-            precipPhrase.append("The snow water equivalent is " + amount);
+            precipPhrase.append("The snow water equivalent is ").append(amount);
 
             if (snowFlag.getSnowWaterTotal().isDeparture() && hClimo
                     .getSnowWaterPeriodNorm() != ParameterFormatClimate.MISSING) {
                 float valDelta = snowWaterMeasured - snowWaterNorm;
 
                 if (valDelta != 0) {
-                    precipPhrase.append(" which is " + aboveBelow(valDelta > 0)
-                            + " the normal amount");
+                    precipPhrase.append(" which is ")
+                            .append(aboveBelow(valDelta > 0))
+                            .append(" the normal amount");
                 } else {
                     precipPhrase.append(" which is normal");
                 }
@@ -1031,12 +668,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 ". The normal snow water equivalent is ");
                     }
                     precipPhrase.append(
-                            String.format(FLOAT_TWO_DECIMALS1, snowWaterNorm)
-                                    + " inches");
+                            String.format(FLOAT_TWO_DECIMALS1, snowWaterNorm))
+                            .append(" inches");
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
         }
 
@@ -1050,16 +687,17 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             : (String.format(FLOAT_TWO_DECIMALS1,
                                     periodData.getSnowWaterJuly1())
                                     + " inches");
-            precipPhrase.append(
-                    "The snow water equivalent since July 1 is " + amount);
+            precipPhrase.append("The snow water equivalent since July 1 is ")
+                    .append(amount);
 
             if (snowFlag.getSnowWaterJuly1().isDeparture() && hClimo
                     .getSnowWaterJuly1Norm() != ParameterFormatClimate.MISSING) {
                 float valDelta = snowWaterJuly1 - snowWaterNormJuly1;
 
                 if (valDelta != 0) {
-                    precipPhrase.append(" which is " + aboveBelow(valDelta > 0)
-                            + " the normal amount");
+                    precipPhrase.append(" which is ")
+                            .append(aboveBelow(valDelta > 0))
+                            .append(" the normal amount");
                 } else {
                     precipPhrase.append(" which is normal");
                 }
@@ -1077,11 +715,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 ". The normal snow water equivalent since July 1 is ");
                     }
                     precipPhrase.append(String.format(FLOAT_TWO_DECIMALS1,
-                            snowWaterNormJuly1) + " inches");
+                            snowWaterNormJuly1)).append(" inches");
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
         }
 
@@ -1096,8 +734,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             : (periodData.getSnowGroundMax() + SPACE
                                     + inchInches(periodData
                                             .getSnowGroundMax() != 1));
-            precipPhrase
-                    .append("The deepest snow depth observed was " + amount);
+            precipPhrase.append("The deepest snow depth observed was ")
+                    .append(amount);
 
             if (snowFlag.getSnowDepthMax().isTimeOfMeasured()
                     && !periodData.getSnowGroundMaxDateList().isEmpty()
@@ -1105,10 +743,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getMon() != ParameterFormatClimate.MISSING_DATE
                     && periodData.getSnowGroundMaxDateList().get(0)
                             .getDay() != ParameterFormatClimate.MISSING_DATE) {
-                precipPhrase.append(" and occurred on "
-                        + dateSentence(periodData.getSnowGroundMaxDateList()));
+                precipPhrase.append(" and occurred on ").append(
+                        dateSentence(periodData.getSnowGroundMaxDateList()));
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The average snow depth observed for the period was <__ inch(es)>/<a
@@ -1121,8 +759,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             String amount = intObs == ParameterFormatClimate.TRACE ? A_TRACE
                     : SPACE + inchInches(intObs + intObs != 1);
             precipPhrase
-                    .append("The average snow depth observed for the period was "
-                            + amount);
+                    .append("The average snow depth observed for the period was ")
+                    .append(amount);
 
             if (snowFlag.getSnowDepthAvg().isDeparture()
                     && hClimo
@@ -1135,10 +773,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 int deltaInt = intObs - intNorm;
                 int intValue = Math.abs(deltaInt);
                 if (deltaInt != 0) {
-                    precipPhrase.append(" which is " + aboveBelow(deltaInt > 0)
-                            + SPACE + intValue + SPACE
-                            + inchInches(intValue != 1)
-                            + " the normal average");
+                    precipPhrase.append(" which is ")
+                            .append(aboveBelow(deltaInt > 0)).append(SPACE)
+                            .append(intValue).append(SPACE)
+                            .append(inchInches(intValue != 1))
+                            .append(" the normal average");
                 } else {
                     precipPhrase.append(" which is normal");
                 }
@@ -1174,22 +813,22 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             precipPhrase.append(
                                     ".  The normal average snow depth is ");
                         }
-                        precipPhrase.append(
-                                intNorm + SPACE + inchInches(intNorm != 1));
+                        precipPhrase.append(intNorm).append(SPACE)
+                                .append(inchInches(intNorm != 1));
 
                     }
                 }
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
     }
 
     /**
-     * Migrated from build_NWR_period_snow_totals.f
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_snow_totals.f
+    * 
+    * <pre>
     *    November 1999    Bonnie Reed    PRC/TDL
     *
     *   Purpose:  This routine controls building the period rainfall sentences in 
@@ -1206,82 +845,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *               to see if two snowfall measurements are within 0.005,
     *               or half_snow of one another.  We will consider such values
     *               as being equal if they are within this.
+    * </pre>
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_snow_precip - structure containing the flags which control the 
-    *                         generation of various portions of the precip sentences.
-    *                         See the structure definition for more details.
-    *                 itype - declares either a monthly report or seasonal report
-    *               h_climo - structure containing historical climatology
-    *                         for a given date.  See structure definition for more
-    *                         details.
-    *                p_data - structure containing the observed climate data for the
-    *                         month or season.
-    *         global_values - structure containing the definitions of different
-    *                         global elements.
-    *         precip_phrase - character buffer containing the precip
-    *                         sentences structure containing the observed climate
-    *                         data.  See the structure definition for
-    *                         more details.
-    *
-    *     Output
-    *         precip_phrase - character buffer containing the precip sentences
-    *
-    *     Local
-    *             c_day - character form of the day value
-    *            c_norm - character form of the normal value
-    *             c_rec - character form of the record value
-    *             c_val - character form of a value
-    *            c_year - character form of the year value
-    *       date_phrase - portion of sentence dealing with dates of occurrence
-    *       date_length - character length of date_phrase
-    *        difference - character string set to either "above" or "below"
-    *              ilen - number of characters in a string
-    *       num_decimal - number that accounts for the decimal place
-    *              more - logical value when reporting the record
-    *          num_char - Number of characters in a string.
-    *        num_digits - The number of digits in a given number; 
-    *                        necessary for the conversion of numeric values 
-    *                        to character.
-    *            plural - character either set to "day" or "days"
-    *         val_delta - the difference between two values
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *      dates_sentence - FORTRAN function: builds the dates of occurrence
-    *                       section for 24h and storm snowfall
-    *
-    *          decide_day - FORTRAN function: returns either the singular or
-    *                       plural version of the word "day" as well as the
-    *                       number of characters in the word.
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    4/18/01   Doug Murphy            The normal Snow GE 1.0 in. has
-    *                                     changed to a real value
-    *    5/07/01   Doug Murphy            Enhanced code to report all three dates
-    *                                     of occurrence for 24h and storm snow...
-    *                                     Made code more efficient - not necessary
-    *                                     to pass along entire arrays
-    *    4/10/03   Gary Battel            24-hour snowfall of 0.0 should not 
-    *                                     be considered a record
-    *
-    *  Include Files
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * @param reportData
+    * @return
+    */
+  
     private String buildNWRSnowTotals(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1303,9 +872,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase.append(
                         "There were no days with snowfall greater than or equal to 1.0 inches");
             } else {
-                precipPhrase.append("1.0 inches of snow or greater fell on "
-                        + periodData.getNumSnowGreaterThan1() + SPACE
-                        + dayDays(periodData.getNumSnowGreaterThan1() != 1));
+                precipPhrase.append("1.0 inches of snow or greater fell on ")
+                        .append(periodData.getNumSnowGreaterThan1())
+                        .append(SPACE).append(dayDays(
+                                periodData.getNumSnowGreaterThan1() != 1));
             }
 
             if (snowFlag.getSnowGE100().isDeparture() && hClimo
@@ -1316,10 +886,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (valDelta != 0) {
                     precipPhrase.append(" which is ");
 
-                    precipPhrase.append(
-                            String.format(FLOAT_ONE_DECIMAL, Math.abs(valDelta))
-                                    + SPACE + aboveBelow(valDelta > 0)
-                                    + " the normal amount");
+                    precipPhrase
+                            .append(String.format(FLOAT_ONE_DECIMAL,
+                                    Math.abs(valDelta)))
+                            .append(SPACE).append(aboveBelow(valDelta > 0))
+                            .append(" the normal amount");
 
                 } else {
                     precipPhrase.append(" which is normal");
@@ -1334,21 +905,20 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (valDelta != 0) {
 
                     if (snowFlag.getSnowGE100().isDeparture()) {
-                        precipPhrase
-                                .append(" of "
-                                        + String.format(FLOAT_ONE_DECIMAL,
-                                                hClimo.getNumSnowGE1Norm())
-                                        + " days");
+                        precipPhrase.append(" of ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        hClimo.getNumSnowGE1Norm()))
+                                .append(" days");
                     } else {
-                        precipPhrase.append(".  The normal amount is "
-                                + String.format(FLOAT_ONE_DECIMAL,
-                                        hClimo.getNumSnowGE1Norm())
-                                + " days for the period");
+                        precipPhrase.append(".  The normal amount is ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        hClimo.getNumSnowGE1Norm()))
+                                .append(" days for the period");
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "There were no days with snowfall greater than or equal to <__
@@ -1365,8 +935,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                         globalConfig.getS1()) + " inches");
 
                 precipPhrase
-                        .append("There were no days with snowfall greater than or equal to "
-                                + amount);
+                        .append("There were no days with snowfall greater than or equal to ")
+                        .append(amount);
 
             } else {
                 String amount = (globalConfig
@@ -1375,12 +945,13 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 : (String.format(FLOAT_ONE_DECIMAL,
                                         globalConfig.getS1()) + " inches");
 
-                precipPhrase.append(amount + " or more of snow fell on "
-                        + periodData.getNumSnowGreaterThanS1() + SPACE
-                        + dayDays(true) + " this period");
+                precipPhrase.append(amount).append(" or more of snow fell on ")
+                        .append(periodData.getNumSnowGreaterThanS1())
+                        .append(SPACE).append(dayDays(true))
+                        .append(" this period");
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The maximum 24 hour snowfall was <__ inches>/<a trace>."
@@ -1393,8 +964,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             : (String.format(FLOAT_ONE_DECIMAL,
                                     periodData.getSnowMax24H()) + " inches");
 
-            precipPhrase.append(
-                    "The " + MAXIMUM + " 24 hour snowfall was " + amount);
+            precipPhrase.append("The ").append(MAXIMUM)
+                    .append(" 24 hour snowfall was ").append(amount);
 
             if (snowFlag.getSnow24hr().isTimeOfMeasured()
                     && !periodData.getSnow24HDates().isEmpty()
@@ -1412,7 +983,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .append(datesSentence(periodData.getSnow24HDates()));
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
             // "<This ties/breaks the previous record of>/<The record 24 hour
             // snowfall is> <__ inches>/<a trace> which was <set>/<last set> in
@@ -1461,7 +1032,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getStart().getYear());
                 }
 
-                precipPhrase.append(PERIOD + SPACE + SPACE);
+                precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
             }
 
         }
@@ -1477,8 +1048,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             : (String.format(FLOAT_ONE_DECIMAL,
                                     periodData.getSnowMaxStorm()) + " inches");
 
-            precipPhrase
-                    .append(" The highest total storm snowfall was " + amount);
+            precipPhrase.append(" The highest total storm snowfall was ")
+                    .append(amount);
 
             if (snowFlag.getSnowStormMax().isTimeOfMeasured()
                     && !periodData.getSnowStormList().isEmpty()
@@ -1494,16 +1065,16 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .append(datesSentence(periodData.getSnowStormList()));
 
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
     }
 
     /**
-     * Migrated build_NWR_period_snow_precip.f.
-     * 
-     * <pre>
+    * Migrated build_NWR_period_snow_precip.f.
+    * 
+    * <pre>
     *    October  1999    Dan Zipper     PRC/TDL
     *    November 1999    Bonnie Reed    PRC/TDL
     *
@@ -1522,88 +1093,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *               or half_snow of one another.  We will consider such values
     *               as being equal if they are within this.
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_snow_precip - structure containing the flags which control the 
-    *                         generation of various portions of the precip sentences.
-    *                         See the structure definition for more details.
-    *                 itype - declares either a monthly report or seasonal report
-    *               h_climo - structure containing historical climatology
-    *                         for a given date.  See structure definition for more
-    *                         details.
-    *                p_data - structure containing the observed climate data for the
-    *                         month or season.
-    *         precip_phrase - character buffer containing the precip
-    *                         sentences structure containing the observed climate
-    *                         data.  See the structure definition for
-    *                         more details.
-    *
-    *      Output
-    *        precip_phrase - character buffer containing the precip sentences
-    *
-    *      Local
-    *               c_day - character form of the day value
-    *              c_norm - character form of the normal value
-    *               c_rec - character form of the record value
-    *              c_snow - character form of a snow value
-    *              c_year - character form of the year value
-    *               delta - difference between two values
-    *           delta_val - the difference between two values
-    *         delta_value - the difference between two values
-    *          difference - character string set to either "above" or "below"
-    *          idelta_val - the difference between two values
-    *        idelta_value - the difference between two values
-    *         num_decimal - number that accounts for the decimal place
-    *                more - logical value when reporting the record
-    *              plural - character either set to "day" or "days"
-    *            num_char - Number of characters in a string.
-    *          num_digits - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *          decide_day - FORTRAN function: returns either the singular or
-    *                       plural version of the word "day" as well as the
-    *                       number of characters in the word.
-    *
-    *
-    *   Include Files
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *     01/03/01   Doug Murphy         Fixed check of multiple years'
-    *                                    record occurrences
-    *      3/22/01   Doug Murphy         Record values were not being denoted
-    *                                    for cases where observed is T and record
-    *                                    is 0 and observed is > T and record is T
-    *      4/12/01   Doug Murphy         Did some reworking of code for efficiency
-    *                                    and added calls to add a comma if the
-    *                                    snowfall is over 1000 inches for some
-    *                                    crazy reason
-    *      4/18/01   Doug Murphy         The normal snow GE TR has
-    *                                    changed to a real value
-    *      4/30/01   Doug Murphy         Changed/added logic to include the
-    *                                    departure from normal when trace is
-    *                                    involved
-    *      5/07/01   Doug Murphy         Made code more efficient - not necessary
-    *                                    to pass along entire arrays
-    *      4/3/03    Gary Battel         Snowfall of 0.0 should not be considered
-    *                                    a record.
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * </pre>
+    * 
+    * @param reportData
+    * @return
+    */
+
     private String buildNWRSnowPrecip(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1628,11 +1123,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase.append("No ");
             } else {
 
-                String snowAmount = (periodData.getSnowTotal() < 1) ? "0"
-                        : String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                                periodData.getSnowTotal());
+                String snowAmount = String.format(FLOAT_COMMAS_ONE_DECIMAL,
+                        periodData.getSnowTotal());
 
-                precipPhrase.append("A total of " + snowAmount + " inches ");
+                precipPhrase.append("A total of ").append(snowAmount)
+                        .append(" inches ");
             }
 
             precipPhrase.append("snow fell during the period");
@@ -1672,9 +1167,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     if (deltaValue != 0) {
                         precipPhrase
                                 .append(String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                                        Math.abs(deltaValue)) + " inches "
-                                + aboveBelow(deltaValue > 0)
-                                + " the normal amount");
+                                        Math.abs(deltaValue)))
+                                .append(" inches ")
+                                .append(aboveBelow(deltaValue > 0))
+                                .append(" the normal amount");
                     } else {
                         precipPhrase.append("normal");
                     }
@@ -1695,7 +1191,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                         ? A_TRACE
                                         : String.format(FLOAT_ONE_DECIMAL,
                                                 hClimo.getSnowPeriodNorm());
-                        precipPhrase.append(" of " + amount);
+                        precipPhrase.append(" of ").append(amount);
                     }
                 } else {
                     String amount = (hClimo
@@ -1704,13 +1200,13 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                     : (String.format(FLOAT_ONE_DECIMAL,
                                             hClimo.getSnowPeriodNorm())
                                             + " inches");
-                    precipPhrase.append(
-                            ".  The normal amount of snowfall is " + amount);
+                    precipPhrase.append(".  The normal amount of snowfall is ")
+                            .append(amount);
 
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
             // "This breaks/ties the previous record of <__ inches>/<a trace>
             // which was set in <year>."
@@ -1761,11 +1257,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append(" which was set in ");
                     }
 
-                    precipPhrase.append(
-                            hClimo.getSnowPeriodMaxYearList().get(0).getYear()
-                                    + PERIOD + SPACE + SPACE);
+                    precipPhrase
+                            .append(hClimo.getSnowPeriodMaxYearList().get(0)
+                                    .getYear())
+                            .append(PERIOD).append(SPACE).append(SPACE);
                 } else {
-                    precipPhrase.append(PERIOD + SPACE + SPACE);
+                    precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
                 }
             }
         }
@@ -1782,11 +1279,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getSnowJuly1() != ParameterFormatClimate.TRACE) {
                 precipPhrase.append("No ");
             } else {
-                String snowAmount = periodData.getSnowJuly1() < 1 ? "0"
-                        : String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                                periodData.getSnowJuly1());
+                String snowAmount = String.format(FLOAT_COMMAS_ONE_DECIMAL,
+                        periodData.getSnowJuly1());
 
-                precipPhrase.append("A total of " + snowAmount + " inches ");
+                precipPhrase.append("A total of ").append(snowAmount)
+                        .append(" inches ");
 
             }
             precipPhrase.append("snow has fallen since July 1");
@@ -1804,10 +1301,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase.append(" which is ");
 
                 if (deltaValue != 0) {
-                    precipPhrase.append(String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                            Math.abs(deltaValue)) + " inches "
-                            + aboveBelow(deltaValue > 0)
-                            + " the normal amount");
+                    precipPhrase
+                            .append(String.format(FLOAT_COMMAS_ONE_DECIMAL,
+                                    Math.abs(deltaValue)))
+                            .append(" inches ")
+                            .append(aboveBelow(deltaValue > 0))
+                            .append(" the normal amount");
                 } else {
                     precipPhrase.append("normal");
                 }
@@ -1832,22 +1331,22 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     if (deltaValue != 0) {
                         if (snowFlag.getSnowJuly1().isDeparture() && periodData
                                 .getSnowJuly1() != ParameterFormatClimate.TRACE) {
-                            precipPhrase.append(" of "
-                                    + String.format(FLOAT_ONE_DECIMAL,
-                                            hClimo.getSnowJuly1Norm())
-                                    + " inches");
+                            precipPhrase.append(" of ")
+                                    .append(String.format(FLOAT_ONE_DECIMAL,
+                                            hClimo.getSnowJuly1Norm()))
+                                    .append(" inches");
                         } else {
                             precipPhrase
-                                    .append(".  The normal amount of snowfall since July 1 is "
-                                            + String.format(FLOAT_ONE_DECIMAL,
-                                                    hClimo.getSnowJuly1Norm())
-                                            + " inches");
+                                    .append(".  The normal amount of snowfall since July 1 is ")
+                                    .append(String.format(FLOAT_ONE_DECIMAL,
+                                            hClimo.getSnowJuly1Norm()))
+                                    .append(" inches");
                         }
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         if (snowFlag.getSnowAny().isMeasured() && periodData
@@ -1859,13 +1358,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase
                         .append("There have been no days of measurable snow");
             } else {
-                precipPhrase
-                        .append(periodData.getNumSnowGreaterThanTR() + SPACE
-                                + dayDays(periodData
-                                        .getNumSnowGreaterThanTR() != 1)
-                        + " of measurable snow "
-                        + wasWere(periodData.getNumSnowGreaterThanTR() != 1)
-                        + " observed");
+                precipPhrase.append(periodData.getNumSnowGreaterThanTR())
+                        .append(SPACE)
+                        .append(dayDays(
+                                periodData.getNumSnowGreaterThanTR() != 1))
+                        .append(" of measurable snow ")
+                        .append(wasWere(
+                                periodData.getNumSnowGreaterThanTR() != 1))
+                        .append(" observed");
 
             }
 
@@ -1877,10 +1377,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase.append(" which is ");
 
                 if (deltaValue != 0) {
-                    precipPhrase.append(String.format(FLOAT_ONE_DECIMAL,
-                            Math.abs(deltaValue)) + SPACE
-                            + aboveBelow(deltaValue > 0)
-                            + " the normal amount");
+                    precipPhrase
+                            .append(String.format(FLOAT_ONE_DECIMAL,
+                                    Math.abs(deltaValue)))
+                            .append(SPACE).append(aboveBelow(deltaValue > 0))
+                            .append(" the normal amount");
                 } else {
                     precipPhrase.append("normal");
                 }
@@ -1894,22 +1395,23 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (deltaValue != 0) {
 
                     if (snowFlag.getSnowAny().isDeparture()) {
-                        precipPhrase.append(" of "
-                                + String.format(FLOAT_ONE_DECIMAL,
-                                        hClimo.getNumSnowGETRNorm())
-                                + dayDays(hClimo.getNumSnowGETRNorm() != 1));
+                        precipPhrase.append(" of ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        hClimo.getNumSnowGETRNorm()))
+                                .append(dayDays(
+                                        hClimo.getNumSnowGETRNorm() != 1));
                     } else {
                         precipPhrase
-                                .append(".  The normal number of days with measurable snowfall is "
-                                        + String.format(FLOAT_ONE_DECIMAL,
-                                                hClimo.getNumSnowGETRNorm())
-                                        + dayDays(hClimo
-                                                .getNumSnowGETRNorm() != 1));
+                                .append(".  The normal number of days with measurable snowfall is ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        hClimo.getNumSnowGETRNorm()))
+                                .append(dayDays(
+                                        hClimo.getNumSnowGETRNorm() != 1));
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
@@ -1957,8 +1459,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .getP1() == ParameterFormatClimate.TRACE) ? A_TRACE
                                 : String.format(FLOAT_TWO_DECIMALS2,
                                         globalConfig.getP1()) + " inches";
-                precipPhrase.append("There were no days with " + PRECIPITATION
-                        + " greater than or equal to " + amount);
+                precipPhrase.append("There were no days with ")
+                        .append(PRECIPITATION)
+                        .append(" greater than or equal to ").append(amount);
 
             } else {
                 String amount = (globalConfig
@@ -1966,10 +1469,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 ? "A trace or more"
                                 : String.format(FLOAT_TWO_DECIMALS2,
                                         globalConfig.getP1()) + " inches";
-                precipPhrase.append(amount + " of " + PRECIPITATION
-                        + " fell on " + periodData.getNumPrcpGreaterThanP1()
-                        + SPACE
-                        + dayDays(periodData.getNumPrcpGreaterThanP1() != 1));
+                precipPhrase.append(amount).append(" of ").append(PRECIPITATION)
+                        .append(" fell on ")
+                        .append(periodData.getNumPrcpGreaterThanP1())
+                        .append(SPACE).append(dayDays(
+                                periodData.getNumPrcpGreaterThanP1() != 1));
 
             }
         }
@@ -1987,25 +1491,26 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                     : String.format(FLOAT_TWO_DECIMALS2,
                                             globalConfig.getP1()) + " inches";
 
-                    precipPhrase.append(" and no days with " + PRECIPITATION
-                            + " greater than or equal to " + amount
-                            + " were observed");
+                    precipPhrase.append(" and no days with ")
+                            .append(PRECIPITATION)
+                            .append(" greater than or equal to ").append(amount)
+                            .append(" were observed");
 
                 } else {
                     if (globalConfig.getP2() == ParameterFormatClimate.TRACE) {
-                        precipPhrase.append(" and a trace or more of "
-                                + PRECIPITATION + " fell on "
-                                + periodData.getNumPrcpGreaterThanP2()
-                                + dayDays(periodData
+                        precipPhrase.append(" and a trace or more of ")
+                                .append(PRECIPITATION).append(" fell on ")
+                                .append(periodData.getNumPrcpGreaterThanP2())
+                                .append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     } else {
-                        precipPhrase.append(" and "
-                                + String.format(FLOAT_TWO_DECIMALS2,
-                                        globalConfig.getP2())
-                                + " inches of " + PRECIPITATION
-                                + " or greater fell on "
-                                + periodData.getNumPrcpGreaterThanP2()
-                                + dayDays(periodData
+                        precipPhrase.append(" and ")
+                                .append(String.format(FLOAT_TWO_DECIMALS2,
+                                        globalConfig.getP2()))
+                                .append(" inches of ").append(PRECIPITATION)
+                                .append(" or greater fell on ")
+                                .append(periodData.getNumPrcpGreaterThanP2())
+                                .append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     }
                 }
@@ -2015,31 +1520,34 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getP2() == ParameterFormatClimate.TRACE) ? A_TRACE
                                     : String.format(FLOAT_TWO_DECIMALS2,
                                             globalConfig.getP2()) + " inches";
-                    precipPhrase
-                            .append("There were no days with " + PRECIPITATION
-                                    + " greater than or equal to " + amount);
+                    precipPhrase.append("There were no days with ")
+                            .append(PRECIPITATION)
+                            .append(" greater than or equal to ")
+                            .append(amount);
                 } else {
                     if (globalConfig.getP2() == ParameterFormatClimate.TRACE) {
-                        precipPhrase.append("A trace or more of "
-                                + PRECIPITATION + " fell on "
-                                + periodData.getNumPrcpGreaterThanP2()
-                                + dayDays(periodData
+                        precipPhrase.append("A trace or more of ")
+                                .append(PRECIPITATION).append(" fell on ")
+                                .append(periodData.getNumPrcpGreaterThanP2())
+                                .append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     } else {
-                        precipPhrase.append(String.format(FLOAT_TWO_DECIMALS2,
-                                globalConfig.getP2()) + " inches of "
-                                + PRECIPITATION + " or greater fell on "
-                                + periodData.getNumPrcpGreaterThanP2()
-                                + dayDays(periodData
+                        precipPhrase
+                                .append(String.format(FLOAT_TWO_DECIMALS2,
+                                        globalConfig.getP2()))
+                                .append(" inches of ").append(PRECIPITATION)
+                                .append(" or greater fell on ")
+                                .append(periodData.getNumPrcpGreaterThanP2())
+                                .append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         } else if (precipFlag.getPrecipGEP1().isMeasured()
                 && !precipFlag.getPrecipGEP2().isMeasured()) {
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
@@ -2067,20 +1575,25 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         if (precipFlag.isMeasured()
                 && precipValue != ParameterFormatClimate.MISSING) {
             if (precipValue == 0) {
-                precipPhrase.append("There were no days with " + PRECIPITATION
-                        + " greater than or equal to " + fractionString
-                        + " inches");
+                precipPhrase.append("There were no days with ")
+                        .append(PRECIPITATION)
+                        .append(" greater than or equal to ")
+                        .append(fractionString).append(" inches");
             } else {
                 if (fractionString.equals(THRESHOLD_050)) {
-                    precipPhrase.append(fractionString + " inches of "
-                            + PRECIPITATION + " or greater were observed on "
-                            + precipValue + SPACE + dayDays(precipValue != 1));
+                    precipPhrase.append(fractionString).append(" inches of ")
+                            .append(PRECIPITATION)
+                            .append(" or greater were observed on ")
+                            .append(precipValue).append(SPACE)
+                            .append(dayDays(precipValue != 1));
                 } else {
-                    precipPhrase.append(precipValue + SPACE
-                            + dayDays(precipValue != 1)
-                            + " with greater than or equal to " + fractionString
-                            + " inches of " + PRECIPITATION + SPACE
-                            + wasWere(precipValue != 1) + " observed");
+                    precipPhrase.append(precipValue).append(SPACE)
+                            .append(dayDays(precipValue != 1))
+                            .append(" with greater than or equal to ")
+                            .append(fractionString).append(" inches of ")
+                            .append(PRECIPITATION).append(SPACE)
+                            .append(wasWere(precipValue != 1))
+                            .append(" observed");
                 }
             }
 
@@ -2093,9 +1606,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     precipPhrase.append(" which is");
 
                     precipPhrase
-                            .append(String.format(FLOAT_ONE_DECIMAL, valDelta)
-                                    + SPACE + aboveBelow(valDelta > 0)
-                                    + " the normal amount");
+                            .append(String.format(FLOAT_ONE_DECIMAL, valDelta))
+                            .append(SPACE).append(aboveBelow(valDelta > 0))
+                            .append(" the normal amount");
                 } else {
                     precipPhrase.append(" which is normal");
                 }
@@ -2109,27 +1622,29 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (valDelta != 0) {
                     if (precipFlag.isDeparture()) {
-                        precipPhrase.append(" of "
-                                + String.format(FLOAT_ONE_DECIMAL, normValue)
-                                + dayDays(normValue != 1));
+                        precipPhrase.append(" of ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        normValue))
+                                .append(dayDays(normValue != 1));
                     } else {
-                        precipPhrase.append(". The normal amount is "
-                                + String.format(FLOAT_ONE_DECIMAL, normValue)
-                                + " for the period");
+                        precipPhrase
+                                .append(". The normal amount is ").append(String
+                                        .format(FLOAT_ONE_DECIMAL, normValue))
+                                .append(" for the period");
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
     }
 
     /**
-     * Migrated from build_NWR_p_liquid_hr_storm_avg.f.
-     * 
-     * <pre>
+    * Migrated from build_NWR_p_liquid_hr_storm_avg.f.
+    * 
+    * <pre>
     *   November 1999      Bonnie Reed   PRC/TDL
     *
     *   Purpose:  This routine controls building the period rainfall sentences in 
@@ -2146,81 +1661,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *               to see if two precipitation measurements are within 0.005,
     *               or half_precip of one another.  We will consider such values
     *               as being equal if they are within this.
+    * </pre>
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_liquid_precip - structure containing the flags which control the 
-    *                           generation of various portions of the precip sentences.
-    *                           See the structure definition for more details.
-    *                   itype - declares either a monthly report or seasonal report
-    *                 h_climo - structure containing historical climatology
-    *                           for a given date.  See structure definition for more
-    *                           details.
-    *                  p_data - structure containing the observed climate data for the
-    *                           month or season.
-    *           precip_phrase - character buffer containing the precip
-    *                           sentences structure containing the observed climate
-    *                           data.  See the structure definition for
-    *                           more details.
-    * 
-    *      Output
-    *        precip_phrase - character buffer containing the precip sentences
-    *
-    * 
-    *      Local
-    *          avg_precip - character form of the average precip value
-    *              c_norm - character form of the normal value
-    *         date_phrase - portion of sentence dealing with dates of occurrence
-    *         date_length - character length of date_phrase
-    *               delta - the difference between two values
-    *           delta_val - the difference between two values
-    *         delta_value - the difference between two values
-    *          difference - character string set to either "above" or "below"
-    *              hr_beg - character form of the beginning hour
-    *              hr_end - character form of the ending hour
-    *              hr_val - character form of the hour
-    *                ilen - number of characters in a string
-    *                 mon - character string of the word month (January)
-    *            num_char - Number of characters in a string.
-    *         num_decimal - number that accounts for the decimal place
-    *          num_digits - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *        num_digits1  - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *           storm_val - character form of the storm total value
-    *
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *      dates_sentence - FORTRAN function: builds the dates of occurrence
-    *                       section for 24h and storm precipitation
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    5/07/01   Doug Murphy            Enhanced code to report all three dates
-    *                                     of occurrence for 24h and storm precip..
-    *                                     Made code more efficient - not necessary
-    *                                     to pass along entire arrays
-    *    4//1/03   Gary Battel            Corrected problem with monthly max 24 HR
-    *                                     precip phrase when monthly max is 0.
-    *
-    *  Include Files
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * @param reportData
+    * @return
+    */
+ 
     private String buildNWRLiquidStormAvg(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -2240,8 +1686,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             ? A_TRACE
                             : (String.format(FLOAT_TWO_DECIMALS1,
                                     periodData.getPrecipMax24H()) + " inches");
-            precipPhrase.append("The " + MAXIMUM + " 24 hour " + PRECIPITATION
-                    + " was " + amount);
+            precipPhrase.append("The ").append(MAXIMUM).append(" 24 hour ")
+                    .append(PRECIPITATION).append(" was ").append(amount);
 
             if (precipFlag.getPrecip24HR().isTimeOfMeasured()
                     && !periodData.getPrecip24HDates().isEmpty()
@@ -2257,7 +1703,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .append(datesSentence(periodData.getPrecip24HDates()));
 
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The highest total storm precipitation was __."
@@ -2271,8 +1717,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             : (String.format(FLOAT_TWO_DECIMALS1,
                                     periodData.getPrecipStormMax())
                                     + " inches");
-            precipPhrase.append("The highest total storm " + PRECIPITATION
-                    + " was " + amount);
+            precipPhrase.append("The highest total storm ")
+                    .append(PRECIPITATION).append(" was ").append(amount);
 
             if (precipFlag.getPrecipStormMax().isTimeOfMeasured()
                     && !periodData.getPrecipStormList().isEmpty()
@@ -2288,7 +1734,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .append(datesSentence(periodData.getPrecipStormList()));
 
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         // "The average precipitation for the period was __ which is
@@ -2302,16 +1748,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     .getPrecipMeanDay()) < ParameterFormatClimate.HALF_PRECIP
                     && periodData
                             .getPrecipMeanDay() != ParameterFormatClimate.TRACE) {
-                precipPhrase.append(partialAvgPhrase + " 0.00 inches");
+                precipPhrase.append(partialAvgPhrase).append(" 0.00 inches");
             } else if (periodData
                     .getPrecipMeanDay() == ParameterFormatClimate.TRACE) {
-                precipPhrase.append(partialAvgPhrase + " a trace");
+                precipPhrase.append(partialAvgPhrase).append(" a trace");
             } else {
-                String avgPrecip = (periodData.getPrecipMeanDay() < 1) ? "0"
-                        : String.format(FLOAT_TWO_DECIMALS1,
-                                periodData.getPrecipMeanDay());
-                precipPhrase.append(
-                        partialAvgPhrase + SPACE + avgPrecip + " inches");
+                String avgPrecip = String.format(FLOAT_TWO_DECIMALS1,
+                        periodData.getPrecipMeanDay());
+                precipPhrase.append(partialAvgPhrase).append(SPACE)
+                        .append(avgPrecip).append(" inches");
             }
 
             if (precipFlag.getPrecipAvg().isDeparture()
@@ -2326,11 +1771,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         - hClimo.getPrecipDayNorm();
 
                 if (deltaValue != 0) {
-                    precipPhrase.append(" which is "
-                            + String.format(FLOAT_TWO_DECIMALS1,
-                                    Math.abs(deltaValue))
-                            + " inches " + aboveBelow(deltaValue > 0)
-                            + " the normal average daily amount");
+                    precipPhrase.append(" which is ")
+                            .append(String.format(FLOAT_TWO_DECIMALS1,
+                                    Math.abs(deltaValue)))
+                            .append(" inches ")
+                            .append(aboveBelow(deltaValue > 0))
+                            .append(" the normal average daily amount");
 
                 } else {
                     precipPhrase.append(" which is normal");
@@ -2349,8 +1795,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         .getPrecipDayNorm() == ParameterFormatClimate.TRACE
                         && periodData
                                 .getPrecipMeanDay() != ParameterFormatClimate.TRACE) {
-                    precipPhrase.append(".  The normal average daily amount of "
-                            + PRECIPITATION + " is a trace");
+                    precipPhrase
+                            .append(".  The normal average daily amount of ")
+                            .append(PRECIPITATION).append(" is a trace");
                 } else {
                     float deltaValue = periodData.getPrecipMeanDay()
                             - hClimo.getPrecipDayNorm();
@@ -2360,30 +1807,31 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         if (precipFlag.getPrecipAvg().isDeparture()
                                 && periodData
                                         .getPrecipMeanDay() != ParameterFormatClimate.TRACE) {
-                            precipPhrase.append(" of "
-                                    + hClimo.getPrecipDayNorm() + " inches");
+                            precipPhrase.append(" of ")
+                                    .append(hClimo.getPrecipDayNorm())
+                                    .append(" inches");
                         } else {
                             precipPhrase
-                                    .append(".  The normal average daily amount of "
-                                            + PRECIPITATION + " is "
-                                            + hClimo.getPrecipDayNorm()
-                                            + " inches");
+                                    .append(".  The normal average daily amount of ")
+                                    .append(PRECIPITATION).append(" is ")
+                                    .append(hClimo.getPrecipDayNorm())
+                                    .append(" inches");
                         }
                     }
                 }
             }
 
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return precipPhrase.toString();
     }
 
     /**
-     * Migrated from build_NWR_period_liquid_precip.f.
-     * 
-     * <pre>
-     *    October  1999    Dan Zipper     PRC/TDL
+    * Migrated from build_NWR_period_liquid_precip.f.
+    * 
+    * <pre>
+    *    October  1999    Dan Zipper     PRC/TDL
     *    November 1999    Bonnie Reed    PRC/TDL
     *
     *   Purpose:  This routine controls building the period rainfall sentences in 
@@ -2400,72 +1848,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *               to see if two precipitation measurements are within 0.005,
     *               or half_precip of one another.  We will consider such values
     *               as being equal if they are within this.
+    * </pre>
     * 
-    *
-    *   Variables
-    *
-    *      Input
-    *        do_liquid_precip - structure containing the flags which control the 
-    *                           generation of various portions of the precip sentences.
-    *                           See the structure definition for more details.
-    *                   itype - declares either a monthly report or seasonal report
-    *                 h_climo - structure containing historical climatology
-    *                           for a given date.  See structure definition for more
-    *                           details.
-    *                  p_data - structure containing the observed climate data for the
-    *                           month or season.
-    *           precip_phrase - character buffer containing the precip
-    *                           sentences structure containing the observed climate
-    *                           data.  See the structure definition for
-    *                           more details.
-    *
-    *      Output
-    *        precip_phrase - character buffer containing the precip sentences
-    *     
-    *      Local
-    *           c_precip - character form of a value
-    *          delta_val - the difference between two values
-    *         difference - character string set to either "above" or "below"
-    *        num_decimal - number that accounts for the decimal place
-    *               more - logical value when reporting the record
-    *           num_char - Number of characters in a string.
-    *         num_digits - The number of digits in a given number; 
-    *                      necessary for the conversion of numeric values 
-    *                      to character.
-    *        num_digits1 - The number of digits in a given number; 
-    *                      necessary for the conversion of numeric values 
-    *                      to character.
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *  MODIFICATION HISTORY
-    *  ====================
-    *    3/22/01   Doug Murphy            Record values were not being denoted
-    *                                     for cases where observed is T and record
-    *                                     is 0 and observed is > T and record is T
-    *    4/12/01   Doug Murphy            Did some reworking of code for efficiency
-    *                                     and added calls to add a comma if the
-    *                                     precip is over 1000 inches for some
-    *                                     crazy reason
-    *    4/30/01   Doug Murphy            Changed/added logic to include the
-    *                                     departure from normal when trace is
-    *                                     involved
-    *    5/07/01   Doug Murphy            Made code more efficient - not necessary
-    *                                     to pass along entire arrays
-    *    3/18/03   Gary Battel            Corrects problem with trace of precip
-    *  Include Files
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * @param reportData
+    * @return
+    */
+  
     private String buildNWRLiquidPrecip(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -2489,7 +1877,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         if (precipFlag.getPrecipTotal().isMeasured() && periodData
                 .getPrecipTotal() != ParameterFormatClimate.MISSING) {
             if (periodData.getPrecipTotal() == ParameterFormatClimate.TRACE) {
-                precipPhrase.append(StringUtils.capitalize(A_TRACE) + " of ");
+                precipPhrase.append(StringUtils.capitalize(A_TRACE))
+                        .append(" of ");
             } else if (Math
                     .abs(periodData
                             .getPrecipTotal()) < ParameterFormatClimate.HALF_PRECIP
@@ -2497,14 +1886,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getPrecipTotal() != ParameterFormatClimate.TRACE) {
                 precipPhrase.append("No ");
             } else {
-                precipPhrase.append(
-                        "A total of " + String.format(FLOAT_COMMAS_TWO_DECIMALS,
+                precipPhrase.append("A total of ")
+                        .append(String.format(FLOAT_COMMAS_TWO_DECIMALS,
                                 periodData.getPrecipTotal()));
 
                 precipPhrase.append(" inches of ");
             }
 
-            precipPhrase.append(PRECIPITATION + " fell during the period");
+            precipPhrase.append(PRECIPITATION)
+                    .append(" fell during the period");
 
             // "... The departure from normal is 0.00"
             // OR ".. which is __ inches above/below the normal amount>/<normal>
@@ -2541,9 +1931,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     if (deltaVal != 0) {
                         precipPhrase
                                 .append(String.format(FLOAT_COMMAS_TWO_DECIMALS,
-                                        Math.abs(deltaVal)) + " inches "
-                                + aboveBelow(deltaVal > 0)
-                                + " the normal amount");
+                                        Math.abs(deltaVal)))
+                                .append(" inches ")
+                                .append(aboveBelow(deltaVal > 0))
+                                .append(" the normal amount");
 
                     } else {
                         precipPhrase.append("normal");
@@ -2561,17 +1952,18 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     if (deltaVal != 0) {
                         if (hClimo
                                 .getPrecipDayNorm() != ParameterFormatClimate.TRACE) {
-                            precipPhrase.append(" of "
-                                    + String.format(FLOAT_COMMAS_TWO_DECIMALS,
+                            precipPhrase.append(" of ")
+                                    .append(String.format(
+                                            FLOAT_COMMAS_TWO_DECIMALS,
                                             hClimo.getPrecipPeriodNorm()));
                         } else {
-                            precipPhrase.append(" of " + A_TRACE);
+                            precipPhrase.append(" of ").append(A_TRACE);
                         }
 
                     }
                 } else {
-                    precipPhrase.append(".  The normal amount of "
-                            + PRECIPITATION + " is ");
+                    precipPhrase.append(".  The normal amount of ")
+                            .append(PRECIPITATION).append(" is ");
 
                     if (hClimo
                             .getPrecipPeriodNorm() == ParameterFormatClimate.TRACE) {
@@ -2583,7 +1975,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     }
                 }
             }
-            precipPhrase.append(PERIOD + SPACE + SPACE);
+            precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
             if (precipFlag.getPrecipTotal().isRecord() && hClimo
                     .getPrecipPeriodMax() != ParameterFormatClimate.MISSING_PRECIP) {
@@ -2593,8 +1985,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         && measured > recordMax) {
                     precipPhrase.append("This breaks the previous record of ");
                 } else {
-                    precipPhrase.append(
-                            "The record amount of " + PRECIPITATION + " is ");
+                    precipPhrase.append("The record amount of ")
+                            .append(PRECIPITATION).append(" is ");
                 }
 
                 if (hClimo
@@ -2621,9 +2013,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     precipPhrase.append(hClimo.getPrecipPeriodMaxYearList()
                             .get(0).getYear());
 
-                    precipPhrase.append(PERIOD + SPACE + SPACE);
+                    precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
                 } else {
-                    precipPhrase.append(PERIOD + SPACE + SPACE);
+                    precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
                 }
             }
 
@@ -2635,14 +2027,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 && precipFlag.getPrecipMin().isRecord() && hClimo
                         .getPrecipPeriodMin() != ParameterFormatClimate.MISSING_PRECIP) {
             if (recordMin == measured) {
-                precipPhrase.append("The total ties the previous record "
-                        + MINIMUM + " of ");
+                precipPhrase.append("The total ties the previous record ")
+                        .append(MINIMUM).append(" of ");
             } else if (measured < recordMin) {
-                precipPhrase.append("The total break the previous " + MINIMUM
-                        + SPACE + PRECIPITATION + " record of ");
+                precipPhrase.append("The total break the previous ")
+                        .append(MINIMUM).append(SPACE).append(PRECIPITATION)
+                        .append(" record of ");
             } else {
-                precipPhrase.append("The record " + MINIMUM + SPACE
-                        + PRECIPITATION + " for the period is ");
+                precipPhrase.append("The record ").append(MINIMUM).append(SPACE)
+                        .append(PRECIPITATION).append(" for the period is ");
             }
 
             if (hClimo.getPrecipPeriodMin() == ParameterFormatClimate.TRACE) {
@@ -2668,9 +2061,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 precipPhrase.append(
                         hClimo.getPrecipPeriodMinYearList().get(0).getYear());
 
-                precipPhrase.append(PERIOD + SPACE + SPACE);
+                precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
             } else {
-                precipPhrase.append(PERIOD + SPACE + SPACE);
+                precipPhrase.append(PERIOD).append(SPACE).append(SPACE);
             }
         }
 
@@ -2678,9 +2071,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from build_NWR_period_temp.f.
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_temp.f.
+    * 
+    * <pre>
     *   October 1999      Dan Zipper    PRC/TDL
     *   October 1999      Bonnie Reed   PRC/TDL
     *
@@ -2688,79 +2081,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *        This subroutine will create the temperature related sentences for the
     *        NWR product.
     *
-    *   Variables
-    *
-    *      Input
-    *
-    *           do_celsius - Flag for reporting temperatures in Celsius
-    *                        - TRUE  report temps in Celsius
-    *                        - FALSE don't report temps in Celsius
-    *              do_temp - Structure containing the flags which control generation
-    *                        of various protions.
-    *               a_date - structure containing historical climotology for a 
-    *                        given date
-    *                itype - delcares whether the report is monthly or seasonal
-    *                    i - Number of stations in this group to be summarized.
-    *              h_climo - Structure containing historical climatology.
-    *               p_data - Structure containing the observed climate data.
-    *                        See the structure definition for more details.
-    *        global_values - structure containing the definitions of different
-    *                        global elements.
-    *          temp_phrase - Character buffer containing the temperature sentences.
-    *
-    *      Output
-    *
-    *          temp_phrase - Character buffer containing the temperature sentences.
-    *
-    *      Local
-    *        NONE
-    *
-    *
-    *      INCLUDE files
-    *     DEFINE_general_phrases.I - Contains character strings need to build all
-    *                                types of sentences.
-    *      DEFINE_precip_phrases.I - Contains character strings needed to build
-    *                                precip sentences.
-    *   PARAMETER_format_climate.I - Contains all paramters used to dimension
-    *                                arrays, etc.  This INCLUDE file must always
-    *                                come first.
-    *         TYPE_climate_dates.I - Defines the derived TYPE "climate_dates";
-    *                                note that it uses the dervied TYPE "date" - 
-    *                                the "date" file must be INCLUDED before this
-    *                                one.
-    *                  TYPE_date.I - Defines the derived TYPE "date";
-    *                                This INCLUDE file must always come before any
-    *                                other INCLUDE file which uses the "date" TYPE.
-    *   TYPE_do_p_weather_element.I - Defines the derived TYPE used to hold the
-    *                                controlling logi* for producing
-    *                                sentences/reports for a given variable.
-    *                  TYPE_time.I - Defines the derived TYPE used to specify the
-    *                                time.
-    *                  TYPE_wind.I - Defines the derived TYPE used to specify wind
-    *                                speed,and direction.
-    *
-    *      Non-system routines used
-    *
-    *            build_NWR_celsius - Builds part of sentence that 
-    *                                includes converting f to c. 
-    *         build_NWR_difference - routine used to convert celsius 
-    *                                number (if negative) to a positive 
-    *                        when reporting above or below 
-    *                                normal.                 
-    *        CONVERT_CHARACTER_INT - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *                  PICK_DIGITS - Returns the number of digits in a number.
-    *
-    *                       STRLEN - C function: returns the number of characters in a
-    *                                string; string must be terminated with the NULL
-    *                                character.
-     * </pre>
-     * 
-     * @param climateDailyReportData
-     * @return
-     */
+    * </pre>
+    * 
+    * @param climateDailyReportData
+    * @return
+    */
+   
     private String buildNWRPeriodTemp(ClimatePeriodReportData reportData) {
         StringBuilder tempPhrase = new StringBuilder();
 
@@ -2888,8 +2214,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             // OR "The maximum/minimum temperature was at or above/below __
             // degree(s) fahrenheit<, or __ celsius> on __ day(s)."
             if (numComparison == 0) {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + " did not " + exceedFall + SPACE);
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(" did not ")
+                        .append(exceedFall).append(SPACE);
 
                 tempPhrase.append(decideDegree(compareNum));
 
@@ -2897,8 +2224,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     tempPhrase.append(buildNWRCelsius(compareNum));
                 }
             } else {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + " was at or " + aboveBelow(greaterThan) + SPACE);
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(" was at or ")
+                        .append(aboveBelow(greaterThan)).append(SPACE);
 
                 tempPhrase.append(decideDegree(compareNum));
 
@@ -2906,11 +2234,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     tempPhrase.append(buildNWRCelsius(compareNum));
                 }
 
-                tempPhrase.append(" on " + numComparison + SPACE
-                        + dayDays(numComparison != 1));
+                tempPhrase.append(" on ").append(numComparison).append(SPACE)
+                        .append(dayDays(numComparison != 1));
             }
 
-            tempPhrase.append(PERIOD + SPACE + SPACE);
+            tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         return tempPhrase.toString();
@@ -2972,25 +2300,27 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         if (tempFlag1.isMeasured()
                 && numComparison1 != ParameterFormatClimate.MISSING) {
             if (numComparison1 == 0) {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + " did not " + exceedFall1 + SPACE + compareNum1
-                        + " degrees");
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(" did not ")
+                        .append(exceedFall1).append(SPACE).append(compareNum1)
+                        .append(" degrees");
                 if (currentSettings.getControl().isDoCelsius()) {
                     tempPhrase.append(buildNWRCelsius(compareNum1));
                 }
             }
 
             else {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + SPACE + exceedFall2 + SPACE + compareNum1
-                        + " degrees");
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(SPACE).append(exceedFall2)
+                        .append(SPACE).append(compareNum1).append(" degrees");
 
                 if (currentSettings.getControl().isDoCelsius()) {
                     tempPhrase.append(buildNWRCelsius(compareNum1));
                 }
 
-                tempPhrase.append(" on " + numComparison1 + SPACE
-                        + dayDays(numComparison1 != 1) + " this period");
+                tempPhrase.append(" on ").append(numComparison1).append(SPACE)
+                        .append(dayDays(numComparison1 != 1))
+                        .append(" this period");
             }
 
             float valDelta = (float) numComparison1 - normComparison1;
@@ -2999,8 +2329,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (valDelta != 0) {
 
-                    tempPhrase.append(" which is " + Math.abs(valDelta) + SPACE
-                            + aboveBelow(valDelta > 0) + " the normal ");
+                    tempPhrase.append(" which is ").append(Math.abs(valDelta))
+                            .append(SPACE).append(aboveBelow(valDelta > 0))
+                            .append(" the normal ");
                 } else {
                     tempPhrase.append(" which is normal");
                 }
@@ -3013,47 +2344,50 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         String dayString = (numComparison1 == 1) ? "day"
                                 : "days";
 
-                        tempPhrase.append(normComparison1 + SPACE + dayString);
+                        tempPhrase.append(normComparison1).append(SPACE)
+                                .append(dayString);
                     } else {
-                        tempPhrase.append(
-                                ".  The normal number of days " + exceedFall3
-                                        + SPACE + compareNum1 + " degrees");
+                        tempPhrase.append(".  The normal number of days ")
+                                .append(exceedFall3).append(SPACE)
+                                .append(compareNum1).append(" degrees");
 
                         if (currentSettings.getControl().isDoCelsius()) {
                             tempPhrase.append(buildNWRCelsius(compareNum1));
                         }
 
-                        tempPhrase.append(" is " + normComparison1);
+                        tempPhrase.append(" is ").append(normComparison1);
                     }
                 }
             }
 
-            tempPhrase.append(PERIOD + SPACE + SPACE);
+            tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
 
         if (tempFlag2.isMeasured()
                 && numComparison2 != ParameterFormatClimate.MISSING) {
 
             if (numComparison2 == 0) {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + " did not " + "fall below " + compareNum2
-                        + " degrees");
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(" did not ")
+                        .append("fall below ").append(compareNum2)
+                        .append(" degrees");
                 if (currentSettings.getControl().isDoCelsius()) {
                     tempPhrase.append(buildNWRCelsius(compareNum2));
                 }
             }
 
             else {
-                tempPhrase.append("The " + maxMinString + SPACE + TEMPERATURE
-                        + SPACE + "was at or below " + compareNum2
-                        + " degrees");
+                tempPhrase.append("The ").append(maxMinString).append(SPACE)
+                        .append(TEMPERATURE).append(SPACE)
+                        .append("was at or below ").append(compareNum2)
+                        .append(" degrees");
 
                 if (currentSettings.getControl().isDoCelsius()) {
                     tempPhrase.append(buildNWRCelsius(compareNum2));
                 }
 
-                tempPhrase.append(" on " + numComparison2 + SPACE
-                        + dayDays(numComparison2 != 1));
+                tempPhrase.append(" on ").append(numComparison2).append(SPACE)
+                        .append(dayDays(numComparison2 != 1));
             }
 
             float valDelta = (float) numComparison2 - normComparison2;
@@ -3062,8 +2396,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (valDelta != 0) {
 
-                    tempPhrase.append(" which is " + Math.abs(valDelta) + SPACE
-                            + aboveBelow(valDelta > 0) + " the normal ");
+                    tempPhrase.append(" which is ").append(Math.abs(valDelta))
+                            .append(SPACE).append(aboveBelow(valDelta > 0))
+                            .append(" the normal ");
                 } else {
                     tempPhrase.append(" which is normal");
                 }
@@ -3074,31 +2409,33 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (valDelta != 0) {
                     if (tempFlag2.isDeparture()) {
 
-                        tempPhrase.append(SPACE + normComparison2 + SPACE
-                                + dayDays(numComparison2 != 1));
+                        tempPhrase.append(SPACE).append(normComparison2)
+                                .append(SPACE)
+                                .append(dayDays(numComparison2 != 1));
                     } else {
-                        tempPhrase.append(".  The normal number of days "
-                                + "below " + compareNum2 + " degrees");
+                        tempPhrase.append(".  The normal number of days ")
+                                .append("below ").append(compareNum2)
+                                .append(" degrees");
 
                         if (currentSettings.getControl().isDoCelsius()) {
                             tempPhrase.append(buildNWRCelsius(compareNum2));
                         }
 
-                        tempPhrase.append(" is " + normComparison2);
+                        tempPhrase.append(" is ").append(normComparison2);
                     }
                 }
             }
 
-            tempPhrase.append(PERIOD + SPACE + SPACE);
+            tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
         }
         return tempPhrase.toString();
     }
 
     /**
-     * Migrated from build_NWR_period_mean_temp.f
-     * 
-     * <pre>
+    * Migrated from build_NWR_period_mean_temp.f
+    * 
+    * <pre>
     *   October 1999      Dan Zipper    PRC/TDL
     *   October 1999      Bonnie Reed   PRC/TDL
     *
@@ -3106,102 +2443,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *        This subroutine will create the temperature related sentences for the
     *        NWR product.
     *
-    *   Variables
-    *
-    *      Input
-    *
-    *           do_celsius - Flag for reporting temperatures in Celsius
-    *                        - TRUE  report temps in Celsius
-    *                        - FALSE don't report temps in Celsius
-    *              do_temp - Structure containing the flags which control generation
-    *                        of various protions.
-    *               a_date - Structure containing the observed date for yesterday.
-    *                itype - declares whether it is month or seasonal.
-    *                  num - Number of stations in this group to be summarized.
-    *              h_climo - Structure containing historical climatology.
-    *               p_data - Structure containing the observed climate data.
-    *                        See the structure definition for more details.
-    *          temp_phrase - Character buffer containing the temperature sentences.
-    *
-    *      Output
-    *
-    *          temp_phrase - Character buffer containing the temperature sentences.
-    *
-    *      Local
-    *                    c_avg - character form of a value
-    *               difference - character string set to either "above" or "below"
-    *        delta_temp_mean_f - difference between two values (Fahrenheit)
-    *        delta_temp_mean_c - difference between two values (Celsius)
-    *                 num_char - Number of characters in a string.
-    *               num_digits - The number of digits in a given number; 
-    *                            necessary for the conversion of numeric values 
-    *                            to character.
-    *               val_deltaf - difference between two values
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *
-    *
-    *      INCLUDE files
-    *     DEFINE_general_phrases.I - Contains character strings need to build all
-    *                               types of sentences.
-    *      DEFINE_precip_phrases.I - Contains character strings needed to build
-    *                                precip sentences.
-    *   PARAMETER_format_climate.I - Contains all paramters used to dimension
-    *                                arrays, etc.  This INCLUDE file must always
-    *                                come first.
-    *         TYPE_climate_dates.I - Defines the derived TYPE "climate_dates";
-    *                                note that it uses the dervied TYPE "date" - 
-    *                                the "date" file must be INCLUDED before this
-    *                                one.
-    *                  TYPE_date.I - Defines the derived TYPE "date";
-    *                                This INCLUDE file must always come before any
-    *                                other INCLUDE file which uses the "date" TYPE.
-    *   TYPE_do_p_weather_element.I - Defines the derived TYPE used to hold the
-    *                                controlling logic for producing
-    *                                sentences/reports for a given variable.
-    *                  TYPE_time.I - Defines the derived TYPE used to specify the
-    *                                time.
-    *                  TYPE_wind.I - Defines the derived TYPE used to specify wind
-    *                                speed,and direction.
-    *
-    *      Non-system routines used
-    *
-    *            build_NWR_celsius - Builds part of sentence that 
-    *                                includes converting f to c. 
-    *         build_NWR_difference - routine used to convert celsius 
-    *                                number (if negative) to a positive 
-    *                        when reporting above or below 
-    *                                normal.                 
-    *        CONVERT_CHARACTER_INT - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *                  PICK_DIGITS - Returns the number of digits in a number.
-    *
-    *                       STRLEN - C function: returns the number of characters in a
-    *                                string; string must be terminated with the NULL
-    *                                character.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *    7/14/00   Doug Murphy            Normal temp values changed from ints to
-    *                                     reals. Therefore need to round to int
-    *                                     before calculating departures.
-    *    2/06/01   Doug Murphy            Major revision to accomodate mean temp
-    *                                     values being changed to reals
-     * </pre>
-     * 
-     * @param reportData
-     * @return
-     */
+    * </pre>
+    * 
+    * @param reportData
+    * @return
+    */
+   
     private String buildNWRPeriodMeanTemp(ClimatePeriodReportData reportData) {
         StringBuilder tempPhrase = new StringBuilder();
 
@@ -3217,9 +2464,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         // temperature>
         if (tempFlag.getMeanTemp().isMeasured()
                 && periodData.getMeanTemp() != ParameterFormatClimate.MISSING) {
-            tempPhrase.append("The average " + TEMPERATURE + " was "
-                    + String.format(FLOAT_ONE_DECIMAL, periodData.getMeanTemp())
-                    + " degree");
+            tempPhrase.append("The average ").append(TEMPERATURE)
+                    .append(" was ").append(String.format(FLOAT_ONE_DECIMAL,
+                            periodData.getMeanTemp()))
+                    .append(" degree");
 
             if (periodData.getMeanTemp() != 1
                     && periodData.getMeanTemp() != -1) {
@@ -3241,9 +2489,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 double deltaTempMeanC = Math.abs(deltaTempMeanF * (5. / 9.));
 
                 if (deltaTempMeanF != 0) {
-                    tempPhrase.append(" which is "
-                            + String.format(FLOAT_ONE_DECIMAL, valDeltaF)
-                            + " degree");
+                    tempPhrase.append(" which is ")
+                            .append(String.format(FLOAT_ONE_DECIMAL, valDeltaF))
+                            .append(" degree");
 
                     if (Math.abs(valDeltaF) != 1) {
                         tempPhrase.append("s");
@@ -3256,8 +2504,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 }
 
                 if (deltaTempMeanF != 0) {
-                    tempPhrase.append(SPACE + aboveBelow(deltaTempMeanF > 0)
-                            + " the normal average " + TEMPERATURE);
+                    tempPhrase.append(SPACE)
+                            .append(aboveBelow(deltaTempMeanF > 0))
+                            .append(" the normal average ").append(TEMPERATURE);
                 } else {
                     tempPhrase.append(" which is normal");
                 }
@@ -3270,11 +2519,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     .getNormMeanTemp() != ParameterFormatClimate.MISSING) {
                 if (tempFlag.getMeanTemp().isDeparture()) {
                     if (deltaTempMeanF != 0) {
-                        tempPhrase
-                                .append(" of "
-                                        + String.format(FLOAT_ONE_DECIMAL,
-                                                hClimo.getNormMeanTemp())
-                                        + " degree");
+                        tempPhrase.append(" of ")
+                                .append(String.format(FLOAT_ONE_DECIMAL,
+                                        hClimo.getNormMeanTemp()))
+                                .append(" degree");
 
                         if (Math.abs(hClimo.getNormMeanTemp()) != 1) {
                             tempPhrase.append("s");
@@ -3287,12 +2535,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     }
 
                 } else {
-                    tempPhrase
-                            .append(".  The normal average " + TEMPERATURE
-                                    + " for the period is "
-                                    + String.format(FLOAT_ONE_DECIMAL,
-                                            hClimo.getNormMeanTemp())
-                            + " degree");
+                    tempPhrase.append(".  The normal average ")
+                            .append(TEMPERATURE).append(" for the period is ")
+                            .append(String.format(FLOAT_ONE_DECIMAL,
+                                    hClimo.getNormMeanTemp()))
+                            .append(" degree");
                     if (Math.abs(hClimo.getNormMeanTemp()) != 1) {
                         tempPhrase.append("s");
                     }
@@ -3304,7 +2551,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 }
             }
 
-            tempPhrase.append(PERIOD + SPACE + SPACE);
+            tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
         }
         return tempPhrase.toString();
     }
@@ -3361,8 +2608,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
         // Celsius> <above/below the normal maximum/minimum>/<which is normal>"
         if (tempFlag.isMeasured()
                 && observedTemp != ParameterFormatClimate.MISSING) {
-            tempPhrase.append("The " + maxMin + SPACE + TEMPERATURE
-                    + " for the period was " + observedTemp);
+            tempPhrase.append("The ").append(maxMin).append(SPACE)
+                    .append(TEMPERATURE).append(" for the period was ")
+                    .append(observedTemp);
 
             if (currentSettings.getControl().isDoCelsius()) {
                 tempPhrase.append(buildNWRCelsius(observedTemp));
@@ -3388,14 +2636,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     tempPhrase.append(decideDegree(valDeltaF));
 
                     if (currentSettings.getControl().isDoCelsius()) {
-                        tempPhrase.append(
-                                " Fahrenheit, or " + valDeltaC + " Celsius");
+                        tempPhrase.append(" Fahrenheit, or ").append(valDeltaC)
+                                .append(" Celsius");
                     }
                 }
 
                 if (tempFDelta != 0) {
-                    tempPhrase.append(SPACE + aboveBelow(tempFDelta > 0)
-                            + " the normal " + maxMin);
+                    tempPhrase.append(SPACE).append(aboveBelow(tempFDelta > 0))
+                            .append(" the normal ").append(maxMin);
                 } else {
                     tempPhrase.append(" which is normal");
                 }
@@ -3412,14 +2660,15 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (tempFDelta != 0) {
                     if (tempFlag.isDeparture()) {
-                        tempPhrase.append(" of " + nearestInt);
+                        tempPhrase.append(" of ").append(nearestInt);
 
                         if (currentSettings.getControl().isDoCelsius()) {
                             tempPhrase.append(buildNWRCelsius(nearestInt));
                         }
                     } else {
-                        tempPhrase.append(".  The normal " + maxMin + SPACE
-                                + TEMPERATURE + " is " + nearestInt);
+                        tempPhrase.append(".  The normal ").append(maxMin)
+                                .append(SPACE).append(TEMPERATURE)
+                                .append(" is ").append(nearestInt);
 
                         if (currentSettings.getControl().isDoCelsius()) {
                             tempPhrase.append(buildNWRCelsius(nearestInt));
@@ -3428,7 +2677,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 }
             }
 
-            tempPhrase.append(PERIOD + SPACE + SPACE);
+            tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
 
             // "The maximum/minimum occurred on <date(s)>."
             if (tempFlag.isTimeOfMeasured() && !dates.isEmpty()
@@ -3436,8 +2685,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                             .getDay() != ParameterFormatClimate.MISSING_DATE
                     && dates.get(0)
                             .getMon() != ParameterFormatClimate.MISSING_DATE) {
-                tempPhrase.append("The " + maxMin + " occurred on "
-                        + dateSentence(dates) + PERIOD + SPACE + SPACE);
+                tempPhrase.append("The ").append(maxMin).append(" occurred on ")
+                        .append(dateSentence(dates)).append(PERIOD)
+                        .append(SPACE).append(SPACE);
             }
 
             // "The record maximum/minimum temperature is __ which last was set
@@ -3448,8 +2698,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     && recordTemp != ParameterFormatClimate.MISSING) {
                 if ((max && recordTemp > observedTemp)
                         || (!max && recordTemp < observedTemp)) {
-                    tempPhrase.append("The record " + maxMin + SPACE
-                            + TEMPERATURE + " is ");
+                    tempPhrase.append("The record ").append(maxMin)
+                            .append(SPACE).append(TEMPERATURE).append(" is ");
                 } else if ((max && recordTemp < observedTemp)
                         || (!max && recordTemp > observedTemp)) {
                     tempPhrase.append("This breaks the previous record of ");
@@ -3475,7 +2725,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                     tempPhrase.append(recordDates.get(0).getYear());
                 }
-                tempPhrase.append(PERIOD + SPACE + SPACE);
+                tempPhrase.append(PERIOD).append(SPACE).append(SPACE);
             }
         }
 
@@ -3483,49 +2733,21 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from date_sentence.f.
-     * 
-     * <pre>
+    * Migrated from date_sentence.f.
+    * 
+    * <pre>
     *    April 2001       Doug Murphy    PRC/MDL
     *
     *   Purpose:  This routine creates the dates of occurrence phrases for a
     *             period climate report. 
     *
-    *   Variables:
-    *    Input:
-    *                 itype - integer signifying the type of climate report
-    *                         being run
-    *                 occur - dates of occurrence
     *
-    *    Output:
-    *           date_phrase - phrase containing the date(s) of occurrence
-    *           date_length - character length of date_phrase 
-    *
-    *    Local:
-    *                 c_day - character version of the day of occurrence
-    *                     i - loop control variable
-    *                  ilen - length of the month character string
-    *                   mon - chracter string containing the month name
-    *            num_digits - number of digits in day of occurrence
-    *                  suff - integer determining which array position to use
-    *                         in suffix array
-    *                suffix - array containing ordinal abbreviations
-    *
-    *    Non-system functions used:
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *     <Include date, name, and description if changes are made to routine>
-     * </pre>
-     * 
-     * @param dates
-     * @return
-     */
+    * </pre>
+    * 
+    * @param dates
+    * @return
+    */
+  
     private String dateSentence(List<ClimateDate> dates) {
         StringBuilder datePhrase = new StringBuilder();
 
@@ -3550,9 +2772,10 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (currentSettings.getReportType() == PeriodType.MONTHLY_RAD) {
                     datePhrase.append(getOrdinal(dates.get(i).getDay()));
                 } else {
-                    datePhrase.append(DateFormatSymbols.getInstance()
-                            .getMonths()[dates.get(i).getMon()] + SPACE
-                            + dates.get(i).getDay());
+                    datePhrase
+                            .append(DateFormatSymbols.getInstance()
+                                    .getMonths()[dates.get(i).getMon()])
+                            .append(SPACE).append(dates.get(i).getDay());
                 }
             }
         }
@@ -3561,56 +2784,21 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from another subroutine, dates_sentence, in date_sentence.f.
-     * 
-     * <pre>
+    * Migrated from another subroutine, dates_sentence, in date_sentence.f.
+    * 
+    * <pre>
     *    April 2001       Doug Murphy    PRC/MDL
     *
     *   Purpose:  This routine creates the dates of occurrence phrases for
     *             variables with a begin and end date for a period climate 
     *             report. 
     *
-    *   Variables:
-    *    Input:
-    *                 itype - integer signifying the type of climate report
-    *                         being run
-    *                 cdate - structure containing begin and end dates of 
-    *                         occurrence
-    *
-    *    Output:
-    *           date_phrase - phrase containing the date(s) of occurrence
-    *           date_length - character length of date_phrase 
-    *
-    *
-    *    Local:
-    *                 c_beg - character version of the begin day of occurrence
-    *                 c_end - character version of the end day of occurrence
-    *                     i - loop control variable
-    *                  blen - length of the begin month character string
-    *                  elen - length of the end month character string
-    *               beg_mon - chracter string containing the begin month name
-    *               end_mon - chracter string containing the end month name
-    *            beg_digits - number of digits in begin day of occurrence
-    *            end_digits - number of digits in end day of occurrence
-    *                  suff - integer determining which array position to use
-    *                         in suffix array
-    *                suffix - array containing ordinal abbreviations
-    *
-    *    Non-system functions used:
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *     <Include date, name, and description if changes are made to routine>
-     * </pre>
-     * 
-     * @param dates
-     * @return
-     */
+    * </pre>
+    * 
+    * @param dates
+    * @return
+    */
+  
     private String datesSentence(List<ClimateDates> dates) {
         StringBuilder datePhrase = new StringBuilder();
 
@@ -3651,11 +2839,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     String endMon = DateFormatSymbols.getInstance()
                             .getMonths()[dates.get(i).getEnd().getMon()];
 
-                    datePhrase.append(" and " + endMon + SPACE
-                            + dates.get(i).getEnd().getDay());
+                    datePhrase.append(" and ").append(endMon).append(SPACE)
+                            .append(dates.get(i).getEnd().getDay());
                 } else {
-                    datePhrase.append(" and "
-                            + getOrdinal(dates.get(i).getEnd().getDay()));
+                    datePhrase.append(" and ")
+                            .append(getOrdinal(dates.get(i).getEnd().getDay()));
                 }
             }
 
@@ -3683,5 +2871,4 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
         }
     }
-
 }

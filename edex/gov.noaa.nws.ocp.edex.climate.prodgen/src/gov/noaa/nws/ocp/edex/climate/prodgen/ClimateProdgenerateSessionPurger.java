@@ -13,7 +13,9 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateMessageUtils;
 import gov.noaa.nws.ocp.edex.climate.prodgen.dao.ClimateProdGenerateSessionDAO;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
 
 /**
  * CPG session purger, for expired/completed sessions.
@@ -142,17 +144,17 @@ public class ClimateProdgenerateSessionPurger {
 
         StatusMessage sm = new StatusMessage();
         sm.setPriority(Priority.EVENTA);
-        sm.setPlugin(ClimateProdGenerateSession.PLUGIN_ID);
-        sm.setCategory(ClimateProdGenerateSession.CATEGORY);
+        sm.setPlugin(ClimateMessageUtils.CPG_PLUGIN_ID);
+        sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
         sm.setMessage("CPG Session table was purged");
         sm.setMachineToCurrent();
-        sm.setSourceKey("EDEX");
+        sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
         sm.setDetails(detailMsg);
         sm.setEventTime(new Date());
 
         try {
             EDEXUtil.getMessageProducer()
-                    .sendAsync(ClimateProdGenerateSession.cpgEndpoint, sm);
+                    .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
         } catch (Exception e) {
             logger.error("Could not send message to ClimateView", e);
         }

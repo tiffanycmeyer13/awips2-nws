@@ -292,50 +292,15 @@ public final class ClimateUtilities {
      * 
      * <pre>
      * Oct. 1998     David O. Miller        PRC/TDL
-    *
-    *
-    *   Purpose:  This routine will set up the arguments needed by
-    *             and will call det_dst.c.
-    *              
-    *   Variables
-    *
-    *      Input
-    *        a_date      - derived structure that defines the local date 
-    *                      (day, mon, year) of the climate summary
-    *        num_off_UT* - hours off UT* (west is negative)
-    *
-    *      Output
-    *      is_dst        - flag returned from HWRUtils::stdTime.
-    *                      = 0; daylight savings time in effect at this time
-    *                      = 1; standard time in effect at this time
-    *
-    *      Local
-    *          tz        - time zone (EST5EDT for eastern time zone).  Type
-    *                      'man 4 tztab' for info and 'more /usr/lib/tztab'
-    *                      for supported time zones.
-    *
-    *      Non-system routines used
-    *        det_dst     - This function acts as a wrapper around HWRUtils::stdTime
-    *                      to prevent the arguements from being mangled when passed
-    *                      between fortran and C++.
+     *
+     *
+     *   Purpose:  This routine will set up the arguments needed by
+     *             and will call det_dst.c.
      * </pre>
      * 
      * Migrated from det_dst.c
      * 
      * <pre>
-     * 
-     * void det_dst (const char *tz,
-    *          int *stdAllYear,
-    *          int *offset,
-    *          int *year,
-    *          int *month,
-    *          int *day,
-    *          int *hour,
-    *              int *min,
-    *          int *second,
-    *          int *is_dst)   
-    *
-    *   David O. Miller            Oct. 1998                  PRC/TDL           
     *
     *
     *   FUNCTION DESCRIPTION
@@ -344,39 +309,7 @@ public final class ClimateUtilities {
     *   This function acts as a wrapper around CLIMATEUtils::stdTime to prevent
     *   the arguments from being mangled when passed between fortran and
     *   C++.
-    *
-    *   VARIABLES
-    *   =========
-    *                                  
-    *    Input
-    *      day        - day of current run.
-    *      hour       - hour of current run.
-    *      min        - minute of current run.
-    *      month      - month of current run.
-    *      offset     - hours off UTC (west is negative).
-    *      second     - second of current run. (set to zero).
-    *      stdAllYear - flag sent to CLIMATEUtils::stdTime.
-    *                    = 0; observe daylight savings time sometime during
-    *                         the year
-    *                    = 1; observe standard time all year
-    *      tz         - time zone (EST5EDT for eastern time zone).  Type
-    *                   'man 4 tztab' for info and 'more /usr/lib/tztab'
-    *                    for supported time zones.
-    *
-    *    Output
-    *      is_dst     - flag returned from CLIMATEUtils::stdTime.
-    *                    = 0; daylight savings time in effect at this time
-    *                    = 1; standard time in effect at this time
-    *
-    * 
-    *    Local   
-    *      s_time     - current time in seconds since Jan. 1, 1970.
-    *
-    *    Non-system functions used
-    *      logBug
-    *      mktime
-    *      CLIMATEUtils::stdTime
-     * 
+     *
      * </pre>
      * 
      * Migrated from ClimateUtils.C::stdTime
@@ -385,18 +318,7 @@ public final class ClimateUtilities {
      * Name: tzStdTime()
     * Purpose: to calculate difference between UTC and time zone specified by
     *          the argument tz
-    *
-    * Implementation: the operating system logic (see tztab(4) man page) is
-    *                 used to determine the difference (west positive) and
-    *                 standard/saving time flag.
-    *
-    * Arguments:
-    *    tz:         time zone in standard Unix format, i.e. NST3:30NDT
-    *    stdAllYear: standard time all year flag
-    *    offset:     returned offset from UTC [min]
-    *    then:       requested time, defaults to current time
-    * Returned value:
-    *    true if standard time in effect, false otherwise
+     *
      * </pre>
      * 
      * @param aDate
@@ -498,28 +420,14 @@ public final class ClimateUtilities {
      * Migrated from latent_heat.f.
      * 
      * <pre>
-     * August 1998     Jason P. Tuell        PRC/TDL
-    *
-    *
-    *   Purpose:  This function calculates the latent heat of evaporation
-    *             as a function of the input temperature.
-    *
-    *             Reference:  An Introduction to Atmospheric Physics
-    *                         Fleagle and Businger,
-    *                         Academic Press, 1963
-    *
-    *   Variables
-    *
-    *      Input
-    *        t            - temperature (K)
-    *
-    *      Output
-    *        latent_heat - latent heat of evaporation
-    *
-    *      Local
-    *        latent_heat_at_0c - latent heat at 0C
-    *        zeroc_k           - zero Kelvin
-     * </pre>
+     * August 1998 Jason P. Tuell PRC/TDL
+     *
+     *
+     * Purpose: This function calculates the latent heat of evaporation as a
+     * function of the input temperature.
+     *
+     * Reference: An Introduction to Atmospheric Physics Fleagle and Businger,
+     * Academic Press, 1963
      * 
      * @param tempK
      *            temperature in Kelvin.
@@ -541,25 +449,13 @@ public final class ClimateUtilities {
     *
     *   Purpose:  This function converts degrees Fahrenheit to degrees 
     *             Kelvin.
-    *
-    *   Variables
-    *
-    *      Input
-    *        t            - temperature (f)
-    *
-    *      Output
-    *        f_to_K       - temperature (K)
-    *
-    *      Local
-    *        slope        - slope of line converting C to F
-    *        zeroc_k      - Freezing in degrees K
-    *        zeroc_f      - Freezing in degrees Fahrenheit
+     *
      * </pre>
      * 
      * @param tempF
      * @return
      */
-    public static double fahrenheitToKelvin(int tempF) {
+    public static double fahrenheitToKelvin(double tempF) {
         double zeroc_f = 32;
         double slope = 5.0 / 9.0;
 
@@ -584,21 +480,8 @@ public final class ClimateUtilities {
     *
     *  Purpose:  Function converts input Farenheit temperature to temperature
     *            Celsius.
-    *
-    *
-    *  Data set use - none.
-    *
-    *  Variables:
-    *     Input:
-    *        itempf      - temperature in degrees Farenheit
-    *
-    *     Output:
-    *       f_to_c       - temperature in Celsius
-    *
-    *     Local
-    *       izerof       - Zero degrees in Farenheit
-    *   
-    *  Non-system subroutines used - NONE
+     *
+     *
      * </pre>
      */
     public static double fahrenheitToCelsius(double tempF) {
@@ -615,25 +498,8 @@ public final class ClimateUtilities {
     *   Purpose:  This routine calculates the number of hours difference in the
     *             starting and ending periods of a daily climate summary.  This 
     *             is done for the evening climate summaries whose period of data
-    *             retrieval isn't a whole day. 
-    *              
-    *   Variables
-    *
-    *      Input
-    *        begin_date  - derived TYPE that specifies the starting date
-    *                      for data retrieval
-    *        begin_time  - derived TYPE that specifies the starting time
-    *                      for data retrieval (note - not used for 
-    *                      monthly and annual summaries)
-    *        end_date    - derived TYPE that specifies the ending date
-    *                      for data retrieval
-    *        end_time    - derived TYPE that specifies the ending time
-    *                      for data retrieval (note - not used for 
-    *                      monthly and annual summaries)
-    *        
-    *
-    *      Output
-    *        delta_hours - number of hours between the start and end times
+    *             retrieval isn't a whole day.
+     * 
      * </pre>
      * 
      * @param dateTimes
@@ -663,46 +529,14 @@ public final class ClimateUtilities {
     *             polynomial which is accurate to within 1% over the range
     *             +50 C to -50 C.  We use an alternative expression if
     *             the input temperature is outside that range.
-    *
-    *             References:
-    *
-    *               Lowe, Paul R., Journal of Applied Meteorology,
-    *                  Jan 1977, p. 100
-    *
-    *             All constants are obtained from the following:
-    *
-    *                  Smithsonian Meteorological Tables
-    *                  List, Robert J., Smithsonian Institution Press,
-    *                  1958.
-    *
-    * 
-    *   Variables
-    *
-    *      Input
-    *        t            - temperature (F)
-    *
-    *      Output
-    *        e_from_t     - vapor pressure (mb)
-    *
-    *      Local
-    *        eat0c        - vapor pressure at 0 Celsius
-    *        rsubv        - specific heat of water vapor
-    *        temp_K       - temperature degrees K
-    *        zeroc_K      - freezing in degrees K
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *         f_to_K      - converts degrees Fahrenheit to Kelvin
-    *         latent_heat - calculates latent heat as a function of 
-    *                       temperature
+     *
      * </pre>
      * 
      * @param tempF
      *            in Fahrenheit
      * @return pressure in millibars.
      */
-    public static double vaporPressureFromTemperature(int tempF) {
+    public static double vaporPressureFromTemperature(double tempF) {
         double tempK = fahrenheitToKelvin(tempF);
 
         // Calculate the vapor pressure
@@ -742,28 +576,8 @@ public final class ClimateUtilities {
      *           the daily average temperature and 65 Farenheit.  They are
      *           only calculated if the average temperature is greater than
      *           65 F.  If the average temperature is less than 65, the 
-     *           number of cooling degree days is set to zero. 
+     *           number of cooling degree days is set to zero.
      * 
-     * Variables
-     * 
-     *    Input
-     *      avg_temp      - daily average temperature (F)
-     * 
-     *    Output
-     *      cool_days     - number of cooling degree days
-     * 
-     *    Local
-     *      avg_temp_cool - temperature from which to calculate cooling 
-     *                      degree days.
-     *      iavg          - rounded average temperature
-     * 
-     *    Non-system routines used
-     * 
-     *    Non-system functions used
-     * 
-     * Modification Log
-     *  NAME                DATE      CHANGE
-     *  amoore              AUG 2016  Clean up c-structure of code.
      * </pre>
      */
     public static int calcCoolDays(float avgTemp) {
@@ -789,32 +603,6 @@ public final class ClimateUtilities {
      *           65 Farenheit and the daily average temperature.  They are
      *           only calculated if the average temperature is less than
      *           65 F.
-     * 
-     * 
-     * Variables
-     * 
-     *    Input
-     *      avg_temp      - daily average temperature (F)
-     * 
-     *    Output
-     *      heat_days     - number of heating degree days
-     * 
-     *    Local
-     *      avg_temp_heat - temperature from which to calculate heating 
-     *                      degree days.
-     *      iavg          - rounded average temperature
-     * 
-     *    Non-system routines used
-     * 
-     *    Non-system functions used
-     * 
-     * 
-     *  Modification Log
-     *  NAME                DATE      CHANGE
-     *  David T. Miller     Mar 2000  WMO standard for rounding temperatures
-     *                                requires a function slightly different
-     *                                from NINT.
-     *  amoore              AUG 2016  Clean up c-structure of code.
      * </pre>
      */
     public static int calcHeatDays(float avgTemp) {
@@ -957,5 +745,88 @@ public final class ClimateUtilities {
      */
     public static boolean floatingEquals(double d1, double d2) {
         return (Math.abs(d1 - d2) < EPSILON);
+    }
+
+    /**
+     * Check if the two given lists are equal up to the given capacity (not
+     * necessarily equal for all elements). A missing value for
+     * {@link ClimateDate} or {@link ClimateDates} is considered equivalent to
+     * no/null data. For {@link ClimateDate}, only check month and day for
+     * equality. For {@link ClimateDates}, only check month and day of the
+     * individual dates for equality.
+     * 
+     * @param iCapacity
+     * @param iFirstList
+     * @param iSecondList
+     * @return true if equal, false otherwise.
+     */
+    public static boolean isListsEqualUpToCapacity(int iCapacity,
+            java.util.List<?> iFirstList, java.util.List<?> iSecondList) {
+        /*
+         * check if the lists match up to the smaller of the given capacity and
+         * (greater of the lists' capacities)
+         */
+        for (int i = 0; i < iCapacity
+                && (i < iFirstList.size() || i < iSecondList.size()); i++) {
+            if (i < iFirstList.size() && i < iSecondList.size()) {
+                // both lists have an element
+                if (iFirstList.get(i) instanceof ClimateDate
+                        && iSecondList.get(i) instanceof ClimateDate) {
+                    ClimateDate firstDate = (ClimateDate) iFirstList.get(i);
+                    ClimateDate secondDate = (ClimateDate) iSecondList.get(i);
+
+                    if (firstDate.getDay() != secondDate.getDay()
+                            || firstDate.getMon() != secondDate.getMon()) {
+                        return false;
+                    }
+                } else if (iFirstList.get(i) instanceof ClimateDates
+                        && iSecondList.get(i) instanceof ClimateDates) {
+                    ClimateDates firstDates = (ClimateDates) iFirstList.get(i);
+                    ClimateDates secondDates = (ClimateDates) iSecondList
+                            .get(i);
+
+                    if (firstDates.getStart().getDay() != secondDates.getStart()
+                            .getDay()
+                            || firstDates.getStart().getMon() != secondDates
+                                    .getStart().getMon()
+                            || firstDates.getEnd().getDay() != secondDates
+                                    .getEnd().getDay()
+                            || firstDates.getEnd().getMon() != secondDates
+                                    .getEnd().getMon()) {
+                        return false;
+                    }
+                } else if (!iFirstList.get(i).equals(iSecondList.get(i))) {
+                    return false;
+                }
+            } else {
+                Object maybeMissingObject;
+
+                if (i < iFirstList.size()) {
+                    // first list has an element, second list does not
+                    maybeMissingObject = iFirstList.get(i);
+                } else {
+                    // second list has an element, first list does not
+                    maybeMissingObject = iSecondList.get(i);
+                }
+
+                if (maybeMissingObject instanceof ClimateDate) {
+
+                    if (!((ClimateDate) maybeMissingObject).isMissing()) {
+                        // not missing data
+                        return false;
+                    }
+                } else if (maybeMissingObject instanceof ClimateDates) {
+
+                    if (!((ClimateDates) maybeMissingObject).isMissing()) {
+                        // not missing data
+                        return false;
+                    }
+                } else {
+                    // not an object that has an equivalent missing data
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

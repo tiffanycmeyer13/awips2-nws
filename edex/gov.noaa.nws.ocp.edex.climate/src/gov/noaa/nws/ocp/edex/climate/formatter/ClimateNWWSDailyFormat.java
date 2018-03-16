@@ -13,8 +13,6 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -34,8 +32,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.WeatherStrings;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateDailyReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.rer.RecordClimateRawData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
@@ -57,6 +55,11 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * May 19, 2017 30163      wpaintsil   Create a list of new daily records to use for RERs.
  * 13 JUL 2017  33104      amoore      Use common rounding.
  * 24 AUG 2017  37328      amoore      Formatter should not change data.
+ * 12 OCT 2017  35865      wpaintsil   Don't generate duplicate RER.
+ * 17 NOV 2017  41018      amoore      Get rid of unnecessary assignments, take advantage
+ *                                     of aliasing.
+ * 20 NOV 2017  41088      amoore      Remove unnecessary double-checking of report windows
+ *                                     for snow section.
  * </pre>
  *
  * @author wpaintsil
@@ -68,12 +71,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * List used to hold new daily records used to create RERs
      */
     private List<RecordClimateRawData> dailyRecordData = new ArrayList<>();
-
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateNWWSDailyFormat.class);
 
     private enum PrecipPeriod {
         DAY, MONTH, SEASON, YEAR;
@@ -103,152 +100,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *            NWWS evening climate summary.  It controls the construction
     *            of new lines which are associated with a particular type of
     *            meteorological variable.
-    *
-    *  Variables
-    *
-    *     Input
-    *             a_date - derived TYPE containing the valid date of the report.
-    *   climate_stations - derived TYPE containing the station id's and plain
-    *                      language station names for this climate report.
-    *           do_astro - derived TYPE containing flags for reporting astronomical
-    *                      data.
-    *        do_avg_temp - derived TYPE containing flags for reporting average
-    *                      temperature.
-    *         do_celsius - flag for reporting temperatures in Celsius.
-    *                      = TRUE - report Celsius temperatures
-    *                      = FALSE - don't report Celsius temps
-    *            do_cool - derived TYPE containing flags for reporting cooling
-    *                      degree days.
-    *            do_heat - derived TYPE containing flags for reporting heating
-    *                      degree days.
-    *        do_max_gust - derived TYPE containing flags for reporting maximum wind
-    *                      gusts.
-    *          do_max_rh - derived TYPE containing flags for reporting maximum
-    *                      reltive humidity.
-    *        do_max_temp - derived TYPE containing flags for reporting maximum
-    *                      temperature.
-    *        do_max_wind - derived TYPE containing flags for reporting maximum
-    *                      winds.
-    *          do_min_rh - derived TYPE containing flags for reporting minimum
-    *                      relative humidity.
-    *        do_min_temp - derived TYPE containing flags for reporting minimum 
-    *                      temperature.
-    *      do_precip_day - derived TYPE containing flags for reporting daily liquid
-    *                      precipitation.
-    *        do_snow_day - derived TYPE containing flags for reporting snowfall.
-    * do_snow_12Z_depth  - derived TYPE containing flags for reporting morning snow
-    *                      depth.
-    *          last_year - structure containing the observed last year's data.
-    *                      See the structure definition for more details.
-    *       num_stations - number of stations in this climate summary.
-    *            sunrise - derived TYPE containing the time of sunrise.
-    *             sunset - derived TYPE containing the time of sunset.
-    *          y_climate - derived TYPE containing historical climate data.
-    *          yesterday - derived TYPE containing observed data.
-    *
-    *     Output
-    *
-    *
-    *
-    *     Local
-    *
-    *        all_phrases - buffer containing the climate report.
-    *                  i - loop index.
-    *            morning - flag which differentiates morning and evening reports;
-    *                      =1 - morning report
-    *                      =2 - evening report
-    *           num_char - number of characters in a buffer.
-    *
-    *     INCLUDE files
-    *   DEFINE_general_phrases.I - contains character strings need to build all
-    *                              types of sentences.
-    *    DEFINE_precip_phrases.I - contains character strings needed to build
-    *                              precip sentences.
-    * PARAMETER_format_climate.I - contains all paramters used to dimension arrays,
-    *                              etc.  This INCLUDE file must always come first.
-    *       TYPE_climate_dates.I - defines the derived TYPE "climate_dates"; note
-    *                              that it uses the dervied TYPE "date" - the
-    *                              "date" file must be INCLUDED before this one.
-    *  TYPE_climate_record_day.I - defines the derived TYPE used to store the
-    *                              historical climatological record for a given
-    *                              site for a given day.  Uses derived TYPE "wind"
-    *                              so that INCLUDE file must come before this one.
-    *                TYPE_date.I - defines the derived TYPE "date"; This INCLUDE
-    *                              file must always come before any other INCLUDE
-    *                              file which uses the "date" TYPE.
-    *  TYPE_daily_climate_data.I - defines the derived TYPE used to store the
-    *                              observed climatological data.  Note that INCLUDE
-    *                              file defining the wind TYPE must be specified
-    *                              before this file.
-    *  TYPE_do_weather_element.I - defines the derived TYPE used to hold the
-    *                              controlling logic for producing sentences/
-    *                              reports for a given variable.
-    *TYPE_report_climate_norms.I - defines the derived TYPE used to hold the flags
-    *                              which control reporting the climatological norms
-    *                              for different meteorological variables.
-    *                TYPE_time.I - defines the derived TYPE used to specify the
-    *                              time.
-    *        TYPE_station_list.I - defines the derived TYPE used to hold station
-    *                              information for the climate summary.
-    *                TYPE_wind.I - defines the derived TYPE used to specify wind
-    *                              speed,and direction.
-    *
-    *     Non-system routines used
-    *
-    *   build_NWWS_astro - adds the astronomical data to the report
-    * build_NWWS_comment - adds the comment line to the report
-    *  build_NWWS_header - adds the header line to the report
-    *      build_NWWS_rh - adds the RH data to the report
-    * build_NWWS_weather - adds the weather data to the report, i.e., temperature,
-    *                      precipitation, snowfall, and heating and cooling degree
-    *                      days.
-    *    build_NWWS_wind - adds the wind data to the report        
-    *
-    *     Non-system functions used
-    *
-    *        NONE
-    *
-    *     Special system functions used
-    *
-    *             strlen - C function; returns the number of characters in a string;
-    *                      string must be terminated with the NULL character.
-    *
-    *MODIFICATION HISTORY
-    *--------------------
-    *   7/14/00   Doug Murphy              New OML asked for another separator
-    *                                      between RH and norms sections
-    *   7/27/00   Doug Murphy              Swapped order of normals table and
-    *                                      astro data
-    *  10/17/00   Doug Murphy              Changed way separator is defined
-    *  10/27/00   Doug Murphy              Made call to build_NWWS_comment
-    *                                      more efficient
-    *                                      ** noticed that several of the calls
-    *                                         can be made more efficient, but
-    *                                         will hold off due to unimportance
-    *                                         at this time **
-    *   3/22/01   Doug Murphy              Added call to conv_time for inter/evening
-    *                                      reports to convert valid_time to 12 hour
-    *                                      clock
-    *   5/11/01   Doug Murphy              Removed a couple of variables not
-    *                                      needed in build_NWWS_wind. Also only
-    *                                      need to pass a single portion of 
-    *                                      yesterday instead of whole array.
-    *                                      All of the other routines should do
-    *                                      the same... will change in future if
-    *                                      time allows
-    *   
-    *
-    *   6/02/06  Darnell Early             Made changes to intermittently write output
-    *                                      to file as opposed to storing all output in a single
-    *                                      string.
-    *   11/02/06 Darnell Early             Made changes to fixed routine that writes to file
-    *
-    *
-    *   11/08/06 Darnell Early             Made changes to stop writing null characters to file
-    *                  IMPLICIT NONE
-    *   16/06/08 Xiaochuan         Add format() statement to fix the indentation 
-    *                  problems in climate output report.
-     * 
+     *
      * </pre>
      * 
      * @param reportData
@@ -256,9 +108,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    public Map<String, ClimateProduct> buildText(
-            ClimateCreatorResponse reportData) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+    public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         Map<String, ClimateProduct> prod = new HashMap<>();
 
         boolean morning;
@@ -269,7 +120,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             morning = false;
         }
 
-        Map<Integer, ClimateDailyReportData> reportMap = ((ClimateCreatorDailyResponse) reportData)
+        Map<Integer, ClimateDailyReportData> reportMap = ((ClimateRunDailyData) reportData)
                 .getReportMap();
 
         StringBuilder productText = new StringBuilder();
@@ -284,7 +135,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             ClimateDailyReportData report = reportMap.get(stationId);
             if (report == null) {
                 logger.warn("The station with informId " + stationId
-                        + " defined in the ClimateProductType settings object was not found in the ClimateCreatorResponse report map.");
+                        + " defined in the ClimateProductType settings object was not found in the ClimateRunData report map.");
                 continue;
             }
 
@@ -351,18 +202,18 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                             || currentSettings.getControl()
                                     .getTempRecordControl().isMinTempYear())) {
 
-                productText.append(separator(58).toString() + "\n\n");
+                productText.append(separator(58).toString()).append("\n\n");
 
             }
 
             productText.append(buildNWWSNormTable(stationId,
-                    (ClimateCreatorDailyResponse) reportData, report, morning));
-            productText.append(buildNWWSAstro(
-                    (ClimateCreatorDailyResponse) reportData, report));
-            productText.append(NWWS_FOOTNOTE + "\n\n");
+                    (ClimateRunDailyData) reportData, report, morning));
+            productText.append(
+                    buildNWWSAstro((ClimateRunDailyData) reportData, report));
+            productText.append(NWWS_FOOTNOTE).append("\n\n");
         }
 
-        productText.append("\n\n" + PRODUCT_TERMINATOR + "\n");
+        productText.append("\n\n").append(PRODUCT_TERMINATOR).append("\n");
 
         prod.put(getName(),
                 getProduct(applyGlobalConfig(productText.toString())));
@@ -383,108 +234,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *   Purpose:  This subroutine is to call the drivers for building the
     *             temperatures, precipitations, heat and cool, and the 
     *             footnote sentences for the NOAA Weather Wire Service (NWWS).
-    *
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for the climate
-    *                       summary.  See the structure efinition for more details
-    *             do_cool - structure containg the flags which control generation
-    *                       of various portions of the cooling days sentences.
-    *                       See the structure defintion for more details.
-    *             do_heat - structure containg the flags which control generation
-    *                       of various portions of the heating days sentences.
-    *                       See the structure definition for more details
-    *       do_precip_day - structure containing the flags which control generation
-    *                       of various portions of the liquid precip sentences.
-    *                       See the structure definition for more details.
-    *       do_precip_mon - structure containing the flags which control generation
-    *                       of various portions of the monthly precip sentences.
-    *                       See the structure definition for more details.
-    *    do_precip_season - structure containing the flags which control generation
-    *                       of various portions of the seasonal precip sentences.
-    *                       See the structure definition for more details.
-    *      do_precip_year - structure containing the flags which control generation
-    *                       of various portions of the year precip sentences.
-    *                       See the structure definition for more details.
-    *         do_snow_day - structure containing the flags which control generation
-    *                       of various portions of the snowfall sentences.
-    *                       See the structure definition for more details.
-    *   do_snow_12Z_depth - structure containing the flags which control generation
-    *                       of various portions of the snow depth sentences.
-    *                       See the structure definition for more details.
-    *           last_year - structure containing the observed last year's data.
-    *                       See the structure definition for more details.
-    *             morning - flag which differntiates morning and evening reports;
-    *                             =1 - morning report
-    *                             =2 - evening report
-    *            num_stat - number of stations in this group to be summarized
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns
-    *           y_climate - structure containing historical climatology for a given
-    *                       date.  See the structure definition for more details
-    *           yesterday - structure containing the observed climate data.
-    *                       See the structure definition for more details
-    *         all_phrases - buffer which holds the entire report output.
-    *
-    *      Output
-    *
-    *         all_phrases - buffer which holds the entire report output.
-    *
-    *      Local
-    *        big_null          - string of null characters used to intialize
-    *                            character strings to null
-    *
-    *      INCLUDE files
-    *        PARAMETER_format_climate.I  - contains all paramters used to
-    *                                       dimension arrays, etc.  This 
-    *                                       INCLUDE file must always come
-    *                                       first.
-    *        TYPE_climate_dates.I        - defines the derived TYPE 
-    *                                       "climate_dates"; note that it 
-    *                                       uses the dervied TYPE "date" - 
-    *                                       the "date" file must be INCLUDEd
-    *                                       before this one
-    *        TYPE_climate_record_day.I   - defines the derived TYPE used to
-    *                                       store the historical climatological
-    *                                       record for a given site for a given
-    *                                       day.  Uses derived TYPE "wind" so
-    *                                       that INCLUDE file must come before
-    *                                       this one
-    *        TYPE_date.I                 - defines the derived TYPE "date";
-    *                                       This INCLUDE file must always 
-    *                                       come before any other INCLUDE file
-    *                                       which uses the "date" TYPE
-    *        TYPE_daily_climate_data.I   - defines the derived TYPE used to 
-    *                                       store the observed climatological
-    *                                       data.  Note that INCLUDE file
-    *                                       defining the wind TYPE must be 
-    *                                       specified before this file
-    *        TYPE_do_weather_element.I   - defines the derived TYPE used to
-    *                                       hold the controlling logic for
-    *                                       producing sentences/reports for
-    *                                       a given variable
-    *        TYPE_report_climate_norms.I - defines the derived TYPE used to
-    *                                       hold the flags which control 
-    *                                       reporting the climatological norms
-    *                                       for different meteorological 
-    *                                       variables
-    *        TYPE_time.I                 - defines the derived TYPE used to
-    *                                       specify the time
-    *        TYPE_wind.I                 - defines the derived TYPE used to
-    *                                       specify wind speed,and direction
-    *
-    *      Non-system routines used
-    *         NONE
-    *
-    *      Non-system functions used
-    *         NONE
-    *
-    * MODIFICATION HISTORY
-    * --------------------
-    *    7/14/00   Doug Murphy              New OML asked for another separator
-    *                                       at end of the table
-    *   10/17/00   Doug Murphy              Changed way separator is initialized
      * </pre>
      * 
      * @param morning
@@ -494,14 +243,13 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private String buildNWWSTables(boolean morning,
-            ClimateCreatorResponse report, ClimateDailyReportData reportData)
-                    throws ClimateQueryException,
+    private String buildNWWSTables(boolean morning, ClimateRunData report,
+            ClimateDailyReportData reportData) throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsTables = new StringBuilder();
 
         ColumnSpaces tabs = new ColumnSpaces();
-        tabs.setDailyTabs(currentSettings);
+        tabs.setDailyTabs(currentSettings, report.getBeginDate());
 
         // Build the text headers for the columns.
         nwwsTables.append(buildNWWSColumns(tabs));
@@ -521,7 +269,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 || tabs.isDepart() || tabs.isLast()
                 || tabs.getPosActual() > 0) {
 
-            nwwsTables.append(separator(tabs.getPosLast()).toString() + "\n\n");
+            nwwsTables.append(separator(tabs.getPosLast()).toString())
+                    .append("\n\n");
         }
 
         return nwwsTables.toString();
@@ -541,71 +290,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             control over which pieces of the wind climatology are reported.
     *             If a particular piece of information is neglected in all the
     *             variables, then that column is omitted in the report.
-    * 
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *         all_phrases - buffer which holds the entire report output
-    *         do_max_wind - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the wind sentences.  See
-    *                       the structure definition for more details.                     
-    *         do_max_gust - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the wind sentences.  See
-    *                       the structure definition for more details.
-    *      do_result_wind - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the wind sentences.  See
-    *                       the structure definition for more details.
-    *                 num - number of stations in this group to be
-    *                       summarized
-    *
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *
-    *      Output
-    *         all_phrases - buffer which holds the entire report output
-    *
-    *      Local
-    *             c_speed - Character string used to hold the result wind 
-    *                       speed value once it has been converted to
-    *                       character from numeric format.
-    *               c_dir - Character string used to hold the max wind
-    *                       gust direction value once it has been converted to
-    *                       character from numeric format.
-    *            char_dir - Character representation of the numerical wind
-    *                       direction (W, NW, SW, etc.)
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - Number of characters in a string.
-    *          num_digits - The number of digits in a given number; 
-    *                       necessary for the conversion of numeric values 
-    *                       to character.
-    *              adjust - If the speed is only one character or the direction 
-    *                       only two characters, will adjust the format by one 
-    *                       space
-    *
-    *        Non-system routines used
-    *
-    *        Non-system functions used
-    *         pick_digits - Returns the number of digits in a number.
-    *
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *     2/15/01   Doug Murphy               Wind speeds are now in mph throughout
-    *                                         climate... no need to convert from 
-    *                                         knots
-    *     5/11/01   Doug Murphy               Wind directions are now reported in
-    *                                         degrees *and* show the compass 
-    *                                         direction
+     * 
      * </pre>
      * 
      * @param climateDailyReportData
@@ -647,24 +332,24 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     + MPH.toUpperCase();
             nwwsWindLine1.replace(0, wind_mph.length(), wind_mph);
 
-            nwwsWind.append("\n" + nwwsWindLine1.toString() + "\n");
+            nwwsWind.append("\n").append(nwwsWindLine1.toString()).append("\n");
         }
 
         if (resultWindFlags.isMeasured()) {
 
             nwwsWind.append(speedDir(RESULTANT + SPACE + WIND,
-                    yesterday.getResultWind()) + "\n");
+                    yesterday.getResultWind())).append("\n");
         }
         if (maxWindFlags.isMeasured()) {
             nwwsWind.append(
-                    speedDir(HIGHEST + SPACE + WIND, yesterday.getMaxWind())
-                            + "\n");
+                    speedDir(HIGHEST + SPACE + WIND, yesterday.getMaxWind()))
+                    .append("\n");
         }
 
         if (maxGustFlags.isMeasured()) {
             nwwsWind.append(
-                    speedDir(HIGHEST + SPACE + GUST, yesterday.getMaxGust())
-                            + "\n");
+                    speedDir(HIGHEST + SPACE + GUST, yesterday.getMaxGust()))
+                    .append("\n");
         }
 
         if (avgWindFlags.isMeasured()) {
@@ -678,7 +363,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             if (yesterday
                     .getAvgWindSpeed() != ParameterFormatClimate.MISSING_SPEED) {
                 float avgMph = yesterday.getAvgWindSpeed();
-                int numDigits = String.valueOf(avgMph).length();
+                int numDigits = String.format(FLOAT_ONE_DECIMAL, avgMph)
+                        .length();
 
                 int adjust;
                 if (numDigits == 2) {
@@ -695,13 +381,14 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     adjust = 0;
                 }
 
-                speedDirLine.replace(22 + adjust, 30, String.valueOf(avgMph));
+                speedDirLine.replace(22 + adjust, 30,
+                        String.format(FLOAT_ONE_DECIMAL, avgMph));
 
             } else {
                 speedDirLine.replace(24, 27, ParameterFormatClimate.MM);
             }
 
-            nwwsWind.append(speedDirLine.toString() + "\n");
+            nwwsWind.append(speedDirLine.toString()).append("\n");
         }
         if (resultWindFlags.isMeasured() || maxWindFlags.isMeasured()
                 || maxGustFlags.isMeasured() || avgWindFlags.isMeasured()) {
@@ -724,43 +411,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             observed (today/yesterday) depending on whether or not its a
     *             morning or evening report. All of the weather conditions will
     *             then be listed.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *             morning - flag which differntiates morning and evening
-    *                       reports;
-    *                       1 - morning report
-    *                       2 - evening report
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *      Output
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *
-    *      Local
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *           num_char1 - number of characters in the wx. data element
-    *
-    *      Non-system routines used
-    *              strlen = C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *      Non-system functions used
-    *
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *       7/11/00         Doug Murphy             Changed wording from "sensible"
-    *                                               to "significant"
+     * 
      * </pre>
      * 
      * @param climateDailyReportData
@@ -803,8 +454,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             nwwsWeatherLine2.replace(0, weatherPhrase1.length(),
                     weatherPhrase1);
 
-            nwwsWeather.append("\n" + nwwsWeatherLine1.toString() + "\n"
-                    + nwwsWeatherLine2.toString() + "\n");
+            nwwsWeather.append("\n").append(nwwsWeatherLine1.toString())
+                    .append("\n").append(nwwsWeatherLine2.toString())
+                    .append("\n");
 
             if (yesterday.getNumWx() == 0
                     || yesterday.getNumWx() == ParameterFormatClimate.MISSING // necessary?
@@ -816,7 +468,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 nwwsWeatherLine3.replace(2, weatherPhrase2.length(),
                         weatherPhrase2);
 
-                nwwsWeather.append(nwwsWeatherLine3.toString() + "\n");
+                nwwsWeather.append(nwwsWeatherLine3.toString()).append("\n");
             } else {
                 for (int i = 0; i < DailyClimateData.TOTAL_WX_TYPES; i++) {
                     StringBuilder nwwsWeatherLine3 = emptyLine(
@@ -826,7 +478,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         String wx = WeatherStrings.getString(i);
 
                         nwwsWeatherLine3.replace(2, 2 + wx.length(), wx);
-                        nwwsWeather.append(nwwsWeatherLine3.toString() + "\n");
+                        nwwsWeather.append(nwwsWeatherLine3.toString())
+                                .append("\n");
 
                     }
                 }
@@ -850,51 +503,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             elements for the NOAA Weather Wire Service reports.  The
     *             data from these elements is reported in the same tabular
     *             format as was the termperature and degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *             morning - flag which differntiates morning and evening
-    *                       reports;
-    *                       1 - morning report
-    *                       2 - evening report
-    *                 num - number of stations in this group to be
-    *                       summarized
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *      Output
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *      Local
-    *        new_line     - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *        num_char     - number of characters in buffer all_phrases
-    *        num_digits   - the number of digits in a given number;
-    *                       necessary for the conversion of numeric
-    *                       values to character
-    *        num_digits   - number of digits ("width") in a number
-    *
-    *
-    *      Non-system routines used
-    *              strlen - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *      Non-system functions used
-    *
-    *    MODIFICATION HISTORY
-    *    --------------------
-    *  6/5/01    Doug Murphy                 Sky cover and poss sun are now
-    *                                        on separate lines, sky cover is
-    *                                        displayed in tenths, removed
-    *                                        some unnecessary lines of code
      * </pre>
      * 
      * @param climateDailyReportData
@@ -923,8 +531,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             StringBuilder nwwsSkyAndWeatherLine1 = emptyLine(
                     ParameterFormatClimate.NUM_LINE1_NWWS);
             nwwsSkyAndWeatherLine1.replace(0, SKY_COVER.length(), SKY_COVER);
-            nwwsSkyAndWeather
-                    .append("\n" + nwwsSkyAndWeatherLine1.toString() + "\n");
+            nwwsSkyAndWeather.append("\n")
+                    .append(nwwsSkyAndWeatherLine1.toString()).append("\n");
         }
         if (skyCoverFlags.isPossSunshine()) {
             StringBuilder nwwsSkyAndWeatherLine2 = emptyLine(
@@ -943,7 +551,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 nwwsSkyAndWeatherLine2.replace(21, 23,
                         ParameterFormatClimate.MM);
             }
-            nwwsSkyAndWeather.append(nwwsSkyAndWeatherLine2.toString() + "\n");
+            nwwsSkyAndWeather.append(nwwsSkyAndWeatherLine2.toString())
+                    .append("\n");
         }
 
         if (skyCoverFlags.isAvgSkycover()) {
@@ -961,7 +570,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         ParameterFormatClimate.MM);
             }
 
-            nwwsSkyAndWeather.append(nwwsSkyAndWeatherLine3.toString() + "\n");
+            nwwsSkyAndWeather.append(nwwsSkyAndWeatherLine3.toString())
+                    .append("\n");
         }
 
         if (skyCoverFlags.isPossSunshine() || skyCoverFlags.isAvgSkycover()) {
@@ -979,67 +589,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *   May   1999     Barry N. Baxter       PRC/TDL
     *
     *
-    *   Purpose:  
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *           DO_MAX_RH - structure containg the flags which control
-    *                       generation of various portions of the
-    *                       defintion for more details.
-    *           DO_MIN_RH - structure containg the flags which control
-    *                       generation of various portions of the
-    *                       min_rh sentences. See the structure
-    *                       definition for more details
-    *          DO_MEAN_RH - structure containg the flags which control
-    *                       generation of various portions of the
-    *                       rh sentences. See the structure
-    *                       definition for more details
-    *          YESTERDAY  - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         ALL_PHRASES - buffer which holds the entire report output
-    *
-    *      Output
-    *
-    *         ALL_PHRASES - buffer which holds the entire report output
-    *
-    *      Local
-    *
-    *            C_MAX_RH - Character string used to hold the max relative 
-    *                       humidity value once it has been converted to
-    *                       character from numeric format.
-    *            C_MIN_RH - Character string used to hold the min relative 
-    *                       humidity value once it has been converted to
-    *                       character from numeric format.
-    *           C_MEAN_RH - Character string used to hold the average relative 
-    *                       humidity value once it has been converted to
-    *                       character from numeric format.
-    *            NEW_LINE - Character buffer which holds a new line to 
-    *                       be added to the report.
-    *            NUM_CHAR - Number of characters in a string.
-    *          NUM_DIGITS - The number of digits in a given number; necessary for
-    *                       the conversion of numeric values to character.
-    *
-    *      Non-system routines used
-    *
-    *  CONVERT_CHARACTER_INT - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *        PICK_DIGITS  - Returns the number of digits in a number.
-    *
-    *              STRLEN - C function: returns the number of characters in a
-    *                         string; string must be terminated with the NULL
-    *                         character.
-    *
-    * MODIFICATION HISTORY
-    * --------------------
-    *    7/14/00   Doug Murphy              New OML changed "Hour" to "0000 AM"
-    *                                       for reporting time of max/min RH
-    *    5/16/01   Doug Murphy              Changed labeling of RH section
-    *                                       and cleaned up unnecessary variables
+    *   Purpose:
+     * 
      * </pre>
      * 
      * @param climateDailyReportData
@@ -1074,27 +625,31 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     WordUtils.capitalize(RELATIVE_HUMIDITY) + SPACE + "("
                             + PERCENT + ")");
 
-            nwwsRelHumd.append("\n" + nwwsRelHumdLine1.toString() + "\n");
+            nwwsRelHumd.append("\n").append(nwwsRelHumdLine1.toString())
+                    .append("\n");
 
             if (rhFlags.getMaxRH().isMeasured()) {
                 nwwsRelHumd
                         .append(relHumdLine(HIGHEST, yesterday.getMaxRelHumid(),
                                 rhFlags.getMaxRH().isTimeOfMeasured(),
-                                yesterday.getMaxRelHumidHour()) + "\n");
+                                yesterday.getMaxRelHumidHour()))
+                        .append("\n");
             }
 
             if (rhFlags.getMinRH().isMeasured()) {
                 nwwsRelHumd
                         .append(relHumdLine(LOWEST, yesterday.getMinRelHumid(),
                                 rhFlags.getMinRH().isTimeOfMeasured(),
-                                yesterday.getMinRelHumidHour()) + "\n");
+                                yesterday.getMinRelHumidHour()))
+                        .append("\n");
             }
 
             if (rhFlags.getMeanRH().isMeasured()) {
                 nwwsRelHumd.append(
                         relHumdLine(AVERAGE, yesterday.getMeanRelHumid(),
                                 rhFlags.getMeanRH().isTimeOfMeasured(),
-                                ParameterFormatClimate.MISSING) + "\n");
+                                ParameterFormatClimate.MISSING))
+                        .append("\n");
             }
             nwwsRelHumd.append("\n");
         }
@@ -1112,57 +667,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             routine was created to satisfy field input to have the ability 
     *             to display the climate normals independent of the actual 
     *             temperatures. This table will appear at the bottom of the NWWS
-    *             product. 
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *
-    *              a_date - date structure containing valid date for the climate
-    *                       summary.  See the structure definition for more details.
-    *         all_phrases - buffer which holds the entire report output.
-    *    climate_stations - derived TYPE containing the station id's and plain
-    *                       language station names for this climate report. 
-    *             morning - flag which differntiates morning and evening reports;
-    *                       1 - morning report
-    *                       2 - evening report
-    *            num_stat - index to the station that is being reported
-    *          valid_time - derived TYPE that contains the valid time of the
-    *                       climate summary; only used for evening reports
-    *
-    *      Output
-    *
-    *         all_phrases - buffer which holds the entire report output
-    *
-    *      Local
-    *
-    *               c_day - This is to hold the character value of the day number .
-    *             c_month - This is to hold the character value of the month number.
-    *              c_year - This is to hold the character value of the year number.
-    *            num_char - number of characters in buffer all_phrases.
-    *            num_day* - number of digits ("width") in day.
-    *            num_mon* - number of digits ("width") in month.
-    *           num_years - number of digits ("width") in year.
-    *
-    *      Non-system routines used
-    *
-    *  convert_character_int - converts an input INTEGER to its CHARACTER equivalent.
-    *                          User must supply the INTEGER and the # of digits in
-    *                          the INTEGER.
-    *     get_climate_period - returns the starting and ending years of the
-    *                           normal period and record period
-    *
-    *      Non-system functions used
-    *
-    *         pick_digits - Returns the number of digits in a number.
-    *              strlen - C function; returns the number of characters in a string;
-    *                      string must be terminated with the NULL character.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   5/16/01   Doug Murphy              Had to scooch labels to accomodate
-    *                                      new labeling
+    *             product.
+     * 
      * </pre>
      * 
      * @param stationId
@@ -1172,7 +678,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @return
      */
     private String buildNWWSNormTable(int stationId,
-            ClimateCreatorDailyResponse reportData,
+            ClimateRunDailyData reportData,
             ClimateDailyReportData climateDailyReportData, boolean morning) {
         String stationName = stationMap.get(stationId).getStationName();
         StringBuilder nwwsNormTable = new StringBuilder();
@@ -1196,8 +702,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
          */
 
         if (normFlags.isMaxTempNorm() || normFlags.isMinTempNorm()) {
-            nwwsNormTable.append("The " + stationName + " climate normals for "
-                    + (morning ? TODAY : TOMORROW));
+            nwwsNormTable.append("The ").append(stationName)
+                    .append(" climate normals for ")
+                    .append((morning ? TODAY : TOMORROW));
 
             StringBuilder nwwsNormLine1 = emptyLine(
                     ParameterFormatClimate.NUM_LINE1_NWWS);
@@ -1214,7 +721,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 }
             }
 
-            nwwsNormTable.append("\n" + nwwsNormLine1.toString() + "\n");
+            nwwsNormTable.append("\n").append(nwwsNormLine1.toString())
+                    .append("\n");
 
             if (normFlags.isMaxTempNorm()) {
                 nwwsNormTable.append(buildNWWSAnyNorms(reportData,
@@ -1244,60 +752,13 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             in the output of the National Weather Wire Service (NWWS).  This 
     *             subroutine will also place the sunrise and sunset data into the 
     *             output of the National Weather Wire Service (NNWS).
-    *
-    *   Variables
-    *
-    *      Input
-    *
-    *            DO_ASTRO - structure containing the flags which control generation
-    *                       of various portions of the astro sentences.  See the
-    *                       structure definition for more details.
-    *               ITYPE - Include for the intermediate climate report.
-    *             SUNRISE - structure containing the valid times for the sunrise
-    *                       portion of the astro sentence.
-    *              SUNSET - structure containing the valid times for the sunset
-    *                       portion of the astro sentence.
-    *              A_DATE - structure containing the climate date.
-    *         ALL_PHRASES - buffer which holds the entire report output
-    *
-    *      Output
-    *
-    *         ALL_PHRASES - buffer which holds the entire report output
-    *
-    *      Local
-    *
-    *           CHAR_HOUR - character form of the hour number.
-    *            CHAR_MIN - character form of the min number.
-    *            NEW_LINE - Character buffer which holds a new line to 
-    *                       be added to the report.
-    *            NUM_CHAR - number of characters in a string
-    *
-    *      Non-system routines used
-    *
-    *              STRLEN - C function: returns the number of characters in 
-    *                       a string; string must be terminated with the NULL
-    *                       character.
-    *
-    *      Non-system functions used
-    *
-    *         NONE
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *     5/17/01   Doug Murphy                Reversed label to "Mon DD YYYY"
-    *                                          format... cleaned up code
-    *     5/21/01   Doug Murphy                Added time zone labels
-    *     6/22/01   Doug Murphy                Changed code to display a station
-    *                                          without a sunrise or sunset as 
-    *                                          "--:--"... only occurs in highest 
-    *                                          latitudes
      * </pre>
      * 
      * @param reportData
      * @param climateDailyReportData
      * @return
      */
-    private String buildNWWSAstro(ClimateCreatorDailyResponse reportData,
+    private String buildNWWSAstro(ClimateRunDailyData reportData,
             ClimateDailyReportData climateDailyReportData) {
         StringBuilder nwwsAstro = new StringBuilder();
 
@@ -1323,7 +784,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     + SPACE + WordUtils.capitalize(SUNSET);
 
             nwwsAstroLine1.replace(0, sunString.length(), sunString);
-            nwwsAstro.append("\n" + nwwsAstroLine1 + "\n");
+            nwwsAstro.append("\n").append(nwwsAstroLine1).append("\n");
 
             int julDay1 = 0;
             ClimateDate aDate = new ClimateDate(reportData.getBeginDate());
@@ -1425,7 +886,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 julDay1 = aDate.julday() + 1;
                 aDate.convertJulday(julDay1);
 
-                nwwsAstro.append(nwwsAstroLine2.toString() + "\n");
+                nwwsAstro.append(nwwsAstroLine2.toString()).append("\n");
             }
             nwwsAstro.append("\n");
         }
@@ -1442,58 +903,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *
     *   Purpose:  This routine builds the text for the column headings
     *             for the weather portion of the NWWS climate summary.
-    * 
-    *   Variables
-    *
-    *      Input
-    *                tabs - derived TYPE which contains the flags which
-    *                       contain the positions of the colums, width
-    *                       of the columns and whether a particular column
-    *                       should be reported
-    *    
-    *      Output
-    *
-    *         all_phrases - buffer which holds the entire report output
-    *
-    *      Local
-    *
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded
-    *                  lf - line feed character
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *                null - null character
-    *            num_char - number of characters in buffer all_phrases
-    *
-    *      Non-system routines used
-    *
-    *         NONE
-    *
-    *      Non-system functions used
-    *
-    *         NONE
-    *
-    *      Special system functions used
-    *              strlen - C function; returns the number of 
-    *                       characters in a string; string must
-    *                       be terminated with the NULL
-    *                       characterC
-    *
-    * MODIFICATION LOG
-    * NAME          DATE        CHANGE
-    * David T. Miller   May 2000    Added check on the jpos_actual
-    *                   member of tabs to determine if
-    *                       any of the Actual Values were
-    *                   to be displayed.  Also, added
-    *                   an additional check on ipos
-    *                   because under certain options
-    *                   this could be uninitialized
-    *                   causing format_climate to abort.
-    * Doug Murphy           July 2000       Changed "Actual" to "Observed"
-    *                                       and "Local" to "LST"
-    * Doug Murphy           October 2000    Changed way separator is initialized
      * </pre>
      * 
      * @param tabs
@@ -1640,20 +1049,20 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     WordUtils.capitalize(YEAR));
         }
 
-        StringBuilder nwwsColumns = new StringBuilder(
-                "\n" + nwwsColumnsLine1.toString() + "\n"
-                        + nwwsColumnsLine2.toString());
+        StringBuilder nwwsColumns = new StringBuilder("\n")
+                .append(nwwsColumnsLine1.toString()).append("\n")
+                .append(nwwsColumnsLine2.toString());
 
         if (tabs.isNorm() && tabs.isDepart()) {
             int position = tabs.getPosNorm() + 1;
             nwwsColumnsLine3.replace(position - 1, position + 8,
                     WordUtils.capitalize(NORMAL));
-            nwwsColumns.append("\n" + nwwsColumnsLine3.toString());
+            nwwsColumns.append("\n").append(nwwsColumnsLine3.toString());
         } else if (tabs.isDepart()) {
             int position = tabs.getPosYear() + 1;
             nwwsColumnsLine3.replace(position - 1, position + 8,
                     WordUtils.capitalize(NORMAL));
-            nwwsColumns.append("\n" + nwwsColumnsLine3.toString());
+            nwwsColumns.append("\n").append(nwwsColumnsLine3.toString());
         }
 
         /**
@@ -1662,7 +1071,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
          * headings.
          */
 
-        nwwsColumns.append("\n" + separator + "\n");
+        nwwsColumns.append("\n").append(separator).append("\n");
 
         return nwwsColumns.toString();
     }
@@ -1676,59 +1085,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *   May   1999     Barry N. Baxter       PRC/TDL  
     *
     *   Purpose:  This routine will call the temperature segment of the 
-    *             NWWS climate summary table. 
-    * 
-    *   Variables
-    *
-    *      Input
-    *
-    *              a_date - derived TYPE which contains the valid date for
-    *                       this climate summary.
-    *         all_phrases - buffer which holds the entire report output.
-    *         do_avg_temp - derived TYPE which contains the flags controlling
-    *                       which parts of the average temperature climatology
-    *                       are reported.
-    *         do_max_temp - derived TYPE which contains the flags controlling
-    *                       which parts of the maximum temperature climatology
-    *                       are reported.
-    *         do_min_temp - derived TYPE which contains the flags controlling
-    *                       which parts of the minimum temperature climatology
-    *                       are reported.
-    *           last_year - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *             morning - flag which differntiates morning and evening reports;
-    *                       1 - morning report
-    *                       2 - evening report
-    *            num_stat - index to the station that is being reported.
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns.
-    *           y_climate - derived TYPE which contains the historical
-    *                       climate data.
-    *           yesterday - derived TYPE which contains the observed climate
-    *                       data.
-    *
-    *      Output
-    *
-    *         all_phrases  - buffer which holds the entire report output.
-    *
-    *      Local
-    *
-    *            num_char - Number of characters in a string.
-    *
-    *      Non-system routines used
-    *
-    *
-    *      Non-system functions used
-    *
-    *              strlen - C function; returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    * MODIFICATION HISTORY
-    * --------------------
-    *   5/16/01   Doug Murphy              Amended temperature heading label
-    *                                      to include "(F)"
+    *             NWWS climate summary table.
      * </pre>
      * 
      * @param tabs
@@ -1737,9 +1094,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @param morning
      * @return
      */
-    private String buildNWWSTemp(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateReportData data,
-            boolean morning) {
+    private String buildNWWSTemp(ColumnSpaces tabs, ClimateRunData report,
+            ClimateReportData data, boolean morning) {
         StringBuilder nwwsTemp = new StringBuilder();
 
         StringBuilder nwwsTempLine1 = emptyLine(
@@ -1771,20 +1127,20 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         WordUtils.capitalize(TODAY));
             }
 
-            nwwsTemp.append(nwwsTempLine1.toString() + "\n");
-            nwwsTemp.append(nwwsTempLine2.toString() + "\n");
+            nwwsTemp.append(nwwsTempLine1.toString()).append("\n");
+            nwwsTemp.append(nwwsTempLine2.toString()).append("\n");
 
             // Create the maximum temp row
             // Example: "MAXIMUM 85 255 PM 99 1946 83 2 87"
-            nwwsTemp.append(buildNWWSAnyTemp(true, tabs,
-                    (ClimateCreatorDailyResponse) report,
-                    (ClimateDailyReportData) data));
+            nwwsTemp.append(
+                    buildNWWSAnyTemp(true, tabs, (ClimateRunDailyData) report,
+                            (ClimateDailyReportData) data));
 
             // Create the minimum temp row
             // Example: "MINIMUM 58 1151 PM 35 1930 61 -3 75"
-            nwwsTemp.append(buildNWWSAnyTemp(false, tabs,
-                    (ClimateCreatorDailyResponse) report,
-                    (ClimateDailyReportData) data));
+            nwwsTemp.append(
+                    buildNWWSAnyTemp(false, tabs, (ClimateRunDailyData) report,
+                            (ClimateDailyReportData) data));
             // Average temp row
             // Example: "AVERAGE 72 72 0 81"
             nwwsTemp.append(
@@ -1807,106 +1163,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             There are three basic types of precipitation sentences:
     *             liquid precip (i.e., rainfall) sentences, snowfall
     *             sentences, and depth of snow on the ground sentences.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *       do_precip_day - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid precip sentences.  See
-    *                       the structure definition for more details.
-    *       do_precip_mon - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the monthly precip sentences.  See
-    *                       the structure definition for more details.
-    *    do_precip_season - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid precip sentences.  See
-    *                       the structure definition for more details.
-    *      do_precip_year - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid precip sentences.  See
-    *                       the structure definition for more details.
-    *         do_snow_day - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the snowfall sentences.  See
-    *                       the structure definition for more details.
-    *   do_snow_12Z_depth - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the snow depth sentences.  See
-    *                       the structure definition for more details.
-    *           last_year - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *             morning - flag which differntiates morning and evening
-    *                       reports;
-    *                       =1 - morning report
-    *                       =2 - evening report
-    *            num_stat - number of stations in this group to be
-    *                       summarized
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns
-    *           y_climate - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         all_phrases - buffer which holds the entire report output.
-    *
-    *      Output
-    *         all_phrases - buffer which holds the entire report output.
-    *
-    *      Local
-    *            big_null - string of null characters used to intialize
-    *                       character strings to null
-    *
-    *      INCLUDE files
-    * PARAMETER_format_climate.I  - contains all paramters used to
-    *                               dimension arrays, etc.  This 
-    *                               INCLUDE file must always come
-    *                               first.
-    *        TYPE_climate_dates.I - defines the derived TYPE 
-    *                               "climate_dates"; note that it 
-    *                                uses the dervied TYPE "date" - 
-    *                                the "date" file must be INCLUDEd
-    *                                before this one
-    *   TYPE_climate_record_day.I - defines the derived TYPE used to
-    *                               store the historical climatological
-    *                               record for a given site for a given
-    *                               day.  Uses derived TYPE "wind" so
-    *                               that INCLUDE file must come before
-    *                               this one
-    *                 TYPE_date.I - defines the derived TYPE "date";
-    *                               This INCLUDE file must always 
-    *                               come before any other INCLUDE file
-    *                               which uses the "date" TYPE
-    *   TYPE_daily_climate_data.I - defines the derived TYPE used to 
-    *                               store the observed climatological
-    *                               data.  Note that INCLUDE file
-    *                               defining the wind TYPE must be 
-    *                               specified before this file
-    *   TYPE_do_weather_element.I - defines the derived TYPE used to
-    *                               hold the controlling logic for
-    *                               producing sentences/reports for
-    *                               a given variable
-    * TYPE_report_climate_norms.I - defines the derived TYPE used to
-    *                               hold the flags which control 
-    *                               reporting the climatological norms
-    *                               for different meteorological 
-    *                               variables
-    *                 TYPE_time.I - defines the derived TYPE used to
-    *                               specify the time
-    *                 TYPE_wind.I - defines the derived TYPE used to
-    *                               specify wind speed,and direction
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
      * </pre>
      * 
      * @param tabs
@@ -1917,9 +1173,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private String buildNWWSPrecip(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateReportData data,
-            boolean morning) throws ClimateQueryException,
+    private String buildNWWSPrecip(ColumnSpaces tabs, ClimateRunData report,
+            ClimateReportData data, boolean morning)
+                    throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsPrecip = new StringBuilder();
 
@@ -1939,8 +1195,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
         nwwsPrecip.append(buildNWWSLiquidPrecip(tabs, report,
                 (ClimateDailyReportData) data, morning));
 
-        boolean snowReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getSnowDates());
+        boolean snowReport = ClimateFormat.reportWindow(
+                currentSettings.getControl().getSnowDates(),
+                report.getBeginDate());
 
         /**
          * Create snow precipitation rows
@@ -1975,100 +1232,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *
     *   Purpose:  
     *        This subroutine is use only to call other subroutines when the flags
-    *        to the other subroutines are set to TRUE. 
-    *
-    *   Variables
-    *
-    *      Input
-    *
-    *             DO_COOL - structure containg the flags which control generation
-    *                       of various portions of the cooling days sentences.
-    *                       See the structure defintion for more details.
-    *             DO_HEAT - structure containg the flags which control generation
-    *                       of various portions of the heating days sentences.
-    *                       See the structure definition for more details
-    *             MORNING - flag which differntiates morning or evening reports;
-    *                        -1 morning report
-    *                        -2 evening report
-    *           LAST_YEAR - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *                 NUM - Number of stations in this group to be summarized.
-    *                TABS - derived TYPE which contains the tab stops for
-    *                       the columns
-    *           Y_CLIMATE - Structure containing historical climatology.
-    *              Y_DATE - Structure containing the observed date for yesterday.
-    *           YESTERDAY - Structure containing the observed climate data.
-    *                       See the structure definition for more details.
-    *         ALL_PHRASES - buffer which holds the entire report output.
-    *
-    *      Output
-    *
-    *         ALL_PHRASES - buffer which holds the entire report output.
-    *
-    *      Local
-    *
-    *  NONE
-    *
-    *      INCLUDE files
-    *  DEFINE_general_phrases.I    - Contains character strings need to build all
-    *                                 types of sentences.
-    *  DEFINE_precip_phrases.I     - Contains character strings needed to build
-    *                                 precip sentences.
-    *  PARAMETER_format_climate.I  - Contains all paramters used to dimension
-    *                                 arrays, etc.  This INCLUDE file must always
-    *                                 come first.
-    *  TYPE_climate_dates.I        - Defines the derived TYPE "climate_dates";
-    *                                 note that it uses the dervied TYPE "date" - 
-    *                                 the "date" file must be INCLUDED before this
-    *                                 one.
-    *  TYPE_climate_record_day.I   - Defines the derived TYPE used to store the
-    *                                 historical climatological record for a given
-    *                                 site for a given day.  Uses derived TYPE
-    *                                 "wind" so that INCLUDE file must come before
-    *                                 this one.
-    *  TYPE_date.I                 - Defines the derived TYPE "date";
-    *                                 This INCLUDE file must always come before any
-    *                                 other INCLUDE file which uses the "date" TYPE.
-    *  TYPE_daily_climate_data.I   - Defines the derived TYPE used to store the
-    *                                 observed climatological data.  Note that
-    *                                 INCLUDE file defining the wind TYPE must be 
-    *                                 specified before this file.
-    *  TYPE_do_weather_element.I   - Defines the derived TYPE used to hold the
-    *                                 controlling logic for producing
-    *                                 sentences/reports for a given variable.
-    *  TYPE_report_climate_norms.I - Defines the derived TYPE used to hold the
-    *                                 flags which control reporting the
-    *                                 climatological norms for different
-    *                                 meteorological variables.
-    *  TYPE_time.I                 - Defines the derived TYPE used to specify the
-    *                                 time.
-    *  TYPE_wind.I                 - Defines the derived TYPE used to specify wind
-    *                                 speed,and direction.
-    *
-    *      Non-system routines used
-    *
-    *  build_NWR_celsius            - Builds part of sentence that 
-    *                                 includes converting f to c. 
-    *  build_NWR_difference         - routine used to convert celsius 
-    *                                 number (if negative) to a positive 
-    *                     when reporting above or below 
-    *                                 normal.                 
-    *  CONVERT_CHARACTER_INT        - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *  PICK_DIGITS                  - Returns the number of digits in a number.
-    *
-    *  STRLEN                       - C function: returns the number of characters in a
-    *                                 string; string must be terminated with the NULL
-    *                                 character.
-    *
-    *
-    * MODIFICATION HISTORY
-    * --------------------
-    *    7/14/00   Doug Murphy              Removed a line feed so that a separator
-    *                                       could be added at the end of the table
+    *        to the other subroutines are set to TRUE.
      * </pre>
      * 
      * @param tabs
@@ -2080,8 +1244,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateInvalidParameterException
      */
     private String buildNWWSHeatAndCool(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data,
-            boolean morning) throws ClimateQueryException,
+            ClimateRunData report, ClimateDailyReportData data, boolean morning)
+                    throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsHeatAndCool = new StringBuilder();
         ClimateProductFlags heatFlags = currentSettings.getControl()
@@ -2089,10 +1253,12 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
         ClimateProductFlags coolFlags = currentSettings.getControl()
                 .getDegreeDaysControl().getTotalCDD();
 
-        boolean heatReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getHeatDates());
-        boolean coolReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getCoolDates());
+        boolean heatReport = ClimateFormat.reportWindow(
+                currentSettings.getControl().getHeatDates(),
+                report.getBeginDate());
+        boolean coolReport = ClimateFormat.reportWindow(
+                currentSettings.getControl().getCoolDates(),
+                report.getBeginDate());
 
         if ((heatFlags.isMeasured() && heatReport)
                 || (coolFlags.isMeasured() && coolReport)) {
@@ -2101,7 +1267,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             nwwsHeatAndCoolLine1.replace(0, DEGREE_DAYS.length(),
                     WordUtils.capitalize(DEGREE_DAYS));
 
-            nwwsHeatAndCool.append(nwwsHeatAndCoolLine1.toString() + "\n");
+            nwwsHeatAndCool.append(nwwsHeatAndCoolLine1.toString())
+                    .append("\n");
 
             /**
              * Create Heating rows.
@@ -2125,8 +1292,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     nwwsHeatAndCoolLine2.replace(1, 1 + HEATING.length(),
                             WordUtils.capitalize(HEATING));
 
-                    nwwsHeatAndCool
-                            .append(nwwsHeatAndCoolLine2.toString() + "\n");
+                    nwwsHeatAndCool.append(nwwsHeatAndCoolLine2.toString())
+                            .append("\n");
 
                     nwwsHeatAndCool.append(buildNWWSDegreeDay(tabs, report,
                             data, PrecipPeriod.DAY, true, morning));
@@ -2172,8 +1339,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     nwwsHeatAndCoolLine3.replace(1, 1 + COOLING.length(),
                             COOLING);
 
-                    nwwsHeatAndCool
-                            .append(nwwsHeatAndCoolLine3.toString() + "\n");
+                    nwwsHeatAndCool.append(nwwsHeatAndCoolLine3.toString())
+                            .append("\n");
 
                     nwwsHeatAndCool.append(buildNWWSDegreeDay(tabs, report,
                             data, PrecipPeriod.DAY, false, morning));
@@ -2263,73 +1430,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *
     *   Purpose:  This routine controls building the normal table at the
     *             bottom of the NWWS output.
-    * 
-    *   Variables
-    *
-    *      Input
-    *              a_date -  structure containing the observed date
-    *                temp -  character identifier to determine if its a
-    *                        max or min temperature line.
-    *    do_normal_record -  structure containing flag for normal record.
-    *             do_year -  structure containing flag for year.
-    *             obs_val -  the observed value
-    *          record_val -  the record value
-    *      year_of_record -  the year(s) the record was set
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns.
-    *      Output
-    *         all_phrases - buffer which holds the entire report output
-    *
-    *
-    *      Local
-    *        
-    *      INCLUDE files
-    *  PARAMETER_format_climate.I - contains all paramters used to dimension arrays,
-    *                               etc.  This INCLUDE file must always come first.
-    *   TYPE_climate_record_day.I - defines the derived TYPE used to store the
-    *                               historical climatological record for a given
-    *                               site for a given day.  Uses derived TYPE "wind"
-    *                               so that INCLUDE file must come before this one.
-    *         TYPE_column_stops.I - defines the derived TYPE used to specify the
-    *                               column stops and widths of various fields in the
-    *                               NWWS summary.  Also contains flags which
-    *                               indicate whether a particular column is used at
-    *                               all.
-    *                 TYPE_date.I - defines the derived TYPE "date"; This INCLUDE
-    *                               file must always come before any other INCLUDE
-    *                               file which uses the "date" TYPE.
-    *   TYPE_daily_climate_data.I - defines the derived TYPE used to store the
-    *                               observed climatological data.  Note that INCLUDE
-    *                               file defining the wind TYPE must be specified
-    *                               before this file.
-    *   TYPE_do_weather_element.I - defines the derived TYPE used to hold the
-    *                               controlling logic for producing sentences/
-    *                               reports for a given variable.
-    *                 TYPE_time.I - defines the derived TYPE used to specify the
-    *                               time.
-    *                 TYPE_wind.I - defines the derived TYPE used to specify wind
-    *                               speed,and direction.
-    *
-    *      Non-system routines used
-    *
-    *       convert_character_int - converts an input INTEGER to its CHARACTER
-    *                               equivalent.  User must supply the INTEGER and
-    *                               the # of digits in the INTEGER.
-    *
-    *      Non-system functions used
-    *
-    *         pick_digits - returns the number of digits in an input integer.
-    *
-    *      Special system functions used
-    *
-    *              strlen - C function; returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   5/16/01   Doug Murphy                 Changed labeling to include 
-    *                                         "(F)"
+     *
      * </pre>
      * 
      * @param reportData
@@ -2337,7 +1438,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @param max
      * @return
      */
-    private String buildNWWSAnyNorms(ClimateCreatorDailyResponse reportData,
+    private String buildNWWSAnyNorms(ClimateRunDailyData reportData,
             ClimateDailyReportData climateDailyReportData, boolean max) {
         StringBuilder nwwsAnyNorms = new StringBuilder();
         ColumnSpaces tabs = new ColumnSpaces();
@@ -2379,8 +1480,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     .getMinTempYear();
         }
 
-        tempString.append(SPACE + WordUtils.capitalize(TEMPERATURE) + SPACE
-                + ABBRV_FAHRENHEIT);
+        tempString.append(SPACE).append(WordUtils.capitalize(TEMPERATURE))
+                .append(SPACE).append(ABBRV_FAHRENHEIT);
 
         nwwsAnyNormsLine.replace(1, tempString.length(), tempString.toString());
 
@@ -2430,7 +1531,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         yearLine.replace(iPosition - 1, jPosition,
                                 String.valueOf(yearOfRecord[i]));
 
-                        extraYears.append(yearLine.toString() + "\n");
+                        extraYears.append(yearLine.toString()).append("\n");
                     }
                 }
             } else {
@@ -2459,93 +1560,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             temperature climatology are reported.  If a 
     *             particular piece of information is neglected in all the
     *             variables, then that column is omitted in the report.
-    * 
-    *   Variables
-    *
-    *      Input
-    *              a_date - derived TYPE which contains the valid date for
-    *                       this climate summary
-    *         all_phrases - buffer which holds the entire report output
-    *              do_val - derived TYPE which contains the flags controlling
-    *                       which parts of the maximum temperature climatology
-    *                       are reported.
-    *             obs_val -  the observed value
-    *          record_val -  the record value
-    *      year_of_record -  the year(s) the record was set
-    *       last_year_val - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns.
-    *
-    *      Output
-    *         all_phrases - buffer which holds the entire report output
-    *
-    *
-    *      Local
-    *               ctemp - character variable for holding numeric temps
-    *                       which have been converted to TYPE CHARACTER.   
-    *               cyear - character variable for holding numeric year
-    *                       which have been converted to TYPE CHARACTER.
-    *                   i - loop index
-    *         idelta_temp - difference between the current temperature
-    *                       and either the record or average temperature
-    *                       for this date.
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded.
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded.
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report.
-    *            num_char - number of characters in buffer all_phrases.
-    *          num_digits - number of digits ("width") in a number.
-    *              record - LOGICAL variable which indicates whether a new
-    *                       record was set or tied.
-    *                       = TRUE; record was tied or set
-    *                       = FALSE; record was not tied or set
-    *        
-    *      INCLUDE files
-    *  PARAMETER_format_climate.I - contains all paramters used to dimension arrays,
-    *                               etc.  This INCLUDE file must always come first.
-    *   TYPE_climate_record_day.I - defines the derived TYPE used to store the
-    *                               historical climatological record for a given
-    *                               site for a given day.  Uses derived TYPE "wind"
-    *                               so that INCLUDE file must come before this one.
-    *         TYPE_column_stops.I - defines the derived TYPE used to specify the
-    *                               column stops and widths of various fields in the
-    *                               NWWS summary.  Also contains flags which
-    *                               indicate whether a particular column is used at
-    *                               all.
-    *                 TYPE_date.I - defines the derived TYPE "date"; This INCLUDE
-    *                               file must always come before any other INCLUDE
-    *                               file which uses the "date" TYPE.
-    *   TYPE_daily_climate_data.I - defines the derived TYPE used to store the
-    *                               observed climatological data.  Note that INCLUDE
-    *                               file defining the wind TYPE must be specified
-    *                               before this file.
-    *   TYPE_do_weather_element.I - defines the derived TYPE used to hold the
-    *                               controlling logic for producing sentences/
-    *                               reports for a given variable.
-    *                 TYPE_time.I - defines the derived TYPE used to specify the
-    *                               time.
-    *                 TYPE_wind.I - defines the derived TYPE used to specify wind
-    *                               speed,and direction.
-    *
-    *      Non-system routines used
-    *
-    *       convert_character_int - converts an input INTEGER to its CHARACTER
-    *                               equivalent.  User must supply the INTEGER and
-    *                               the # of digits in the INTEGER.
-    *
-    *      Non-system functions used
-    *
-    *         pick_digits - returns the number of digits in an input integer.
-    *
-    *      Special system functions used
-    *
-    *              strlen - C function; returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
+     * 
      * </pre>
      * 
      * @param isMax
@@ -2554,7 +1569,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @return
      */
     private String buildNWWSAnyTemp(boolean isMax, ColumnSpaces tabs,
-            ClimateCreatorDailyResponse report, ClimateDailyReportData data) {
+            ClimateRunDailyData report, ClimateDailyReportData data) {
         StringBuilder nwwsAnyTemp = new StringBuilder();
 
         ClimateProductFlags tempFlag;
@@ -2661,6 +1676,22 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     // temperature and the record value for this date
                     int tempDelta = observedValue - recordValue;
 
+                    int latestRecordYear = yearOfRecord[0];
+                    boolean sameYearAndValue = false;
+
+                    // Prevent RER generation if the record is the same as the
+                    // current year and there are no other years.
+                    if (tempDelta == 0 && yearOfRecord[0] == report
+                            .getBeginDate().getYear()) {
+                        if (yearOfRecord[1] != ParameterFormatClimate.MISSING) {
+                            // If there's an older record, use that instead of
+                            // the current year.
+                            latestRecordYear = yearOfRecord[1];
+                        } else {
+                            sameYearAndValue = true;
+                        }
+                    }
+
                     // Check to see if this is record; if it is, then put
                     // the value int he record field and use the current year
                     // in the year field
@@ -2680,15 +1711,19 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         nwwsAnyTempLine.replace(jPosition, jPosition + 1,
                                 RECORD_SYMBOL);
 
-                        // Store the new record data for RERs whenever a new
-                        // record is found.
-                        logger.debug("Found new record for the station "
-                                + data.getStation().getStationName() + " (ID: "
-                                + data.getStation().getInformId() + ").");
+                        if (!sameYearAndValue) {
+                            // Store the new record data for RERs whenever a new
+                            // record is found.
+                            logger.debug("Found new record for the station "
+                                    + data.getStation().getStationName()
+                                    + " (ID: " + data.getStation().getInformId()
+                                    + ").");
 
-                        writeBrokenRecs(report.getBeginDate(),
-                                data.getStation().getInformId(), observedValue,
-                                recordValue, recordElement, yearOfRecord[0]);
+                            writeBrokenRecs(report.getBeginDate(),
+                                    data.getStation().getInformId(),
+                                    observedValue, recordValue, recordElement,
+                                    latestRecordYear);
+                        }
 
                     } else {
                         // Not a record. Load the historical records and years
@@ -2779,7 +1814,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 }
             }
 
-            nwwsAnyTemp.append(nwwsAnyTempLine.toString() + "\n");
+            nwwsAnyTemp.append(nwwsAnyTempLine.toString()).append("\n");
             nwwsAnyTemp.append(buildNWWSYear(tempFlag, yearOfRecord,
                     recordValue, observedValue, tabs));
         }
@@ -2799,115 +1834,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             summary.  The user has control over which pieces of the
     *             minimum temperature climatology are reported.  If a 
     *             particular piece of information is neglected in all the
-    *             variables, then that column is omitted in the report. 
-    *
-    *   Variables
-    *
-    *      Input
-    *              a_date - derived TYPE which contains the valid date for
-    *                       this climate summary.
-    *        all_phrases - buffer which holds the entire report output.
-    *        do_max_temp - derived TYPE which contains the flags controlling
-    *                       which parts of the average temperature climatology
-    *                       are reported.
-    *               num  - index to the station that is being reported.
-    *               tabs - derived TYPE which contains the tab stops for
-    *                       the columns.
-    *          y_climate - derived TYPE which contains the historical
-    *                       climate data.
-    *           yesterday - derived TYPE which contains the observed climate
-    *                       data.
-    *
-    *      Output
-    *         all_phrases - buffer which holds the entire report output.
-    *
-    *
-    *      Local
-    *               ctemp - character variable for holding numeric temps
-    *                       which have been converted to TYPE CHARACTER
-    *               ctemp - character variable for holding numeric times
-    *                       which have been converted to TYPE CHARACTER   
-    *               cyear - character variable for holding numeric year
-    *                       which have been converted to TYPE CHARACTER
-    *                   i - loop index
-    *         idelta_temp - difference between the current temperature
-    *                       and either the record or average temperature
-    *                       for this date
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded
-    *           last_year - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *          num_digits - number of digits ("width") in a number
-    *              record - LOGICAL variable which indicates whether a new
-    *                       record was set or tied
-    *                       = TRUE; record was tied or set
-    *                       = FALSE; record was not tied or set
-    *
-    *      INCLUDE files
-    *  PARAMETER_format_climate.I - contains all paramters used to
-    *                               dimension arrays, etc.  This 
-    *                               INCLUDE file must always come
-    *                               first.
-    *   TYPE_climate_record_day.I - defines the derived TYPE used to
-    *                               store the historical climatological
-    *                               record for a given site for a given
-    *                               day.  Uses derived TYPE "wind" so
-    *                               that INCLUDE file must come before
-    *                               this one
-    *         TYPE_column_stops.I - defines the derived TYPE used to
-    *                               specify the column stops and widths
-    *                               of various fields in the NWWS 
-    *                               summary.  Also contains flags which
-    *                               indicate whether a particular 
-    *                               column is used at all
-    *                 TYPE_date.I - defines the derived TYPE "date";
-    *                               This INCLUDE file must always 
-    *                               come before any other INCLUDE file
-    *                               which uses the "date" TYPE
-    *   TYPE_daily_climate_data.I - defines the derived TYPE used to 
-    *                               store the observed climatological
-    *                               data.  Note that INCLUDE file
-    *                               defining the wind TYPE must be 
-    *                               specified before this file
-    *   TYPE_do_weather_element.I - defines the derived TYPE used to
-    *                               hold the controlling logic for
-    *                               producing sentences/reports for
-    *                               a given variable
-    *                 TYPE_time.I - defines the derived TYPE used to
-    *                               specify the time
-    *                 TYPE_wind.I - defines the derived TYPE used to
-    *                               specify wind speed,and directionC
-    *
-    *      Non-system routines used
-    *       convert_character_int - converts an input INTEGER to its
-    *                               CHARACTER equivalent.  User must
-    *                               supply the INTEGER and the # of
-    *                              digits in the INTEGER
-    *
-    *      Non-system functions used
-    *               pick_digits  - returns the number of digits in an input integer
-    *
-    *      Special system functions used
-    *                     strlen - C function; returns the number of 
-    *                              characters in a string; string must
-    *                              be terminated with the NULL
-    *                              character
-    *                   NINTTEMP - C function; rounds temperatures according to
-    *                              WMO standards, correctly rounding negative 
-    *                              temperatures.
-    *
-    *  MODIFICATION LOG:
-    *  NAME                  DATE     CHANGE
-    *  D.T. Miller         March 2000 Changed NINT calls to NINTTEMP to conform
-    *                                 temperature rounding to WMO standards.
-    *  David T. Miller      6/30/00   Added sections to account for using the
-    *                                  mean_temp history structure member.
+    *             variables, then that column is omitted in the report.
      * </pre>
      * 
      * 
@@ -3045,7 +1972,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 }
             }
 
-            nwwsAvgTemp.append(nwwsAvgLine.toString() + "\n");
+            nwwsAvgTemp.append(nwwsAvgLine.toString()).append("\n");
         }
 
         return nwwsAvgTemp.toString();
@@ -3062,71 +1989,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             elements for the NOAA Weather Wire Service reports.  The
     *             data from these elements is reported in the same tabular
     *             format as was the termperature and degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *   
-    *   NOTE: do_precip_mon, do_precip_season, and do_precip_year
-    *         are not used anywhere in climate. They are left over from
-    *             early design ideas and have not been removed do the the 
-    *             complexity in doing so. Please ignore them.
-    *
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *       do_precip_day - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid precip sentences.  See
-    *                       the structure definition for more details.
-    *       do_precip_mon - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the monthly precip sentences.  See
-    *                       the structure definition for more details.
-    *    do_precip_season - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the seasonal precip sentences.  See
-    *                       the structure definition for more details.
-    *      do_precip_year - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the year precip sentences.  See
-    *                       the structure definition for more details.
-    *                 num - number of stations in this group to be summarized
-    *                tabs - derived TYPE which contains the tab stops for
-    *                       the columns
-    *           y_climate - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Output
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Local
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *       precip_record - LOGICAL variable which indicates whether a new
-    *                       record was set or tied
-    *                       = TRUE; record was tied or set
-    *                       = FALSE; record was not tied or set
-    *
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   5/16/01   Doug Murphy                 Changed labeling to read 
-    *                                         "Precipitation (in)"
+     * 
      * </pre>
      * 
      * @param tabs
@@ -3138,8 +2001,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateInvalidParameterException
      */
     private String buildNWWSLiquidPrecip(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data,
-            boolean morning) throws ClimateQueryException,
+            ClimateRunData report, ClimateDailyReportData data, boolean morning)
+                    throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsLiquidPrecip = new StringBuilder();
 
@@ -3157,7 +2020,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             nwwsLiquidLine.replace(0, precipString.length(),
                     StringUtils.capitalize(precipString));
 
-            nwwsLiquidPrecip.append("\n" + nwwsLiquidLine + "\n");
+            nwwsLiquidPrecip.append("\n").append(nwwsLiquidLine).append("\n");
             nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report,
                     (ClimateDailyReportData) data, PrecipPeriod.DAY, snow,
                     morning));
@@ -3166,7 +2029,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
                         && yesterday.getPrecipMonth() == 0) {
                     yesterday.setPrecipMonth(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
 
                 nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
@@ -3178,7 +2040,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
                         && yesterday.getPrecipSeason() == 0) {
                     yesterday.setPrecipSeason(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
 
                 nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
@@ -3188,7 +2049,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
                         && yesterday.getPrecipYear() == 0) {
                     yesterday.setPrecipYear(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
 
                 nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
@@ -3212,77 +2072,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             elements for the NOAA Weather Wire Service reports.  The
     *             data from these elements is reported in the same tabular
     *             format as was the termperature and degree days.
-    * 
-    *
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *       do_snow_day - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid snow sentences.  See
-    *                       the structure definition for more details.
-    *       do_snow_mon - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the monthly snow sentences.  See
-    *                       the structure definition for more details.
-    *    do_snow_season - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the seasonal snow sentences.  See
-    *                       the structure definition for more details.
-    *                 num - number of stations in this group to be summarized
-    *           y_climate - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Output
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Local
-    *               csnow - character string used to hold a snowitation
-    *                       value once it has been converted to character
-    *                       from numeric format
-    *               cyear - character string used to hold a year value once 
-    *                       it has been converted to characte from numeric 
-    *           format
-    *      delta_day_snow - difference between today's snow and the record
-    *                       for the day
-    *      delta_mon_snow - difference between normal accumulated monthly
-    *                       snowitation and observed
-    *      delta_sea_snow - difference between normal accumulated seasonal
-    *                       snowitation and observed
-    *     delta_year_snow - difference between normal accumulated yearly
-    *                       snowitation and observed
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *          num_digits - number of digits ("width") in a number
-    *         snow_record - LOGICAL variable which indicates whether a new
-    *                       record was set or tied
-    *                       = TRUE; record was tied or set
-    *                       = FALSE; record was not tied or set
-    *
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *   5/16/01   Doug Murphy                 Changed labeling to read 
-    *                                         "Snowfall (in)"
+     * 
      * </pre>
      * 
      * @param tabs
@@ -3293,9 +2083,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private String buildNWWSSnowPrecip(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data,
-            boolean morning) throws ClimateQueryException,
+    private String buildNWWSSnowPrecip(ColumnSpaces tabs, ClimateRunData report,
+            ClimateDailyReportData data, boolean morning)
+                    throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsSnowPrecip = new StringBuilder();
 
@@ -3303,18 +2093,17 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 .getSnowControl().getSnowTotal();
         DailyClimateData yesterday = data.getData();
 
-        boolean snowReport = ClimateFormat
-                .reportWindow(currentSettings.getControl().getSnowDates());
         boolean snow = true;
 
-        if (snowFlags.isMeasured() && snowReport) {
+        if (snowFlags.isMeasured()) {
             StringBuilder nwwsSnowLine1 = emptyLine(
                     ParameterFormatClimate.NUM_LINE1_NWWS);
 
             nwwsSnowLine1.replace(0, SNOWFALL.length(),
                     WordUtils.capitalize(SNOWFALL) + SPACE + ABBRV_IN);
 
-            nwwsSnowPrecip.append("\n" + nwwsSnowLine1.toString() + "\n");
+            nwwsSnowPrecip.append("\n").append(nwwsSnowLine1.toString())
+                    .append("\n");
             nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
                     PrecipPeriod.DAY, snow, morning));
 
@@ -3322,7 +2111,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getSnowDay() == ParameterFormatClimate.TRACE
                         && yesterday.getSnowMonth() == 0) {
                     yesterday.setSnowMonth(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
 
                 nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
@@ -3333,7 +2121,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getSnowDay() == ParameterFormatClimate.TRACE
                         && yesterday.getSnowSeason() == 0) {
                     yesterday.setSnowSeason(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
 
                 nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
@@ -3344,7 +2131,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 if (yesterday.getSnowDay() == ParameterFormatClimate.TRACE
                         && yesterday.getSnowYear() == 0) {
                     yesterday.setSnowYear(ParameterFormatClimate.TRACE);
-                    data.setData(yesterday);
                 }
                 nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
                         PrecipPeriod.YEAR, snow, morning));
@@ -3376,126 +2162,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             the NOAA Weather Wire Service reports.  The data from these
     *             elements is reported in the same tabular format as was the
     *             termperature and precipitation.
-    * 
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *              dtime  - character identifier to determine whether its
-    *                       day, mon, season, or year degree day report.
-    *             timeset - character used for determining when the heat/cool
-    *                       season starts.
-    *            do_value - structure containg the flags which control
-    *                       generation of various portions of the
-    *                       heating days sentences. See the structure
-    *                       definition for more details
-    *             obs_val - the observed value
-    *            norm_val - the normal value
-    *       last_year_val - last years value
-    *             MORNING - flag which differntiates morning or evening reports;
-    *                        -1 morning report
-    *                        -2 evening report
-    *                 NUM - Current station number.
-    *                TABS - derived TYPE which contains the tab stops for
-    *                       the columns
-    *         ALL_PHRASES - buffer which holds the entire report output.
-    *
-    *      Output
-    *
-    *         ALL_PHRASES - buffer which holds the entire report output.
-    *
-    *      Local
-    *
-    *         C_DAY_DEGREE - This is the character value of the heating degree days
-    *                       for the day.
-    * C_DEPART_MEAN_DEGREE - This is the character value when you subract the average
-    *                       value of heating degree days from the value of the
-    *                       heating degree days for the day.
-    *       C_MONTH_DEGREE - This is the character value of the heating degree days
-    *                       for the month to date.
-    *        C_YEAR_DEGREE - This is the character value of the heating degree days
-    *                       for the year.
-    *       DELTA_NUM_MEAN - This is the integer value when you subract the average
-    *                       value of heating degree days from the value of the
-    *                       heating degree days for the day.
-    *      DELTA_NUM_MONTH - This is the integer value when you subract the average
-    *                       value of heating degree days for the month to date from
-    *                       the value of the heating degree days for the day.
-    *     DELTA_NUM_SEASON - This is the integer value when you subract the average
-    *                       value of heating degree days for the season 
-    *                       (since July1) from the value of the heating degree days
-    *                       for the day.
-    *                IPOS - This is the position were the cursor on the output page
-    *                       will being when it starts to write number down.
-    *                JPOS - This is the position were the cursor on the output page
-    *                       will end when it is done writing the number down.
-    *           LAST_YEAR - structure containing the observed last year's
-    *                       data.  See the structure definition for
-    *                       more details.
-    *             MORNING - flag which differntiates morning or evening reports;
-    *                        -1 morning report
-    *                        -2 evening report
-    *                 NUM - Current station number.
-    *            NUM_CHAR - Number of characters in the string.
-    *          NUM_DIGITS - The number of digits in a given number; necessary for 
-    *                       the conversion of numeric values to character.
-    *
-    *      INCLUDE files
-    *     DEFINE_general_phrases.I - Contains character strings need to build all
-    *                                 types of sentences.
-    *      DEFINE_precip_phrases.I - Contains character strings needed to build
-    *                                 precip sentences.
-    *   PARAMETER_format_climate.I - Contains all paramters used to dimension
-    *                                 arrays, etc.  This INCLUDE file must always
-    *                                 come first.
-    *         TYPE_climate_dates.I - Defines the derived TYPE "climate_dates";
-    *                                 note that it uses the dervied TYPE "date" - 
-    *                                 the "date" file must be INCLUDED before this
-    *                                 one.
-    *    TYPE_climate_record_day.I - Defines the derived TYPE used to store the
-    *                                 historical climatological record for a given
-    *                                 site for a given day.  Uses derived TYPE
-    *                                 "wind" so that INCLUDE file must come before
-    *                                 this one.
-    *                  TYPE_date.I - Defines the derived TYPE "date";
-    *                                 This INCLUDE file must always come before any
-    *                                 other INCLUDE file which uses the "date" TYPE.
-    *    TYPE_daily_climate_data.I - Defines the derived TYPE used to store the
-    *                                 observed climatological data.  Note that
-    *                                 INCLUDE file defining the wind TYPE must be 
-    *                                 specified before this file.
-    *    TYPE_do_weather_element.I - Defines the derived TYPE used to hold the
-    *                                 controlling logic for producing
-    *                                 sentences/reports for a given variable.
-    *  TYPE_report_climate_norms.I - Defines the derived TYPE used to hold the
-    *                                 flags which control reporting the
-    *                                 climatological norms for different
-    *                                 meteorological variables.
-    *                  TYPE_time.I - Defines the derived TYPE used to specify the
-    *                                 time.
-    *                  TYPE_wind.I - Defines the derived TYPE used to specify wind
-    *                                 speed,and direction.
-    *
-    *                                
-    *                                
-    *
-    *      Non-system routines used
-    *
-    *         CONVERT_CHARACTER_INT - Converts INTEGERS numbers to CHARACTER.
-    *
-    *      Non-system functions used
-    *
-    *         PICK_DIGITS - Returns the number of digits in a number.
-    *              STRLEN - C function: returns the number of characters in a
-    *                       string; string must be terminated with the NULL
-    *                       character.
-    *
-    * MODIFICATION HISTORY
-    * ====================
-    *   3/29/01   Doug Murphy               Changed so that routine would work
-    *                                       for five-digit degree day values
+     * 
      * </pre>
      * 
      * @param tabs
@@ -3508,10 +2175,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private String buildNWWSDegreeDay(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data,
-            PrecipPeriod precipTime, boolean heat, boolean morning)
-                    throws ClimateQueryException,
+    private String buildNWWSDegreeDay(ColumnSpaces tabs, ClimateRunData report,
+            ClimateDailyReportData data, PrecipPeriod precipTime, boolean heat,
+            boolean morning) throws ClimateQueryException,
                     ClimateInvalidParameterException {
         StringBuilder nwwsDegreeDay = new StringBuilder();
 
@@ -3674,7 +2340,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                             ParameterFormatClimate.MM);
                 }
             }
-            nwwsDegreeDay.append(nwwsDegreeDayLine.toString() + "\n");
+            nwwsDegreeDay.append(nwwsDegreeDayLine.toString()).append("\n");
         }
 
         return nwwsDegreeDay.toString();
@@ -3693,27 +2359,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             *  Indicates record was set or tied.
     *             MM Indicates data is missing.
     *             T  Indicates Trace of precipitation.
-    *
-    *   Variables
-    *
-    *      Input
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *      Output
-    *        all_phrases  - character buffer containing the sentences
-    *
-    *      Local
-    *        new_line     - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *        num_char     - number of characters in buffer all_phrases
-    *
-    *      Non-system routines used
-    *
-    *      Special system functions used
-    *        strlen       - C function; returns the number of 
-    *                       characters in a string; string must
-    *                       be terminated with the NULL
-    *                       character
      * </pre>
      * 
      * @param tempFlag
@@ -3742,7 +2387,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
 
                     nwwsYearLine.replace(iPosition - 1, jPosition,
                             String.valueOf(yearOfRecord[i]));
-                    nwwsYear.append(nwwsYearLine.toString() + "\n");
+                    nwwsYear.append(nwwsYearLine.toString()).append("\n");
 
                 }
             }
@@ -3767,71 +2412,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             elements for the NOAA Weather Wire Service reports.  The
     *             data from these elements is reported in the same tabular
     *             format as was the termperature and degree days.
-    * 
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *              p_time - character identifier to determine day,mon,sea,year
-    *             do_value - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid precip sentences.  See
-    *                       the structure definition for more details.
-    *             obs_val -  the observed value
-    *          normal_val -  the normal value
-    *          record_val -  the record value
-    *       last_year_val -  last years value
-    *      year_of_record -  the year(s) the record was set
-    *             morning -  morning flag used for the words yesterday/today.
-    *                 num - number of stations in this group to be summarized
-    *           y_climate - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Output
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Local
-    *             cprecip - character string used to hold a precipitation
-    *                       value once it has been converted to character
-    *                       from numeric format
-    *               cyear - character string used to hold a year value once 
-    *                       it has been converted to characte from numeric 
-    *           format
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *          num_digits - number of digits ("width") in a number
-    *        recip_record - LOGICAL variable which indicates whether a new
-    *                       record was set or tied
-    *                       = TRUE; record was tied or set
-    *                       = FALSE; record was not tied or set
-    *
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *
-    *   MODIFICATION HISTORY
-    *   --------------------
-    *     1/29/01   Doug Murphy             No MTD, STD, and YTD records or
-    *                                       dates exist, therefore want to leave
-    *                                       those columns blank instead of MM...
-    *                                       added a check that would skip the
-    *                                       record and record date sections in
-    *                                       these cases.
      * </pre>
      * 
      * @param tabs
@@ -3844,10 +2424,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private String buildNWWSAnyPrecip(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data,
-            PrecipPeriod precipTime, boolean snow, boolean morning)
-                    throws ClimateQueryException,
+    private String buildNWWSAnyPrecip(ColumnSpaces tabs, ClimateRunData report,
+            ClimateDailyReportData data, PrecipPeriod precipTime, boolean snow,
+            boolean morning) throws ClimateQueryException,
                     ClimateInvalidParameterException {
 
         StringBuilder nwwsAnyPrecip = new StringBuilder();
@@ -4033,19 +2612,39 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     if (observedValue != ParameterFormatClimate.MISSING_PRECIP
                             && recordValue != ParameterFormatClimate.MISSING_PRECIP) {
 
+                        int latestRecordyear = yearOfRecord[0];
+                        boolean sameYearAndValue = false;
+
+                        // Prevent RER generation if the record is the same as
+                        // the current year and there are no other years.
+                        if (observedValue == recordValue
+                                && yearOfRecord[0] == report.getBeginDate()
+                                        .getYear()) {
+                            if (yearOfRecord[1] != ParameterFormatClimate.MISSING) {
+                                // If there's an older record, use that instead
+                                // of the current year.
+                                latestRecordyear = yearOfRecord[1];
+                            } else {
+                                sameYearAndValue = true;
+                            }
+                        }
+
                         int jPosition = tabs.getPosActual() - 2;
                         nwwsLiquidLine.replace(jPosition, jPosition + 1,
                                 RECORD_SYMBOL);
+                        if (!sameYearAndValue) {
+                            // Store the new record data for RERs whenever a new
+                            // record is found.
+                            logger.debug("Found new record for the station "
+                                    + data.getStation().getStationName()
+                                    + " (ID: " + data.getStation().getInformId()
+                                    + ").");
 
-                        // Store the new record data for RERs whenever a new
-                        // record is found.
-                        logger.debug("Found new record for the station "
-                                + data.getStation().getStationName() + " (ID: "
-                                + data.getStation().getInformId() + ").");
-
-                        writeBrokenRecs(report.getBeginDate(),
-                                data.getStation().getInformId(), observedValue,
-                                recordValue, recordElement, yearOfRecord[0]);
+                            writeBrokenRecs(report.getBeginDate(),
+                                    data.getStation().getInformId(),
+                                    observedValue, recordValue, recordElement,
+                                    latestRecordyear);
+                        }
                     }
                 }
 
@@ -4146,7 +2745,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 }
             }
 
-            nwwsAnyPrecip.append(nwwsLiquidLine.toString() + "\n");
+            nwwsAnyPrecip.append(nwwsLiquidLine.toString()).append("\n");
             nwwsAnyPrecip.append(buildNWWSYear(precipFlags, yearOfRecord,
                     recordValue, observedValue, tabs));
 
@@ -4167,59 +2766,6 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *             elements for the NOAA Weather Wire Service reports.  The
     *             data from these elements is reported in the same tabular
     *             format as was the termperature and degree days.
-    * 
-    *   Variables
-    *
-    *      Input
-    *              a_date - date structure containing valid date for
-    *                       for the climate summary.  See the structure
-    *                       definition for more details
-    *   do_snow_12Z_depth - structure containing the flags which
-    *                       control generation of various portions
-    *                       of the liquid snow sentences.  See
-    *                       the structure definition for more details.
-    *                 num - number of stations in this group to be summarized
-    *           y_climate - structure containing historical climatology
-    *                       for a given date.  See the structure 
-    *                       definition for more details
-    *           yesterday - structure containing the observed climate
-    *                       data.  See the structure definition for
-    *                       more details
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Output
-    *         all_phrases - character buffer containing the sentences
-    *
-    *
-    *      Local
-    *               csnow - character string used to hold a precipitation
-    *                       value once it has been converted to character
-    *                       from numeric format
-    *               cyear - character string used to hold a year value once 
-    *                       it has been converted to characte from numeric 
-    *           format
-    *                ipos - starting position in new_line at which a piece 
-    *                       of informtion is loaded
-    *                jpos - ending position in new_line at which a piece
-    *                       of informtion is loaded
-    *            new_line - CHARACTER buffer which holds a new line to 
-    *                       be added to the report
-    *            num_char - number of characters in buffer all_phrases
-    *          num_digits - number of digits ("width") in a number
-    *         snow_record - LOGICAL variable which indicates whether a new
-    *                        record was set or tied
-    *                        = TRUE; record was tied or set
-    *                        = FALSE; record was not tied or set
-    *
-    *
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *
-    *  MODIFICATION HISTORY
-    *  --------------------
-    *    5/21/01   Doug Murphy               Removed "(in)" label
      * </pre>
      * 
      * @param tabs
@@ -4227,8 +2773,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @param data
      * @return
      */
-    private String buildNWWSSnowDepth(ColumnSpaces tabs,
-            ClimateCreatorResponse report, ClimateDailyReportData data) {
+    private String buildNWWSSnowDepth(ColumnSpaces tabs, ClimateRunData report,
+            ClimateDailyReportData data) {
 
         DailyClimateData yesterday = data.getData();
         StringBuilder nwwsSnowDepthLine = emptyLine(
@@ -4269,37 +2815,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     *   Purpose:  
     *        This subroutine inserts the words "Since dd Mon" at position 3
     *        in a line of text.
-    *
-    *   Variables
-    *
-    *      Input
-    *        new_line  - buffer containing text line
-    *        start     - derived TYPE containing starting date
-    * 
-    *
-    *      Output
-    *        new_line  - buffer containing text line 
-    *
-    *      Local
-    *        num_digits - number of characters in the date
-    *
-    *  NONE
-    *
-    *      INCLUDE files
-    *      Non-system routines used
-    *
-    *      Non-system functions used
-    *
-    *  PICK_DIGITS                  - Returns the number of digits in a number.
-    *
-    *  STRLEN                       - C function: returns the number of characters in a
-    *                                 string; string must be terminated with the NULL
-    *                                 character.
-    *
-    * MODIFICATION HISTORY
-    * --------------------
-    *   5/16/01    Doug Murphy            Reversed month/day order to now read
-    *                                     "Since Mon dd"
+     *
      * </pre>
      * 
      * @param start

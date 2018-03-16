@@ -22,6 +22,7 @@
 
     <bean id="metarToClimatePurger"
         class="gov.noaa.nws.ocp.edex.metartoclimate.ClimateMetarPurger">
+        <constructor-arg ref="climateMetarReportDAO" />
         <property name="purgeHours" value="48" />
     </bean>
 
@@ -32,13 +33,8 @@
             uri="clusteredquartz://metartoclimate/climatepurge/?cron=${metartoclimatepurge.cron}" />
 
         <!-- purge climate DB rpt table -->
-        <route id="metarClimatePurge">
-            <from uri="metarClimatePurgeCron" />
-            <to uri="jms-generic:queue:metarClimatePurgeWork" />
-        </route>
-
         <route id="metarClimatePurgeWork">
-            <from uri="jms-generic:queue:metarClimatePurgeWork" />
+            <from uri="metarClimatePurgeCron" />
             <doTry>
                 <bean ref="metarToClimatePurger" method="purgeClimateReport" />
                 <doCatch>

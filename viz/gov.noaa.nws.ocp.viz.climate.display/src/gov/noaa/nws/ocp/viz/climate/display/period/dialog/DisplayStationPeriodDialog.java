@@ -25,10 +25,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -36,11 +34,8 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.common.serialization.SerializationException;
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
@@ -61,8 +56,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.request.prodgen.GetClimateProd
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.DisplayClimateResponse;
 import gov.noaa.nws.ocp.viz.climate.display.period.dialog.support.DataValueOrigin;
-import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
+import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
 
@@ -128,13 +123,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 
  * @author amoore
  */
-public class DisplayStationPeriodDialog extends CaveSWTDialog {
-    /**
-     * Logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(DisplayStationPeriodDialog.class);
-
+public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
     /**
      * Summary section fields.
      */
@@ -244,11 +233,6 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
     protected boolean myLoadingData = false;
 
     /**
-     * Unsaved changes listener.
-     */
-    protected UnsavedChangesListener myUnsavedChangesListener = new UnsavedChangesListener();
-
-    /**
      * Accept values menu item.
      */
     private MenuItem myAcceptValuesMenuItem;
@@ -296,6 +280,12 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
     private final boolean myWriteable;
 
     /**
+     * Completed flag. True if user chose confirmed Abort or "Accept and
+     * Continue"
+     */
+    private boolean completed = false;
+
+    /**
      * Constructor.
      * 
      * @param parentShell
@@ -309,8 +299,7 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
     public DisplayStationPeriodDialog(Shell parentShell, String sessionID)
             throws ClimateInvalidParameterException, SerializationException,
             VizException {
-        super(parentShell, ClimateLayoutValues.CLIMATE_DIALOG_SWT_STYLE,
-                ClimateLayoutValues.CLIMATE_DIALOG_CAVE_STYLE);
+        super(parentShell);
 
         DisplayClimateResponse periodData = (DisplayClimateResponse) ThriftClient
                 .sendRequest(new DisplayClimateRequest(sessionID,
@@ -397,25 +386,19 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
                     e);
         }
         loadData();
+    }
 
-        // Add confirm dialog to x button.
-        shell.addListener(SWT.Close, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                boolean close = (!myPeriodDesc.isUseCustom() && myWriteable)
-                        ? MessageDialog.openConfirm(getShell(), "Close?",
-                                "Are you sure you wish to close? "
-                                        + " Work will be lost.")
-                        : true;
+    /**
+     * If exiting not due to user-confirmed abort/"accept and continue", and
+     * this is a writeable set of data, confirm with user.
+     */
+    public boolean shouldClose() {
+        boolean close = !completed && myWriteable ? MessageDialog.openConfirm(
+                getShell(), "Close?",
+                "Are you sure you wish to close? " + " Work will be lost.")
+                : true;
 
-                if (close) {
-                    close();
-                } else {
-                    event.doit = false;
-                }
-
-            }
-        });
+        return close;
     }
 
     /**
@@ -720,7 +703,7 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
                     new PeriodData(dataToSave));
         }
 
-        myUnsavedChangesListener.setChangesUnsaved(false);
+        changeListener.setChangesUnsaved(false);
 
         if (!programmatic) {
             /*
@@ -832,11 +815,11 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
         myAbortClimateRunMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                boolean abort = MessageDialog.openConfirm(getShell(), "Abort?",
+                completed = MessageDialog.openConfirm(getShell(), "Abort?",
                         "Are you sure you wish to abort? "
                                 + "Unsaved changes will be lost.");
 
-                if (abort) {
+                if (completed) {
                     /*
                      * abort this climate session in the workflow
                      */
@@ -864,13 +847,12 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 // confirmation
-                boolean continueExecution = MessageDialog.openConfirm(
-                        getShell(), "Continue?",
+                completed = MessageDialog.openConfirm(getShell(), "Continue?",
                         "Are you sure you wish to accept all values for the stations?"
                                 + " Unsaved changes will be lost, and"
                                 + " climate execution will proceed to the next step.");
 
-                if (continueExecution) {
+                if (completed) {
                     HashMap<Integer, ClimatePeriodReportData> savedPeriodReportData = new HashMap<>();
                     for (Entry<Integer, ClimatePeriodReportData> entry : myOriginalDataMap
                             .entrySet()) {
@@ -1030,7 +1012,7 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
     private void loadData() {
         // set loading flag
         myLoadingData = true;
-        myUnsavedChangesListener.setIgnoreChanges(true);
+        changeListener.setIgnoreChanges(true);
 
         // clear data first
         clearValues();
@@ -1058,8 +1040,8 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
             if (!myPeriodDesc.isUseCustom()) {
                 mySaveValuesButton.setEnabled(myWriteable && true);
             }
-            myUnsavedChangesListener.setChangesUnsaved(false);
-            myUnsavedChangesListener.setIgnoreChanges(false);
+            changeListener.setChangesUnsaved(false);
+            changeListener.setIgnoreChanges(false);
         } else {
             logger.debug("Station Index [" + selectedStationIndex
                     + "] is not valid. No station data loaded.");
@@ -1295,7 +1277,7 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
             boolean load = true;
 
             if (myWriteable && warn && myPrevStationSelectionIndex != -1
-                    && myUnsavedChangesListener.isChangesUnsaved()) {
+                    && changeListener.isChangesUnsaved()) {
                 // confirm that work is done/willing to be lost for
                 // previous selection
                 load = MessageDialog.openConfirm(getShell(), "Load new data?",
@@ -1313,5 +1295,15 @@ public class DisplayStationPeriodDialog extends CaveSWTDialog {
                 myStationList.setSelection(myPrevStationSelectionIndex);
             }
         }
+    }
+
+    /**
+     * Get the change listener for the dialog; for use by individual tab
+     * classes.
+     * 
+     * @return changeListener
+     */
+    protected UnsavedChangesListener getChangeListener() {
+        return changeListener;
     }
 }

@@ -17,8 +17,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 3, 2016  20905      pwang     Initial creation
- *
+ * Aug 3, 2016  20905      pwang       Initial creation
+ * Nov 3, 2017  36736      amoore      Get rid of unneeded method.
  * </pre>
  *
  * @author pwang
@@ -33,19 +33,17 @@ public class ClimateIngestConfigXML {
             @XmlElement(name = "filter", type = ClimateIngestFilterXML.class) })
     private ArrayList<ClimateIngestFilterXML> filters;
 
+    /**
+     * Empty constructor.
+     */
+    public ClimateIngestConfigXML() {
+    }
+
     public ArrayList<ClimateIngestFilterXML> getFilters() {
         return filters;
     }
 
-    public void setFFMPRun(ArrayList<ClimateIngestFilterXML> filters) {
+    public void setFilters(ArrayList<ClimateIngestFilterXML> filters) {
         this.filters = filters;
     }
-
-    public void add(ClimateIngestFilterXML filter) {
-        if (filters == null) {
-            filters = new ArrayList<ClimateIngestFilterXML>();
-        }
-        filters.add(filter);
-    }
-
 }

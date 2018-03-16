@@ -626,9 +626,9 @@ public class DecodedMetar {
     }
 
     /**
-     * Empty constructor.
+     * Empty private constructor. Use static initialize method.
      */
-    public DecodedMetar() {
+    private DecodedMetar() {
     }
 
     /**

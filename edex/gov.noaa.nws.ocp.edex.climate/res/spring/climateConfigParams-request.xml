@@ -4,15 +4,5 @@
     
    <bean id="replacestationsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.configparams.ReplaceStationsServiceHandler"/>
   
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.configparams.ReplaceStationsServiceRequest"/>
-      <constructor-arg ref="replacestationsrequest"/>
-    </bean>
-
    <bean id="snowperciprequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.configparams.SnowPrecipServiceHandler"/>
-  
-    <bean factory-bean="handlerRegistry" factory-method="register">
-      <constructor-arg value="gov.noaa.nws.ocp.common.dataplugin.climate.request.configparams.SnowPrecipServiceRequest"/>
-      <constructor-arg ref="snowperciprequest"/>
-    </bean>
 </beans>

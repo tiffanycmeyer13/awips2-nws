@@ -22,6 +22,7 @@ Require-Bundle: com.raytheon.edex.common,
 Export-Package: gov.noaa.nws.ocp.edex.climate.prodgen
 Import-Package: com.raytheon.uf.common.auth.resp,
  com.raytheon.uf.common.auth.user,
+ com.raytheon.uf.common.localization,
  com.raytheon.uf.common.message,
  com.raytheon.uf.edex.plugin.text.db,
  gov.noaa.nws.ocp.common.dataplugin.climate.report,

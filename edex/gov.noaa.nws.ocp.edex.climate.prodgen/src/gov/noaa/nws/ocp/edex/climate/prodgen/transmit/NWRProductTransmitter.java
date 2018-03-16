@@ -27,9 +27,10 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Apr 14, 2017 20637      pwang     Initial creation
- * May 05, 2017 20642      pwang     Re-designed status and error handling
- *
+ * Apr 14, 2017 20637      pwang       Initial creation
+ * May 05, 2017 20642      pwang       Re-designed status and error handling
+ * Aug 4, 2017  33104      amoore      Address review comments.
+ * Aug 22, 2017 37242      amoore      Better logging and field access.
  * </pre>
  *
  * @author pwang
@@ -38,15 +39,13 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 public final class NWRProductTransmitter extends ClimateProductNWRSender {
 
     /** The logger */
-    public static final IUFStatusHandler logger = UFStatus
+    private static final IUFStatusHandler logger = UFStatus
             .getHandler(NWRProductTransmitter.class);
 
     // TODO: BMH_STAGING_DIR should be configurable
     private static final String DEFAULT_BMH_STAGING_DIR = "px1f:/awips2/bmh/data/nwr/ready/";
 
-    public String bmhStagingDirectory = DEFAULT_BMH_STAGING_DIR;
-
-    private ClimateProdSendRecordDAO dao;
+    private String bmhStagingDirectory = DEFAULT_BMH_STAGING_DIR;
 
     /**
      * Constructor
@@ -84,7 +83,8 @@ public final class NWRProductTransmitter extends ClimateProductNWRSender {
             String msg = "BMH Staging Directory "
                     + trans.getBmhStagingDirectory() + " is not accessible";
             res.setSetLevelStatus(ProductSetStatus.FATAL_ERROR, msg);
-            session.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    msg, null);
             logger.error(msg);
             return;
         }
@@ -98,15 +98,15 @@ public final class NWRProductTransmitter extends ClimateProductNWRSender {
                     String nwrText = trans.reformatTextForNWR(cp);
 
                     // Save
-                    trans.writeAsProdFile(trans.bmhStagingDirectory, nwrText,
-                            cp.getName());
+                    trans.writeAsProdFile(trans.getBmhStagingDirectory(),
+                            nwrText, cp.getName());
                     // insert a record into DB
                     trans.recordSentNWRProduct(fileName, cp, user);
 
                     cp.setStatus(ProductStatus.SENT);
 
-                    logger.info("NWR prod copied to " + destPath
-                            + ", a record is inserted in the DB ");
+                    logger.info("NWR product " + fileName + " copied to "
+                            + destPath + ", a record is inserted in the DB ");
 
                 } else {
                     String errorMsg = "Check Header failed, NWR product "

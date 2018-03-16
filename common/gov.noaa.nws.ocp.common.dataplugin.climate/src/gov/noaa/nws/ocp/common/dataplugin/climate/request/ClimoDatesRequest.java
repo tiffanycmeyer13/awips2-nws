@@ -21,7 +21,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
  * 09/27/2016  20639     wkwock      Initial creation
  * 10/07/2016  20639     wkwock      add GET_SNOWPRECIP
  * 10/14/2016  20639     wkwock      remove GET_SNOWPRECIP
- * 
+ * 03/01/2018  44624     amoore      Remove unused functionality.
  * </pre>
  * 
  * @author wkwock
@@ -30,16 +30,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 @DynamicSerialize
 public class ClimoDatesRequest implements IServerRequest {
 
-    @DynamicSerialize
-    public enum ClimoDatesRequestType {
-        @DynamicSerializeElement
-        GET_SEASON,
-        @DynamicSerializeElement
-        INSERT_CLIMODATES,
-        @DynamicSerializeElement
-        UPDATE_CLIMODATES
-    }
-    
     @DynamicSerializeElement
     private ClimateDates precipSeason;
     @DynamicSerializeElement
@@ -48,31 +38,17 @@ public class ClimoDatesRequest implements IServerRequest {
     private ClimateDates snowSeason;
     @DynamicSerializeElement
     private ClimateDates snowYear;
-    
-    @DynamicSerializeElement
-    private ClimoDatesRequestType requestType;
 
     public ClimoDatesRequest() {
     }
-    
-    public ClimoDatesRequest(ClimoDatesRequestType requestType) {
-        this.requestType = requestType;
-    }
 
-    public ClimoDatesRequest(ClimoDatesRequestType requestType, ClimateDates precipSeason,ClimateDates precipYear, ClimateDates snowSeason, ClimateDates snowYear){
-        this.requestType=requestType;
-        this.precipSeason=precipSeason;
+    public ClimoDatesRequest(
+            ClimateDates precipSeason, ClimateDates precipYear,
+            ClimateDates snowSeason, ClimateDates snowYear) {
+        this.precipSeason = precipSeason;
         this.precipYear = precipYear;
         this.snowSeason = snowSeason;
         this.snowYear = snowYear;
-    }
-
-    public ClimoDatesRequestType getRequestType() {
-        return requestType;
-    }
-
-    public void setRequestType(ClimoDatesRequestType requestType) {
-        this.requestType = requestType;
     }
 
     public ClimateDates getPrecipSeason() {
@@ -80,7 +56,7 @@ public class ClimoDatesRequest implements IServerRequest {
     }
 
     public void setPrecipSeason(ClimateDates precipSeason) {
-        this.precipSeason=precipSeason;
+        this.precipSeason = precipSeason;
     }
 
     public ClimateDates getPrecipYear() {

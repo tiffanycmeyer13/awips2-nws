@@ -8,8 +8,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -63,18 +61,17 @@ import gov.noaa.nws.ocp.edex.common.climate.util.MetarUtils;
  *                                     which was causing poor retrieval.
  * 24 JUL 2017  33104      amoore      Use 24-hour time format when querying.
  * 26 JUL 2017  33104      amoore      Fix duplicated sql alias error from ATAN postgres.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 04 OCT 2017  38800      amoore      Return empty string for FSS correction value if row was found but
+ *                                     value is null.
+ * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
+ * 13 DEC 2017  41565      wpaintsil   Corrected wrong date/time formats.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
 public class ClimateCreatorDAO extends ClimateDAO {
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateCreatorDAO.class);
-
     /*
      * Constants from build_daily_obs_weather.ec and build_daily_obs_weather.h.
      */
@@ -82,6 +79,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * Dense fog visibility.
      */
     private static final int DENSE_FOG = 2010;
+
     /*
      * Legacy documentation:
      * 
@@ -195,74 +193,21 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      *  void build_daily_obs_weather (climate_date      day_begin_date, 
-    *                            climate_time      day_begin_time,
-    *                                climate_date      day_end_date,
-    *                                climate_time      day_end_time,
-    *                                int                   flag[],
-    *                long*         station_id,
-    *                                int*                  wx_count,
-    *                                int*                  ec_quality
-    *                )
-    *
-    *  Dan Zipper                 PRC/TDL         HP 9000/7xx
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function will get the correct weather types from the database.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *------------------------------------------------------------------------------                    
-    *    Input
-    *      day_begin_date      - derived TYPE which contains begin date of the
-    *                day,
-    *  day_begin_time      - derived TYPE which contains begin time of the
-    *                day
-    *      day_end_date        - derived TYPE which contains end date of the
-    *                day,
-    *  day_end_time        - derived TYPE which contains end time of the
-    *                day
-    *      station_id          - station id of type long for which this function
-    *                is called
-    *
-    *      Output
-    *      flag[]              - Contains 18 boolean flags to indicate whether
-    *                            or not certain types of weather were present.
-    *                            The flags are presented in the following order:
-    *
-    *                            flag[0] == thunderstorm
-    *                            flag[1] == mixed precipitation
-    *                            flag[2] == heavy rain
-    *                            flag[3] == rain
-    *                            flag[4] == light rain
-    *                            flag[5] == freezing rain
-    *                            flag[6] == light freezing rain
-    *                            flag[7] == hail
-    *                            flag[8] == heavy snow
-    *                            flag[9] == snow
-    *                            flag[10] == light snow
-    *                            flag[11] == sleet
-    *                            flag[12] == fog
-    *                            flag[13] == dense fog
-    *                            flag[14] == haze
-    *                            flag[15] == blowing snow
-    *                            flag[16] == duststorm/sandstorm
-    *                            flag[17] == tornado
-    *
-    *      wx_count            - count of the number of flags in the array flag[]
-    *                            that were toggled.
-    *      Local
-    *
-    *   MODIFICATION HISTORY
-    *   ====================
-    *     9/29/00     Doug Murphy       Removed duplicate and unnecessary includes
-    *     2/20/01     Doug Murphy       Added three wx types
-    *     5/17/00     Doug Murphy       Modeule 3: test for dense fog should be
-    *                                   < or = 1/4 mile
-    *     1/26/05     Manan Dalal       Ported from Informix to Postgresql
+     *                            climate_time      day_begin_time,
+     *                                climate_date      day_end_date,
+     *                                climate_time      day_end_time,
+     *                                int                   flag[],
+     *                long*         station_id,
+     *                                int*                  wx_count,
+     *                                int*                  ec_quality
+     *                )
+     *
+     *  Dan Zipper                 PRC/TDL         HP 9000/7xx
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function will get the correct weather types from the database.
      * </pre>
      * 
      * @param window
@@ -273,6 +218,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
+
     public void buildDailyObsWeather(ClimateDates window,
             DailyClimateData dailyClimateData, DailyDataMethod dailyDataMethod)
                     throws ClimateQueryException,
@@ -286,6 +232,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
 
         baseTime.clear();
         // Java month indexing starts at 0
+        // expected data has 0 minute
         baseTime.set(window.getStart().getYear(),
                 window.getStart().getMon() - 1, window.getStart().getDay(),
                 window.getStartTime().getHour(), 0);
@@ -826,25 +773,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER: 3
-    * MODULE NAME:   test_for_visib
-    * PURPOSE:
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *
-    * RETURNS:
-    *   DATA TYPE   NAME                        DESCRIPTION
-    *
-    * APIs UTILIZED:
-    *   NAME                                    HEADER FILE DESCRIPTION
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    *   DATA TYPE  NAME                         DESCRIPTION
-    *
-    * DATA FILES AND/OR DATABASE:
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
+     * MODULE NAME:   test_for_visib
+     * PURPOSE:
      *
      * </pre>
      * 
@@ -857,6 +787,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @return the new wxValue to use instead.
      * @throws ClimateQueryException
      */
+
     private int testForFogVisibility(int fssReportInstance, String nominalTime,
             int wxValue) throws Exception {
         for (int j : FOG) {
@@ -931,232 +862,52 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      *   June 1998     Jason P. Tuell        PRC/TDL
-    *   September     Dan Zipper            PRC/TDL
-    *
-    *   Purpose: This routine will call the function get_sky_cover which will
-    *            compute the daily average sky cover for the morning and evening
-    *            reports.
-    *            
-    *   Variables
-    *
-    *      Input
-    *        begin_date         - derived TYPE that contains the starting
-    *                             date for the period of this climate summary
-    *        begin_date         - derived TYPE that contains the starting
-    *                             time for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             date for the period of this climate summary
-    *        end_date           - derived TYPE that contains the ending
-    *                             time for the period of this climate summary
-    *        inform_id          - INFORMIX id of a climate station
-    *           
-    *      Output
-    *        qc                 - derived TYPE that contains the qc flags
-    *        yesterday          - derived TYPE that contains the observed climate
-    *                             data for a given set of stations
-    *
-    *      Local
-    *
-    *
-    *      Non-system routines used
-    *
-    *        get_sky_cover      - retrieves sky cover from the database
+     *   September     Dan Zipper            PRC/TDL
+     *
+     *   Purpose: This routine will call the function get_sky_cover which will
+     *            compute the daily average sky cover for the morning and evening
+     *            reports.
+     * 
      * </pre>
      * 
      * Migrated from get_sky_cover.ec.
      * 
      * <pre>
-     * Status:
-    *       DELIVERED
-    *    
-    *    History:
-    *       Revision 16 (DELIVERED)
-    *         Created:  28-JAN-2005 18:01:52 DALAL
-    *           Ported from Informix to Postgresql
-    *         Updated:  28-JAN-2005 17:47:58 DALAL
-    *           Item revision 16 created from revision 15 with status
-    *           $TO_BE_DEFINED
-    *       
-    *       Revision 15 (DELIVERED)
-    *         Created:  30-JUN-2003 16:23:26 SIKDER
-    *           Made new gnu compiler compliant
-    *         Updated:  30-JUN-2003 16:21:47 SIKDER
-    *           Updated attribute(s)
-    *       
-    *       Revision 14 (DELIVERED)
-    *         Created:  10-FEB-2003 16:24:21 MORRIS
-    *           Make optimized program run
-    *         Updated:  07-FEB-2003 22:52:18 MORRIS
-    *           Updated attribute(s)
-    *       
-    *       Revision 13 (DELIVERED)
-    *         Created:  16-DEC-2002 18:22:18 WAGNER
-    *           Updated pointers.
-    *         Updated:  16-DEC-2002 17:52:23 WAGNER
-    *           Updated attribute(s)
-    *       
-    *       Revision 12 (DELIVERED)
-    *         Created:  25-NOV-2002 20:10:34 PCMS
-    *           Added 'exter "C"' to the non linux prototypes.
-    *         Updated:  25-NOV-2002 18:41:01 PCMS
-    *           Updated attribute(s)
-    *       
-    *       Revision 11 (REVIEW)
-    *         Created:  14-NOV-2002 14:03:34 WAGNER
-    *           Changes made by Joe Lang.
-    *         Updated:  13-NOV-2002 18:55:58 WAGNER
-    *           Updated attribute(s)
-    *       
-    *       Revision 10 (INITIALIZE)
-    *         Created:  24-OCT-2002 20:48:59 BATTEL
-    *           Added header block for manual PCMS extraction
-    *         Updated:  24-OCT-2002 20:41:54 BATTEL
-    *           Updated attribute(s)
-    *       
-    *       Revision 9 (DELIVERED)
-    *         Created:  29-SEP-2000 17:01:59 MURPHY
-    *           Removed duplicate include references
-    *         Updated:  29-SEP-2000 17:00:31 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 8 (DELIVERED)
-    *         Created:  27-JUL-2000 18:15:47 DMILLER
-    *           Fixed algorithm to correctly translate cloud cover
-    *           categories to midpoint of 
-    *           eighths coverage ranges.
-    *         Updated:  27-JUL-2000 18:14:38 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 7 (DELIVERED)
-    *         Created:  27-JUL-2000 17:43:44 DMILLER
-    *           Fixed algorithm so average sky cover is more
-    *           representative
-    *         Updated:  27-JUL-2000 16:15:43 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 6 (DELIVERED)
-    *         Created:  29-JUL-1999 16:00:59 DMILLER
-    *           removed compiler warnings
-    *         Updated:  29-JUL-1999 15:59:22 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 5 (DELIVERED)
-    *         Created:  17-NOV-1998 15:16:15 DMILLER
-    *           Ref SPR 164, int to long conversion
-    *         Updated:  17-NOV-1998 15:09:37 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 4 (DELIVERED)
-    *         Updated:  27-OCT-1998 12:28:21 BAXTER
-    *           Updated attribute(s)
-    *         Created:  27-OCT-1998 12:28:21 BAXTER
-    *           Updated files
-    *       
-    *       Revision 3 (INITIALIZE)
-    *         Updated:  17-OCT-1998 14:58:54 BAXTER
-    *           Updated attribute(s)
-    *         Created:  17-OCT-1998 14:58:54 BAXTER
-    *           Update files
-    *       
-    *       Revision 2 (INITIALIZE)
-    *         Created:  06-OCT-1998 20:00:57 BAXTER
-    *           Updates due to additional code
-    *         Updated:  06-OCT-1998 20:00:56 BAXTER
-    *           Updated attribute(s)
-    *       
-    *       Revision 1 (INITIALIZE)
-    *         Created:  29-SEP-1998 15:24:56 PCMS
-    *           INITIAL VERSION
-    *
-    *    Change Document History:
-    *       1:
-    *          Change Document:   GFS1-NHD_STDR_886
-    *          Action Date:       11-FEB-2005 00:23:58
-    *          Relationship Type: In Response to
-    *          Status:           TEST COORDINATE
-    *          Title:             CLIMATE: Climate needs to migrate to Postgres SQL
-    *       
-    *       
-    *       void get_sky_cover (climate_date        begin_date,
-    *                           climate_time        begin_time,
-    *                           climate_date        end_date,
-    *                           climate_time        end_time,
-    *                           long                *station_id,
-    *                           daily_climate_date  *yesterday(i),
-    *                           int                 qc(i)%sky_cover_qc  )  
-    *
-    *   Jason Tuell     PRC/TDL             HP 9000/7xx
-    *   Dan Zipper          PRC/TDL
-    *
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *          This routine retrieves cloud coverage information from 
-    *          a regularly scheduled METAR report for a user-specified
-    *          station id and nominal time. This cloud cover information
-    *          is reported in a range of 0 to 11, 0 is no clouds present,
-    *          10 is overcast, and 11 is overcast due to an obscuration
-    *          (such as heavy snow).
-    *
-    *          This routine returns the most recent METAR report in the 
-    *          case of a METAR that has been transmitted multiple times
-    *          or the case of a METAR that has been followed by one or 
-    *          more corrections. 
-    *
-    *          The cloud information is read from the FSS_cloud_layer table
-    *          in the hm database.
-    *
-    *          This routine is a hybrid of routines written by Bryon Lawrence and
-    *          Bill Mattison.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                                        description
-    *-----------------------------------------------------------------------------------  
-    *   Input
-    *     begin_date          - starting date for retrieval
-    *     begin_time          - starting time for retrieval
-    *     end_date            - ending date for retrieval
-    *     end_time            - ending time for retrieval
-    *     station_id      - station id of type int for which this function
-    *               is called     
-    *   Output
-    *     yesterday           - structure name for daily_climate_data. The structure element
-    *                           "sky cover" is written/created in this routine.
-    *     qc                  - structure name for daily_data_method which is the quality control
-    *                           structure. The structure element "qc_sky_cover" is written created
-    *                           in this routine.
-    *   Local
-    *   char
-    *     beg_dtime           - A character string which holds the begining converted time for purposes of converting
-    *                            a certain time into an INFORMIX readable string.
-    *     max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *     nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *
-    *   struct
-    *     now_tmtime          - the holding structure required for use when using the mktime function to
-    *
-    * Modification Log:
-    * Name                      Date              Change
-    * David T. Miller           Jul 2000          While the retrieve portion of this routine
-    *                                             is okay, the estimation of the sky cover
-    *                                             is incorrect.  First, if ec_element_value
-    *                                             is 1, the sky cover is actually 0 as this represents
-    *                                             SKC or sky clear.  Also, since these numbers
-    *                                             represent a range in eighths instead of the number
-    *                                             of tenths, more correct to split the range and 
-    *                                             divide by 8.
-    * Doug Murphy                9/29/00          Removed duplicate include file
-    *
-    * Bob Morris                Feb 2003          Get rid of call to nominal_time()
-    *                                             in favor of convert_ticks_2_string()
-    *                                             for consistency with other cli
-    *                                             routines.
-    *                                             Fix arg types, all are pointers
-    * Manan Dalal               Jan 2005          Ported from Informix to Postgresql
+     *       
+     *       
+     *       void get_sky_cover (climate_date        begin_date,
+     *                           climate_time        begin_time,
+     *                           climate_date        end_date,
+     *                           climate_time        end_time,
+     *                           long                *station_id,
+     *                           daily_climate_date  *yesterday(i),
+     *                           int                 qc(i)%sky_cover_qc  )  
+     *
+     *   Jason Tuell     PRC/TDL             HP 9000/7xx
+     *   Dan Zipper          PRC/TDL
+     *
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *          This routine retrieves cloud coverage information from 
+     *          a regularly scheduled METAR report for a user-specified
+     *          station id and nominal time. This cloud cover information
+     *          is reported in a range of 0 to 11, 0 is no clouds present,
+     *          10 is overcast, and 11 is overcast due to an obscuration
+     *          (such as heavy snow).
+     *
+     *          This routine returns the most recent METAR report in the 
+     *          case of a METAR that has been transmitted multiple times
+     *          or the case of a METAR that has been followed by one or 
+     *          more corrections. 
+     *
+     *          The cloud information is read from the FSS_cloud_layer table
+     *          in the hm database.
+     *
+     *          This routine is a hybrid of routines written by Bryon Lawrence and
+     *          Bill Mattison.
+     *
      * </pre>
      * 
      * @param window
@@ -1170,6 +921,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            already have related elements set to missing.
      * @throws ClimateQueryException
      */
+
     public void getSkyCover(ClimateDates window,
             DailyClimateData dailyClimateData, DailyDataMethod qc)
                     throws ClimateQueryException {
@@ -1419,7 +1171,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 Object cloudResult = cloudResults[0];
                 if (cloudResult instanceof Short) {
                     try {
-                        int elementValue = (short) cloudResult;
+                        int elementValue = ((Number) cloudResult).intValue();
 
                         /*
                          * This is where we will sum up all hourly sky cover in
@@ -1493,24 +1245,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
     *                       taken from a regularly scheduled METAR report or a
     *                       correction to a regularly scheduled METAR report.
     *
-    *  ORIGINAL AUTHOR:     Bryon Lawrence
-    *  CREATION DATE:       June 1998
-    *  ORGANIZATION:        GSC / TDL
-    *  MACHINE:             HP9000 / 7xx
-    *  COPYRIGHT
-    *  DISCLAIMER:
-    *  MODIFICATION HISTORY:
-    *    MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        6/9/98       Bryon Lawrence    Initial Coding
-    *          1        7/10/01      Bob Morris        Total rewrite to eliminate
-    *                                                  multiple database queries.
      ******************************************************************************
-     *
-     *   void get_metar_categsingle_val ( const long station_id ,
-    *                                   const long element_id , 
-    *                                   const char *nominal_dtime ,
-    *                                   short *value , char *dqd ,
-    *                                   STATUS *status )
     *
     *  Bob Morris          SAIC/GSC / MDL      HP-UX 10.20, Linux 7.0
     *  (follows get_metar_conreal.ecpp, originally coded by Bill Mattison)
@@ -1553,107 +1288,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
     *    time, and type are found, the return status is NO_HITS.  See
     *    POSSIBLE STATUS VALUES below for other possible status values and their
     *    meanings.
-    *
-    *  VARIABLES
-    *  =========
-    *
-    *  name                                description
-    *  ------------------------------- --- --------------------------------------
-    *  db_status                        L  The success/failure code returned
-    *                                        by dbUtils and Informix functions.
-    *  dqd                              O  Data quality descriptor.
-    *  dqd_indicator                    L  Indicates when dqd is null in the
-    *                                        database.
-    *  ec_correction                    L  Indicates whether the metar is a
-    *                                        correction.
-    *  ec_dqd                           L  Informix's copy of dqd.
-    *  ec_element_id                    L  Informix's copy of element_id.
-    *  ec_element_value                 L  Informix's copy of the metar
-    *                                        observation value.
-    *  ec_nominal_dtime                 L  Informix's copy of nominal_dtime.
-    *  ec_origin_dtime                  L  The date and time the metar was
-    *                                        received and processed on AWIPS.
-    *  ec_valid_dtime                   L  The date and time the metar observation
-    *                                        was taken.
-    *  ec_stnid                         L  Informix's copy of station_id.
-    *  element_id                       I  Database identifying number for the
-    *                                        desired metar observation value.
-    *  element_value_indicator          L  Indicates when element_value is null
-    *                                        in the database.
-    *  message_text                     L  the text of the message being written
-    *                                        to the system log.
-    *  nominal_dtime                    I  The hour (in "yyyy-mm-dd hh" format)
-    *                                        for which the metar is valid.
-    *  SQLSTATE                         L  the success/failure code returned by
-    *                                        Informix.
-    *  station_id                       I  The station whose observation value is
-    *                                        wanted.
-    *  status                           O  the success/failure code returned by
-    *                                        this function.  See POSSIBLE STATUS
-    *                                        VALUES below for possible values
-    *                                        and their meanings.
-    *  value                            O  The requested metar observation value.
-    *  (H = included, I = input, I/O = input and updated, L = local , O = output)
-    *
-    *  INCLUDED CONSTANTS (excluding STATUS constants)
-    *  ==================
-    *
-    *    DB_NULL                             Common_Defs.h
-    *    MAX_INFORMIX_TIME_STRING_SIZE       AEV_time_util.h
-    *    STD_MSG_LENGTH                      std_string_lengths.h
-    *
-    *  FUNCTION VALUE
-    *  ==============
-    *
-    *    none.
-    *
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble opening a "cursor".
-    *    DECLARE_CURSOR_ERROR  Informix encountered trouble declaring a "cursor".
-    *    FETCH_ERROR           Informix was unable to FETCH a row.
-    *    GENERAL_DB_ERROR      Here, something was wrong with the data in the
-    *                            fss_categ_single table.
-    *    NO_HITS               No METARs were found for the station and hour of
-    *                            interest.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    (these are included from STATUS.h)
-    *
-    *  FUNCTIONS CALLED
-    *  ================
-    *
-    *    db_utils_error - logs messages with Informix error codes and dbaccess
-    *      messages.
-    *    logDebug - logs messages to the debug log.
-    *    logProblem - logs messages to the problem log.
-    *
-    *  FILES
-    *  =====
-    *
-    *    hm database.
-    *
-    *  HISTORY
-    *  =======
-    *
-    *    June 1998     Bryon Lawrence    Original coding.
-    *    July 2001     Bob Morris        Re-created top to bottom, following 
-    *                                      get_metar_conreal_val logic.
-    *
-    *  ASSUMPTIONS
-    *  ===========
-    *
-    *    The hm database is currently connected.
-    *
-    *    This routine requires at least version 7.1 of Informix.
-    *
-    *  NOTES
-    *  =====
-    *
-    *    The main program must be written in C++, since this function depends
-    *    on other C++ software.
+     *
      * </pre>
      * 
      * @param informId
@@ -1773,167 +1408,58 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * FILENAME:   get_speci_categsingle.ecpp 
-    *  NUMBER OF MODULES:   1
-    *  GENERAL INFORMATION:
-    *       MODULE 1:       get_speci_categsingle_val
-    *       DESCRIPTION:    Retrieves a specified special observed datum from
-    *                   the FSS_categ_single table for a user-specified
-    *                       station id, element id, element number and
-    *                       valid report time. This value is taken from a 
-    *                       special metar report (SPECI) or a correction to
-    *                       a SPECI report.
-    *
-    *  ORIGINAL AUTHOR:     Bryon Lawrence
-    *  CREATION DATE:       June 1998 
-    *  ORGANIZATION:        GSC / TDL
-    *  MACHINE:             HP9000 / 7xx
-    *  COPYRIGHT
-    *  DISCLAIMER:
-    *  MODIFICATION HISTORY:
-    *    MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        6/7/98       Bryon Lawrence    Initial Coding
-    *          1        7/11/01      Bob Morris        Total rewrite to eliminate
-    *                                                  multiple database queries.
-     ******************************************************************************
+     *  NUMBER OF MODULES:   1
+     *  GENERAL INFORMATION:
+     *       MODULE 1:       get_speci_categsingle_val
+     *       DESCRIPTION:    Retrieves a specified special observed datum from
+     *                   the FSS_categ_single table for a user-specified
+     *                       station id, element id, element number and
+     *                       valid report time. This value is taken from a 
+     *                       special metar report (SPECI) or a correction to
+     *                       a SPECI report.
+     *
+      ******************************************************************************
      *
      *  void get_speci_categsingle_val ( const long station_id ,
-    *                                   const long element_id , 
-    *                                   const char *valid_dtime ,
-    *                                   short *value , char *dqd ,
-    *                                   STATUS *status )
-    *
-    *  Bob Morris          SAIC/GSC / MDL      HP-UX 10.20, Linux 7.0
-    *  (follows get_metar_conreal.ecpp, originally coded by Bill Mattison)
-    *
-    *  FUNCTION DESCRIPTION
-    *  ====================
-    *
-    *    This function retrieves a metar special (SPECI) observation value and
-    *    its data quality descriptor for a caller-specified station and valid
-    *    time from the FSS_categ_single table in the hm database. Values from
-    *    regularly-scheduled metars are not processed.
-    *
-    *    The station is specified by a long integer id number (from the
-    *    station_location table in the hm database).  The observation element_id
-    *    is specified by a long integer (from the hydromet_element table in
-    *    the hm database).  The report valid date/time is specified by a string
-    *    in "yyyy-mm-dd hh:mm" format where yyyy is the year, mm is the month,
-    *    dd is the day, hh is the hour, and mm is the minute.
-    *
-    *    This function selects the latest-received correction for the report's
-    *    valid time.  If there are no corrections, then this function selects
-    *    the value from the SPECI valid time's latest receipt.
-    *
-    *    The normal result is one scalar integer value and a one-character data
-    *    quality descriptor.
-    *    
-    *    If this function succeeds in finding the requested value, the return
-    *    status is STATUS_OK (= 0).  If metars for the requested station, time,
-    *    and type are found, but the requested value is not found, the return
-    *    status is STATUS_FAILURE (= 1).  If no SPECIs for the requested station,
-    *    time, and type are found, the return status is NO_HITS.  See
-    *    POSSIBLE STATUS VALUES below for other possible status values and their
-    *    meanings.
-    *
-    *  VARIABLES
-    *  =========
-    *
-    *  name                                description
-    *  ------------------------------- --- --------------------------------------
-    *  db_status                        L  The success/failure code returned
-    *                                        by dbUtils and Informix functions.
-    *  dqd                              O  Data quality descriptor.
-    *  dqd_indicator                    L  Indicates when dqd is null in the
-    *                                        database.
-    *  ec_correction                    L  Indicates whether the SPECI is a
-    *                                        correction.
-    *  ec_dqd                           L  Informix's copy of dqd.
-    *  ec_element_id                    L  Informix's copy of element_id.
-    *  ec_element_value                 L  Informix's copy of the SPECI
-    *                                        observation value.
-    *  ec_origin_dtime                  L  The date and time the SPECI was
-    *                                        received and processed on AWIPS.
-    *  ec_stnid                         L  Informix's copy of station_id.
-    *  ec_valid_dtime                   L  Informix's copy of valid_dtime.
-    *  element_id                       I  Database identifying number for the
-    *                                        desired metar observation value.
-    *  element_value_indicator          L  Indicates when element_value is null
-    *                                        in the database.
-    *  message_text                     L  the text of the message being written
-    *                                        to the system log.
-    *  SQLSTATE                         L  the success/failure code returned by
-    *                                        Informix.
-    *  station_id                       I  The station whose observation value is
-    *                                        wanted.
-    *  status                           O  the success/failure code returned by
-    *                                        this function.  See POSSIBLE STATUS
-    *                                        VALUES below for possible values
-    *                                        and their meanings.
-    *  valid_dtime                      I  The time ("yyyy-mm-dd hh:mm" format)
-    *                                        for which the SPECI is valid.
-    *  value                            O  The requested SPECI observation value.
-    *
-    *  (H = included, I = input, I/O = input and updated, L = local , O = output)
-    *
-    *  INCLUDED CONSTANTS (excluding STATUS constants)
-    *  ==================
-    *
-    *    DB_NULL                             Common_Defs.h
-    *    MAX_INFORMIX_TIME_STRING_SIZE       AEV_time_util.h
-    *    STD_MSG_LENGTH                      std_string_lengths.h
-    *
-    *  FUNCTION VALUE
-    *  ==============
-    *
-    *    none.
-    *
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble opening a "cursor".
-    *    DECLARE_CURSOR_ERROR  Informix encountered trouble declaring a "cursor".
-    *    FETCH_ERROR           Informix was unable to FETCH a row.
-    *    GENERAL_DB_ERROR      Here, something was wrong with the data in the
-    *                            fss_categ_single table.
-    *    NO_HITS               No SPECIs were found for the station and hour of
-    *                            interest.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    (these are included from STATUS.h)
-    *
-    *  FUNCTIONS CALLED
-    *  ================
-    *
-    *    db_utils_error - logs messages with Informix error codes and dbaccess
-    *      messages.
-    *    logDebug - logs messages to the debug log.
-    *    logProblem - logs messages to the problem log.
-    *
-    *  FILES
-    *  =====
-    *
-    *    hm database.
-    *
-    *  HISTORY
-    *  =======
-    *
-    *    June 1998     Bryon Lawrence    Original coding.
-    *    July 2001     Bob Morris        Re-created top to bottom, following 
-    *                                      get_metar_conreal_val logic.
-    *
-    *  ASSUMPTIONS
-    *  ===========
-    *
-    *    The hm database is currently connected.
-    *
-    *    This routine requires at least version 7.1 of Informix.
-    *
-    *  NOTES
-    *  =====
-    *
-    *    The main program must be written in C++, since this function depends
-    *    on other C++ software.
+     *                                   const long element_id , 
+     *                                   const char *valid_dtime ,
+     *                                   short *value , char *dqd ,
+     *                                   STATUS *status )
+     *
+     *  Bob Morris          SAIC/GSC / MDL      HP-UX 10.20, Linux 7.0
+     *  (follows get_metar_conreal.ecpp, originally coded by Bill Mattison)
+     *
+     *  FUNCTION DESCRIPTION
+     *  ====================
+     *
+     *    This function retrieves a metar special (SPECI) observation value and
+     *    its data quality descriptor for a caller-specified station and valid
+     *    time from the FSS_categ_single table in the hm database. Values from
+     *    regularly-scheduled metars are not processed.
+     *
+     *    The station is specified by a long integer id number (from the
+     *    station_location table in the hm database).  The observation element_id
+     *    is specified by a long integer (from the hydromet_element table in
+     *    the hm database).  The report valid date/time is specified by a string
+     *    in "yyyy-mm-dd hh:mm" format where yyyy is the year, mm is the month,
+     *    dd is the day, hh is the hour, and mm is the minute.
+     *
+     *    This function selects the latest-received correction for the report's
+     *    valid time.  If there are no corrections, then this function selects
+     *    the value from the SPECI valid time's latest receipt.
+     *
+     *    The normal result is one scalar integer value and a one-character data
+     *    quality descriptor.
+     *    
+     *    If this function succeeds in finding the requested value, the return
+     *    status is STATUS_OK (= 0).  If metars for the requested station, time,
+     *    and type are found, but the requested value is not found, the return
+     *    status is STATUS_FAILURE (= 1).  If no SPECIs for the requested station,
+     *    time, and type are found, the return status is NO_HITS.  See
+     *    POSSIBLE STATUS VALUES below for other possible status values and their
+     *    meanings.
+     *
+     *
      * </pre>
      * 
      * @param informId
@@ -2060,19 +1586,9 @@ public class ClimateCreatorDAO extends ClimateDAO {
     *                       sepcial metar report (SPECI) or a correction
     *                       to a SPECI report.
     *
-    *  ORIGINAL AUTHOR:     Bill Mattison
-    *  CREATION DATE:       June 1998 
-    *  ORGANIZATION:        GSC / TDL
-    *  MACHINE:             HP9000 / 7xx
-    *  COPYRIGHT
-    *  DISCLAIMER:
-    *  MODIFICATION HISTORY:
-    *    MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1         6/1998       Bill Mattison     Initial Coding
-    *          2        10/1998       Bryon Lawrence    Fixed a SQL bug.
      ******************************************************************************
-     *
-     * void get_speci_conreal_val ( const long station_id ,
+    *
+    * void get_speci_conreal_val ( const long station_id ,
     *                               const long element_id , char *valid_dtime ,
     *                               float *value , char *dqd , STATUS *status )
     *
@@ -2103,104 +1619,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
     *    station and time are found, the return status is NO_HITS (= 2006).  See
     *    POSSIBLE STATUS VALUES below for other possible status values and their
     *    meanings.
-    *
-    *  VARIABLES
-    *  =========
-    *
-    *  name                                description
-    *  ------------------------------- --- --------------------------------------
-    *  db_status                        L  The success/failure code returned
-    *                                        by dbUtils and Informix functions.
-    *  dqd                              O  Data quality descriptor.
-    *  dqd_indicator                    L  Indicates when dqd is null in the
-    *                                        database.
-    *  ec_correction                    L  Indicates whether the special is a
-    *                                        correction.
-    *  ec_dqd                           L  Informix's copy of dqd.
-    *  ec_element_id                    L  Informix's copy of element_id.
-    *  ec_element_value                 L  Informix's copy of the special's
-    *                                        observation value.
-    *  ec_origin_dtime                  L  The date and time the special was
-    *                                        constructed/transmitted.
-    *  ec_stnid                         L  Informix's copy of station_id.
-    *  ec_valid_dtime                   L  Informix's copy of valid_dtime.
-    *  element_id                       I  Database identifying number for the
-    *                                        desired speial's observation value.
-    *  message_text                     L  the text of the message being written
-    *                                        to the system log.
-    *  SQLSTATE                         L  the success/failure code returned by
-    *                                        Informix.
-    *  station_id                       I  The station whose observation value is
-    *                                        wanted.
-    *  status                           O  the success/failure code returned by
-    *                                        this function.  See POSSIBLE STATUS
-    *                                        VALUES below for possible values
-    *                                        and their meanings.
-    *  valid_dtime                      I  The date/time for which the special is
-    *                                        valid.
-    *  value                            O  The requested observation value.
-    *  value_indicator                  L  Indicates when element_value is null
-    *                                        in the database.
-    *  (H = included, I = input, I/O = input and updated, L = local , O = output)
-    *
-    *  INCLUDED CONSTANTS (excluding STATUS constants)
-    *  ==================
-    *
-    *    DB_NULL                             Common_Defs.h
-    *    MAX_INFORMIX_TIME_STRING_SIZE       AEV_time_util.h
-    *    STD_MSG_LENGTH                      std_string_lengths.h
-    *
-    *  FUNCTION VALUE
-    *  ==============
-    *
-    *    none.
-    *
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    CURSOR_OPEN_ERROR      Informix encountered trouble opening a "cursor".
-    *    DECLARE_CURSOR_ERROR   A problem was encountered while trying to DECLARE
-    *                             a SELECT cursor.
-    *    FETCH_ERROR            A problem was encountered while trying to FETCH
-    *                             a row from the database.
-    *    GENERAL_DB_ERROR       Something is wrong with the data in the
-    *                             fss_contin_real table.
-    *    NO_HITS                No SPECIs were found for the time of interest.
-    *    STATUS_FAILURE         The desired element value was not reported in the
-    *                             SPECI.
-    *    STATUS_OK              The desired value was successfully found and
-    *                             returned.
-    *    (these are included from STATUS.h)
-    *
-    *  FUNCTIONS CALLED
-    *  ================
-    *
-    *    db_utils_error - logs messages with Informix error codes and dbaccess
-    *      messages.
-    *    logProblem - logs messages to the problem log.
-    *
-    *  FILES
-    *  =====
-    *
-    *    hm database.
-    *
-    *  HISTORY
-    *  =======
-    *
-    *    June 1998     Bill Mattison     created.
-    *
-    *  ASSUMPTIONS
-    *  ===========
-    *
-    *    The hm database is currently connected.
-    *
-    *    This routine requires at least version 7.1 of Informix.
-    *
-    *  NOTES
-    *  =====
-    *
-    *    The main program must be written in C++, since this function depends
-    *    on other C++ software.
+     *
+     *
      * </pre>
      * 
      * @param informId
@@ -2316,24 +1736,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * <pre>
      * FILENAME: get_metar_conreal.ecpp
      *
-     *
-     * NUMBER OF MODULES: 1 GENERAL INFORMATION: MODULE 1: get_metar_conreal_val
-     * DESCRIPTION: Retrieves a specified metar observed datum from the
-     * FSS_contin_real table for a user-specified station id, element id,
-     * element number, and nominal report time. This value is taken from a
-     * regularly scheduled metar report or a correction to a regularly scheduled
-     * metar report.
-     *
-     * ORIGINAL AUTHOR: Bill Mattison CREATION DATE: June 1998 ORGANIZATION: GSC
-     * / TDL MACHINE: HP9000 / 7xx COPYRIGHT: DISCLAIMER: MODIFICATION HISTORY:
-     * MODULE # DATE PROGRAMMER DESCRIPTION/REASON 1 6/1998 Bill Mattison
-     * Initial Coding 1 7/2001 Bob Morris Added valid_dtime to SELECT list and
-     * ORDER BY clauses.
      ******************************************************************************
-     *
-     * void get_metar_conreal_val ( const long station_id , const long
-     * element_id , const char *nominal_dtime , float *value , char *dqd ,
-     * STATUS *status )
      *
      * Bill Mattison GSC/TDL HP 9000/7xx
      *
@@ -2372,76 +1775,6 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * and type are found, the return status is NO_HITS. See POSSIBLE STATUS
      * VALUES below for other possible status values and their meanings.
      *
-     * VARIABLES =========
-     *
-     * name description ------------------------------- ---
-     * -------------------------------------- db_status L The success/failure
-     * code returned by dbUtils and Informix functions. dqd O Data quality
-     * descriptor. dqd_indicator L Indicates when dqd is null in the database.
-     * ec_correction L Indicates whether the metar is a correction. ec_dqd L
-     * Informix's copy of dqd. ec_element_id L Informix's copy of element_id.
-     * ec_element_value L Informix's copy of the metar observation value.
-     * ec_nominal_dtime L Informix's copy of nominal_dtime. ec_origin_dtime L
-     * The date and time the metar was received and processed on AWIPS.
-     * ec_valid_dtime L The date and time the metar observation was taken.
-     * ec_stnid L Informix's copy of station_id. element_id I Database
-     * identifying number for the desired metar observation value.
-     * element_value_indicator L Indicates when element_value is null in the
-     * database. message_text L the text of the message being written to the
-     * system log. nominal_dtime I The hour (in "yyyy-mm-dd hh" format) for
-     * which the metar is valid. SQLSTATE L the success/failure code returned by
-     * Informix. station_id I The station whose observation value is wanted.
-     * status O the success/failure code returned by this function. See POSSIBLE
-     * STATUS VALUES below for possible values and their meanings. value O The
-     * requested metar observation value. (H = included, I = input, I/O = input
-     * and updated, L = local , O = output)
-     *
-     * INCLUDED CONSTANTS (excluding STATUS constants) ==================
-     *
-     * DB_NULL Common_Defs.h MAX_INFORMIX_TIME_STRING_SIZE AEV_time_util.h
-     * STD_MSG_LENGTH std_string_lengths.h
-     *
-     * FUNCTION VALUE ==============
-     *
-     * none.
-     *
-     * POSSIBLE STATUS VALUES ======================
-     *
-     * CURSOR_OPEN_ERROR Informix encountered trouble opening a "cursor".
-     * DECLARE_CURSOR_ERROR Informix encountered trouble declaring a "cursor".
-     * FETCH_ERROR Informix was unable to FETCH a row. GENERAL_DB_ERROR Here,
-     * something was wrong with the data in the fss_contin_real table. NO_HITS
-     * No METARs were found for the station and hour of interest. STATUS_FAILURE
-     * The desired value was not found. STATUS_OK The desired value was
-     * successfully found and returned. (these are included from STATUS.h)
-     *
-     * FUNCTIONS CALLED ================
-     *
-     * db_utils_error - logs messages with Informix error codes and dbaccess
-     * messages. logDebug - logs messages to the debug log. logProblem - logs
-     * messages to the problem log.
-     *
-     * FILES =====
-     *
-     * hm database.
-     *
-     * HISTORY =======
-     *
-     * June 1998 Bill Mattison created.
-     *
-     * July 2001 Bob Morris Added "ORDER BY valid_dtime ASC" to the query. Added
-     * const restriction to nominal_dtime formal argument.
-     *
-     * ASSUMPTIONS ===========
-     *
-     * The hm database is currently connected.
-     *
-     * This routine requires at least version 7.1 of Informix.
-     *
-     * NOTES =====
-     *
-     * The main program must be written in C++, since this function depends on
-     * other C++ software.
      * </pre>
      * 
      * @param informId
@@ -2728,239 +2061,29 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      *Name:
-    *       get_all_speci_winds.ec
-    *       GFS1-NHD:A6742.0000-SRC;22
-    *
-    *    Status:
-    *       DELIVERED
-    *    
-    *    History:
-    *       Revision 22 (DELIVERED)
-    *         Created:  28-JAN-2005 18:01:51 DALAL
-    *           Ported from Informix to Postgresql
-    *         Updated:  28-JAN-2005 17:47:55 DALAL
-    *           Item revision 22 created from revision 21 with status
-    *           $TO_BE_DEFINED
-    *       
-    *       Revision 21 (DELIVERED)
-    *         Created:  30-JUN-2003 15:53:37 SIKDER
-    *           Made new compiler compliant
-    *         Updated:  30-JUN-2003 15:00:27 SIKDER
-    *           Updated attribute(s)
-    *       
-    *       Revision 20 (DELIVERED)
-    *         Created:  13-FEB-2003 16:13:35 MORRIS
-    *           Fix data errors in create_climate
-    *         Updated:  12-FEB-2003 19:47:24 MORRIS
-    *           Updated attribute(s)
-    *       
-    *       Revision 19 (DELIVERED)
-    *         Created:  16-DEC-2002 18:26:28 WAGNER
-    *           Updated pointers.
-    *         Updated:  16-DEC-2002 17:49:51 WAGNER
-    *           Updated attribute(s)
-    *       
-    *       Revision 18 (DELIVERED)
-    *         Created:  25-NOV-2002 20:10:29 PCMS
-    *           Added 'exter "C"' to the non linux prototypes.
-    *         Updated:  25-NOV-2002 19:30:44 PCMS
-    *           Updated attribute(s)
-    *       
-    *       Revision 17 (REVIEW)
-    *         Created:  14-NOV-2002 13:59:08 WAGNER
-    *           Changes made by Joe Lang.
-    *         Updated:  13-NOV-2002 18:53:47 WAGNER
-    *           Updated attribute(s)
-    *       
-    *       Revision 16 (INITIALIZE)
-    *         Created:  24-OCT-2002 20:48:58 BATTEL
-    *           Added header block for manual PCMS extraction
-    *         Updated:  24-OCT-2002 20:41:45 BATTEL
-    *           Updated attribute(s)
-    *       
-    *       Revision 15 (DELIVERED)
-    *         Created:  29-SEP-2000 17:01:58 MURPHY
-    *           Removed duplicate include references
-    *         Updated:  29-SEP-2000 17:00:15 MURPHY
-    *           Updated attribute(s)
-    *       
-    *       Revision 14 (DELIVERED)
-    *         Created:  14-JUL-2000 19:37:08 DMILLER
-    *           Changed for wind speed datatype change
-    *         Updated:  14-JUL-2000 19:07:15 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 13 (DELIVERED)
-    *         Created:  12-JUL-2000 11:58:06 DMILLER
-    *           Wind speed datatypes changed from int to float
-    *         Updated:  12-JUL-2000 11:54:30 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 12 (DELIVERED)
-    *         Created:  31-AUG-1999 20:11:19 DMILLER
-    *           Modified to get max SPECI gusts as well as max sustained
-    *           SPECI winds
-    *         Updated:  31-AUG-1999 18:29:09 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 11 (DELIVERED)
-    *         Created:  16-AUG-1999 15:34:40 DMILLER
-    *           fix hour and minute string problem noted and also re
-    *           relate SPR/DR
-    *         Updated:  16-AUG-1999 15:32:38 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 10 (DELIVERED)
-    *         Created:  04-AUG-1999 18:38:21 DMILLER
-    *           fix database logic and warning line
-    *         Updated:  04-AUG-1999 18:37:32 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 9 (DELIVERED)
-    *         Created:  26-JUL-1999 19:18:34 DMILLER
-    *           fixed compiler warnings
-    *         Updated:  26-JUL-1999 19:05:26 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 8 (DELIVERED)
-    *         Created:  17-NOV-1998 15:12:59 DMILLER
-    *           Ref SPRs 131 and 164, int to long and short conversions.
-    *         Updated:  17-NOV-1998 15:09:23 DMILLER
-    *           Updated attribute(s)
-    *       
-    *       Revision 5 (DELIVERED)
-    *         Created:  29-OCT-1998 21:31:56 MILLERDO
-    *           changed direction data type from short to int
-    *         Updated:  29-OCT-1998 21:29:42 MILLERDO
-    *           Updated attribute(s)
-    *       
-    *       Revision 4 (REVIEW)
-    *         Updated:  27-OCT-1998 12:28:04 BAXTER
-    *           Updated attribute(s)
-    *         Created:  27-OCT-1998 12:28:04 BAXTER
-    *           Updated files
-    *       
-    *       Revision 3 (INITIALIZE)
-    *         Updated:  17-OCT-1998 14:58:37 BAXTER
-    *           Updated attribute(s)
-    *         Created:  17-OCT-1998 14:58:37 BAXTER
-    *           Update files
-    *       
-    *       Revision 2 (INITIALIZE)
-    *         Created:  06-OCT-1998 20:00:35 BAXTER
-    *           Updates due to additional code
-    *         Updated:  06-OCT-1998 20:00:34 BAXTER
-    *           Updated attribute(s)
-    *       
-    *       Revision 1 (INITIALIZE)
-    *         Created:  29-SEP-1998 15:24:49 PCMS
-    *           INITIAL VERSION
-    *
-    *    Change Document History:
-    *       1:
-    *          Change Document:   GFS1-NHD_STDR_886
-    *          Action Date:       11-FEB-2005 00:23:58
-    *          Relationship Type: In Response to
-    *          Status:           TEST COORDINATE
-    *          Title:             CLIMATE: Climate needs to migrate to Postgres SQL
-    *          
-    *       void get_all_speci_winds  (  climate_date  begin_date,
-    *                                    climate_time  begin_time,
-    *                    climate_date  end_date,
-    *                                    climate_time  end_time,
-    *                    long      *station_id,
-    *                    climate_wind  *speci_wind,
-    *                    climate_time      *speci_time,
-    *                                    int               *windgust)
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves all special metars withing a specified time period of
-    *      up to 24 hours. The routine will return the highest reported wind speed and direction
-    *      of the special metars along with its time of occurance.  
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      begin_date          - starting date for retrieval
-    *      begin_time          - starting time for retrieval
-    *      end_date            - ending date for retrieval
-    *      end_time            - ending time for retrieval
-    *      station_id          - station id of type int for which this function
-    *                is called
-    *      windgust            - flag variable to indicate whether routine should
-    *                            get hourly winds or gusts
-    *
-    *    Output
-    *      speci_wind          - structure containg the highest wind speed and direction
-    *                            of all speci's within a timeframe.
-    *      speci_time          - the time that the highest wind speed occurred.
-    *
-    *    Local
-    *    char
-    *      beg_dtime           - A character string which holds the begining converted time for purposes of converting
-    *                            a certain time into an INFORMIX readable string.
-    *      end_dtime           - A character string which holds the begining converted time for purposes of converting
-    *                            a certain time into an INFORMIX readable string.
-    *      hour                - A temporary array used for converting time through use of C function "strncpy"
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      min                 - A temporary array used for converting time through use of C function "strncpy"
-    *      temp_time           - A character string where the "strncpy" strings are being stored.
-    *    float 
-    *      speci_speed         - The holding variable for a returned value in the special metar retrieval function
-    *      wind_speed          - The holding variable for a returned value in the metar retrieval function
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struct
-    *      end_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the ending time
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the begining time.
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h) 
-    *
-    * MODIFICATION HISTORY  NAME            DATE       REASON
-    *                       David T. Miller 08/17/99  duplicate database cursor
-    *                                                 caused only first SPECI to be
-    *                                                 used for maximum wind comparisons
-    *                                                 no matter how many SPECIs were
-    *                                                 reported at a station
-    *                       David T. MIller 08/31/99  added ability to use the routine
-    *                                                 for maximum wind and maximum wind
-    *                                                 gusts.  SPECI wind gusts were not
-    *                                                 being reported as the highest if 
-    *                                                 that was the case
-    *                       David T. Miller 07/12/00  Changed all int wind speed 
-    *                                                 references and data types from
-    *                                                 int to float.
-    *                       Doug Murphy     09/29/00  Removed duplicate include file
-    *                       Bob Morris      02/12/03  Added DIR QC checks and related
-    *                                                 logic if failed.  Changed some
-    *                                                 log messages.  Eliminated some
-    *                                                unused variables.
-    *                       Manan Dalal     01/26/05  Ported from Informix to Postgres
+     *       get_all_speci_winds.ec
+     *       GFS1-NHD:A6742.0000-SRC;22
+     *
+     *       void get_all_speci_winds  (  climate_date  begin_date,
+     *                                    climate_time  begin_time,
+     *                    climate_date  end_date,
+     *                                    climate_time  end_time,
+     *                    long      *station_id,
+     *                    climate_wind  *speci_wind,
+     *                    climate_time      *speci_time,
+     *                                    int               *windgust)
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves all special metars withing a specified time period of
+     *      up to 24 hours. The routine will return the highest reported wind speed and direction
+     *      of the special metars along with its time of occurance.
+     *
+     * 
      * </pre>
      * 
      * @param window
@@ -2971,6 +2094,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            false for gust, true for wind.
      * @throws ClimateQueryException
      */
+
     public void getAllSpeciWinds(ClimateDates window, int informId,
             ClimateWind wind, ClimateTime windTime, boolean windOrGust)
                     throws ClimateQueryException {
@@ -3051,6 +2175,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                                                 + direction
                                                 + "] is outside of valid bounds for datetime ["
                                                 + validDTimeString
+                                                + "] with station ID: ["
+                                                + informId
                                                 + "]. Skipping record.");
                                         continue;
                                     } else {
@@ -3078,6 +2204,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
                                     logger.warn("Speed [" + currSpeed
                                             + "] is outside of valid bounds for datetime ["
                                             + validDTimeString
+                                            + "] with station ID: [" + informId
                                             + "]. Skipping record.");
                                     continue;
                                 }
@@ -3128,69 +2255,19 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * void get_hourly_winds (   climate_date   *this_date,
-    *                            climate_time  *now_time,
-    *                long      *station_id,
-    *                climate_wind  *result          )
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves up to 24 hours of hourly wind 
-    *      directions and speeds from which the resultant wind is calculated.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - starting date for retrieval
-    *      now_time            - The nominal hour for which the gust data is being retrieved 
-    *      station_id          - station id of type int for which this function
-    *                is called 
-    *    Output
-    *      result              - array of hourly wind direction and speeds
-    *                            start date and end date
-    *    Local
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *      peak_wind           - The holding variable for a returned value in the metar retrieval function
-    *      peak_time           - The holding variable for a returned value in the metar retrieval function
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struct
-    *      end_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the ending time
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the begining time. 
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)   
-    *
-    * Modification Log
-    * Name                    Date         Change
-    * Bob Morris              Feb 2003     - Get rid of call to nominal_time()
-    *                                        in favor of unused convert_ticks...
-    *                                      - Reordered "get" logic to make sense
+     *                            climate_time  *now_time,
+     *                long      *station_id,
+     *                climate_wind  *result          )
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves up to 24 hours of hourly wind 
+     *      directions and speeds from which the resultant wind is calculated.
+     *
      * </pre>
      * 
      * @param date
@@ -3198,6 +2275,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @param informId
      * @param aWind
      */
+
     public void getHourlyWinds(ClimateDate date, ClimateTime time, int informId,
             ClimateWind aWind) {
         String dateTimeString = date.toFullDateString() + " "
@@ -3263,77 +2341,24 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * void get_all_hourly_gusts (  climate_date    this_date,
-    *                               climate_time   now_time,
-    *               long       *station_id,
-    *               climate_wind   *a_gust,
-    *                               climate_time   *a_time  )
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves up to 24 hours of hourly wind 
-    *      directions and speeds from which the resultant wind is calculated. The call is inside of
-    *      a FORTRAN loop and it will return one gust speed, direction, and time for the current hour 
-    *      which is passed into the program from the structure "now_time".
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - starting date for retrieval
-    *      now_time            - The nominal hour for which the gust data is being retrieved 
-    *      station_id          - station id of type int for which this function
-    *                is called
-    *
-    *    Output
-    *      a_gust              - An hourly wind gust direction and speed
-    *      a_time              - the time for which the wind gust direction and speed was reported
-    *
-    *    Local
-    *    char
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *      gust                - The address of the returned value of one of the metar retrieval functions
-    *
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struc
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time.
-    *
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)
-    *
-    * Modification Log
-    * Name                    Date         Change
-    * David T. Miller         Jul 2000     - Made all wind speed datatypes floats
-    *                                        and removed conversion to int.
-    * Bob Morris              Feb 2003     - Get rid of call to nominal_time()
-    *                                        in favor of unused convert_ticks...
-    *                                      - Reordered "get" logic
+     *                               climate_time   now_time,
+     *               long       *station_id,
+     *               climate_wind   *a_gust,
+     *                               climate_time   *a_time  )
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves up to 24 hours of hourly wind 
+     *      directions and speeds from which the resultant wind is calculated. The call is inside of
+     *      a FORTRAN loop and it will return one gust speed, direction, and time for the current hour 
+     *      which is passed into the program from the structure "now_time".
+     *
+     *
      * </pre>
      * 
      * @param date
@@ -3341,6 +2366,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @param informId
      * @param aGust
      */
+
     public void getAllHourlyGusts(ClimateDate date, ClimateTime time,
             int informId, ClimateWind aGust) {
         String dateTimeString = date.toFullDateString() + " "
@@ -3412,71 +2438,20 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * void get_hourly_peak_winds (  climate_date   this_date,
-    *                                climate_time  now_time,
-    *                long      *station_id,
-    *                climate_wind  *a_pk_wind,
-    *                    climate_time  *a_pk_wind_time)
-    *
-    *   Jason Tuell        PRC/TDL             HP 9000/7xx
-    *   Dan Zipper                 PRC/TDL
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves up to 24 hours of hourly wind 
-    *      directions and speeds from which the resultant wind is calculated.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input
-    *      this_date           - starting date for retrieval
-    *      now_time            - The nominal hour for which the gust data is being retrieved 
-    *      station_id          - station id of type int for which this function
-    *                is called      
-    *
-    *    Output
-    *      a_pk_wind              - the peak wind gust for a particular hour
-    *      a_pk_wind_time         - the time of the peak wind
-    *
-    *    Local
-    *      max_db_dqd          - Array of data quality descriptor returned by metar retrieval functions
-    *      nominal_dtime       - A character string which holds the date and nominal hour in a
-    *                            "yyyy-dd-mm hh" format.
-    *    float 
-    *      peak_wind           - The holding variable for a returned value in the metar retrieval function
-    *      peak_time           - The holding variable for a returned value in the metar retrieval function
-    *    int
-    *      db_status           - The success/failure code returned by dbUtils and Informix functions.
-    *      max_db_status       - Integer array which holds the Informix SQL-code error checks. (See below) 
-    *      time_status         - Used to convert time and date to an INFORMIX readable string.
-    *
-    *    struct
-    *      end_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the ending time
-    *      now_tmtime          - the holding structure required for use when using the mktime function to
-    *                             convert to a readable time for the begining time. 
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    STATUS_FAILURE        The desired value was not found.
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble declaring and/or
-    *                            opening a "cursor".
-    *    NO_HITS               No rows satisfied the "condition".
-    *    MULTIPLE_HITS         More than one row satisfied the "condition".
-    *    SELECT_ERROR          An Informix SELECT failed.
-    *    STATUS_BUG            An undiagnosed problem occurred; the function
-    *                            therefore aborted.
-    *    (these are included from STATUS.h)  
-    *  
-    * Modification Log
-    * Name                    Date              Change
-    * Bob Morris              Feb 2003          Get rid of call to nominal_time()
-    *                                           in favor of unused convert_ticks...
+     *                                climate_time  now_time,
+     *                long      *station_id,
+     *                climate_wind  *a_pk_wind,
+     *                    climate_time  *a_pk_wind_time)
+     *
+     *   Jason Tuell        PRC/TDL             HP 9000/7xx
+     *   Dan Zipper                 PRC/TDL
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves up to 24 hours of hourly wind 
+     *      directions and speeds from which the resultant wind is calculated.
+     *
      * </pre>
      * 
      * @param date
@@ -3485,6 +2460,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @param peakWind
      * @param peakWindTime
      */
+
     public void getHourlyPeakWinds(ClimateDate date, ClimateTime time,
             int informId, ClimateWind peakWind, ClimateTime peakWindTime) {
         String dateTimeString = date.toFullDateString() + " "
@@ -3593,120 +2569,37 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * FILENAME:            compute_daily_snow.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:   2
-    * GENERAL INFORMATION:
-    *       MODULE 1:      compute_daily_snow
-    *       DESCRIPTION:   Computes the snowfall amount for a station
-    *                      using snow reports gleaned from Supplemental Climate
-    *                      Data (SCD).
-    *       MODULE 2:      get_SCD_snow
-    *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
-    *                      based upon a user-inputted time range.
-    *
-    * ORIGINAL AUTHOR:     Bryon Lawrence
-    * CREATION DATE:       August 30, 1998
-    * ORGANIZATION:        TDL / GSC
-    * MACHINE:             HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/30/98      Bryon Lawrence    Original Coding
-    *                   1/09/01      Doug Murphy       Added check for AUTO METAR
-    *                                                  reports - snow depth is not
-    *                                                  assumed to be 0 in case of AUTO
-    *                   1/30/01      Doug Murphy       Added more robust snow depth
-    *                                                  code
-    *          2        8/31/98      Bryon Lawrence    Original Coding
-    *                   9/29/00      Doug Murphy       Removed extra include file
-    *          3        1/09/01      Doug Murphy       Original coding
-    *         ALL       1/26/05      Manan Dalal       Ported from Informix to Postgres
-    *         ******************************************************************************
-    * MODULE NUMBER: 2
-    * MODULE NAME:   get_SCD_snow
-    * PURPOSE: This routine retrieves snowfall information from a SCD report for a
-    * specified station id. The station id is a numeric identifier as defined
-    * in the station_location table. An upper and a lower time bound are passed
-    * to this routine to indicate the time period over which to search for 
-    * a SCD. According to the rules put forth in the National Weather Service
-    * Observing Handbook No.7, Part IV, Supplementary Observations, SCDs should 
-    * be transmitted at the 6 hour synoptic hours (00, 06, 12, and 18) when 
-    * it comes to reporting snowfall amounts. For any one of these synoptic hours,
-    * the SCD should be generated in a 20 minute window centered on the top of the
-    * hour. 
-    *
-    * SCD reports can have corrections. This routine takes the most recent SCD
-    * report (in the event of multiple transmissions of a single report) or the
-    * most recent correction (in the case of a single SCD report followed by 
-    * several corrections).
-    *
-    * If no SCD reports are found then this routine returns a status of NO_HITS.
-    *            
-    * Assumptions:
-    * The connection to the hm database must be established before this routine
-    * is called.
-    *
-    * This routine is designed to work with a version 7.1 or newer of INFORMIX.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   Input  const long  station_id           The station id (as defined in 
-    *                                           the station location table)
-    *                                           to retrieve the SCD snowfall
-    *                                           information for.
-    *   Input  char*       lower_time_bound     This designates the lower
-    *                                           bound (in UNIX ticks) of
-    *                                           the time window to look for the
-    *                                           SCD in.
-    *   Input  char*       upper_time_bound     This designates the upper
-    *                                           bound (in UNIX ticks) of the
-    *                                           the time window to look for the
-    *                                           SCD in.
-    *   Output float*      value                The snowfall value retrieved
-    *                                           from the SCD report. 
-    *   Output char*       dqd                  The data quality descriptor 
-    *                                           character associated with 
-    *                                           the SCD snowfall value.
-    *   Output STATUS*     status               Contains any error/diagnostic
-    *                                           codes generated in this routine.
-    *
-    * RETURNS:
-    *   None
-    * APIs UTILIZED:
-    *   NAME              HEADER FILE           DESCRIPTION
-    *   db_utils_error    dbutils_c.h           Contains the utility to detect
-    *                                           and log database errors.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine reads the following tables in the hm database:
-    * The FSS_report table. (Contains meta data for the SCD.)
-    * The FSS_contin_real table. (Contains the actual snowfall value found
-    *                             from the SCD report.)
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                             This routine functioned
-    *                                          as expected.
-    *    SELECT_ERROR                          An error was encountered
-    *                                          reading data from the 
-    *                                          FSS_report or the FSS_contin_real
-    *                                          table. 
-    *    NO_HITS                               No SCD reports were found in the
-    *                                          FSS_report table matching 
-    *                                          the user-specified station id
-    *                                          and time. 
-    *    STATUS_BUG                            An error was encountered
-    *                                          while performing a date 
-    *                                          conversion.
-    *    CURSOR_OPEN_ERROR                     An error was encountered while
-    *                                          opening a query cursor.
-    *    MULTIPLE_HITS                         A query that was supposed
-    *                                          to return only one row of 
-    *                                          information returned multiple 
-    *                                          rows of information.
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:   2
+     * GENERAL INFORMATION:
+     *       MODULE 1:      compute_daily_snow
+     *       DESCRIPTION:   Computes the snowfall amount for a station
+     *                      using snow reports gleaned from Supplemental Climate
+     *                      Data (SCD).
+     *       MODULE 2:      get_SCD_snow
+     *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
+     *                      based upon a user-inputted time range.
+     *
+     * MODULE NUMBER: 2
+     * MODULE NAME:   get_SCD_snow
+     * PURPOSE: This routine retrieves snowfall information from a SCD report for a
+     * specified station id. The station id is a numeric identifier as defined
+     * in the station_location table. An upper and a lower time bound are passed
+     * to this routine to indicate the time period over which to search for 
+     * a SCD. According to the rules put forth in the National Weather Service
+     * Observing Handbook No.7, Part IV, Supplementary Observations, SCDs should 
+     * be transmitted at the 6 hour synoptic hours (00, 06, 12, and 18) when 
+     * it comes to reporting snowfall amounts. For any one of these synoptic hours,
+     * the SCD should be generated in a 20 minute window centered on the top of the
+     * hour. 
+     *
+     * SCD reports can have corrections. This routine takes the most recent SCD
+     * report (in the event of multiple transmissions of a single report) or the
+     * most recent correction (in the case of a single SCD report followed by 
+     * several corrections).
+     *
+     * If no SCD reports are found then this routine returns a status of NO_HITS.
+     * 
      * </pre>
      * 
      * @param informId
@@ -3718,6 +2611,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @return
      * @throws ClimateQueryException
      */
+
     public FSSReportResult getSCDSnow(int informId, String lowerTimeString,
             String upperTimeString) throws ClimateQueryException {
         StringBuilder query = new StringBuilder(
@@ -3854,71 +2748,35 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * FILENAME:            compute_daily_snow.c
-    * FILE DESCRIPTION:
-    * NUMBER OF MODULES:   2
-    * GENERAL INFORMATION:
-    *       MODULE 1:      compute_daily_snow
-    *       DESCRIPTION:   Computes the snowfall amount for a station
-    *                      using snow reports gleaned from Supplemental Climate
-    *                      Data (SCD).
-    *       MODULE 2:      get_SCD_snow
-    *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
-    *                      based upon a user-inputted time range.
-    *
-    * ORIGINAL AUTHOR:     Bryon Lawrence
-    * CREATION DATE:       August 30, 1998
-    * ORGANIZATION:        TDL / GSC
-    * MACHINE:             HP9000
-    * COPYRIGHT:
-    * DISCLAIMER:
-    * MODIFICATION HISTORY:
-    *   MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        8/30/98      Bryon Lawrence    Original Coding
-    *                   1/09/01      Doug Murphy       Added check for AUTO METAR
-    *                                                  reports - snow depth is not
-    *                                                  assumed to be 0 in case of AUTO
-    *                   1/30/01      Doug Murphy       Added more robust snow depth
-    *                                                  code
-    *          2        8/31/98      Bryon Lawrence    Original Coding
-    *                   9/29/00      Doug Murphy       Removed extra include file
-    *          3        1/09/01      Doug Murphy       Original coding
-    *         ALL       1/26/05      Manan Dalal       Ported from Informix to Postgres
-     * ******************************************************************************
-    * MODULE NUMBER: 3
-    * MODULE NAME:   get_correction
-    * PURPOSE: This routine retrieves the correction information for the 
-    * METAR report. Mainly, looking to see if the METAR report is an unedited
-    * automated report for use in snow depth assumption/value.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   Input  const long  station_id           The station id (as defined in 
-    *                                           the station location table)
-    *                                           to retrieve the SCD snowfall
-    *                                           information for.
-    *   Input  char*       nominal_time_array   This designates the time of the 
-    *                                           METAR to retrieve. 
-    *   Output char*       correct              The flag which indicates the
-    *                                           correction state of the METAR.
-    * RETURNS:
-    *   None
-    * APIs UTILIZED:
-    *   None
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine reads the following tables in the hm database:
-    * The FSS_report table.
+     * FILE DESCRIPTION:
+     * NUMBER OF MODULES:   2
+     * GENERAL INFORMATION:
+     *       MODULE 1:      compute_daily_snow
+     *       DESCRIPTION:   Computes the snowfall amount for a station
+     *                      using snow reports gleaned from Supplemental Climate
+     *                      Data (SCD).
+     *       MODULE 2:      get_SCD_snow
+     *       DESCRIPTION:   Retrieves a SCD snow amount from the HM database 
+     *                      based upon a user-inputted time range.
+     *
+     * MODULE NUMBER: 3
+     * MODULE NAME:   get_correction
+     * PURPOSE: This routine retrieves the correction information for the 
+     * METAR report. Mainly, looking to see if the METAR report is an unedited
+     * automated report for use in snow depth assumption/value.
+     *
      * </pre>
      * 
      * @param informId
      *            station ID.
      * @param nominalTimeString
      *            time string in format yyyy-MM-dd hh24:mm
-     * @return Correction character (as String), or null if no result found.
+     * @return Correction character (as String), empty string if row exists
+     *         matching criteria but correction is null, or null if no row in DB
+     *         matches criteria.
      * @throws ClimateQueryException
      */
+
     public String getCorrection(int informId, String nominalTimeString)
             throws ClimateQueryException {
         StringBuilder query = new StringBuilder(
@@ -3947,8 +2805,9 @@ public class ClimateCreatorDAO extends ClimateDAO {
                         return (String) correctionObj;
                     } else {
                         logger.warn("Correction for query [" + query
-                                + "] and map: [" + paramMap + "] is null.");
-                        return null;
+                                + "] and map: [" + paramMap + "] is null. "
+                                + "Returning empty string for correction.");
+                        return "";
                     }
 
                     // origin_dtime used only for sorting, could be null
@@ -3979,73 +2838,11 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * Migrated from build_daily_obs_temp.ec.
      * 
      * <pre>
-      * MODULE NUMBER:   8
-    * MODULE NAME:     get_pd_metar_max
-    * PURPOSE:         This routine determines the maximum temperature in a 
-    *                  user-defined period of METAR observations.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the 
-    *                                           station to retrieve the 
-    *                                           temperature information for (as
-    *                                           defined in the station_location
-    *                                           table of the HM database) .
-    *   I      time_t      beg_dtime            The beginning time in UNIX ticks
-    *                                           representation of the time 
-    *                                           period to find the maximum
-    *                                           temperature in.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks
-    *                                           representation of the time period
-    *                                           to find the maximum temperature in.
-    *   I      float       *maxtemp             The maximum temperature found in
-    *                                           this period.
-    *   O      char        *dqd                 The data quality descriptor flag
-    *                                           associated with the maximum
-    *                                           temperature retrieved from the
-    *                                           HM database.
-    *   O      int         *temp_flag           Contains a numeric code indicating
-    *                                           how the maximum temperature was
-    *                                           was arrived at.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    * None.
-    *
-    * APIs UTILIZED:
-    *   NAME                    HEADER FILE     DESCRIPTION
-    *   convert_ticks_2_string  AEV_time_util.h Converts a time in UNIX ticks
-    *                                           into an INFORMIX compatible 
-    *                                           time string.
-    *   get_metar_conreal_val   metar_utils.h   Retrieves a datum from the 
-    *                                           FSS_contin_val table in the 
-    *                                           HM database.
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the program. ) 
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following routines in the HM database:
-    *      FSS_report
-    *      FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NUMBER:   8
+     * MODULE NAME:     get_pd_metar_max
+     * PURPOSE:         This routine determines the maximum temperature in a 
+     *                  user-defined period of METAR observations.
+     *
      * </pre>
      * 
      * @param informId
@@ -4054,6 +2851,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @param endTimeMilli
      * @return
      */
+
     public ExtremeTempPeriodResult getPeriodMetarMax(int informId,
             long beginTimeMilli, long endTimeMilli) {
         /*
@@ -4097,9 +2895,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                         if (result instanceof Date) {
                             try {
                                 String validTime = ClimateDate
-                                        .getFullDateFormat()
+                                        .getFullDateTimeFormat()
                                         .format((Date) result);
-
                                 /*
                                  * get each metar's temperature; check against
                                  * max temp found thus far
@@ -4175,68 +2972,11 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * Migrated from build_daily_obs_temp.ec.
      * 
      * <pre>
-      * MODULE NUMBER:   9
-    * MODULE NAME:     get_pd_metar_min
-    * PURPOSE:         This module determines the minimum temperature for a user
-    *                  defined time period.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the 
-    *                                           station to retrieve the 
-    *                                           temperature information for (as
-    *                                           defined in the station_location
-    *                                           table of the HM database) .
-    *   I      time_t      beg_dtime            The beginning time in UNIX ticks
-    *                                           representation of the time 
-    *                                           period to find the minimum
-    *                                           temperature in.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks
-    *                                           representation of the time period
-    *                                           to find the minimum temperature in.
-    *   I      float       *maxtemp             The minimum temperature found in
-    *                                           this period.
-    *   O      char        *dqd                 The data quality descriptor flag
-    *                                           associated with the minimum
-    *                                           temperature retrieved from the
-    *                                           HM database.
-    *   O      int         *temp_flag           Contains a numeric code indicating
-    *                                           how the minimum temperature was
-    *                                           was arrived at.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    * None.
-    *
-    * APIs UTILIZED:
-    *   NAME                                    HEADER FILE DESCRIPTION
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined in the body of the code. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following tables in the HM database:
-    *      FSS_report
-    *      FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                             DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NUMBER:   9
+     * MODULE NAME:     get_pd_metar_min
+     * PURPOSE:         This module determines the minimum temperature for a user
+     *                  defined time period.
+     *
      * </pre>
      * 
      * @param informId
@@ -4247,6 +2987,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            in milliseconds
      * @return
      */
+
     public ExtremeTempPeriodResult getPeriodMetarMin(int informId,
             long beginTimeMilli, long endTimeMilli) {
         /*
@@ -4290,7 +3031,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
                         if (result instanceof Date) {
                             try {
                                 String validTime = ClimateDate
-                                        .getFullDateFormat()
+                                        .getFullDateTimeFormat()
                                         .format((Date) result);
 
                                 /*
@@ -4369,66 +3110,11 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER:   10
-    * MODULE NAME:     get_pd_speci_max
-    * PURPOSE:         This routine determines the maximum temperature from
-    *                  all the special reports occurring withing a user-specified
-    *                  time period.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id           The numeric identifier of the
-    *                                           station to retrieve the
-    *                                           temperature information for.
-    *   I      time_t      beg_dtime            The beginning time in UNIX ticks
-    *                                           representation of the time
-    *                                           period to find the maximum
-    *                                           temperature in.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks
-    *                                           representation of the time period
-    *                                           to find the maximum temperature in.
-    *   O      float       *maxtemp             The maximum temperature found in
-    *                                           this period.
-    *   O      char        *dqd                 The data quality descriptor flag
-    *                                           associated with the maximum
-    *                                           temperature retrieved from the
-    *                                           HM database.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    *    None.
-    *
-    * APIs UTILIZED:
-    *   NAME                   HEADER FILE        DESCRIPTION
-    *   get_speci_conreal_val  metar_utils.h      This routine finds the
-    *                                             temperature value from
-    *                                             a special and its corrections.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined within the body of this module. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * This routine utilizes the following tables in the HM_DB database:
-    *      FSS_report
-    *      FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NAME:     get_pd_speci_max
+     * PURPOSE:         This routine determines the maximum temperature from
+     *                  all the special reports occurring withing a user-specified
+     *                  time period.
+     *
      * </pre>
      * 
      * @param informId
@@ -4439,6 +3125,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            in form YYYY-MM-dd hh24:mm.
      * @return
      */
+
     public ExtremeTempPeriodResult getPeriodSpeciMax(int informId,
             String beginTimeString, String endTimeString) {
         int numReports = 0;
@@ -4551,69 +3238,11 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * MODULE NUMBER:  11
-    * MODULE NAME:    get_pd_speci_min
-    * PURPOSE:        This routine checks all of the special reports in a
-    *                 user-specified time period and determines the minimum
-    *                 temperature from them.
-    *
-    * ARGUMENTS:
-    *   TYPE   DATA TYPE   NAME                 DESCRIPTION/UNITS
-    *   I      long        station_id          This contains the numeric
-    *                                           identifier of the station
-    *                                           to retrieve the temperature
-    *                                           data for.
-    *   I      time_t      beg_dtime            The beginning time in UNIX ticks
-    *                                           representation of the time
-    *                                           period to find the minimum
-    *                                           temperature in.
-    *   I      time_t      end_dtime            The ending time in UNIX ticks
-    *                                           representation of the time period
-    *                                           to find the minimum temperature in.
-    *   O      float       *maxtemp             The minimum temperature found in
-    *                                           this period.
-    *   O      char        *dqd                 The data quality descriptor flag
-    *                                           associated with the minimum
-    *                                           temperature retrieved from the
-    *                                           HM database.
-    *   O      STATUS      *status              Contains any error or diagnostic
-    *                                           codes generated by this routine.
-    *
-    * RETURNS:
-    * None.
-    *
-    * APIs UTILIZED:
-    *   NAME                  HEADER FILE       DESCRIPTION
-    *   db_utils_error        dbutils_c.h       Checks for and logs Informix
-    *                                           generated error messages.
-    *   get_speci_conreal_val metar_utils.h     This routine retrieves
-    *                                           a datum from the FSS_contin_real
-    *                                           table in the HM_DB database.
-    *
-    * LOCAL DATA ELEMENTS (OPTIONAL):
-    * ( These are defined within the body of this module. )
-    *
-    * DATA FILES AND/OR DATABASE:
-    * The following tables in the HM_DB database are utilized by this routine:
-    *     FSS_report
-    *     FSS_contin_real
-    *
-    * ERROR HANDLING:
-    *    ERROR CODE                            DESCRIPTION
-    *    STATUS_OK                         This routine ran to completion.
-    *    MALLOC_ERROR                      Memory could not be dynamically
-    *                                      allocated in the
-    *                                      get_metar_conreal_val routine.
-    *    CURSOR_OPEN_ERROR                 A query cursor could not be opened
-    *                                      in the get_metar_conreal_val routine.
-    *    MULTIPLE_HITS                     More than one row satisfied the
-    *                                      "condition" in a query that was
-    *                                      expecting only one row in the
-    *                                      get_metar_conreal_val.
-    *    SELECT_ERROR                      An Informix select failed in the
-    *                                      get_metar_conreal_val routine.
-    *    STATUS_BUG                        An undiagnosed problem occurred in the
-    *                                      get_metar_conreal_val routine forcing
-    *                                      it to abort execution.
+     * MODULE NAME:    get_pd_speci_min
+     * PURPOSE:        This routine checks all of the special reports in a
+     *                 user-specified time period and determines the minimum
+     *                 temperature from them.
+     *
      * </pre>
      * 
      * @param informId
@@ -4624,6 +3253,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            in form YYYY-MM-dd hh24:mm.
      * @return
      */
+
     public ExtremeTempPeriodResult getPeriodSpeciMin(int informId,
             String beginTimeString, String endTimeString) {
         int numReports = 0;
@@ -4734,196 +3364,77 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * 
      * <pre>
      * NUMBER OF MODULES:   1
-    *  GENERAL INFORMATION:
-    *       MODULE 1:       get_metar_tempc_for_valid
-    *       DESCRIPTION:    Retrieve the current observed temperature/dqd from a
-    *                       decoded METAR report contained in the FSS-series of 
-    *                       hmdb database tables, given the station_id and report
-    *                       valid (observed) time.  If the temperature in tenths
-    *                       Celsius (as reported in the RMK fields of the METAR)
-    *                       is available, this value is returned.  If the RMK
-    *                       temperature is not available, the temperature in
-    *                       whole degrees C (as reported in the body of the
-    *                       METAR) is returned.  The hmdb element_id is returned
-    *                       to indicate which type of the two possible types of
-    *                       temperature values is being returned.  This value is
-    *                       taken either from a regularly-scheduled metar report,
-    *                       or (if one is present) the most recent correction to
-    *                       such a regularly-scheduled metar report.
-    *
-    *  ORIGINAL AUTHOR:     Bob Morris  (based on get_metar_conreal.ecpp)
-    *  CREATION DATE:       June 2001
-    *  ORGANIZATION:        SAIC/GSC / MDL
-    *  MACHINE/OS:          HP-UX 10.20 / Linux 7.0 / Informix 7.3.1
-    *  COPYRIGHT:
-    *  DISCLAIMER:
-    *  MODIFICATION HISTORY:
-    *    MODULE #        DATE         PROGRAMMER        DESCRIPTION/REASON
-    *          1        6/2001        Bob Morris        Initial Coding
-    ******************************************************************************
-    *void get_metar_tempc_for_valid ( const long station_id ,
-    *                                   const char *valid_dtime ,
-    *                                   long *element_id , float *value ,
-    *                                   char *dqd , STATUS *status )
-    *
-    *  Bob Morris       SAIC/GSC, MDL    HP-UX 10.20, Linux 7.0, Informix 7.3.1
-    *
-    *  FUNCTION DESCRIPTION
-    *  ====================
-    *
-    *    This function gets a current temperature observation value and its data
-    *    quality descriptor (dqd) for a decoded METAR stored in the FSS_REPORT
-    *    and FSS_CONTIN_REAL hm database tables, given a station and report time.
-    *    The input time is when the observation was taken (its hmdb valid_dtime).
-    *    If the temperature value in tenths C from the RMKs is available, it is
-    *    obtained.  Otherwise, the temperature in whole degrees C from the body
-    *    of the report is obtained.  The element_id of whichever of the two
-    *    temperature values was obtained is also provided to the caller.  Data
-    *    are taken only from a regularly scheduled METAR report, not a "SPECI".
-    *
-    *    The station is specified by a long integer id number (from the
-    *    station_location table in the hm database).  The element_id is
-    *    specified by a long integer id number (from the hydromet_element table
-    *    in the hm database.  The valid date/time of the metar is specified by a
-    *    string in SQL-friendly "yyyy-mm-dd hh:mm" format.
-    *
-    *    The result is one scalar float value (value), a one-character data
-    *    quality descriptor (dqd) and one scalar long value (element_id).
-    *
-    *    This function selects the data values from the latest correction to the
-    *    metar, if any corrections.  If there are no corrections, then the
-    *    data are selected from the metar's latest transmission.  Note this 
-    *    function is expected to be called multiple times for each nominal hour
-    *    for stations which produce routine METAR observations (no SPECIs)
-    *    more than once per hour, or only once per nominal hour for stations which
-    *    produce one METAR per hour with SPECIs as needed (e.g. ASOS and manual
-    *    sites.  AWOS stations, which post METARs at around 15, 35, and 55 minutes
-    *    after each hour, are an example of the former station type.  Note the
-    *    same nominal hour applies to reports with valid times from 15 minutes
-    *    before the nominal hour to 44 minutes past the nominal hour.  Note also
-    *    that AWOS stations are those most likely to not have RMKs, so they are
-    *    the primary raison d'etre for this utility -- we want to take care of
-    *    temperature_in_tenthslessness for these stations.  It would be up to the
-    *    calling routine to loop over the valid times for a given nominal hour,
-    *    call this function for each valid time, and process the observed values.
-    *
-    *    If this function succeeds in finding the requested value, the return
-    *    status is STATUS_OK (= 0).  If a metar for the requested station and
-    *    time is found, but neither temperature value is found, the return
-    *    status is STATUS_FAILURE (= 1).  If no metars for the requested station
-    *    and time are found, the return status is NO_HITS.  See POSSIBLE STATUS
-    *    VALUES below for other possible status values and their meanings.
-    *
-    *  VARIABLES
-    *  =========
-    *
-    *  name                                description
-    *  ------------------------------- --- --------------------------------------
-    *  db_status                        L  The success/failure code returned
-    *                                        by dbUtils and Informix functions.
-    *  dqd                              O  Data quality descriptor of the returned
-    *                                        temperature value, "value".
-    *  dqd_whole_indicator              L  Indicates when ec_dqd_whole is null
-    *                                        in the database.
-    *  ec_correction                    L  Database flag for whether the metar is
-    *                                        a correction.
-    *  ec_dqd_whole                     L  Informix's copy of body temp dqd.
-    *  ec_dqd_10ths                     L  Informix's copy of RMKs temp dqd.
-    *  ec_element_id_whole              L  Informix's copy of element_id value for
-    *                                      the current temperature from the METAR
-    *                                        report body, in whole degrees C.
-    *  ec_element_id_10ths              L  Informix's copy of element_id value for
-    *                                      the current temperature from the METAR
-    *                                        report RMK, in tenths of a degree C.
-    *  ec_temperature_whole             L  Informix's copy of the metar body
-    *                                        temperature observation value.
-    *  ec_temperature_10ths             L  Informix's copy of the metar RMKs
-    *                                        temperature observation value.
-    *  ec_origin_dtime                  L  The date and time the metar was
-    *                                        received and stored.
-    *  ec_stnid                         L  Informix's copy of station_id.
-    *  ec_valid_dtime                   L  Informix's copy of the date and time
-    *                                        the metar data were observed.
-    *  element_id                     I/O  hmdb element_id number for whichever
-    *                                        metar temperature value is returned.
-    *  elval_whole_indicator            L  Indicates when ec_temperature_whole
-    *                                        is null in the database.
-    *  elval_10ths_indicator            L  Indicates when ec_temperature_10ths
-    *                                        is null in the database.
-    *  message_text                     L  the text of the message being written
-    *                                        to the system log.
-    *  SQLSTATE                         L  the success/failure code returned by
-    *                                        Informix.
-    *  station_id                       I  The station whose observation value is
-    *                                        being requested.
-    *  status                           O  the success/failure code returned by
-    *                                        this function.  See POSSIBLE STATUS
-    *                                        VALUES below for possible values
-    *                                        and their meanings.
-    *  valid_dtime                      I  The valid time (in "yyyy-mm-dd hh:mm"
-    *                                        format) of the requested metar.
-    *  value                            O  The requested metar temperature value.
-    *  (H = included, I = input, I/O = input and updated, L = local , O = output)
-    *
-    *  INCLUDED CONSTANTS (excluding STATUS constants)
-    *  ==================
-    *
-    *    DB_NULL                             Common_Defs.h
-    *    MAX_INFORMIX_TIME_STRING_SIZE       AEV_time_util.h
-    *    METAR_TEMP                          metar_utils.h
-    *    METAR_TEMP_2_TENTHS                 metar_utils.h
-    *    STD_MSG_LENGTH                      std_string_lengths.h
-    *
-    *  FUNCTION VALUE
-    *  ==============
-    *
-    *    none.
-    *
-    *  POSSIBLE STATUS VALUES
-    *  ======================
-    *
-    *    CURSOR_OPEN_ERROR     Informix encountered trouble opening a "cursor".
-    *    DECLARE_CURSOR_ERROR  Informix encountered trouble declaring a "cursor".
-    *    FETCH_ERROR           Informix was unable to FETCH a row.
-    *    GENERAL_DB_ERROR      Here, something was wrong with the data in the
-    *                            fss_contin_real table.
-    *    NO_HITS               No METARs were found for the station and hour of
-    *                            interest.
-    *    STATUS_FAILURE        No temperature values were found for the report.
-    *    STATUS_OK             The desired value was successfully found and
-    *                            returned.
-    *    (these are included from STATUS.h)
-    *
-    *  FUNCTIONS CALLED
-    *  ================
-    *
-    *    db_utils_error - logs messages with Informix error codes and dbaccess
-    *      messages.
-    *    logDebug - logs messages to the debug log.
-    *    logProblem - logs messages to the problem log.
-    *
-    *  FILES
-    *  =====
-    *
-    *    hm database.
-    *
-    *  HISTORY
-    *  =======
-    *
-    *    June 2001     Bob Morris        created.
-    *
-    *  ASSUMPTIONS
-    *  ===========
-    *
-    *    The hm database is currently connected.
-    *
-    *    This routine requires at least version 7.1 of Informix.
-    *
-    *  NOTES
-    *  =====
-    *
-    *    The main program must be written in C++, since this function depends
-    *    on other C++ software.
+     *  GENERAL INFORMATION:
+     *       MODULE 1:       get_metar_tempc_for_valid
+     *       DESCRIPTION:    Retrieve the current observed temperature/dqd from a
+     *                       decoded METAR report contained in the FSS-series of 
+     *                       hmdb database tables, given the station_id and report
+     *                       valid (observed) time.  If the temperature in tenths
+     *                       Celsius (as reported in the RMK fields of the METAR)
+     *                       is available, this value is returned.  If the RMK
+     *                       temperature is not available, the temperature in
+     *                       whole degrees C (as reported in the body of the
+     *                       METAR) is returned.  The hmdb element_id is returned
+     *                       to indicate which type of the two possible types of
+     *                       temperature values is being returned.  This value is
+     *                       taken either from a regularly-scheduled metar report,
+     *                       or (if one is present) the most recent correction to
+     *                       such a regularly-scheduled metar report.
+     *
+     ******************************************************************************
+     *void get_metar_tempc_for_valid ( const long station_id ,
+     *                                   const char *valid_dtime ,
+     *                                   long *element_id , float *value ,
+     *                                   char *dqd , STATUS *status )
+     *
+     *  Bob Morris       SAIC/GSC, MDL    HP-UX 10.20, Linux 7.0, Informix 7.3.1
+     *
+     *  FUNCTION DESCRIPTION
+     *  ====================
+     *
+     *    This function gets a current temperature observation value and its data
+     *    quality descriptor (dqd) for a decoded METAR stored in the FSS_REPORT
+     *    and FSS_CONTIN_REAL hm database tables, given a station and report time.
+     *    The input time is when the observation was taken (its hmdb valid_dtime).
+     *    If the temperature value in tenths C from the RMKs is available, it is
+     *    obtained.  Otherwise, the temperature in whole degrees C from the body
+     *    of the report is obtained.  The element_id of whichever of the two
+     *    temperature values was obtained is also provided to the caller.  Data
+     *    are taken only from a regularly scheduled METAR report, not a "SPECI".
+     *
+     *    The station is specified by a long integer id number (from the
+     *    station_location table in the hm database).  The element_id is
+     *    specified by a long integer id number (from the hydromet_element table
+     *    in the hm database.  The valid date/time of the metar is specified by a
+     *    string in SQL-friendly "yyyy-mm-dd hh:mm" format.
+     *
+     *    The result is one scalar float value (value), a one-character data
+     *    quality descriptor (dqd) and one scalar long value (element_id).
+     *
+     *    This function selects the data values from the latest correction to the
+     *    metar, if any corrections.  If there are no corrections, then the
+     *    data are selected from the metar's latest transmission.  Note this 
+     *    function is expected to be called multiple times for each nominal hour
+     *    for stations which produce routine METAR observations (no SPECIs)
+     *    more than once per hour, or only once per nominal hour for stations which
+     *    produce one METAR per hour with SPECIs as needed (e.g. ASOS and manual
+     *    sites.  AWOS stations, which post METARs at around 15, 35, and 55 minutes
+     *    after each hour, are an example of the former station type.  Note the
+     *    same nominal hour applies to reports with valid times from 15 minutes
+     *    before the nominal hour to 44 minutes past the nominal hour.  Note also
+     *    that AWOS stations are those most likely to not have RMKs, so they are
+     *    the primary raison d'etre for this utility -- we want to take care of
+     *    temperature_in_tenthslessness for these stations.  It would be up to the
+     *    calling routine to loop over the valid times for a given nominal hour,
+     *    call this function for each valid time, and process the observed values.
+     *
+     *    If this function succeeds in finding the requested value, the return
+     *    status is STATUS_OK (= 0).  If a metar for the requested station and
+     *    time is found, but neither temperature value is found, the return
+     *    status is STATUS_FAILURE (= 1).  If no metars for the requested station
+     *    and time are found, the return status is NO_HITS.  See POSSIBLE STATUS
+     *    VALUES below for other possible status values and their meanings.
+     *
      * </pre>
      * 
      * @param informId
@@ -4932,6 +3443,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            in format YYYY-MM-dd hh24:mm
      * @return
      */
+
     private ExtremeTempPeriodResult getMetarTempCForValidTime(int informId,
             String validTime) {
         /*

@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Climate Viz Common
+Bundle-SymbolicName: gov.noaa.nws.ocp.viz.common.climate;singleton:=true
+Bundle-Version: 1.16.0.qualifier
+Bundle-Vendor: NWS
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: org.eclipse.ui;visibility:=reexport,
+ gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
+ com.raytheon.uf.common.status;visibility:=reexport,
+ org.eclipse.core.runtime;bundle-version="3.11.1",
+ com.raytheon.uf.common.dataplugin.text,
+ com.raytheon.uf.viz.core,
+ com.raytheon.viz.ui;visibility:=reexport,
+ gov.noaa.nws.ocp.common.localization.climate
+Export-Package: gov.noaa.nws.ocp.viz.common.climate.comp,
+ gov.noaa.nws.ocp.viz.common.climate.dialog,
+ gov.noaa.nws.ocp.viz.common.climate.handbook,
+ gov.noaa.nws.ocp.viz.common.climate.listener,
+ gov.noaa.nws.ocp.viz.common.climate.listener.impl,
+ gov.noaa.nws.ocp.viz.common.climate.util

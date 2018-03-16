@@ -274,9 +274,8 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getSnowFallListener());
         myMaxSnow24HourTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
-        myMaxSnow24HourTF
-                .addKeyListener(new DataFieldListener(myMaxSnow24HourComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myMaxSnow24HourTF.addKeyListener(new DataFieldListener(
+                myMaxSnow24HourComboBox, myPeriodDialog.getChangeListener()));
 
         // 24-hour max snow dates
         Composite maxSnow24HourDatesComp = new Composite(parent, SWT.NONE);
@@ -293,8 +292,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         DataFieldListener maxSnow24HourDatesListener = new DataFieldListener(
-                myMaxSnow24HourComboBox,
-                myPeriodDialog.myUnsavedChangesListener);
+                myMaxSnow24HourComboBox, myPeriodDialog.getChangeListener());
         myMaxSnow24HourBeginDates[0].addKeyListener(maxSnow24HourDatesListener);
         myMaxSnow24HourBeginDates[0]
                 .addSelectionListener(maxSnow24HourDatesListener);
@@ -378,7 +376,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         myGreatestSnowStormTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
         myGreatestSnowStormTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // greatest snow storm dates and hours
         Composite greatestSnowStormDatesHoursComp = new Composite(parent,
@@ -412,7 +410,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormBeginDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormBeginHour1Comp = new Composite(
                 greatestSnowStormBeginDatesHoursComp, SWT.NONE);
@@ -433,7 +431,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestSnowStormBeginHourTFs[0], true));
         myGreatestSnowStormBeginHourTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // second begin date and hour
         Composite greatestSnowStormBeginDate2Comp = new Composite(
@@ -451,7 +449,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormBeginDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormBeginHour2Comp = new Composite(
                 greatestSnowStormBeginDatesHoursComp, SWT.NONE);
@@ -472,7 +470,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestSnowStormBeginHourTFs[1], true));
         myGreatestSnowStormBeginHourTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // third begin date and hour
         Composite greatestSnowStormBeginDate3Comp = new Composite(
@@ -490,7 +488,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormBeginDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormBeginHour3Comp = new Composite(
                 greatestSnowStormBeginDatesHoursComp, SWT.NONE);
@@ -511,7 +509,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestSnowStormBeginHourTFs[2], true));
         myGreatestSnowStormBeginHourTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // greatest snow storm end dates and hours
         Composite greatestSnowStormEndDatesHoursComp = new Composite(
@@ -537,7 +535,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormEndDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormEndHour1Comp = new Composite(
                 greatestSnowStormEndDatesHoursComp, SWT.NONE);
@@ -557,7 +555,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 new TimeSelectorFocusListener(myGreatestSnowStormEndHourTFs[0],
                         true));
         myGreatestSnowStormEndHourTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // second end date and hour
         Composite greatestSnowStormEndDate2Comp = new Composite(
@@ -574,7 +572,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormEndDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormEndHour2Comp = new Composite(
                 greatestSnowStormEndDatesHoursComp, SWT.NONE);
@@ -594,7 +592,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 new TimeSelectorFocusListener(myGreatestSnowStormEndHourTFs[1],
                         true));
         myGreatestSnowStormEndHourTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // third end date and hour
         Composite greatestSnowStormEndDate3Comp = new Composite(
@@ -611,7 +609,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestSnowStormEndDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite greatestSnowStormEndHour3Comp = new Composite(
                 greatestSnowStormEndDatesHoursComp, SWT.NONE);
@@ -631,7 +629,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 new TimeSelectorFocusListener(myGreatestSnowStormEndHourTFs[2],
                         true));
         myGreatestSnowStormEndHourTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     /**
@@ -657,7 +655,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         myTotalSnowTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
         myTotalSnowTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // total water
         Label totalWaterEquivLbl = new Label(topComp, SWT.NORMAL);
@@ -671,7 +669,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         myTotalSnowWaterEquivTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
         myTotalSnowWaterEquivTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // days with snowfall
         Label daysWithSnowLbl = new Label(parent, SWT.NORMAL);
@@ -693,7 +691,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         myAnySnowGreaterThanTraceTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myAnySnowGreaterThanTraceTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite anySnowFiller = new Composite(bottomComp, SWT.NONE);
         anySnowFiller.setLayoutData(ClimateLayoutValues.getFillerGD());
@@ -710,7 +708,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         mySnowGreaterThan1TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         mySnowGreaterThan1TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite snowGreaterThan1Filler = new Composite(bottomComp, SWT.NONE);
         snowGreaterThan1Filler.setLayoutData(ClimateLayoutValues.getFillerGD());
@@ -726,7 +724,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         mySnowCustomGreaterS1TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         mySnowCustomGreaterS1TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getS1() == ParameterFormatClimate.MISSING_SNOW) {
@@ -754,7 +752,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         myAvgSnowDepthGroundTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getSnowFallListener());
         myAvgSnowDepthGroundTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite avgSnowDepthFiller = new Composite(bottomComp, SWT.NONE);
         avgSnowDepthFiller.setLayoutData(ClimateLayoutValues.getFillerGD());
@@ -827,7 +825,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getDefaultIntListener());
         myMaxSnowDepthGroundTF.addKeyListener(
                 new DataFieldListener(myMaxSnowDepthGroundComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         // dates of max snowfall
         Composite maxSnowDatesComp = new Composite(parent, SWT.NONE);
@@ -843,7 +841,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myUpperBoundDate);
         myMaxSnowDepthGroundDates[0].addKeyListener(
                 new DataFieldListener(myMaxSnowDepthGroundComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         // second date of max snowfall
         myMaxSnowDepthGroundDates[1] = new DateSelectionComp(maxSnowDatesComp,
@@ -851,7 +849,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myUpperBoundDate);
         myMaxSnowDepthGroundDates[1].addKeyListener(
                 new DataFieldListener(myMaxSnowDepthGroundComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
 
         // third date of max snowfall
         myMaxSnowDepthGroundDates[2] = new DateSelectionComp(maxSnowDatesComp,
@@ -859,7 +857,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myUpperBoundDate);
         myMaxSnowDepthGroundDates[2].addKeyListener(
                 new DataFieldListener(myMaxSnowDepthGroundComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+                        myPeriodDialog.getChangeListener()));
     }
 
     @Override
@@ -1282,12 +1280,9 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId())
                     .getSnowMax24H());
         } else if (DataValueOrigin.DAILY_DATABASE.equals(comboSelection)) {
-            saveValue = String
-                    .valueOf(
-                            myPeriodDialog.myOriginalDataMap
-                                    .get(myPeriodDialog.myCurrStation
-                                            .getInformId())
-                                    .getData().getSnowMax24H());
+            saveValue = String.valueOf(myPeriodDialog.myOriginalDataMap
+                    .get(myPeriodDialog.myCurrStation.getInformId()).getData()
+                    .getSnowMax24H());
         } else {
             saveValue = myMaxSnow24HourTF.getText();
         }

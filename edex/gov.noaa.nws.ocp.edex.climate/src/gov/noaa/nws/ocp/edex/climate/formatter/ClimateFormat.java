@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -20,7 +21,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateStationsSetupDAO;
 
@@ -36,6 +37,9 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateStationsSetupDAO;
  * ------------ ---------- ----------- --------------------------
  * Mar 07, 2017 21099      wpaintsil   Initial creation
  * 13 APR 2017  33104      amoore      Address comments from review.
+ * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting.
+ * 20 NOV 2017  41088      amoore      Snow section was missing in CLM due to
+ *                                     faulty checks of reportWindow
  * </pre>
  *
  * @author wpaintsil
@@ -46,8 +50,7 @@ public abstract class ClimateFormat {
     /**
      * The logger.
      */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateFormat.class);
+    protected final IUFStatusHandler logger = UFStatus.getHandler(getClass());
 
     /**
      * Holds the current settings being used from the given list of settings.
@@ -57,7 +60,7 @@ public abstract class ClimateFormat {
     /**
      * Holds global configuration.
      */
-    protected ClimateGlobal globalConfig = new ClimateGlobal();
+    protected final ClimateGlobal globalConfig;
 
     /**
      * Holds list of stations.
@@ -364,8 +367,7 @@ public abstract class ClimateFormat {
      * @throws ClimateQueryException
      */
     public abstract Map<String, ClimateProduct> buildText(
-            ClimateCreatorResponse reportData)
-                    throws ClimateInvalidParameterException,
+            ClimateRunData reportData) throws ClimateInvalidParameterException,
                     ClimateQueryException;
 
     /**
@@ -419,45 +421,51 @@ public abstract class ClimateFormat {
      *
      *   Purpose:  To determine if the cooling, heating, and/or snow reports
      *            should be created and included in the format_climate output.
-     *     
-     *
-     *
-     *  Variables
-     *
-     *     Input
-     *        cool_report - This holds the time period of the cooling report season.
-     *        heat_report - This holds the time period of the heating report season.
-     *        snow_report - This holds the time period of the snow report season.
-     *             y_date - This holds the current date.
-     *
-     *     Output
-     *     do_cool_report - This will hold the decision flag for cooling days report.
-     *     do_heat_report - This will hold the decision flag for heating days report.
-     *     do_snow_report - This will hold the decision flag for snow days report.
+     * 
      * </pre>
      * 
      * @param reportDates
      * @return
      */
-    public static boolean reportWindow(ClimateDates reportDates) {
-        int currentDate = ClimateDate.getLocalDate().julday();
-        int startDate = reportDates.getStart().julday();
-        int endDate = reportDates.getEnd().julday();
+    public static boolean reportWindow(ClimateDates reportDates,
+            ClimateDate beginDate) {
+        /*
+         * Rewritten to use more robust logic than the DAY OF YEAR logic of
+         * Legacy
+         */
+        ClimateDate startDate = new ClimateDate(reportDates.getStart());
+        ClimateDate endDate = new ClimateDate(reportDates.getEnd());
 
-        boolean report = false;
+        startDate.setYear(beginDate.getYear());
+        endDate.setYear(beginDate.getYear());
 
-        if (currentDate < startDate) {
-            currentDate += 365;
+        boolean startCheck = (startDate.equals(beginDate)
+                || startDate.before(beginDate));
+        boolean endCheck = (endDate.equals(beginDate)
+                || endDate.after(beginDate));
+
+        if (startDate.after(endDate)) {
+            /*
+             * special case of multi-year range; can just use OR for the major
+             * checks since we assign the same year to both ends
+             */
+            if (startCheck || endCheck) {
+                // within regular range
+                return true;
+            } else {
+                // outside the range
+                return false;
+            }
+        } else {
+            // regular range check
+            if (startCheck && endCheck) {
+                // within regular range
+                return true;
+            } else {
+                // outside the range
+                return false;
+            }
         }
-        if (endDate < startDate) {
-            endDate += 365;
-        }
-
-        if (currentDate >= startDate && currentDate <= endDate) {
-            report = true;
-        }
-
-        return report;
     }
 
     /**
@@ -539,4 +547,23 @@ public abstract class ClimateFormat {
                 currentSettings.getReportType(), getExpirationTime());
     }
 
+    /**
+     * @return {@link TimeZone} object. If global config timezone is null,
+     *         empty, or not parseable, object is based on GMT.
+     */
+    protected TimeZone parseTimeZone() {
+        String timeZoneString = globalConfig.getTimezone();
+        if (timeZoneString == null || timeZoneString.isEmpty()) {
+            timeZoneString = GMT_STRING;
+        }
+
+        TimeZone localTimeZone = TimeZone.getTimeZone(timeZoneString);
+
+        if (!localTimeZone.getID().equalsIgnoreCase(timeZoneString)) {
+            logger.warn("Formatter tried to use globalDay timezone of: ["
+                    + timeZoneString + "], but Java parsed this as: ["
+                    + localTimeZone.getID() + "].");
+        }
+        return localTimeZone;
+    }
 }

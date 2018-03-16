@@ -20,8 +20,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.edex.core.EDEXUtil;
-import com.raytheon.uf.edex.database.DataAccessLayerException;
-import com.raytheon.uf.edex.plugin.text.dao.AfosToAwipsDao;
+import com.raytheon.uf.edex.plugin.text.AfosToAwipsLookup;
 import com.raytheon.uf.edex.plugin.text.db.TextDB;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ActionOnProduct;
@@ -41,9 +40,11 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * May 5, 2017  20637     pwang     Initial creation
- * Jun 2, 2017  20642     pwang     Fixed AwipsWanPIL issue
- *
+ * May 5,  2017 20637      pwang       Initial creation
+ * Jun 2,  2017 20642      pwang       Fixed AwipsWanPIL issue
+ * Aug 4,  2017 33104      amoore      Address review comments.
+ * Oct 10, 2017 39153      amoore      Less action-blocking from dissemination flag.
+ * Oct 23, 2017 39792      wpaintsil   Correct line breaks.
  * </pre>
  *
  * @author pwang
@@ -52,7 +53,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 public class ClimateProductNWWSSender {
 
     /** The logger */
-    public static final IUFStatusHandler logger = UFStatus
+    private static final IUFStatusHandler logger = UFStatus
             .getHandler(ClimateProductNWWSSender.class);
 
     private String commsHeader;
@@ -90,38 +91,21 @@ public class ClimateProductNWWSSender {
      * processCommsHeader
      * 
      * @param prod
-     * @return
      */
-    public boolean processCommsHeader(ClimateProduct prod) {
-        boolean noError = true;
+    public void processCommsHeader(ClimateProduct prod) {
         StringBuilder sb = new StringBuilder();
 
         String[] lines = prod.getProdText().split("\\r?\\n");
-        if (lines == null) {
-
-            String expMsg = "The NWWS prod text may not be formatted properly: ["
-                    + prod.getPil() + "] ";
-            prod.setStatus(ProductStatus.ERROR);
-            prod.setLastAction(ActionOnProduct.SEND, expMsg);
-
-            // Notify users
-            session.sendAlertVizMessage(Priority.PROBLEM, expMsg,
-                    prod.getProdText());
-            noError = false;
-            logger.error(expMsg);
-        }
 
         this.commsHeader = lines[0];
 
         // Skip communication header line
         for (int i = 1; i < lines.length; i++) {
-            sb.append(lines[i]);
+            sb.append(lines[i] + "\n");
         }
 
         // localProductText: product text without communication header
         this.localProductText = sb.toString();
-
-        return noError;
     }
 
     /**
@@ -137,15 +121,15 @@ public class ClimateProductNWWSSender {
     public boolean extractAfosInfo(ClimateProduct prod) {
         boolean noError = true;
         String[] afosElements = commsHeader.split("\\s+");
-        if (afosElements == null || afosElements.length < 3) {
+        if (afosElements.length < 3) {
             String expMsg = "Communication header in the NWWS prod has a wrong format: ["
                     + prod.getPil() + "]";
             prod.setStatus(ProductStatus.ERROR);
             prod.setLastAction(ActionOnProduct.SEND, expMsg);
 
             // Notify users
-            session.sendAlertVizMessage(Priority.PROBLEM, expMsg,
-                    prod.getProdText());
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    expMsg, prod.getProdText());
             noError = false;
             logger.error(expMsg);
             return noError;
@@ -168,15 +152,15 @@ public class ClimateProductNWWSSender {
 
         // Further extract aforsId, afosNone
         String[] idAndNode = afosInfo.split("\\s+");
-        if (idAndNode == null || idAndNode.length == 0) {
+        if (idAndNode.length == 0) {
             String expMsg = "Communication header in the NWWS prod has a wrong format: ["
                     + prod.getPil() + "]";
             prod.setStatus(ProductStatus.ERROR);
             prod.setLastAction(ActionOnProduct.SEND, expMsg);
 
             // Notify users
-            session.sendAlertVizMessage(Priority.PROBLEM, expMsg,
-                    prod.getProdText());
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    expMsg, prod.getProdText());
             noError = false;
             logger.error(expMsg);
         } else if (idAndNode.length == 2) {
@@ -230,22 +214,23 @@ public class ClimateProductNWWSSender {
      * @return
      */
     public String mapToAwipsID(String afosId) {
-        AfosToAwipsDao dao = new AfosToAwipsDao();
         String prodAwipsID = "";
-        try {
-            List<AfosToAwips> list = dao.lookupWmoId(afosId).getIdList();
-            for (AfosToAwips ata : list) {
-                String cccc = ata.getWmocccc();
-                String awipsId = afosId.substring(3);
-                if (afosId.equals(ata.getAfosid())) {
-                    prodAwipsID = cccc + awipsId;
-                    break;
-                }
-            }
-        } catch (DataAccessLayerException e) {
-            String msg = "Failed to excute lookup via AfosToAwipsDao for the AFOS ID: "
+        List<AfosToAwips> list = AfosToAwipsLookup.lookupWmoId(afosId)
+                .getIdList();
+
+        if (list.isEmpty()) {
+            String msg = "Could not find any results via AfosToAwipsLookup for the AFOS ID: "
                     + this.afosId;
-            logger.error(msg);
+            logger.warn(msg);
+        }
+
+        for (AfosToAwips ata : list) {
+            String cccc = ata.getWmocccc();
+            String awipsId = afosId.substring(3);
+            if (afosId.equals(ata.getAfosid())) {
+                prodAwipsID = cccc + awipsId;
+                break;
+            }
         }
         return prodAwipsID;
     }
@@ -285,21 +270,23 @@ public class ClimateProductNWWSSender {
             prod.setLastAction(ActionOnProduct.SEND, expMsg);
 
             // Notify users
-            session.sendAlertVizMessage(Priority.PROBLEM, expMsg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    expMsg, null);
             logger.error(expMsg);
-        }
+        } else {
+            try {
+                dao.insertSentClimateProdRecord(rec);
+            } catch (ClimateQueryException e) {
+                String expMsg = "Insert the record: " + rec.getProd_id()
+                        + " failed";
+                prod.setStatus(ProductStatus.ERROR);
+                prod.setLastAction(ActionOnProduct.SEND, expMsg);
 
-        try {
-            dao.insertSentClimateProdRecord(rec);
-        } catch (ClimateQueryException e) {
-            String expMsg = "Insert the record: " + rec.getProd_id()
-                    + " failed";
-            prod.setStatus(ProductStatus.ERROR);
-            prod.setLastAction(ActionOnProduct.SEND, expMsg);
-
-            // Notify users
-            session.sendAlertVizMessage(Priority.PROBLEM, expMsg, null);
-            logger.error(expMsg);
+                // Notify users
+                ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                        expMsg, null);
+                logger.error(expMsg, e);
+            }
         }
     }
 
@@ -332,13 +319,14 @@ public class ClimateProductNWWSSender {
                 // Failed to store the product into the Text DB,
                 // not throw the exception so user can try late
 
-                String desc = "Store the climate product: " + cp.getPil()
+                String desc = "Storing the climate product: " + cp.getPil()
                         + " to TextDB failed";
                 cp.setStatus(ProductStatus.ERROR);
                 cp.setLastAction(ActionOnProduct.STORE, desc);
 
                 // Notify users
-                session.sendAlertVizMessage(Priority.PROBLEM, desc, null);
+                ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                        desc, null);
                 logger.error(
                         desc + " ptoduct text: [" + cp.getProdText() + "]");
 
@@ -360,14 +348,15 @@ public class ClimateProductNWWSSender {
         oup.setFilename(prod.getName());
         oup.setProductText(prod.getProdText());
         String awipsWanPil = mapToAwipsID(this.afosId);
-        if (awipsWanPil == null || awipsWanPil.isEmpty()) {
+        if (awipsWanPil.isEmpty()) {
             // Product ID may be not configured
             // Checking fxatext DB, afos_to_awips
             String msg = "Unable to send to OUP, the AFOSId : " + this.afosId
                     + " is not exist in fxatext.afos_to_awips table for the product: "
                     + prod.getPil();
             logger.error(msg);
-            session.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    msg, null);
             prod.setStatus(ProductStatus.ERROR);
             prod.setLastAction(ActionOnProduct.SEND, msg);
             return noError;
@@ -389,7 +378,8 @@ public class ClimateProductNWWSSender {
                 String msg = "Error transmitting NWWS climate products. Unexpected response class: "
                         + object.getClass().getName();
                 logger.error(msg);
-                session.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+                ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                        msg, null);
                 prod.setStatus(ProductStatus.ERROR);
                 prod.setLastAction(ActionOnProduct.SEND, msg);
             } else {
@@ -398,7 +388,7 @@ public class ClimateProductNWWSSender {
 
                 if (resp.hasFailure()) {
                     // check which kind of failure
-                    Priority p = Priority.EVENTA;
+                    Priority p = Priority.WARN;
                     if (!resp.isAttempted()) {
                         // if was never attempted to send or store even locally
                         p = Priority.CRITICAL;
@@ -416,7 +406,7 @@ public class ClimateProductNWWSSender {
                             additionalInfo = "ERROR send to WAN failed and no acknowledgment received";
                         } else {
                             // if no ack was needed
-                            p = Priority.EVENTA;
+                            p = Priority.WARN;
                             additionalInfo = "WARNING send to WAN failed";
                         }
                     } else if (resp.getNeedAcknowledgment()
@@ -427,8 +417,8 @@ public class ClimateProductNWWSSender {
                         additionalInfo = "ERROR no acknowledgment received";
                     }
                     // Notify user
-                    session.sendAlertVizMessage(p, resp.getMessage(),
-                            additionalInfo);
+                    ClimateProdGenerateSession.sendAlertVizMessage(p,
+                            resp.getMessage(), additionalInfo);
 
                     logger.error(resp.getMessage());
 
@@ -448,7 +438,8 @@ public class ClimateProductNWWSSender {
             prod.setStatus(ProductStatus.ERROR);
             prod.setStatusDesc(msg);
             prod.setLastAction(ActionOnProduct.SEND, msg);
-            session.sendAlertVizMessage(Priority.PROBLEM, msg, null);
+            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                    msg, null);
         }
 
         return noError;
@@ -462,18 +453,16 @@ public class ClimateProductNWWSSender {
      * @param fileName
      * @param prod
      * @param operational
+     * @param disseminate
      */
     public static void transmitNWWSProduct(ClimateProdGenerateSession session,
             String fileName, ClimateProduct prod, boolean operational,
-            String user) {
+            String user, boolean disseminate) {
 
         ClimateProductNWWSSender cpns = new ClimateProductNWWSSender(session);
 
         // Remove the communication header in the product
-        if (!cpns.processCommsHeader(prod)) {
-            // Fatal error, just return
-            return;
-        }
+        cpns.processCommsHeader(prod);
 
         // extract afosId, afosNode, etc
         if (!cpns.extractAfosInfo(prod)) {
@@ -491,7 +480,17 @@ public class ClimateProductNWWSSender {
             cpns.addAFOSHeader();
 
             // Store in TextDB
-            cpns.storeLocalProductInTextDB(prod, operational);
+            if (disseminate) {
+                cpns.storeLocalProductInTextDB(prod, operational);
+            } else {
+                String msg = "Not storing local Climate Product with PIL ["
+                        + prod.getPil() + "], as dissemination is disabled.";
+
+                prod.setStatus(ProductStatus.STORED);
+                prod.setLastAction(ActionOnProduct.STORE, msg);
+
+                logger.info(msg);
+            }
 
             // Record sent product
             cpns.recordSentNWWSProduct(fileName, prod, user, true);
@@ -506,11 +505,24 @@ public class ClimateProductNWWSSender {
         }
 
         // Not local product, forward to OUP handler
-        if (cpns.forwardToOUP(prod, operational)) {
+        if (!disseminate) {
+            String msg = "Not sending or storing Climate Product with PIL ["
+                    + prod.getPil() + "], as dissemination is disabled.";
+
+            prod.setStatus(ProductStatus.SENT);
+            prod.setLastAction(ActionOnProduct.SEND, msg);
+
+            logger.info(msg);
+
             // Record sent product
             cpns.recordSentNWWSProduct(fileName, prod, user, false);
+        } else if (cpns.forwardToOUP(prod, operational)) {
+            // Record sent product
+            cpns.recordSentNWWSProduct(fileName, prod, user, false);
+        } else {
+            logger.error("Error occurred transmitting " + fileName
+                    + " product for " + cpns.getAfosId());
         }
-
     }
 
     /**

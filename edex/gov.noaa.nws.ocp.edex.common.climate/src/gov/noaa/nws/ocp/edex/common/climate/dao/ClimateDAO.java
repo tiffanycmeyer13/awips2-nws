@@ -4,7 +4,6 @@
 package gov.noaa.nws.ocp.edex.common.climate.dao;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -49,12 +48,20 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 18 APR 2017  33104      amoore      Code consolidation.
  * 16 MAY 2017  33104      amoore      Floating point equality.
  * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
+ * 07 SEP 2017  37754      amoore      Get rid of abstract.
+ * 14 SEP 2017  37752      amoore      Instead of having every single DAO create their own logger
+ *                                     just have this parent with a protected logger for all DAOs.
+ * 02 OCT 2017  37107      amoore      Better precision equality in summing precip/snow.
+ * 23 OCT 2017  39818      amoore      Correct summation of #buildElement for snow/precip. 0 is not
+ *                                     a special case.
+ * 24 OCT 2017  39817      amoore      Clean up 24-hour precip calculations while investigating validity of
+ *                                     calculations. Handle trace better in hourly precip count.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
-public abstract class ClimateDAO {
+public class ClimateDAO {
 
     /**
      * Enumeration of types of functions that the build element method will
@@ -125,8 +132,10 @@ public abstract class ClimateDAO {
     /** The data access object */
     private final CoreDao dao;
 
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateDAO.class);
+    /**
+     * Logger for this DAO and all children.
+     */
+    protected final IUFStatusHandler logger = UFStatus.getHandler(getClass());
 
     public ClimateDAO() {
         dao = new CoreDao(DaoConfig.forDatabase(
@@ -213,7 +222,7 @@ public abstract class ClimateDAO {
     public final String getStationCodeByID(int stationID)
             throws ClimateQueryException {
         String query = "SELECT station_code FROM "
-                + ClimateDAOValues.CLIMATE_STATION_SETUP_TABLE_NAME
+                + ClimateDAOValues.STATION_LOCATION_TABLE_NAME
                 + " WHERE station_id =" + ":stationID";
         Map<String, Object> queryParams = new HashMap<>();
         queryParams.put("stationID", stationID);
@@ -342,24 +351,8 @@ public abstract class ClimateDAO {
     
     Purpose:  Finds the number of days past a threshold.  For example, the number
              of days where the temperature was greater or equal to 90 degrees F
-    
-    
-    Variables
-    
-      Input table       An array of character strings contain name and columns
-                    of the database table SELECT is acting upon.   
-        func        The function argument of SELECT, e.g. MAX()
-        element         The name of the column in the table which func
-                        is acting upon
-        start       Beginning date
-        end     Ending date
-        station     The station identifier
-        thresh          The threshold value
-        equality_flag   Whether it's less than or equal or greater than or equal
-        period_type Flag to used as a key in the cli_mon_season_yr table
-    
-    
-      Output    ec_return_value    The number of days
+     * 
+     * 
      * </pre>
      * 
      * @param beginDate
@@ -508,31 +501,15 @@ public abstract class ClimateDAO {
      * 
      * <pre>
      * build_element( )
-    
-    October 1999     David T. Miller        PRC/TDL
-    
-    
-    Purpose:  Returns the result from a simple SELECT dynamic SQL call.  Usually,
-             the result is from an aggregate function such as MAX, SUM, MIN, or 
-         AVG.
-    
-    
-    Variables
-    
-      Input table       An array of character strings contain name and columns
-                    of the database table SELECT is acting upon.   
-        func        The function argument of SELECT, e.g. MAX()
-        element         The name of the column in the table which func
-                        is acting upon
-        start       Beginning date
-        end     Ending date
-        station     The station identifier
-        period_type Flag to used as a key in the cli_mon_season_yr table
-        add_line        An additional character line to tack onto the built SELECT
-                        statement.  Adds a little more flexibility to the routine
-                and is used for mean temp and mean rh.
-    
-      Output    ec_return_value  value returned from the SQL call
+     *
+     * 
+     * October 1999     David T. Miller        PRC/TDL
+     *
+     *
+     * Purpose:  Returns the result from a simple SELECT dynamic SQL call.  Usually,
+     *        the result is from an aggregate function such as MAX, SUM, MIN, or 
+     *    AVG.
+     *
      * </pre>
      * 
      * @param beginDate
@@ -624,23 +601,26 @@ public abstract class ClimateDAO {
 
             Number noTraceResultNumber = (Number) noTraceResult;
 
-            if ((noTraceResultNumber.doubleValue() == 0) || ClimateUtilities
-                    .floatingEquals(noTraceResultNumber.doubleValue(),
-                            missingValue.doubleValue())) {
+            if (ClimateUtilities.floatingEquals(
+                    noTraceResultNumber.doubleValue(),
+                    missingValue.doubleValue())) {
                 /*
                  * allowing trace gave a result while not allowing trace did
-                 * not. Return trace.
+                 * not, so there are only trace values. Return trace.
                  */
                 oResult = ParameterFormatClimate.TRACE;
             } else {
                 /*
                  * allowing trace gave a result, but so did not allowing trace.
-                 * Return without trace.
+                 * Return without trace for correct summation.
                  */
                 oResult = noTraceResultNumber;
             }
         } else {
-            // accept the result
+            /*
+             * accept the current result, because either trace is not
+             * applicable, it is not a summation, or the result was missing.
+             */
             oResult = baseResultNumber;
         }
 
@@ -763,67 +743,102 @@ public abstract class ClimateDAO {
     /**
      * Calculate the max precip value given an array of the values.
      * 
-     * @param precipValues
-     * @param values
-     * @param maxValue
-     * @param maxValueDays
+     * @param previousPrecipValues
+     * @param todayPrecipValues
+     * @param currentMaxPrecipValue
+     * @param maxPrecipValueDays
      * @param day
      * @return The max 24-hour precip value.
      */
-    protected static float checkMaxPrecipValue(float[] precipValues,
-            float[] values, float maxValue, List<Integer> maxValueDays,
-            int day) {
+    protected static float checkMaxPrecipValue(float[] previousPrecipValues,
+            float[] todayPrecipValues, float currentMaxPrecipValue,
+            int[] maxPrecipValueDays, int day) {
         int noon = 1;
         if (day == 1) {
             noon = 11; // first day, count from noon in previous month.
         }
 
-        if ((precipValues != null) && (values != null)
-                && (precipValues.length == TimeUtil.HOURS_PER_DAY)
-                && (values.length == TimeUtil.HOURS_PER_DAY)) {
+        if ((previousPrecipValues != null) && (todayPrecipValues != null)
+                && (previousPrecipValues.length == TimeUtil.HOURS_PER_DAY)
+                && (todayPrecipValues.length == TimeUtil.HOURS_PER_DAY)) {
 
+            // add up varying 24-hour spans
             for (int i = noon; i <= TimeUtil.HOURS_PER_DAY; i++) {
-                float tempMax = 0.0f;
+
+                // get sum of precip
+                float currSum = 0.0f;
+                boolean foundTrace = false;
+
+                // count for up to 24-hour spans
                 for (int j = 0; j < TimeUtil.HOURS_PER_DAY; j++) {
+
                     if ((i + j) < TimeUtil.HOURS_PER_DAY) {
-                        if (precipValues[i
-                                + j] == ParameterFormatClimate.MISSING_PRECIP) {
-                            tempMax = ParameterFormatClimate.MISSING_PRECIP;
+                        // sum for the previous day
+                        float hourlyPrecip = previousPrecipValues[i + j];
+
+                        if (hourlyPrecip == ParameterFormatClimate.MISSING_PRECIP) {
+                            // missing, done counting
+                            currSum = ParameterFormatClimate.MISSING_PRECIP;
                             break;
                         } else {
-                            if (precipValues[i + j] > 0) {
-                                tempMax += precipValues[i + j];
+                            // non-missing, sum non-trace or found a trace
+                            if (hourlyPrecip > 0) {
+                                currSum += hourlyPrecip;
+                            } else {
+                                foundTrace = true;
                             }
                         }
 
                     } else {
-                        if (values[(i + j)
-                                - TimeUtil.HOURS_PER_DAY] == ParameterFormatClimate.MISSING_PRECIP) {
-                            tempMax = ParameterFormatClimate.MISSING_PRECIP;
+                        // start counting into current day
+                        float hourlyPrecip = todayPrecipValues[(i + j)
+                                - TimeUtil.HOURS_PER_DAY];
+                        if (hourlyPrecip == ParameterFormatClimate.MISSING_PRECIP) {
+                            // missing, done counting
+                            currSum = ParameterFormatClimate.MISSING_PRECIP;
                             break;
                         } else {
-                            if (values[(i + j) - TimeUtil.HOURS_PER_DAY] > 0) {
-                                tempMax += values[(i + j)
-                                        - TimeUtil.HOURS_PER_DAY];
+                            // non-missing, sum non-trace or found a trace
+                            if (hourlyPrecip > 0) {
+                                currSum += hourlyPrecip;
+                            } else {
+                                foundTrace = true;
                             }
                         }
                     }
                 }
 
-                if ((tempMax != ParameterFormatClimate.MISSING_PRECIP)
-                        && (tempMax > maxValue)) {
+                if (currSum != ParameterFormatClimate.MISSING_PRECIP) {
+                    // non-missing sum
+                    // 1. current max is 0 and current sum is trace or bigger?
+                    if (((currentMaxPrecipValue == 0.0f)
+                            && (currSum > 0 || foundTrace))
+                            // 2. OR current max is trace and current sum is >0?
+                            || ((currentMaxPrecipValue == ParameterFormatClimate.TRACE
+                                    && currSum > 0))
+                                    // 3. OR current max is >0 and current sum
+                                    // is > than current max?
+                            || (currentMaxPrecipValue > 0
+                                    && currSum > currentMaxPrecipValue)) {
 
-                    maxValue = tempMax;
-                    if (i == TimeUtil.HOURS_PER_DAY - 1) {
-                        maxValueDays.set(0, day);
-                        maxValueDays.set(1, day);
-                    } else {
-                        maxValueDays.set(0, day - 1);
-                        maxValueDays.set(1, day);
+                        if (currSum != 0.0f) {
+                            currentMaxPrecipValue = currSum;
+                        } else {
+                            currentMaxPrecipValue = ParameterFormatClimate.TRACE;
+                        }
+
+                        if (i == TimeUtil.HOURS_PER_DAY - 1) {
+                            maxPrecipValueDays[0] = day;
+                            maxPrecipValueDays[1] = day;
+                        } else {
+                            maxPrecipValueDays[0] = day - 1;
+                            maxPrecipValueDays[1] = day;
+                        }
                     }
                 }
             }
         }
-        return maxValue;
+
+        return currentMaxPrecipValue;
     }
 }

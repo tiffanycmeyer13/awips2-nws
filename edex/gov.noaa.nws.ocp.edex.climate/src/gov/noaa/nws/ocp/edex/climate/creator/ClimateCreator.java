@@ -15,9 +15,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorDailyResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorPeriodResponse;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateCreatorResponse;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateStationsSetupDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
 
@@ -150,7 +150,7 @@ public class ClimateCreator {
      *            period type
      * @throws Exception
      */
-    public ClimateCreatorResponse createClimate(PeriodType periodType)
+    public ClimateRunData createClimate(PeriodType periodType)
             throws Exception {
         ClimateTime validTime = ClimateTime.getDailyValidTime(periodType,
                 ClimateGlobalConfiguration.getGlobal());
@@ -179,9 +179,8 @@ public class ClimateCreator {
      * @return
      * @throws Exception
      */
-    public ClimateCreatorDailyResponse createClimate(
-            boolean isManualNonRecentRun, PeriodType iPeriodType,
-            ClimateDate aDate) throws Exception {
+    public ClimateRunDailyData createClimate(boolean isManualNonRecentRun,
+            PeriodType iPeriodType, ClimateDate aDate) throws Exception {
         /*********************************************************************
          * Get the all the climate stations from the master station table. The
          * master station table is configured by the set-up program. Initialize
@@ -213,9 +212,8 @@ public class ClimateCreator {
      * @return
      * @throws ClimateException
      */
-    public ClimateCreatorPeriodResponse createClimate(
-            boolean isManualNonRecentRun, PeriodType iPeriodType,
-            ClimateDate beginDate, ClimateDate endDate)
+    public ClimateRunPeriodData createClimate(boolean isManualNonRecentRun,
+            PeriodType iPeriodType, ClimateDate beginDate, ClimateDate endDate)
                     throws ClimateException {
 
         /*********************************************************************
@@ -256,7 +254,7 @@ public class ClimateCreator {
      * @return
      * @throws Exception
      */
-    public ClimateCreatorResponse createClimate(boolean isManualNonRecentRun,
+    public ClimateRunData createClimate(boolean isManualNonRecentRun,
             PeriodType iPeriodType, ClimateDate beginDate, ClimateDate endDate,
             ClimateTime validTime) throws Exception {
 
@@ -294,93 +292,17 @@ public class ClimateCreator {
      * converted from build_set_up_info.f
      *
      * <pre>
-     June 1998     Jason P. Tuell        PRC/TDL
-    *  June 1999     Jason P. Tuell        PRC/TDL
-    *              - Modified the info_file structure to allow two
-    *                  days worth of SR/SS data to be created
-    *
-    *  Purpose:  This routine builds set up information necessary to
-    *            execute create_climate.  It also returns the sunrise
-    *            and sunset for the stations in this climate summary
-    *            and updates key parameters in the NWR and NWWS headers.
-    *
-    *
-    *  Variables
-    *
-    *     Input
-    *       climate_stations      - derived TYPE that contains the stations 
-    *                               and associated information for this
-    *                               climate summary
-    *       itype                 - flag which controls the type of climate
-    *                               summary being generated;
-    *                               =1  NWR morning daily climate summary
-    *                               =2  NWR evening daily climate summary
-    *                               =3  NWWS morning daily climate summary
-    *                               =4  NWWS evening daily climate summary
-    *                               =5  NWR monthly radio climate summary
-    *                               =6  NWWS monthly climate summary
-    *                               =7  NWWS annual climate summary
-    *                   =10 NWR intermediate daily climate summary
-    *                               =11 NWWS intermediate daily climate summary
-    *        manual               - flag for manual or automatic run
-    *                               = 0 manual run, use input a_date
-    *                               = 1 automatic run
-    *       num_stations          - number of stations in this climate summary
-    *       valid_time            - derived TYPE that contains the ending
-    *                               period for evening climate summaries
-    *
-    *     Output
-    *       a_date                - derived TYPE that contains the date for
-    *                               this climate summary
-    *       nwr_header            - derived TYPE that contains information
-    *                               needed to build the NWR header
-    *       nwws_header           - derived TYPE that contains information
-    *                               needed to build the NWWS header
-    *       sunrise               - deriived TYPE that contains the times of
-    *                               sunrise for the stations in this climate
-    *                               summary
-    *       sunset                - deriived TYPE that contains the times of
-    *                               sunset for the stations in this climate
-    *                               summary
-    *
-    *     Local
-    *       iday                  - day of the month
-    *       idelta_mid            - # of seconds between current time and 
-    *                               midnight local
-    *       idelta_noon           - # of seconds between current time and 
-    *                               noon local
-    *       ihour                 - hour (UTC)
-    *       imin                  - minutes
-    *       imon                  - month
-    *       isec                  - seconds elapsed since midnight, 1 Jan 1900
-    *       iyear                 - year
-    *       l_time                - derived TYPE that contains the excecution
-    *                               time in local time
-    *       last_month_sec        - # of seconds local time last month since midnight,
-    *                               1 Jan 1900
-    *       local_sec             - # of seconds local time since midnight,
-    *                               1 Jan 1900
-    *       local_sec_mid         - # of seconds local time between current time
-    *                               and midnight local
-    *       local_sec_noon        - # of seconds local time between current time
-    *                               and noon local
-    *       max_off               - maximum offset of local time from UT*for
-    *                               the stations in this climate summary
-    *       min_off               - minimum offset of local time from UT*for
-    *                               the stations in this climate summary
-    *       x_date                - derived TYPE that contains the execution
-    *                               date
-    *       x_time                - derived TYPE that contains the execution
-    *                               time
-    *
-    *     Non-system routines used
-    *       error_stop            - writes message to error log and halts
-    *                               execution
-    *       get_time              - returns the current system time
-    *       get_date              - returns a date given the # of seconds
-    *                               elapsed since midnight, 1 Jan 1900
-    *       rise_and_set          - returns sunrise and sunset for the
-    *                               stations in this climate summary
+     *  June 1998     Jason P. Tuell        PRC/TDL
+     *  June 1999     Jason P. Tuell        PRC/TDL
+     *              - Modified the info_file structure to allow two
+     *                  days worth of SR/SS data to be created
+     *
+     *  Purpose:  This routine builds set up information necessary to
+     *            execute create_climate.  It also returns the sunrise
+     *            and sunset for the stations in this climate summary
+     *            and updates key parameters in the NWR and NWWS headers.
+     *
+     *
      * </pre>
      * 
      * @param itype
@@ -481,11 +403,10 @@ public class ClimateCreator {
                         - deltaSecondsToMidnight;
 
                 Calendar aCal = TimeUtil.newCalendar();
-                aCal.setTimeInMillis(localSecondsToMidnight);
+                aCal.setTimeInMillis(
+                        localSecondsToMidnight * TimeUtil.MILLIS_PER_SECOND);
 
                 aDate.setDateFromCalendar(aCal);
-                validTime.setTimeFromCalendar(aCal);
-
             } else {
                 // Get previous day of year
                 int jday = aDate.julday() - 1;
@@ -513,10 +434,10 @@ public class ClimateCreator {
                         + (maxOff * TimeUtil.SECONDS_PER_HOUR);
 
                 Calendar aCal = TimeUtil.newCalendar();
-                aCal.setTimeInMillis(localSecondsToNoon);
+                aCal.setTimeInMillis(
+                        localSecondsToNoon * TimeUtil.MILLIS_PER_SECOND);
 
                 aDate.setDateFromCalendar(aCal);
-                validTime.setTimeFromCalendar(aCal);
             }
 
             break;
@@ -528,7 +449,6 @@ public class ClimateCreator {
         case ANNUAL_RAD:
         case ANNUAL_NWWS:
             aDate.setDateFromCalendar(xCal);
-            validTime.setTimeFromCalendar(xCal);
             break;
 
         default:

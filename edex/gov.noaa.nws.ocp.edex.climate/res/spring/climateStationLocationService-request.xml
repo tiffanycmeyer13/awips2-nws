@@ -5,10 +5,4 @@
     <bean id="stationlocationservice"
         class="gov.noaa.nws.ocp.edex.climate.service.handler.StationLocationServiceHandler" />
 
-    <bean factory-bean="handlerRegistry" factory-method="register">
-        <constructor-arg
-            value="gov.noaa.nws.ocp.common.dataplugin.climate.request.StationLocationRequest" />
-        <constructor-arg ref="stationlocationservice" />
-    </bean>
-
 </beans>

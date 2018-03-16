@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -28,6 +26,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.QueryData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
+import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateSessionException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
@@ -77,19 +76,21 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  * 20 JUN 2017  33104      amoore      Address review comments.
  * 02 AUG 2017  33641      amoore      If snow total is trace, snow water is also trace.
  * 31 AUG 2017  37561      amoore      Use calendar/date parameters where possible.
+ * 06 SEP 2017  37721      amoore      Failure on Display finalization should fail CPG session
+ * 07 SEP 2017  37754      amoore      Additional parameterization.
+ * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 23 OCT 2017  39816      amoore      Fix bad, unnecessary, and missing checking of period types for
+ *                                     #sumNum aggregate functionality.
+ * 26 OCT 2016  39809      wpaintsil   Add num_cool_1jan and num_heat_1july to period data query.
+ * 15 NOV 2017  40988      amoore      Fix error introduced by 40624 changes. Explicitly order max/min
+ *                                     queries.
+ * 21 NOV 2017  41180      amoore      CLS and CLA should not deal with MSM values.
  * </pre>
  * 
  * @author amoore
  * @version 1.0
  */
 public class ClimatePeriodDAO extends ClimateDAO {
-
-    /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimatePeriodDAO.class);
-
     /**
      * Constructor.
      */
@@ -102,53 +103,18 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * 
      * <pre>
      * build_period_obs_climo( )
-    
-    December 1999     David T. Miller        PRC/TDL
-    
-    
-    Purpose:  Retrieves stored climatology values from either the 
-             daily or monthly tables and builds climatology for the 
-         next time period level.  The monthly climatology is built
-         using the daily_climate table. The season and annual values
-         are built using the monthly values.  Could also build 
-         the season and annual from the daily, but the ASOS Monthly
-         Summary Message climatology values wouldn't be used.
-    
-    
-    Variables
-    
-      Input   begin_date    beginning and ending dates of the period
-              end_date
-          period            holds period data structure values
-                            See TYPE_period_data.h
-          global_values     holds values used by Climate program system
-          table_columns     represents two arrays of database column names
-          period_type       flag indicating which period should be built
-    
-    
-      Output  period
-    
-    
-      Local   See variable list below
-    
-    
-      Non-system routines used
-    
-      Non-system functions used
-    
-    MODIFICATION HISTORY
-    
-     12/18/00   Doug Murphy            Added check of daily db precip and
-                                       snow totals to find max 24-hour total
-      5/10/01   Doug Murphy            Changed sky cover thresholds by 0.01 to
-                                       account for imprecision in db
-      7/10/01   Doug Murphy            Had to reverse order of calls determining
-                                       wind dates and directions. Also, the args
-                                       for fill_period_dir have changed.
-      2/27/03   Bob Morris             Eliminated strcat calls in freeze_date
-                                       block, restructured SQL.  OB2, DR_12256
-      1/18/05   Teresa Peachey/Manan Dalal       
-                                       Convert from Informix to Postgres SQL
+     * 
+     * December 1999     David T. Miller        PRC/TDL
+     *
+     *
+     * Purpose:  Retrieves stored climatology values from either the 
+     *        daily or monthly tables and builds climatology for the 
+     *    next time period level.  The monthly climatology is built
+     *    using the daily_climate table. The season and annual values
+     *    are built using the monthly values.  Could also build 
+     *    the season and annual from the daily, but the ASOS Monthly
+     *    Summary Message climatology values wouldn't be used.
+     * 
      * </pre>
      * 
      * Does not have early/late freeze dates logic, since this functionality is
@@ -171,8 +137,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
     public PeriodData buildPeriodObsClimo(ClimateDate beginDate,
             ClimateDate endDate, PeriodData periodData,
             ClimateGlobal globalValues, PeriodType itype)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         // interval of days (add 1 to account for first day)
         int numDays = (int) TimeUnit.DAYS
                 .convert(
@@ -198,11 +163,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
         /* average max temp */
         if (PeriodType.OTHER.equals(itype)) {
-            // some other period type; average using the max temp column
+            // monthly or other period type; average using the max temp column
             periodData.setMaxTempMean(
                     avgMaxTemp(beginDate, endDate, itype, stationID));
         } else {
-            // a standard period; average using existing averages
+            // seasonal or annual; average using existing averages
             periodData.setMaxTempMean(
                     avgMaxTempMean(beginDate, endDate, itype, stationID));
         }
@@ -223,11 +188,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
             periodData.setNumMaxLessThanT3F(sumReportMaxTempLessT3F(beginDate,
                     endDate, itype, stationID, globalValues));
-
-            // get min temp
-            periodData.setMinTemp(
-                    getMinMinTemp(beginDate, endDate, stationID, itype));
         }
+        // get min temp
+        periodData.setMinTemp(
+                getMinMinTemp(beginDate, endDate, stationID, itype));
 
         /* dates with min temp */
         if (periodData.getMinTemp() != ParameterFormatClimate.MISSING) {
@@ -237,11 +201,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
         /* average min temp */
         if (PeriodType.OTHER.equals(itype)) {
-            // some other period type; average using the min temp column
+            // monthly or other period type; average using the min temp column
             periodData.setMinTempMean(
                     avgMinTemp(beginDate, endDate, itype, stationID));
         } else {
-            // a standard period; average using existing averages
+            // seasonal or annual; average using existing averages
             periodData.setMinTempMean(
                     avgMinTempMean(beginDate, endDate, itype, stationID));
         }
@@ -282,7 +246,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         periodData.setPrecipTotal(
                 getSumTotalPrecip(beginDate, endDate, stationID, itype));
 
-        // average precipitation for month (only for period type 0)
+        // average precipitation for month (only for period type 0 (monthly))
         if (PeriodType.OTHER.equals(itype)) {
             float averagePrecip = getAvgTotalPrecip(beginDate, endDate,
                     stationID, itype);
@@ -345,14 +309,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
             /* dates with max 24H precip */
             if ((periodData
-                    .getPrecipMax24H() != ParameterFormatClimate.MISSING_PRECIP)
-                    && (periodData
-                            .getPrecipMax24H() != ParameterFormatClimate.TRACE)) {
-                periodData.setPrecip24HDates(getMaxTotalPrecipOccurrences(
-                        beginDate, endDate, stationID,
-                        periodData.getPrecipMax24H(), itype));
+                    .getPrecipMax24H() != ParameterFormatClimate.MISSING_PRECIP)) {
+                periodData.setPrecip24HDates(
+                        getMaxTotalPrecipOccurrences(beginDate, endDate,
+                                stationID, periodData.getPrecipMax24H()));
             }
-        } // Task 25744 no 24 max precip for other period types?
+        }
 
         /*
          * Legacy documentation:
@@ -366,7 +328,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
          * or year. Do a separate SQL on the month 24 hr max to get the season
          * and year values
          */
-
         if (PeriodType.OTHER.equals(itype)) {
             Calendar searchRange24HoursBeginCal = beginDate
                     .getCalendarFromClimateDate();
@@ -469,7 +430,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             // get mean precip
             periodData.setPrecipMeanDay(
                     getAvgMeanPrecip(beginDate, endDate, stationID, itype));
-        } // Task 25626 no mean precip for other period types?
+        }
 
         // cumulative snowfall
         periodData.setSnowTotal(
@@ -755,7 +716,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
             periodData
                     .setNumFairDays(getNumFair(beginDate, endDate, stationID));
-        } // Task 25627 no cloudy calculations for other period types?
+        }
 
         // summing weather elements
         periodData.setNumThunderStorms(
@@ -832,8 +793,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     public PeriodData buildPeriodObsClimo(int stationId, ClimateDates dates,
             ClimateGlobal globalValues, PeriodType itype)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
         PeriodData data = PeriodData.getMissingPeriodData();
         data.setInformId(stationId);
@@ -856,7 +816,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     private void calculate24HMaxPrecip(PeriodData periodData,
             int searchRangeDays, String stationCode, ClimateDate beginDate)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         // flag to see if have precipitation data
         boolean maxPrecipFound = false;
 
@@ -1606,7 +1566,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
     private void getMaxGustSpeedOccurrencesAndDir(ClimateDate beginDate,
             ClimateDate endDate, int stationID, float maxGustSpeed,
             PeriodType iType, List<ClimateDate> dates, List<ClimateWind> gusts)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         int expectedDateResultSize;
 
         StringBuilder dateQuery;
@@ -1635,7 +1595,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_gust_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_gust_spd != :missing");
-            dateQuery.append(" ORDER BY max_gust_spd");
+            dateQuery.append(" ORDER BY max_gust_spd DESC");
 
             // only look at max_gust_dir1 column
             dirSearchLimit = 1;
@@ -1656,7 +1616,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery.append(" AND ROUND(max_gust_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_gust_spd != :missing");
             dateQuery.append(" AND period_type = :periodType");
-            dateQuery.append(" ORDER BY max_gust_spd");
+            dateQuery.append(" ORDER BY max_gust_spd DESC");
             dateQueryParams.put("periodType", 5);
 
             // look at max_gust_dir1, max_gust_dir2, and max_gust_dir3 columns
@@ -1817,7 +1777,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
     private void getMaxWindSpeedOccurrencesAndDir(ClimateDate beginDate,
             ClimateDate endDate, int stationID, float maxWindSpeed,
             PeriodType iType, List<ClimateDate> dates, List<ClimateWind> winds)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         int expectedDateResultSize;
 
         StringBuilder dateQuery;
@@ -1846,7 +1806,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery.append(" AND inform_id = :stationID");
             dateQuery.append(" AND ROUND(max_wind_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_wind_spd != :missing");
-            dateQuery.append(" ORDER BY max_wind_spd");
+            dateQuery.append(" ORDER BY max_wind_spd DESC");
 
             // only look at max_wind_dir1 column
             dirSearchLimit = 1;
@@ -1867,7 +1827,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             dateQuery.append(" AND ROUND(max_wind_spd::numeric, 2) >= :speed");
             dateQuery.append(" AND max_wind_spd != :missing");
             dateQuery.append(" AND period_type = :periodType");
-            dateQuery.append(" ORDER BY max_wind_spd");
+            dateQuery.append(" ORDER BY max_wind_spd DESC");
             dateQueryParams.put("periodType", 5);
 
             // look at max_wind_dir1, max_wind_dir2, and max_wind_dir3 columns
@@ -2074,20 +2034,19 @@ public class ClimatePeriodDAO extends ClimateDAO {
         Map<String, Object> queryParams = new HashMap<>();
 
         if (PeriodType.OTHER.equals(iType)) {
-            // go by period end date
+            // go by daily table dates
             expectedResultSize = 1;
-            query = new StringBuilder("SELECT period_end FROM ");
-            query.append(
-                    ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE period_start >= ");
+            query = new StringBuilder("SELECT date FROM ");
+            query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            query.append(" WHERE date >= ");
             query.append(" :beginDate");
-            query.append(" AND period_end <= :endDate");
-            query.append(" AND inform_id = :stationID");
-            query.append(" AND ROUND(snow_ground_max::numeric, 2) >= ");
-            query.append(":snowGround AND snow_ground_max != :missing");
-            query.append(" ORDER BY snow_ground_max");
+            query.append(" AND date <= :endDate");
+            query.append(" AND station_id = :stationID");
+            query.append(" AND ROUND(snow_ground::numeric, 2) >= ");
+            query.append(":snowGround AND snow_ground != :missing");
+            query.append(" ORDER BY snow_ground DESC");
         } else {
-            // go by actual date DB columns
+            // go by actual date DB columns in period table
             expectedResultSize = 3;
             query = new StringBuilder(
                     "SELECT snow_ground_date1, snow_ground_date2, snow_ground_date3 FROM ");
@@ -2100,7 +2059,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND ROUND(snow_ground_max::numeric, 2) >= ");
             query.append(":snowGround AND snow_ground_max != :missing");
             query.append(" AND period_type = :periodType");
-            query.append(" ORDER BY snow_ground_max");
+            query.append(" ORDER BY snow_ground_max DESC");
             queryParams.put("periodType", 5);
         }
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
@@ -2269,7 +2228,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        query.append(" ORDER BY snow_max_storm");
+        query.append(" ORDER BY snow_max_storm DESC");
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -2376,7 +2335,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        query.append(" ORDER BY snow_max_24h");
+        query.append(" ORDER BY snow_max_24h DESC");
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -2479,7 +2438,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        query.append(" ORDER BY snow_total");
+        query.append(" ORDER BY snow_total DESC");
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -2654,7 +2613,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
     private List<ClimateDates> getMaxStormPrecipOccurrences(
             ClimateDate beginDate, ClimateDate endDate, int stationID,
             float maxStormPrecip, PeriodType iType)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         List<ClimateDates> dates = new ArrayList<>();
 
         StringBuilder query = new StringBuilder(
@@ -2666,14 +2625,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
         query.append(" AND ROUND(precip_storm_max::numeric, 2) = ");
-        query.append(":precipMaxStorm" + " AND precip_storm_max != :missing");
+        query.append(":precipMaxStorm AND precip_storm_max != :missing");
         Map<String, Object> queryParams = new HashMap<>();
 
         if (!PeriodType.OTHER.equals(iType)) {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        query.append(" ORDER BY precip_storm_max");
+        query.append(" ORDER BY precip_storm_max DESC");
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -2759,7 +2718,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND period_type = :periodType");
             queryParams.put("periodType", 5);
         }
-        query.append(" ORDER BY precip_max_24h");
+        query.append(" ORDER BY precip_max_24h DESC");
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -2870,32 +2829,31 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @param endDate
      * @param stationID
      * @param maxTotalPrecip
-     * @param iType
-     *            if type other than 0, filter by type 5.
      * @return
      * @throws ClimateQueryException
      */
     private List<ClimateDates> getMaxTotalPrecipOccurrences(
             ClimateDate beginDate, ClimateDate endDate, int stationID,
-            float maxTotalPrecip, PeriodType iType)
-                    throws ClimateQueryException {
+            float maxTotalPrecip) throws ClimateQueryException {
         List<ClimateDates> dates = new ArrayList<>();
 
         // go by period end date
-        StringBuilder query = new StringBuilder("SELECT period_end FROM ");
-        query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-        query.append(" WHERE period_start >= ");
-        query.append(" :beginDate AND period_end <= ");
-        query.append(" :endDate AND inform_id = :stationID");
-        query.append(" AND ROUND(precip_total::numeric, 2) >= :totalPrecip");
-        query.append(" AND precip_total != :missing");
-        Map<String, Object> queryParams = new HashMap<>();
-
-        if (!PeriodType.OTHER.equals(iType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
+        StringBuilder query = new StringBuilder("SELECT date FROM ");
+        query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+        query.append(" WHERE date >= ");
+        query.append(" :beginDate AND date <= ");
+        query.append(" :endDate AND station_id = :stationID");
+        if (maxTotalPrecip != ParameterFormatClimate.TRACE) {
+            // non-trace precip
+            query.append(" AND ROUND(precip::numeric, 2) >= :totalPrecip");
+        } else {
+            // trace precip only
+            query.append(" AND precip <= :totalPrecip");
         }
-        query.append(" ORDER BY precip_total");
+        query.append(" AND precip != :missing");
+        query.append(" ORDER BY precip DESC");
+
+        Map<String, Object> queryParams = new HashMap<>();
 
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
@@ -3095,7 +3053,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     private List<ClimateDate> getMinTempOccurrences(ClimateDate beginDate,
             ClimateDate endDate, int stationID, int minTemp, PeriodType iType)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         List<ClimateDate> dates = new ArrayList<>();
 
         int expectedResultSize;
@@ -3104,17 +3062,16 @@ public class ClimatePeriodDAO extends ClimateDAO {
         Map<String, Object> queryParams = new HashMap<>();
 
         if (PeriodType.OTHER.equals(iType)) {
-            // go by period end date
+            // go by daily table dates
             expectedResultSize = 1;
-            query = new StringBuilder("SELECT period_end FROM ");
-            query.append(
-                    ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE period_start >= ");
+            query = new StringBuilder("SELECT date FROM ");
+            query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            query.append(" WHERE date >= ");
             query.append(" :beginDate");
-            query.append(" AND period_end <= :endDate");
-            query.append(" AND inform_id = :stationID");
+            query.append(" AND date <= :endDate");
+            query.append(" AND station_id = :stationID");
             query.append(" AND ROUND(min_temp, 2) <= :minTemp");
-            query.append(" AND min_temp != :missing ORDER BY min_temp");
+            query.append(" AND min_temp != :missing ORDER BY min_temp ASC");
         } else {
             // go by actual date DB columns
             expectedResultSize = 3;
@@ -3128,7 +3085,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(min_temp, 2) <= :minTemp");
             query.append(" AND min_temp != :missing AND period_type = ");
-            query.append(":periodType ORDER BY min_temp");
+            query.append(":periodType ORDER BY min_temp ASC");
             queryParams.put("periodType", 5);
         }
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
@@ -3216,7 +3173,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     private List<ClimateDate> getMaxTempOccurrences(ClimateDate beginDate,
             ClimateDate endDate, int stationID, int maxTemp, PeriodType iType)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         List<ClimateDate> dates = new ArrayList<>();
 
         int expectedResultSize;
@@ -3225,19 +3182,18 @@ public class ClimatePeriodDAO extends ClimateDAO {
         Map<String, Object> queryParams = new HashMap<>();
 
         if (PeriodType.OTHER.equals(iType)) {
-            // go by period end date
+            // go by daily table dates
             expectedResultSize = 1;
-            query = new StringBuilder("SELECT period_end FROM ");
-            query.append(
-                    ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
-            query.append(" WHERE period_start >= ");
+            query = new StringBuilder("SELECT date FROM ");
+            query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            query.append(" WHERE date >= ");
             query.append(" :beginDate");
-            query.append(" AND period_end <= :endDate");
-            query.append(" AND inform_id = :stationID");
+            query.append(" AND date <= :endDate");
+            query.append(" AND station_id = :stationID");
             query.append(" AND ROUND(max_temp, 2) >= :maxTemp");
-            query.append(" AND max_temp != :missing ORDER BY max_temp");
+            query.append(" AND max_temp != :missing ORDER BY max_temp DESC");
         } else {
-            // go by actual date DB columns
+            // go by actual date DB columns in period table
             expectedResultSize = 3;
             query = new StringBuilder(
                     "SELECT day_max_temp1, day_max_temp2, day_max_temp3 FROM ");
@@ -3249,7 +3205,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" AND inform_id = :stationID");
             query.append(" AND ROUND(max_temp, 2) >= :maxTemp");
             query.append(" AND max_temp != :missing AND period_type = ");
-            query.append(":periodType ORDER BY max_temp");
+            query.append(":periodType ORDER BY max_temp DESC");
             queryParams.put("periodType", 5);
         }
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
@@ -3339,11 +3295,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * those items which are saved into the structure are selected from the
      * database table.
      *
-     * MODIFICATION HISTORY ==================== 2/12/01 Doug Murphy Avg max,
-     * avg min, and mean temps changed from int to float 3/25/03 Bob Morris
-     * Fixed arguments in calls to risnull, need to use defined constants for
-     * C-data types, not values (hard-coded, no less!) for SQL data types. OB2
-     * 1/18/05 Gary Battel/ Conversion from INFORMIX to POSTGRES Manan Dalal
      ********************************************************************************
      */
     /**
@@ -3370,32 +3321,22 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * Migrated from build_period_sum_climo.ec
      * 
      * <pre>
-     build_period_sum_climo( )
-    
-    December 1999     David T. Miller        PRC/TDL
-    
-    
-    Purpose:   In build_period_obs_climo(), it was easy to go through the daily_climate
-               table and find the number of days of an occurrence.  However, for
-           seasonal and annual, can't go through the daily climate or else the
-           values from the Monthly Summary Message would be missed.  Therefore,
-           had to be able to sum up the monthly information.  This routine uses
-           the dynamic SQL routine build_element to build SELECT SUM statements
-           for each element.  As a side note, it would be much easier to loop 
-           through these sums.  Therefore, declared an array of pointer to 
-           have the same address as the structure variables.  Then was able
-           to loop through the different sums.
-    
-    Variables
-    
-       Input  begin_date     Beginnning date of period
-                  end_date       Ending date of period
-          period         pointer to arrary of structures holding period data
-          table_columns[]    array of character strings holding names of database
-                                 table columns
-          period_type        Whether this is monthly, seasonal, annual
-      
-       Output     none
+     * build_period_sum_climo( )
+     *
+     * December 1999     David T. Miller        PRC/TDL
+     *
+     * 
+     * Purpose:   In build_period_obs_climo(), it was easy to go through the daily_climate
+     *      table and find the number of days of an occurrence.  However, for
+     *      seasonal and annual, can't go through the daily climate or else the
+     *      values from the Monthly Summary Message would be missed.  Therefore,
+     *      had to be able to sum up the monthly information.  This routine uses
+     *      the dynamic SQL routine build_element to build SELECT SUM statements
+     *      for each element.  As a side note, it would be much easier to loop 
+     *      through these sums.  Therefore, declared an array of pointer to 
+     *      have the same address as the structure variables.  Then was able
+     *      to loop through the different sums.
+     * 
      * </pre>
      * 
      * Get and sum period data for the given date range and period type, setting
@@ -3416,71 +3357,70 @@ public class ClimatePeriodDAO extends ClimateDAO {
             PeriodData periodData, PeriodType iPeriodType) {
         int informID = periodData.getInformId();
 
-        periodData.setNumMaxGreaterThan90F(sumNumMaxTempGreater90F(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumMaxGreaterThan90F(
+                sumNumMaxTempGreater90F(beginDate, endDate, informID));
 
-        periodData.setNumMaxLessThan32F((sumNumMaxTempLess32F(beginDate,
-                endDate, iPeriodType, informID)));
+        periodData.setNumMaxLessThan32F(
+                (sumNumMaxTempLess32F(beginDate, endDate, informID)));
 
-        periodData.setNumMaxGreaterThanT1F(sumNumMaxTempGreaterT1F(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumMaxGreaterThanT1F(
+                sumNumMaxTempGreaterT1F(beginDate, endDate, informID));
 
-        periodData.setNumMaxGreaterThanT2F(sumNumMaxTempGreaterT2F(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumMaxGreaterThanT2F(
+                sumNumMaxTempGreaterT2F(beginDate, endDate, informID));
 
-        periodData.setNumMaxLessThanT3F(sumNumMaxTempLessT3F(beginDate, endDate,
-                iPeriodType, informID));
+        periodData.setNumMaxLessThanT3F(
+                sumNumMaxTempLessT3F(beginDate, endDate, informID));
 
-        periodData.setNumMinLessThan32F(sumNumMinTempLess32F(beginDate, endDate,
-                iPeriodType, informID));
+        periodData.setNumMinLessThan32F(
+                sumNumMinTempLess32F(beginDate, endDate, informID));
 
         periodData.setNumMinLessThan0F(
-                sumNumMinTempLess0F(beginDate, endDate, iPeriodType, informID));
+                sumNumMinTempLess0F(beginDate, endDate, informID));
 
-        periodData.setNumMinGreaterThanT4F(sumNumMinTempGreaterT4F(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumMinGreaterThanT4F(
+                sumNumMinTempGreaterT4F(beginDate, endDate, informID));
 
-        periodData.setNumMinLessThanT5F(sumNumMinTempLessT5F(beginDate, endDate,
-                iPeriodType, informID));
+        periodData.setNumMinLessThanT5F(
+                sumNumMinTempLessT5F(beginDate, endDate, informID));
 
-        periodData.setNumMinLessThanT6F(sumNumMinTempLessT6F(beginDate, endDate,
-                iPeriodType, informID));
+        periodData.setNumMinLessThanT6F(
+                sumNumMinTempLessT6F(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThan01(sumNumPrecipGreater01(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThan01(
+                sumNumPrecipGreater01(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThan10(sumNumPrecipGreater10(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThan10(
+                sumNumPrecipGreater10(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThan50(sumNumPrecipGreater50(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThan50(
+                sumNumPrecipGreater50(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThan100(sumNumPrecipGreater100(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThan100(
+                sumNumPrecipGreater100(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThanP1(sumNumPrecipGreaterP1(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThanP1(
+                sumNumPrecipGreaterP1(beginDate, endDate, informID));
 
-        periodData.setNumPrcpGreaterThanP2(sumNumPrecipGreaterP2(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPrcpGreaterThanP2(
+                sumNumPrecipGreaterP2(beginDate, endDate, informID));
 
         periodData.setNumSnowGreaterThanTR(
-                sumNumSnowGreaterTR(beginDate, endDate, iPeriodType, informID));
+                sumNumSnowGreaterTR(beginDate, endDate, informID));
 
         periodData.setNumSnowGreaterThan1(
-                sumNumSnowGreater1(beginDate, endDate, iPeriodType, informID));
+                sumNumSnowGreater1(beginDate, endDate, informID));
 
         periodData.setNumSnowGreaterThanS1(
-                sumNumSnowGreaterS1(beginDate, endDate, iPeriodType, informID));
+                sumNumSnowGreaterS1(beginDate, endDate, informID));
 
-        periodData.setNumFairDays(
-                sumNumFairDays(beginDate, endDate, iPeriodType, informID));
+        periodData.setNumFairDays(sumNumFairDays(beginDate, endDate, informID));
 
-        periodData.setNumPartlyCloudyDays(sumNumPartlyCloudyDays(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumPartlyCloudyDays(
+                sumNumPartlyCloudyDays(beginDate, endDate, informID));
 
-        periodData.setNumMostlyCloudyDays(sumNumMostlyCloudyDays(beginDate,
-                endDate, iPeriodType, informID));
+        periodData.setNumMostlyCloudyDays(
+                sumNumMostlyCloudyDays(beginDate, endDate, informID));
     }
 
     /**
@@ -3570,27 +3510,27 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMostlyCloudyDays(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder("SELECT SUM(num_mc) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
         query.append(" WHERE period_start >= :startDate");
         query.append(" AND period_end <= :endDate");
         query.append(" AND inform_id = :informID");
-        query.append(" AND period_type = :type");
         query.append(" AND num_mc != ").append(ParameterFormatClimate.MISSING);
 
         Map<String, Object> paramMap = new HashMap<>();
+
+        query.append(" AND period_type = :periodType");
+        paramMap.put("periodType", 5);
+
         paramMap.put("startDate", beginDate.getCalendarFromClimateDate());
         paramMap.put("endDate", endDate.getCalendarFromClimateDate());
         paramMap.put("informID", informID);
-        paramMap.put("type", iPeriodType.getValue());
 
         return ((Number) queryForOneValue(query.toString(), paramMap,
                 ParameterFormatClimate.MISSING)).intValue();
@@ -3603,27 +3543,27 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPartlyCloudyDays(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder("SELECT SUM(num_pc) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
         query.append(" WHERE period_start >= :startDate");
         query.append(" AND period_end <= :endDate");
         query.append(" AND inform_id = :informID");
-        query.append(" AND period_type = :type");
         query.append(" AND num_pc != ").append(ParameterFormatClimate.MISSING);
 
         Map<String, Object> paramMap = new HashMap<>();
+
+        query.append(" AND period_type = :periodType");
+        paramMap.put("periodType", 5);
+
         paramMap.put("startDate", beginDate.getCalendarFromClimateDate());
         paramMap.put("endDate", endDate.getCalendarFromClimateDate());
         paramMap.put("informID", informID);
-        paramMap.put("type", iPeriodType.getValue());
 
         return ((Number) queryForOneValue(query.toString(), paramMap,
                 ParameterFormatClimate.MISSING)).intValue();
@@ -3636,28 +3576,28 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumFairDays(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder("SELECT SUM(num_fair) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
         query.append(" WHERE period_start >= :startDate");
         query.append(" AND period_end <= :endDate");
         query.append(" AND inform_id = :informID");
-        query.append(" AND period_type = :type");
         query.append(" AND num_fair != ")
                 .append(ParameterFormatClimate.MISSING);
 
         Map<String, Object> paramMap = new HashMap<>();
+
+        query.append(" AND period_type = :periodType");
+        paramMap.put("periodType", 5);
+
         paramMap.put("startDate", beginDate.getCalendarFromClimateDate());
         paramMap.put("endDate", endDate.getCalendarFromClimateDate());
         paramMap.put("informID", informID);
-        paramMap.put("type", iPeriodType.getValue());
 
         return ((Number) queryForOneValue(query.toString(), paramMap,
                 ParameterFormatClimate.MISSING)).intValue();
@@ -3718,14 +3658,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumSnowGreaterS1(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_s1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -3736,10 +3674,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -3780,14 +3717,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumSnowGreater1(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -3798,10 +3733,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -3845,14 +3779,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumSnowGreaterTR(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_snow_ge_tr) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -3863,10 +3795,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -3883,14 +3814,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreaterP2(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_p2) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -3901,10 +3830,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -3953,14 +3881,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreaterP1(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_p1) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -3971,10 +3897,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4062,14 +3987,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreater100(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_100) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4080,10 +4003,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4123,14 +4045,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreater50(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_50) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4141,10 +4061,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4184,14 +4103,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreater10(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_10) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4202,10 +4119,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4245,14 +4161,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumPrecipGreater01(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_prcp_ge_01) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4263,10 +4177,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4306,14 +4219,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMinTempLessT6F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_t6f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4324,10 +4235,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4380,14 +4290,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMinTempLessT5F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_t5f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4398,10 +4306,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4454,14 +4361,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMinTempGreaterT4F(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_ge_t4f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4472,10 +4377,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4528,14 +4432,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMinTempLess0F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_0f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4546,10 +4448,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4589,14 +4490,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMinTempLess32F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_min_le_32f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4607,10 +4506,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4650,14 +4548,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMaxTempLessT3F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_le_t3f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4668,10 +4564,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4724,14 +4619,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMaxTempGreaterT2F(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_t2f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4742,10 +4635,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4798,14 +4690,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMaxTempGreaterT1F(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_t1f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4816,10 +4706,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4872,14 +4761,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMaxTempLess32F(ClimateDate beginDate, ClimateDate endDate,
-            PeriodType iPeriodType, int informID) {
+            int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_le_32f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4890,10 +4777,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -4933,14 +4819,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            begin date
      * @param endDate
      *            end date
-     * @param iPeriodType
-     *            period type. if type other than 0, filter by type 5.
      * @param informID
      *            station ID
      * @return sum value, or missing value
      */
     private int sumNumMaxTempGreater90F(ClimateDate beginDate,
-            ClimateDate endDate, PeriodType iPeriodType, int informID) {
+            ClimateDate endDate, int informID) {
         StringBuilder query = new StringBuilder(
                 "SELECT SUM(num_max_ge_90f) FROM ");
         query.append(ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
@@ -4951,10 +4835,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 .append(ParameterFormatClimate.MISSING);
         Map<String, Object> queryParams = new HashMap<>();
 
-        if (!PeriodType.OTHER.equals(iPeriodType)) {
-            query.append(" AND period_type = :periodType");
-            queryParams.put("periodType", 5);
-        }
+        query.append(" AND period_type = :periodType");
+        queryParams.put("periodType", 5);
+
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("stationID", informID);
@@ -5007,12 +4890,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *
      *  This function updates/inserts into the monthly climate data base.
      *
-     *   VARIABLES
-     *   =========
-     *
-     *   name                   description
-     *-------------------------------------------------------------------------------                   
-     *    Input  
      *
      * Modification Log
      * Name                     Date         Change
@@ -5035,6 +4912,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @return
      * @throws Exception
      */
+
     public boolean updatePeriodData(int iStationID, ClimateDates iDates,
             PeriodType iPeriodType, PeriodData iData) throws Exception {
 
@@ -5089,7 +4967,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     private void insertPeriodDataSupport(int iStationID, ClimateDates iDates,
             PeriodType iPeriodType, PeriodData iData)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         Map<String, Object> paramMap = new HashMap<>();
 
@@ -5133,7 +5011,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     private void updatePeriodDataSupport(int iStationID, ClimateDates iDates,
             PeriodType iPeriodType, PeriodData iData)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         Map<String, Object> paramMap = new HashMap<>();
 
         StringBuilder update = new StringBuilder("UPDATE ");
@@ -5142,12 +5020,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
         update.append(" SET ");
         update.append(" max_temp= :max_temp,");
         paramMap.put("max_temp", iData.getMaxTemp());
-        update.append(
-                createSetDayClauseForList("day_max_temp",
-                        iData.getDayMaxTempList()
-                                .toArray(new ClimateDate[iData
-                                        .getDayMaxTempList().size()]),
-                        3, paramMap));
+        update.append(createSetDayClauseForList("day_max_temp",
+                iData.getDayMaxTempList().toArray(
+                        new ClimateDate[iData.getDayMaxTempList().size()]),
+                3, paramMap));
         update.append(" max_temp_mean= :max_temp_mean");
         paramMap.put("max_temp_mean", iData.getMaxTempMean());
         update.append(", mean_temp= :mean_temp");
@@ -5155,12 +5031,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
         update.append(", min_temp= :min_temp");
         paramMap.put("min_temp", iData.getMinTemp());
         update.append(", ");
-        update.append(
-                createSetDayClauseForList("day_min_temp",
-                        iData.getDayMinTempList()
-                                .toArray(new ClimateDate[iData
-                                        .getDayMinTempList().size()]),
-                        3, paramMap));
+        update.append(createSetDayClauseForList("day_min_temp",
+                iData.getDayMinTempList().toArray(
+                        new ClimateDate[iData.getDayMinTempList().size()]),
+                3, paramMap));
         update.append(" min_temp_mean= :min_temp_mean");
         paramMap.put("min_temp_mean", iData.getMinTempMean());
         update.append(", num_max_ge_90f= :num_max_ge_90f");
@@ -5192,23 +5066,19 @@ public class ClimatePeriodDAO extends ClimateDAO {
         paramMap.put("precip_max_24h", iData.getPrecipMax24H());
         update.append(", ");
 
-        update.append(
-                createSetDayClauseForList("pcp_24h_start_day",
-                        "pcp_24h_end_day",
-                        iData.getPrecip24HDates()
-                                .toArray(new ClimateDates[iData
-                                        .getPrecip24HDates().size()]),
-                        3, true));
+        update.append(createSetDayClauseForList("pcp_24h_start_day",
+                "pcp_24h_end_day",
+                iData.getPrecip24HDates().toArray(
+                        new ClimateDates[iData.getPrecip24HDates().size()]),
+                3, true));
         update.append(" precip_storm_max= :precip_storm_max");
         paramMap.put("precip_storm_max", iData.getPrecipStormMax());
         update.append(", ");
-        update.append(
-                createSetDayClauseForList("pcp_stm_start_day",
-                        "pcp_stm_end_day",
-                        iData.getPrecipStormList()
-                                .toArray(new ClimateDates[iData
-                                        .getPrecipStormList().size()]),
-                        3, true));
+        update.append(createSetDayClauseForList("pcp_stm_start_day",
+                "pcp_stm_end_day",
+                iData.getPrecipStormList().toArray(
+                        new ClimateDates[iData.getPrecipStormList().size()]),
+                3, true));
         update.append(" precip_mean_day= :precip_mean_day");
         paramMap.put("precip_mean_day", iData.getPrecipMeanDay());
         update.append(", num_prcp_ge_01= :num_prcp_ge_01");
@@ -5272,14 +5142,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
         update.append(", result_wind_spd= :result_wind_spd");
         paramMap.put("result_wind_spd", iData.getResultWind().getSpeed());
         update.append(", ");
-        update.append(
-                createSetWindClause("max_wind",
-                        iData.getMaxWindList()
-                                .toArray(new ClimateWind[iData.getMaxWindList()
-                                        .size()]),
+        update.append(createSetWindClause("max_wind",
+                iData.getMaxWindList().toArray(
+                        new ClimateWind[iData.getMaxWindList().size()]),
                 iData.getMaxWindDayList().toArray(
-                        new ClimateDate[iData.getMaxWindDayList().size()]), 3,
-                paramMap));
+                        new ClimateDate[iData.getMaxWindDayList().size()]),
+                3, paramMap));
         update.append(" ");
         update.append(createSetWindClause("max_gust", iData.getMaxGustList()
                 .toArray(new ClimateWind[iData.getMaxGustList().size()]),
@@ -5567,10 +5435,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
         paramMap.put("startYear", iDates.getStart().getYear());
         paramMap.put("startMon", iDates.getStart().getMon());
         paramMap.put("endMon", iDates.getEnd().getMon());
+        paramMap.put("stationCode", iStationCode);
 
         // date/station limited "where" clause
         StringBuilder dateStationWhereClause = new StringBuilder(
-                " WHERE station_code='").append(iStationCode).append("' AND");
+                " WHERE station_code= :stationCode AND");
         if (iDates.getStart().getYear() == iDates.getEnd().getYear()) {
             // dates are same year
             dateStationWhereClause.append(" year= :startYear");
@@ -5628,7 +5497,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                         : ((Number) oa[0]).intValue());
 
                         // dates
-                        int month = (short) oa[1];
+                        int month = ((Number) oa[1]).intValue();
                         int year = oa[2] == null
                                 ? ParameterFormatClimate.MISSING
                                 : ((Number) oa[2]).intValue();
@@ -5726,7 +5595,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                         : ((Number) oa[0]).intValue());
 
                         // dates
-                        int month = (short) oa[1];
+                        int month = ((Number) oa[1]).intValue();
                         int year = oa[2] == null
                                 ? ParameterFormatClimate.MISSING
                                 : ((Number) oa[2]).intValue();
@@ -5801,8 +5670,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         avgMaxTempQuery.append(ParameterFormatClimate.MISSING);
 
         oPeriodData.setMaxTempMean(
-                ((Double) queryForOneValue(avgMaxTempQuery.toString(), paramMap,
-                        (double) ParameterFormatClimate.MISSING)).floatValue());
+                ((Number) queryForOneValue(avgMaxTempQuery.toString(), paramMap,
+                        ParameterFormatClimate.MISSING)).floatValue());
         if (oPeriodData
                 .getMaxTempMean() != (float) ParameterFormatClimate.MISSING) {
             oPeriodData.getDataMethods()
@@ -5821,8 +5690,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         avgMinTempQuery.append(ParameterFormatClimate.MISSING);
 
         oPeriodData.setMinTempMean(
-                ((Double) queryForOneValue(avgMinTempQuery.toString(), paramMap,
-                        (double) ParameterFormatClimate.MISSING)).floatValue());
+                ((Number) queryForOneValue(avgMinTempQuery.toString(), paramMap,
+                        ParameterFormatClimate.MISSING)).floatValue());
 
         if (oPeriodData
                 .getMinTempMean() != (float) ParameterFormatClimate.MISSING) {
@@ -5842,8 +5711,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         avgTempQuery.append(ParameterFormatClimate.MISSING);
 
         oPeriodData.setMeanTemp(
-                ((Double) queryForOneValue(avgTempQuery.toString(), paramMap,
-                        (double) ParameterFormatClimate.MISSING)).floatValue());
+                ((Number) queryForOneValue(avgTempQuery.toString(), paramMap,
+                        ParameterFormatClimate.MISSING)).floatValue());
 
         if (oPeriodData
                 .getMeanTemp() != (float) ParameterFormatClimate.MISSING) {
@@ -6015,7 +5884,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                 : ((Number) oa[0]).floatValue());
 
                         // dates
-                        int month = (short) oa[1];
+                        int month = ((Number) oa[1]).intValue();
                         int year = oa[2] == null
                                 ? ParameterFormatClimate.MISSING
                                 : ((Number) oa[2]).intValue();
@@ -6083,8 +5952,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         percentSunQuery.append(ParameterFormatClimate.MISSING);
 
         oPeriodData.setPossSun(
-                ((Double) queryForOneValue(percentSunQuery.toString(), paramMap,
-                        (double) ParameterFormatClimate.MISSING)).intValue());
+                ((Number) queryForOneValue(percentSunQuery.toString(), paramMap,
+                        ParameterFormatClimate.MISSING)).intValue());
 
         if (oPeriodData.getPossSun() != ParameterFormatClimate.MISSING) {
             oPeriodData.getDataMethods().setPossSunQc(QCValues.VALUE_FROM_MSM);
@@ -6329,44 +6198,21 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * 
      * <pre>
      * int get_period_data (    int         itype,
-    *              climate_date        *begin,
-    *              climate_date        *end,
-    *              period_data         *data,
-    *              period_data_method      *qc
-    *                )
-    *
-    *   Doug Murphy        PRC/TDL             HP 9000/7xx
-    *                                  November 1999
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function retrieves climate data from the monthly, seasonal, 
-    *      annual database.
-    *
-    *   VARIABLES
-    *   =========
-    *
-    *   name                   description
-    *-------------------------------------------------------------------------------                   
-    *    Input  
-    *
-    *   MODIFICATION HISTORY
-    *   ====================
-    *     2/12/01   Doug Murphy          Avg max, avg min, and mean temps changed
-    *                                    from int to float
-    *     3/25/03   Bob Morris           Fixed arguments in calls to risnull, need to use
-    *                                    defined constants for C-data types, not values
-    *                                    (hard-coded, no less!) for SQL data types.
-    *                                    Typecast float MISSINGs in *data.  OB2
-    *     01/25/05  Manan Dalal          Ported from Informix to Postgresql
-    *
-    *     02/16/2011  Xiaochuan         The update fix the memory override problem
-    *                                   that come on OB9.2.12. Using sprintf() set
-    *                                   missing date "99-99 99" to temp_mon[3] is 
-    *                   oversize. It cause the build up memory address 
-    *                                   override. Using strncpy(), snprintf() instead 
-    *                   of sprintf().
+     *              climate_date        *begin,
+     *              climate_date        *end,
+     *              period_data         *data,
+     *              period_data_method      *qc
+     *                )
+     *
+     *   Doug Murphy        PRC/TDL             HP 9000/7xx
+     *                                  November 1999
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function retrieves climate data from the monthly, seasonal, 
+     *      annual database.
+     *
      * </pre>
      * 
      * @param iType
@@ -6378,9 +6224,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @return QueryPeriodData
      * @throws ClimateQueryException
      */
+
     public QueryData getPeriodData(PeriodType iType, ClimateDate beginDate,
             ClimateDate endDate, PeriodData data, PeriodDataMethod dataMethods)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         QueryData queryData = new QueryData();
         Map<String, Object> paramMap = new HashMap<>();
@@ -6522,9 +6369,21 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     }
                     index++;
 
+                    // cooling degree days since jan 1
+                    if (oa[index] != null) {
+                        data.setNumCool1Jan(((Number) oa[index]).intValue());
+                    }
+                    index++;
+
                     // heating degree days
                     if (oa[index] != null) {
                         data.setNumHeatTotal(((Number) oa[index]).intValue());
+                    }
+                    index++;
+
+                    // heating degree days since jul 1
+                    if (oa[index] != null) {
+                        data.setNumHeat1July(((Number) oa[index]).intValue());
                     }
                     index++;
 
@@ -7101,6 +6960,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     // The query was successful - set the exists flag to
                     // true.
                     queryData.setData(data);
+
                 } else {
                     throw new ClimateQueryException(
                             "Unexpected return type from query, expected Object[], got "
@@ -7165,7 +7025,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append("num_max_ge_t1f, num_max_ge_t2f, num_max_le_t3f, ");
         query.append("num_min_le_32f, num_min_le_0f, ");
         query.append("num_min_ge_t4f, num_min_le_t5f, num_min_le_t6f, ");
-        query.append("num_cool_total, num_heat_total, ");
+        query.append(
+                "num_cool_total, num_cool_1jan, num_heat_total, num_heat_1july, ");
         query.append(
                 "precip_total , precip_max_24h , pcp_24h_start_day1, pcp_24h_end_day1, ");
         query.append(
@@ -7244,9 +7105,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @return
      * @throws ClimateQueryException
      */
-    public boolean insertClimatePeriod(int stationId, int normStartYear,
+    private boolean insertClimatePeriodSupport(int stationId, int normStartYear,
             int normEndYear, int recordStartYear, int recordEndYear)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         StringBuilder insertStatement = new StringBuilder("INSERT INTO ");
         insertStatement.append(ClimateDAOValues.CLIMATE_PERIOD_TABLE_NAME);
@@ -7303,9 +7164,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @return
      * @throws ClimateQueryException
      */
-    public boolean updateClimatePeriod(int stationId, int normStartYear,
+    private boolean updateClimatePeriodSupport(int stationId, int normStartYear,
             int normEndYear, int recordStartYear, int recordEndYear)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         StringBuilder updateStatement = new StringBuilder("UPDATE ");
         updateStatement.append(ClimateDAOValues.CLIMATE_PERIOD_TABLE_NAME);
         updateStatement.append(
@@ -7352,6 +7213,49 @@ public class ClimatePeriodDAO extends ClimateDAO {
     }
 
     /**
+     * update climate_period table
+     * 
+     * @param stationId
+     * @param normStartYear
+     * @param normEndYear
+     * @param recordStartYear
+     * @param recordEndYear
+     * @return
+     * @throws ClimateQueryException
+     */
+    public boolean updateClimatePeriod(int stationId, int normStartYear,
+            int normEndYear, int recordStartYear, int recordEndYear)
+            throws ClimateQueryException {
+        StringBuilder selectQuery = new StringBuilder("SELECT * FROM ");
+        selectQuery.append(ClimateDAOValues.CLIMATE_PERIOD_TABLE_NAME);
+        // conditions
+        selectQuery.append(" WHERE station_id= :stationID");
+
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("stationID", stationId);
+
+        Object[] results;
+        try {
+            results = getDao().executeSQLQuery(selectQuery.toString(),
+                    paramMap);
+        } catch (Exception e) {
+            throw new ClimateQueryException("Error with query: [" + selectQuery
+                    + "] and map: [" + paramMap + "]", e);
+        }
+
+        if ((results != null) && (results.length >= 1)) {
+            // data exists for station, update
+            updateClimatePeriodSupport(stationId, normStartYear, normEndYear,
+                    recordStartYear, recordEndYear);
+        } else {
+            // data does not exist for station, insert
+            insertClimatePeriodSupport(stationId, normStartYear, normEndYear,
+                    recordStartYear, recordEndYear);
+        }
+        return true;
+    }
+
+    /**
      * Fetch a record from climate_period table
      * 
      * @param stationId
@@ -7383,16 +7287,16 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     try {
                         // any values could be null
                         if (rowData[0] != null) {
-                            years[0] = (short) rowData[0];
+                            years[0] = ((Number) rowData[0]).shortValue();
                         }
                         if (rowData[1] != null) {
-                            years[1] = (short) rowData[1];
+                            years[1] = ((Number) rowData[1]).shortValue();
                         }
                         if (rowData[2] != null) {
-                            years[2] = (short) rowData[2];
+                            years[2] = ((Number) rowData[2]).shortValue();
                         }
                         if (rowData[3] != null) {
-                            years[3] = (short) rowData[3];
+                            years[3] = ((Number) rowData[3]).shortValue();
                         }
                     } catch (Exception e) {
                         throw new ClimateQueryException(
@@ -7426,13 +7330,13 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            end date of report.
      * @param dataMap
      *            data of report.
-     * @return true if process completed.
      * @throws ClimateInvalidParameterException
+     * @throws ClimateSessionException
      */
-    public boolean processDisplayFinalization(PeriodType periodType,
+    public void processDisplayFinalization(PeriodType periodType,
             ClimateDate startDate, ClimateDate endDate,
             HashMap<Integer, ClimatePeriodReportData> dataMap)
-                    throws ClimateInvalidParameterException {
+            throws ClimateInvalidParameterException, ClimateSessionException {
         /*
          * for compiling, needed to declare empty map and set here rather than
          * in-line
@@ -7440,8 +7344,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
         HashMap<Integer, ClimatePeriodReportData> emptyMap = new HashMap<>();
         Set<Integer> emptySet = new HashSet<>();
 
-        return processDisplayFinalization(periodType, startDate, endDate,
-                dataMap, emptyMap, emptySet);
+        processDisplayFinalization(periodType, startDate, endDate, dataMap,
+                emptyMap, emptySet);
     }
 
     /**
@@ -7464,15 +7368,15 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @param msmOverwriteApproved
      *            station IDs approved in GUI by the user to allow overwrite of
      *            conflicting Daily DB data with MSM data.
-     * @return true if process completed.
      * @throws ClimateInvalidParameterException
+     * @throws ClimateSessionException
      */
-    public boolean processDisplayFinalization(PeriodType periodType,
+    public void processDisplayFinalization(PeriodType periodType,
             ClimateDate startDate, ClimateDate endDate,
             Map<Integer, ClimatePeriodReportData> originalDataMap,
             Map<Integer, ClimatePeriodReportData> savedData,
             Set<Integer> msmOverwriteApproved)
-                    throws ClimateInvalidParameterException {
+            throws ClimateInvalidParameterException, ClimateSessionException {
         // MSM data
         HashMap<Integer, PeriodData> msmPeriodDataByStation = new HashMap<>();
 
@@ -7503,9 +7407,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
             /*
              * At this point, the data map entry still contains the original
              * data from Climate Creator (Daily DB). So this is the best place
-             * to check if MSM overwrite is desired in Daily DB.
+             * to check if MSM overwrite is desired in Daily DB. Applies only to
+             * monthly.
              */
-            if (msmOverwriteApproved.contains(stationID)) {
+            if ((PeriodType.MONTHLY_NWWS.equals(periodType)
+                    || PeriodType.MONTHLY_RAD.equals(periodType))
+                    && msmOverwriteApproved.contains(stationID)) {
                 /*
                  * Make Daily DB updates as was desired by user for each
                  * station. Legacy asks the mismatch question in general for
@@ -7549,17 +7456,13 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                     msmData.getSnowGroundMaxDateList());
                         }
                     } catch (ClimateQueryException e) {
-                        // TODO how should this error affect the
-                        // workflow?
-                        logger.error(
+                        throw new ClimateSessionException(
                                 "Could not overwrite Daily DB values with MSM values for station ID ["
                                         + stationID + "].",
                                 e);
                     }
                 } catch (ClimateQueryException e) {
-                    // TODO how should this error affect the
-                    // workflow?
-                    logger.error(
+                    throw new ClimateSessionException(
                             "Could not get monthly ASOS data for station ID ["
                                     + stationID + "]",
                             e);
@@ -7579,10 +7482,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
                  */
                 originalDataMap.get(stationID)
                         .setData(savedData.get(stationID).getData());
-            } else {
+            } else if (PeriodType.MONTHLY_NWWS.equals(periodType)
+                    || PeriodType.MONTHLY_RAD.equals(periodType)) {
                 /*
                  * No saved data. Need to get ASOS monthly data since this is
-                 * preferred over Climate Creator data.
+                 * preferred over Climate Creator data. Applies only to monthly.
                  */
 
                 try {
@@ -7723,9 +7627,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                                 msmData.getNumMostlyCloudyDays());
                     }
                 } catch (ClimateQueryException e) {
-                    // TODO how should this error affect the
-                    // workflow?
-                    logger.error(
+                    throw new ClimateSessionException(
                             "Could not get monthly ASOS data for station ID ["
                                     + stationID + "]",
                             e);
@@ -7745,19 +7647,17 @@ public class ClimatePeriodDAO extends ClimateDAO {
                         new ClimateDates(startDate, endDate), periodType,
                         mapData);
             } catch (Exception e) {
-                // TODO how should this error affect the
-                // workflow?
-                logger.error(
-                        "Error committing updates for station ID [" + stationID
-                                + "] from date [" + startDate.toFullDateString()
-                                + "] to [" + endDate.toFullDateString() + "]",
+                throw new ClimateSessionException(
+                        "Error committing Display finalization updates for station ID ["
+                                + stationID + "] from date ["
+                                + startDate.toFullDateString() + "] to ["
+                                + endDate.toFullDateString() + "]",
                         e);
             }
         }
         /*
          * Update freeze dates if necessary (from det_freeze.c).
          */
-        // TODO how should errors from this method affect the workflow?
         determineFreeze(periodType, endDate, originalDataMap, freezeDatesDAO);
 
         /*
@@ -7768,9 +7668,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 climatePeriodNormDAO.compareUpdatePeriodRecords(periodType,
                         endDate, reportData.getData());
             } catch (ClimateQueryException e) {
-                // how should this error affect the
-                // workflow?
-                logger.error(
+                throw new ClimateSessionException(
                         "Error checking for new extreme records for station ID ["
                                 + reportData.getData().getInformId()
                                 + "] from date [" + startDate.toFullDateString()
@@ -7778,7 +7676,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
                         e);
             }
         }
-        return true;
     }
 
     /**
@@ -7803,10 +7700,12 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @param endDate
      * @param dataMap
      * @param freezeDatesDAO
+     * @throws ClimateSessionException
      */
     private void determineFreeze(PeriodType periodType, ClimateDate endDate,
             Map<Integer, ClimatePeriodReportData> dataMap,
-            ClimateFreezeDatesDAO freezeDatesDAO) {
+            ClimateFreezeDatesDAO freezeDatesDAO)
+            throws ClimateSessionException {
         for (Entry<Integer, ClimatePeriodReportData> reportDataEntry : dataMap
                 .entrySet()) {
             int stationID = reportDataEntry.getKey();
@@ -7826,11 +7725,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 mapData.setEarlyFreeze(newFreezeDates.getStart());
                 mapData.setLateFreeze(newFreezeDates.getEnd());
             } catch (ClimateQueryException e) {
-                // TODO how should this error affect the
-                // workflow?
-                logger.error("Error updating freeze dates for station ID ["
-                        + stationID + "] and end date ["
-                        + endDate.toFullDateString() + "].", e);
+                throw new ClimateSessionException(
+                        "Error updating freeze dates for station ID ["
+                                + stationID + "] and end date ["
+                                + endDate.toFullDateString() + "].",
+                        e);
             }
 
             /*
@@ -7846,11 +7745,11 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     freezeDatesDAO.updateFreezeDB(4, stationID,
                             ClimateDates.getMissingClimateDates());
                 } catch (ClimateQueryException e) {
-                    // TODO how should this error affect the
-                    // workflow?
-                    logger.error("Error resetting freeze dates for station ID ["
-                            + stationID + "] and end date ["
-                            + endDate.toFullDateString() + "].", e);
+                    throw new ClimateSessionException(
+                            "Error resetting freeze dates for station ID ["
+                                    + stationID + "] and end date ["
+                                    + endDate.toFullDateString() + "].",
+                            e);
                 }
             }
 
@@ -7891,8 +7790,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
     private void getMSMByPeriodType(PeriodType periodType,
             ClimateDate startDate, ClimateDate endDate,
             HashMap<Integer, PeriodData> msmPeriodDataByStation, int stationID,
-            ClimatePeriodReportData data) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            ClimatePeriodReportData data)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         if (!msmPeriodDataByStation.containsKey(stationID)) {
             switch (periodType) {
             case MONTHLY_NWWS:

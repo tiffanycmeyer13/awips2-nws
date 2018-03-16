@@ -328,9 +328,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getPrecipListener());
         myMaxPrecip24HourTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getPrecipListener());
-        myMaxPrecip24HourTF
-                .addKeyListener(new DataFieldListener(myMaxPrecip24HourComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myMaxPrecip24HourTF.addKeyListener(new DataFieldListener(
+                myMaxPrecip24HourComboBox, myPeriodDialog.getChangeListener()));
 
         // 24-hour max precip dates
         Composite maxPrecip24HourDatesComp = new Composite(topComp, SWT.NONE);
@@ -347,8 +346,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         DataFieldListener maxPrecip24HourDatesListener = new DataFieldListener(
-                myMaxPrecip24HourComboBox,
-                myPeriodDialog.myUnsavedChangesListener);
+                myMaxPrecip24HourComboBox, myPeriodDialog.getChangeListener());
         myMaxPrecip24HourBeginDates[0]
                 .addKeyListener(maxPrecip24HourDatesListener);
         myMaxPrecip24HourBeginDates[0]
@@ -450,7 +448,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         myGreatestPrecipStormTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getPrecipListener());
         myGreatestPrecipStormTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // greatest precip storm dates
         Composite greastestPrecipStormDatesComp = new Composite(bottomComp,
@@ -470,7 +468,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormBeginDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormBeginHour1Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -485,7 +483,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormBeginHourTFs[0], true));
         myGreatestPrecipStormBeginHourTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // end date
         Label greatestPrecipStormEndDate1Lbl = new Label(
@@ -497,7 +495,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormEndDates[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormEndHour1Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -512,7 +510,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormEndHourTFs[0], true));
         myGreatestPrecipStormEndHourTFs[0].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // second greatest precip storm date
         // begin date
@@ -525,7 +523,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormBeginDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormBeginHour2Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -540,7 +538,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormBeginHourTFs[1], true));
         myGreatestPrecipStormBeginHourTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // end date
         Label greatestPrecipStormEndDate2Lbl = new Label(
@@ -552,7 +550,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormEndDates[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormEndHour2Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -567,7 +565,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormEndHourTFs[1], true));
         myGreatestPrecipStormEndHourTFs[1].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // third greatest precip storm date
         // begin date
@@ -580,7 +578,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormBeginDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormBeginHour3Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -595,7 +593,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormBeginHourTFs[2], true));
         myGreatestPrecipStormBeginHourTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         // end date
         Label greatestPrecipStormEndDate3Lbl = new Label(
@@ -607,7 +605,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myLowerBoundDate,
                 myPeriodDialog.myUpperBoundDate);
         myGreatestPrecipStormEndDates[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Label greatestPrecipStormEndHour3Lbl = new Label(
                 greastestPrecipStormDatesComp, SWT.NORMAL);
@@ -622,7 +620,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .addFocusListener(new TimeSelectorFocusListener(
                         myGreatestPrecipStormEndHourTFs[2], true));
         myGreatestPrecipStormEndHourTFs[2].addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
     }
 
     /**
@@ -680,9 +678,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 myDisplayListeners.getPrecipListener());
         myTotalPrecipTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getPrecipListener());
-        myTotalPrecipTF
-                .addKeyListener(new DataFieldListener(myTotalPrecipComboBox,
-                        myPeriodDialog.myUnsavedChangesListener));
+        myTotalPrecipTF.addKeyListener(new DataFieldListener(
+                myTotalPrecipComboBox, myPeriodDialog.getChangeListener()));
 
         // average daily
         Label avgDailyPrecipLbl = new Label(topComp, SWT.NORMAL);
@@ -696,7 +693,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         myAvgDailyPrecipTF.addListener(SWT.FocusOut,
                 myDisplayListeners.getPrecipListener());
         myAvgDailyPrecipTF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         Composite avgDailyPrecipFiller = new Composite(topComp, SWT.NONE);
         avgDailyPrecipFiller.setLayoutData(ClimateLayoutValues.getFillerGD());
@@ -897,7 +894,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         myPrecipInchesGreaterP1TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myPrecipInchesGreaterP1TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getP1() == ParameterFormatClimate.MISSING_PRECIP) {
@@ -925,7 +922,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         myPrecipInchesGreaterP2TF.addListener(SWT.FocusOut,
                 myDisplayListeners.getDefaultIntListener());
         myPrecipInchesGreaterP2TF.addListener(SWT.Modify,
-                myPeriodDialog.myUnsavedChangesListener);
+                myPeriodDialog.getChangeListener());
 
         if (myPeriodDialog.myGlobals
                 .getP2() == ParameterFormatClimate.MISSING_PRECIP) {
@@ -1566,12 +1563,9 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId())
                     .getPrecipMax24H());
         } else if (DataValueOrigin.DAILY_DATABASE.equals(comboSelection)) {
-            saveValue = String
-                    .valueOf(
-                            myPeriodDialog.myOriginalDataMap
-                                    .get(myPeriodDialog.myCurrStation
-                                            .getInformId())
-                                    .getData().getPrecipMax24H());
+            saveValue = String.valueOf(myPeriodDialog.myOriginalDataMap
+                    .get(myPeriodDialog.myCurrStation.getInformId()).getData()
+                    .getPrecipMax24H());
         } else {
             saveValue = myMaxPrecip24HourTF.getText();
         }
@@ -1614,12 +1608,9 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId())
                     .getPrecipTotal());
         } else if (DataValueOrigin.DAILY_DATABASE.equals(comboSelection)) {
-            saveValue = String
-                    .valueOf(
-                            myPeriodDialog.myOriginalDataMap
-                                    .get(myPeriodDialog.myCurrStation
-                                            .getInformId())
-                                    .getData().getPrecipTotal());
+            saveValue = String.valueOf(myPeriodDialog.myOriginalDataMap
+                    .get(myPeriodDialog.myCurrStation.getInformId()).getData()
+                    .getPrecipTotal());
         } else {
             saveValue = myTotalPrecipTF.getText();
         }

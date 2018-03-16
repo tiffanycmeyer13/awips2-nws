@@ -62,8 +62,8 @@ public abstract class DisplayDailyAction extends AbstractHandler {
      */
     protected final void openDailyDialog(PeriodType periodType,
             ClimateDate date, boolean nonRecentRun)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException, SerializationException {
+            throws ClimateQueryException, ClimateInvalidParameterException,
+            SerializationException {
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow()
                 .getShell();
         try {
@@ -75,7 +75,7 @@ public abstract class DisplayDailyAction extends AbstractHandler {
             DisplayStationDailyDialog dialog = new DisplayStationDailyDialog(
                     shell, (String) ThriftClient.sendRequest(dailyRequest));
 
-            dialog.setCloseCallback(new ICloseCallback() {
+            dialog.addCloseCallback(new ICloseCallback() {
                 @Override
                 public void dialogClosed(Object returnValue) {
                     // closing actions

@@ -6,9 +6,6 @@ package gov.noaa.nws.ocp.edex.common.climate.dao;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.raytheon.uf.common.status.IUFStatusHandler;
-import com.raytheon.uf.common.status.UFStatus;
-
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.RecentDates;
@@ -36,12 +33,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 
 public class ClimateFindDateDAO extends ClimateDAO {
     /**
-     * The logger.
-     */
-    private static final IUFStatusHandler logger = UFStatus
-            .getHandler(ClimateFindDateDAO.class);
-
-    /**
      * Constructor.
      */
     public ClimateFindDateDAO() {
@@ -68,51 +59,6 @@ public class ClimateFindDateDAO extends ClimateDAO {
     *   observed climate databases. This information appears initially in 
     *       the quality control GUI display fields.
     *
-    *   ARGUMENTS
-    *   =========
-    *
-    *   station_id      the informix id number of the first station in
-    *           the master climate station table (Input)
-    *
-    *   daily_date      structure containing the date for the most recent
-    *           climatological data in the daily climate database
-    *           (Output)
-    *
-    *   month_date      structure containing the date for the most recent
-    *           monthly climatological data in the M,S,A climate 
-    *           database (Output)
-    *
-    *   season_date     structure containing the date for the most recent
-    *           seasonal climatological data in the M,S,A climate 
-    *           database (Output)
-    *
-    *   annual_date     structure containing the date for the most recent
-    *           annual climatological data in the M,S,A climate 
-    *           database (Output)
-    *
-    *   FILES/DATABASES
-    *   ===============
-    *
-    *   Retrieves data from hmdb database, daily_climate and cli_mon_season_yr
-    *   tables.
-    *
-    *   RETURNS
-    *   =======
-    *
-    *   The function find_date() returns the most recent date (daily_date) 
-    *   available in the daily climate database, as well as the dates (month_date,
-    *   season_date, and annual_date) from the monthly, seasonal, and annual table.
-    *
-    *   HISTORY
-    *   =======
-    *   DATE        PROGRAMMER      DESCRIPTION/REASON
-    *
-    *   09/25/98        Doug Murphy     Original Code
-    *   11/14/99            Doug Murphy     Update to include monthly,
-    *                       seasonal, and annual dates
-    *   09/22/00            Doug Murphy             Removed unnecessary include file
-    *   04/21/03            Bob Morris              Simplified/corrected SQL.  OB2
-    *   01/26/05            Manan Dalal             Ported from Informix to Postgresql
      *************************************************************************
      * </pre>
      * 
