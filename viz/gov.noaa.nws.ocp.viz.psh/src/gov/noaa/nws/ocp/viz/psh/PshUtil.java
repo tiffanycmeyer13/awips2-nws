@@ -51,6 +51,7 @@ import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.viz.core.auth.UserController;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
@@ -1141,7 +1142,7 @@ public class PshUtil {
         try {
             result = (PshData) ThriftClient.sendRequest(request);
         } catch (Exception e) {
-            statusHandler.warn("No data retrieved for the storm, " + storm);
+            statusHandler.info("No data retrieved for the storm, " + storm);
         }
 
         return result;
@@ -1241,7 +1242,7 @@ public class PshUtil {
             boolean operational) {
 
         PshProductTransmitRequest request = new PshProductTransmitRequest(pdata,
-                operational);
+                operational, UserController.getUserObject());
 
         boolean success = false;
         try {

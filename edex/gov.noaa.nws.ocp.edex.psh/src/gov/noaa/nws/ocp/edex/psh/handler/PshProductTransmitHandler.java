@@ -34,7 +34,8 @@ public class PshProductTransmitHandler
 
         PshProductTransmitter sender = new PshProductTransmitter();
 
-        return sender.transmit(request.getProduct(), request.isOperational());
+        return sender.transmit(request.getProduct(), request.isOperational(),
+                request.getUser());
     }
 
 }

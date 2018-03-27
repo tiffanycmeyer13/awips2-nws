@@ -13,3 +13,4 @@ Require-Bundle: com.raytheon.uf.common.serialization,
 Export-Package: gov.noaa.nws.ocp.common.dataplugin.psh,
  gov.noaa.nws.ocp.common.dataplugin.psh.request,
  gov.noaa.nws.ocp.common.dataplugin.psh.response
+Import-Package: com.raytheon.uf.common.auth.user

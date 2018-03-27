@@ -18,7 +18,6 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ocp.common.localization.psh,
  org.apache.commons.lang;bundle-version="2.6.0",
  org.apache.velocity,
- com.raytheon.uf.viz.core,
  com.raytheon.uf.common.time
 Export-Package: gov.noaa.nws.ocp.edex.psh.dao,
  gov.noaa.nws.ocp.edex.psh.handler
