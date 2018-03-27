@@ -3,6 +3,7 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.psh.request;
 
+import com.raytheon.uf.common.auth.user.IUser;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 import com.raytheon.uf.common.serialization.comm.IServerRequest;
@@ -20,6 +21,7 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.PshData;
  * ------------ ---------- ----------- --------------------------
  * Aug 11, 2017 #36930     jwu         Initial creation
  * Jan 11, 2018 DCS19326   jwu         Baseline version.
+ * Mar 23, 2018 #48177     wpaintsil   Add user field.
  * 
  * </pre>
  * 
@@ -35,6 +37,9 @@ public class PshProductTransmitRequest implements IServerRequest {
     @DynamicSerializeElement
     private boolean operational;
 
+    @DynamicSerializeElement
+    private IUser user;
+
     /**
      * Constructor
      */
@@ -47,9 +52,11 @@ public class PshProductTransmitRequest implements IServerRequest {
      * @param pshData
      * @param operational
      */
-    public PshProductTransmitRequest(PshData pshData, boolean operational) {
+    public PshProductTransmitRequest(PshData pshData, boolean operational,
+            IUser user) {
         this.product = pshData;
         this.operational = operational;
+        this.user = user;
     }
 
     /**
@@ -80,6 +87,21 @@ public class PshProductTransmitRequest implements IServerRequest {
      */
     public void setOperational(boolean operational) {
         this.operational = operational;
+    }
+
+    /**
+     * @return the user
+     */
+    public IUser getUser() {
+        return user;
+    }
+
+    /**
+     * @param user
+     *            the user to set
+     */
+    public void setUser(IUser user) {
+        this.user = user;
     }
 
 }

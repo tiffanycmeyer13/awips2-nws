@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.raytheon.uf.common.auth.resp.SuccessfulExecution;
+import com.raytheon.uf.common.auth.user.IUser;
 import com.raytheon.uf.common.dataplugin.text.db.AfosToAwips;
 import com.raytheon.uf.common.dissemination.OUPRequest;
 import com.raytheon.uf.common.dissemination.OUPResponse;
@@ -21,7 +22,6 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
 import com.raytheon.uf.edex.plugin.text.AfosToAwipsLookup;
 import com.raytheon.uf.edex.plugin.text.db.TextDB;
-import com.raytheon.uf.viz.core.auth.UserController;
 
 import gov.noaa.nws.ocp.common.dataplugin.psh.PshData;
 import gov.noaa.nws.ocp.common.dataplugin.psh.response.PshProductServiceResponse;
@@ -39,9 +39,11 @@ import gov.noaa.nws.ocp.edex.psh.util.PshEdexUtil;
  * 
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 11 AUG 2017  #36930     jwu         Initial creation
- * 05 DEC,2017  #41620     wpaintsil   Add export capability
- * 11 DEC,2017  #41998     jwu         Move export to PshEdexUtil
+ * 11 AUG  2017 #36930     jwu         Initial creation
+ * 05 DEC, 2017 #41620     wpaintsil   Add export capability
+ * 11 DEC, 2017 #41998     jwu         Move export to PshEdexUtil
+ * 23 MAR, 2018 #48177     wpaintsil   IUser parameter should be 
+ *                                     passed in from the viz side.
  * 
  * </pre>
  * 
@@ -83,7 +85,7 @@ public class PshProductTransmitter {
      * 
      * @return
      */
-    public boolean transmit(PshData product, boolean operational) {
+    public boolean transmit(PshData product, boolean operational, IUser user) {
 
         boolean hasError = false;
 
@@ -113,7 +115,7 @@ public class PshProductTransmitter {
          * 
          * Note: OUP will store product into textDB if transmit is successful.
          */
-        hasError = forwardToOUP(pshProdResp.getMessage(), operational);
+        hasError = forwardToOUP(pshProdResp.getMessage(), operational, user);
         if (!hasError) {
             String desc = "Transmit PSH product: "
                     + configHeader.getProductPil() + " sucessfully.";
@@ -185,7 +187,8 @@ public class PshProductTransmitter {
      *            Product content without header.
      * @param operational
      */
-    private boolean forwardToOUP(String prdContent, boolean operational) {
+    private boolean forwardToOUP(String prdContent, boolean operational,
+            IUser user) {
 
         boolean noError = false;
 
@@ -224,7 +227,7 @@ public class PshProductTransmitter {
 
         // Make an OUP request.
         OUPRequest req = new OUPRequest();
-        req.setUser(UserController.getUserObject());
+        req.setUser(user);
         req.setProduct(oup);
         OUPResponse resp = null;
         String additionalInfo = "";

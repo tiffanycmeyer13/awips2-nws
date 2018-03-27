@@ -12,3 +12,4 @@ Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.psh,
  org.eclipse.core.runtime;bundle-version="3.12.0"
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: gov.noaa.nws.ocp.viz.psh.Activator
+Import-Package: com.raytheon.uf.common.auth.user
