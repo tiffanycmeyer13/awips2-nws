@@ -4,5 +4,4 @@
     
    <bean id="replacestationsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.configparams.ReplaceStationsServiceHandler"/>
   
-   <bean id="snowperciprequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.configparams.SnowPrecipServiceHandler"/>
 </beans>

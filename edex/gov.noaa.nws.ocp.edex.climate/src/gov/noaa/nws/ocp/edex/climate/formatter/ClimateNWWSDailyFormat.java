@@ -16,10 +16,10 @@ import org.apache.commons.lang.WordUtils;
 import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
-import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateSeason;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateWind;
 import gov.noaa.nws.ocp.common.dataplugin.climate.DailyClimateData;
@@ -60,6 +60,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  *                                     of aliasing.
  * 20 NOV 2017  41088      amoore      Remove unnecessary double-checking of report windows
  *                                     for snow section.
+ * 20 APR 2018  DR17116    wpaintsil   Accommodate more than one alternate snow/precip season.
  * </pre>
  *
  * @author wpaintsil
@@ -108,6 +109,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
+    @Override
     public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
             throws ClimateQueryException, ClimateInvalidParameterException {
         Map<String, ClimateProduct> prod = new HashMap<>();
@@ -244,8 +246,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateInvalidParameterException
      */
     private String buildNWWSTables(boolean morning, ClimateRunData report,
-            ClimateDailyReportData reportData) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            ClimateDailyReportData reportData)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsTables = new StringBuilder();
 
         ColumnSpaces tabs = new ColumnSpaces();
@@ -1175,8 +1177,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSPrecip(ColumnSpaces tabs, ClimateRunData report,
             ClimateReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsPrecip = new StringBuilder();
 
         /**
@@ -1245,8 +1246,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSHeatAndCool(ColumnSpaces tabs,
             ClimateRunData report, ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsHeatAndCool = new StringBuilder();
         ClimateProductFlags heatFlags = currentSettings.getControl()
                 .getDegreeDaysControl().getTotalHDD();
@@ -2002,8 +2002,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSLiquidPrecip(ColumnSpaces tabs,
             ClimateRunData report, ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsLiquidPrecip = new StringBuilder();
 
         boolean snow = false;
@@ -2021,9 +2020,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     StringUtils.capitalize(precipString));
 
             nwwsLiquidPrecip.append("\n").append(nwwsLiquidLine).append("\n");
-            nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report,
-                    (ClimateDailyReportData) data, PrecipPeriod.DAY, snow,
-                    morning));
+            nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
+                    PrecipPeriod.DAY, snow, morning));
 
             if (precipFlags.isTotalMonth()) {
                 if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
@@ -2037,13 +2035,19 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             }
 
             if (precipFlags.isTotalSeason()) {
-                if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
-                        && yesterday.getPrecipSeason() == 0) {
-                    yesterday.setPrecipSeason(ParameterFormatClimate.TRACE);
-                }
+                for (int precipSeasonIndex = 0; precipSeasonIndex < yesterday
+                        .getPrecipSeasons().size(); precipSeasonIndex++) {
+                    if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
+                            && yesterday.getPrecipSeasons()
+                                    .get(precipSeasonIndex) == 0) {
+                        yesterday.setPrecipSeasons(precipSeasonIndex,
+                                ParameterFormatClimate.TRACE);
+                    }
 
-                nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
-                        PrecipPeriod.SEASON, snow, morning));
+                    nwwsLiquidPrecip.append(buildNWWSAnyPrecip(tabs, report,
+                            data, PrecipPeriod.SEASON, precipSeasonIndex, snow,
+                            morning));
+                }
             }
             if (precipFlags.isTotalYear()) {
                 if (yesterday.getPrecip() == ParameterFormatClimate.TRACE
@@ -2085,8 +2089,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSSnowPrecip(ColumnSpaces tabs, ClimateRunData report,
             ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsSnowPrecip = new StringBuilder();
 
         ClimateProductFlags snowFlags = currentSettings.getControl()
@@ -2118,13 +2121,19 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             }
 
             if (snowFlags.isTotalSeason()) {
-                if (yesterday.getSnowDay() == ParameterFormatClimate.TRACE
-                        && yesterday.getSnowSeason() == 0) {
-                    yesterday.setSnowSeason(ParameterFormatClimate.TRACE);
-                }
+                for (int snowSeasonIndex = 0; snowSeasonIndex < yesterday
+                        .getSnowSeasons().size(); snowSeasonIndex++) {
+                    if (yesterday.getSnowDay() == ParameterFormatClimate.TRACE
+                            && yesterday.getSnowSeasons()
+                                    .get(snowSeasonIndex) == 0) {
+                        yesterday.setSnowSeasons(snowSeasonIndex,
+                                ParameterFormatClimate.TRACE);
+                    }
 
-                nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
-                        PrecipPeriod.SEASON, snow, morning));
+                    nwwsSnowPrecip.append(buildNWWSAnyPrecip(tabs, report, data,
+                            PrecipPeriod.SEASON, snowSeasonIndex, snow,
+                            morning));
+                }
             }
 
             if (snowFlags.isTotalYear()) {
@@ -2177,8 +2186,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSDegreeDay(ColumnSpaces tabs, ClimateRunData report,
             ClimateDailyReportData data, PrecipPeriod precipTime, boolean heat,
-            boolean morning) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            boolean morning)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsDegreeDay = new StringBuilder();
 
         ClimateProductFlags degreeFlags = heat
@@ -2187,14 +2196,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                 : currentSettings.getControl().getDegreeDaysControl()
                         .getTotalCDD();
 
-        ClimateDates coolSeason = ClimateDates.getMissingClimateDates(),
-                coolYear = ClimateDates.getMissingClimateDates(),
-                heatSeason = ClimateDates.getMissingClimateDates(),
-                heatYear = ClimateDates.getMissingClimateDates(),
-                precipSeason = ClimateDates.getMissingClimateDates(),
-                precipYear = ClimateDates.getMissingClimateDates(),
-                snowSeason = ClimateDates.getMissingClimateDates(),
-                snowYear = ClimateDates.getMissingClimateDates();
+        ClimateSeason season = ClimateDAOUtils.getSeason(report.getBeginDate());
 
         int observedValue, normalValue, lastYearValue;
 
@@ -2238,42 +2240,36 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             }
 
             else if (precipTime == PrecipPeriod.SEASON) {
-                ClimateDAOUtils.setSeason(report.getBeginDate(), coolSeason,
-                        coolYear, heatSeason, heatYear, precipSeason,
-                        precipYear, snowSeason, snowYear);
 
                 if (heat) {
                     observedValue = data.getData().getNumHeatSeason();
                     normalValue = data.getyClimate().getNumHeatSeason();
                     lastYearValue = data.getLastYearData().getNumHeatSeason();
 
-                    nwwsDegreeDayLine = buildNWWSDate(heatSeason.getStart(),
+                    nwwsDegreeDayLine = buildNWWSDate(season.getHeatSeason(),
                             nwwsDegreeDayLine);
                 } else {
                     observedValue = data.getData().getNumCoolSeason();
                     normalValue = data.getyClimate().getNumCoolSeason();
                     lastYearValue = data.getLastYearData().getNumCoolSeason();
 
-                    nwwsDegreeDayLine = buildNWWSDate(coolSeason.getStart(),
+                    nwwsDegreeDayLine = buildNWWSDate(season.getCoolSeason(),
                             nwwsDegreeDayLine);
                 }
             } else {
-                ClimateDAOUtils.setSeason(report.getBeginDate(), coolSeason,
-                        coolYear, heatSeason, heatYear, precipSeason,
-                        precipYear, snowSeason, snowYear);
                 if (heat) {
                     observedValue = data.getData().getNumHeatYear();
                     normalValue = data.getyClimate().getNumHeatYear();
                     lastYearValue = data.getLastYearData().getNumHeatYear();
 
-                    nwwsDegreeDayLine = buildNWWSDate(heatYear.getStart(),
+                    nwwsDegreeDayLine = buildNWWSDate(season.getHeatYear(),
                             nwwsDegreeDayLine);
                 } else {
                     observedValue = data.getData().getNumCoolYear();
                     normalValue = data.getyClimate().getNumCoolYear();
                     lastYearValue = data.getLastYearData().getNumCoolYear();
 
-                    nwwsDegreeDayLine = buildNWWSDate(coolYear.getStart(),
+                    nwwsDegreeDayLine = buildNWWSDate(season.getCoolYear(),
                             nwwsDegreeDayLine);
                 }
             }
@@ -2397,6 +2393,27 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
     }
 
     /**
+     * Call to buildNWWSAnyPrecip for non-season lines.
+     * 
+     * @param tabs
+     * @param report
+     * @param data
+     * @param precipTime
+     * @param snow
+     * @param morning
+     * @return
+     * @throws ClimateQueryException
+     * @throws ClimateInvalidParameterException
+     */
+    private String buildNWWSAnyPrecip(ColumnSpaces tabs, ClimateRunData report,
+            ClimateDailyReportData data, PrecipPeriod precipTime, boolean snow,
+            boolean morning)
+            throws ClimateQueryException, ClimateInvalidParameterException {
+        return buildNWWSAnyPrecip(tabs, report, data, precipTime, 0, snow,
+                morning);
+    }
+
+    /**
      * Migrated from build_NWWS_any_precip.f
      * 
      * <pre>
@@ -2418,6 +2435,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @param report
      * @param data
      * @param precipTime
+     * @param seasonIndex
+     *            the index in the list of alternate seasons if a season line is
+     *            being printed
      * @param snow
      * @param morning
      * @return
@@ -2425,9 +2445,9 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateInvalidParameterException
      */
     private String buildNWWSAnyPrecip(ColumnSpaces tabs, ClimateRunData report,
-            ClimateDailyReportData data, PrecipPeriod precipTime, boolean snow,
-            boolean morning) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            ClimateDailyReportData data, PrecipPeriod precipTime,
+            int seasonIndex, boolean snow, boolean morning)
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
         StringBuilder nwwsAnyPrecip = new StringBuilder();
 
@@ -2445,21 +2465,11 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             float observedValue, normalValue, recordValue, lastYearValue;
             int[] yearOfRecord;
 
-            ClimateDates coolSeason = ClimateDates.getMissingClimateDates(),
-                    coolYear = ClimateDates.getMissingClimateDates(),
-                    heatSeason = ClimateDates.getMissingClimateDates(),
-                    heatYear = ClimateDates.getMissingClimateDates(),
-                    precipSeason = ClimateDates.getMissingClimateDates(),
-                    precipYear = ClimateDates.getMissingClimateDates(),
-                    snowSeason = ClimateDates.getMissingClimateDates(),
-                    snowYear = ClimateDates.getMissingClimateDates();
-
             StringBuilder nwwsLiquidLine = emptyLine(
                     ParameterFormatClimate.NUM_LINE1_NWWS);
 
-            ClimateDAOUtils.setSeason(report.getBeginDate(), coolSeason,
-                    coolYear, heatSeason, heatYear, precipSeason, precipYear,
-                    snowSeason, snowYear);
+            ClimateSeason season = ClimateDAOUtils
+                    .getSeason(report.getBeginDate());
 
             if (precipTime == PrecipPeriod.DAY) {
                 if (snow) {
@@ -2502,25 +2512,32 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                         MONTH_TO_DATE);
 
             } else if (precipTime == PrecipPeriod.SEASON) {
-
                 if (snow) {
-                    observedValue = data.getData().getSnowSeason();
-                    normalValue = data.getyClimate().getSnowSeasonMean();
+                    observedValue = data.getData().getSnowSeasons()
+                            .get(seasonIndex);
+                    normalValue = data.getyClimate().getSnowSeasonMean()
+                            .get(seasonIndex);
                     recordValue = data.getyClimate().getSnowSeasonRecord();
-                    lastYearValue = data.getLastYearData().getSnowSeason();
+                    lastYearValue = data.getLastYearData().getSnowSeasons()
+                            .get(seasonIndex);
                     yearOfRecord = data.getyClimate().getSnowSeasonRecordYear();
 
-                    nwwsLiquidLine = buildNWWSDate(snowSeason.getStart(),
+                    nwwsLiquidLine = buildNWWSDate(
+                            season.getSnowSeasons().get(seasonIndex),
                             nwwsLiquidLine);
                 } else {
-                    observedValue = data.getData().getPrecipSeason();
-                    normalValue = data.getyClimate().getPrecipSeasonMean();
+                    observedValue = data.getData().getPrecipSeasons()
+                            .get(seasonIndex);
+                    normalValue = data.getyClimate().getPrecipSeasonMean()
+                            .get(seasonIndex);
                     recordValue = data.getyClimate().getPrecipSeasonRecord();
-                    lastYearValue = data.getLastYearData().getPrecipSeason();
+                    lastYearValue = data.getLastYearData().getPrecipSeasons()
+                            .get(seasonIndex);
                     yearOfRecord = data.getyClimate()
                             .getPrecipSeasonRecordYear();
 
-                    nwwsLiquidLine = buildNWWSDate(precipSeason.getStart(),
+                    nwwsLiquidLine = buildNWWSDate(
+                            season.getPrecipSeasons().get(seasonIndex),
                             nwwsLiquidLine);
                 }
             } else {
@@ -2532,7 +2549,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     lastYearValue = data.getLastYearData().getSnowYear();
                     yearOfRecord = data.getyClimate().getSnowYearRecordYear();
 
-                    nwwsLiquidLine = buildNWWSDate(snowYear.getStart(),
+                    nwwsLiquidLine = buildNWWSDate(season.getSnowYear(),
                             nwwsLiquidLine);
                 } else {
                     observedValue = data.getData().getPrecipYear();
@@ -2541,7 +2558,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     lastYearValue = data.getLastYearData().getPrecipYear();
                     yearOfRecord = data.getyClimate().getPrecipYearRecordYear();
 
-                    nwwsLiquidLine = buildNWWSDate(precipYear.getStart(),
+                    nwwsLiquidLine = buildNWWSDate(season.getPrecipYear(),
                             nwwsLiquidLine);
                 }
             }
