@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="gov.noaa.nws.ocp.viz.climate.qualitycontrol.QCAction"
+            commandId="gov.noaa.nws.ocp.viz.climate.qualitycontrol">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="gov.noaa.nws.ocp.viz.climate.qualitycontrol"
+            name="Quality Control">
+      </command>
+   </extension>
+
+</plugin>

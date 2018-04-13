@@ -1,0 +1,194 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <camelContext id="climate_cpg" xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+        <!-- Route to send alerts to climate view -->
+		<route id="climateNotify">
+			<from uri="vm:edex.climateNotification" />
+			<bean ref="serializationUtil" method="transformToThrift" />
+			<to uri="jms-generic:topic:edex.climate.msg" />
+		</route>
+    </camelContext>
+    
+    <!-- Register Requests and Handlers -->
+
+    <bean id="cancelCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.CancelClimateProdGenerateHandler" />
+
+    <bean id="manualCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ManualGenerateClimateProdHandler" />
+
+    <bean id="displayCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.DisplayClimateHandler" />
+
+    <bean id="completeDisplayCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.CompleteDisplayClimateHandler" />
+
+    <bean id="reviewCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ReviewClimateProdHandler" />
+
+    <bean id="saveClimateProdCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SaveModifiedClimateProdAfterReviewHandler" />
+
+    <bean id="deleteClimateProdCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.DeleteClimateProdAfterReviewHandler" />
+
+    <bean id="sendNWWSClimateProdCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SendNWWSClimateProductsHandler" />
+    
+    <bean id="sendNWRClimateProdCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.SendNWRClimateProductsHandler" />
+    
+    <bean id="forwardClimateProdToNWRCPGHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.ForwardProdToNWRForReviewHandler" />
+
+    <bean id="getClimateProdSessionHandler"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.handler.GetClimateProdGenerateSessionHandler" />
+
+    <!-- END Register Requests and Handlers -->
+
+    <!-- Cron Job Section -->
+    <bean id="autoGenerateClimateProdAM"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="1" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdPM"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="2" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdIM"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="10" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdMonthly"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="5" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdSeasonal"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="7" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdAnnual"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionFactory">
+        <constructor-arg value="1" />
+        <constructor-arg value="9" />
+    </bean>
+
+    <bean id="autoGenerateClimateProdF6"
+        class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateF6">
+    </bean>
+
+    <camelContext id="cpg-request-camel"
+        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+
+        <endpoint id="autoCpgAMCron"
+            uri="clusteredquartz://cpg/autocreateclimeAM/?cron=${cpg.am.cron}" />
+        <endpoint id="autoCpgPMCron"
+            uri="clusteredquartz://cpg/autocreateclimePM/?cron=${cpg.pm.cron}" />
+        <endpoint id="autoCpgIMCron"
+            uri="clusteredquartz://cpg/autocreateclimeIM/?cron=${cpg.im.cron}" />
+
+        <endpoint id="autoCpgMonCron"
+            uri="clusteredquartz://cpg/autocreateclimeMon/?cron=${cpg.mon.cron}" />
+        <endpoint id="autoCpgSeaCron"
+            uri="clusteredquartz://cpg/autocreateclimeSea/?cron=${cpg.sea.cron}" />
+        <endpoint id="autoCpgAnnCron"
+            uri="clusteredquartz://cpg/autocreateclimeAnn/?cron=${cpg.ann.cron}" />
+
+        <endpoint id="autoCpgF6Cron"
+            uri="clusteredquartz://cpg/autocreateclimeF6/?cron=${cpg.f6.cron}" />
+
+        <route id="cpgAMWork">
+            <from uri="autoCpgAMCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdAM" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgPMWork">
+            <from uri="autoCpgPMCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdPM" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgIMWork">
+            <from uri="autoCpgIMCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdIM" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgMonWork">
+            <from uri="autoCpgMonCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdMonthly" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgSeaWork">
+            <from uri="autoCpgSeaCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdSeasonal" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgAnnWork">
+            <from uri="autoCpgAnnCron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdAnnual" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <route id="cpgF6Work">
+            <from uri="autoCpgF6Cron" />
+            <doTry>
+                <bean ref="autoGenerateClimateProdF6" method="generateClimate" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:cpgCronJob?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+    </camelContext>
+
+    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
+        <constructor-arg ref="cpg-request-camel" />
+    </bean>
+</beans>

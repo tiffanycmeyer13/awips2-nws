@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ClimateProductType ReportType="ANNUAL_RAD" ProdID="DEF" Itype="9" FileName="product_ann_DEF_NWR.xml">
+    <Header>
+        <ProdNum>753</ProdNum>
+        <Style>45</Style>
+        <NodeOriginationSite>OMA</NodeOriginationSite>
+        <ProductCategory>CLA</ProductCategory>
+        <StationId>NW1</StationId>
+        <ExpirationMinute>0</ExpirationMinute>
+        <ActiveStorage>A</ActiveStorage>
+        <AlertTone></AlertTone>
+        <BeginMessageIndicator>$a</BeginMessageIndicator>
+        <DeleteSaveMessage>D</DeleteSaveMessage>
+        <FirstTwoNs>CL</FirstTwoNs>
+        <ThirdN>A</ThirdN>
+        <InterruptMessage></InterruptMessage>
+        <MessageConfirm></MessageConfirm>
+        <MessageRef>0</MessageRef>
+        <NumListeningTowers></NumListeningTowers>
+        <MessageFormat>T_ENG</MessageFormat>
+        <ListenAreaCode>VAC999c</ListenAreaCode>
+        <CreationDate Day="29" Month="2" Year="1998"/>
+        <CreationTime Hour="12" Minute="23" AmPm="PM" TimeZone="LST"/>
+        <EffectiveDate Day="29" Month="2" Year="1998"/>
+        <EffectiveTime Hour="8" Minute="30" AmPm="AM" TimeZone="LST"/>
+        <ExpirationDate Day="29" Month="2" Year="1998"/>
+        <ExpirationTime Hour="23" Minute="59" AmPm="PM" TimeZone="LST"/>
+        <Periodicity>60</Periodicity>
+        <Address>000</Address>
+        <CDE1>TTAA00</CDE1>
+        <CDE2>K</CDE2>
+        <CDE3>PIT</CDE3>
+        <CDE4Date Day="20" Month="5" Year="2017"/>
+        <CDE4_Time Hour="19" Minute="32" AmPm="PM" TimeZone=""/>
+    </Header>
+    <Control>
+        <DoCelsius>false</DoCelsius>
+        <CoolDates>
+            <StartDate Day="1" Month="1" Year="0"/>
+            <EndDate Day="31" Month="12" Year="0"/>
+        </CoolDates>
+        <HeatDates>
+            <StartDate Day="1" Month="7" Year="0"/>
+            <EndDate Day="30" Month="6" Year="0"/>
+        </HeatDates>
+        <SnowDates>
+            <StartDate Day="1" Month="7" Year="0"/>
+            <EndDate Day="30" Month="6" Year="0"/>
+        </SnowDates>
+        <Temperature>
+            <MaxTemp Measured="true" TimeOfMeasured="true" Norm="true" Record="true" RecordYear="true" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTemp Measured="true" TimeOfMeasured="true" Norm="true" Record="true" RecordYear="true" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MeanTemp Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MeanMaxTemp Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MeanMinTemp Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxTempGE90 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxTempLE32 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxTempGET1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxTempGET2 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxTempLET3 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTempLE32 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTempLE0 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTempGET4 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTempLET5 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MinTempLET6 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </Temperature>
+        <Precipitation>
+            <PrecipTotal Measured="true" TimeOfMeasured="false" Norm="true" Record="true" RecordYear="true" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipMonth Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipSeason Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipYear Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipMin Measured="false" TimeOfMeasured="false" Norm="false" Record="true" RecordYear="true" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGE01 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGE10 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGE50 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGE100 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGEP1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipGEP2 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <Precip24HR Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipStormMax Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <PrecipAvg Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </Precipitation>
+        <Snow>
+            <SnowTotal Measured="true" TimeOfMeasured="false" Norm="true" Record="true" RecordYear="true" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowMonth Measured="true" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="true" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowSeason Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowYear Measured="false" TimeOfMeasured="true" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowDepthAvg Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowJuly1 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowAny Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowGE100 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowGEP1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <Snow24hr Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowStormMax Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowWaterTotal Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowWaterJuly1 Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <SnowDepthMax Measured="true" TimeOfMeasured="true" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </Snow>
+        <DegreeDays>
+            <Heat Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <HeatJuly1 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <Cool Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <CoolJan1 Measured="true" TimeOfMeasured="false" Norm="true" Record="false" RecordYear="false" Departure="true" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <EarlyFreeze Measured="true" TimeOfMeasured="false" Norm="true" Record="true" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <LateFreeze Measured="true" TimeOfMeasured="false" Norm="true" Record="true" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </DegreeDays>
+        <RelativeHumidity>
+            <maxRH Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <minRH Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <meanRH Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <averageRH Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </RelativeHumidity>
+        <Wind>
+            <ResultWind Measured="false" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxWind Measured="true" TimeOfMeasured="true" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MaxGust Measured="true" TimeOfMeasured="true" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+            <MeanWind Measured="true" TimeOfMeasured="false" Norm="false" Record="false" RecordYear="false" Departure="false" LastYear="false" DateOfLast="false" TotalMonth="false" TotalSeason="false" TotalYear="false"/>
+        </Wind>
+        <Skycover>
+            <PossibleSunshine>false</PossibleSunshine>
+            <FairDays>false</FairDays>
+            <PartlyCloudyDays>false</PartlyCloudyDays>
+            <CouldyDays>false</CouldyDays>
+            <AvgSkycover>false</AvgSkycover>
+        </Skycover>
+        <Weather>
+            <Weather>true</Weather>
+            <Thunderstorm>false</Thunderstorm>
+            <MixedPrecip>false</MixedPrecip>
+            <HeavyRain>false</HeavyRain>
+            <Rain>false</Rain>
+            <LightRain>false</LightRain>
+            <FreezingRain>false</FreezingRain>
+            <LightFreezingRain>false</LightFreezingRain>
+            <Hail>false</Hail>
+            <HeavySnow>false</HeavySnow>
+            <Snow>false</Snow>
+            <LightSnow>false</LightSnow>
+            <IcePellet>false</IcePellet>
+            <Fog>false</Fog>
+            <HeavyFog>false</HeavyFog>
+            <Haze>false</Haze>
+        </Weather>
+        <SunriseSunset>
+            <Sunrise>false</Sunrise>
+            <Sunset>false</Sunset>
+        </SunriseSunset>
+        <TemperatureRecord>
+            <MaxTempNorm>false</MaxTempNorm>
+            <MaxTempRecord>false</MaxTempRecord>
+            <MaxTempYear>false</MaxTempYear>
+            <MinTempNorm>false</MinTempNorm>
+            <MinTempRecord>false</MinTempRecord>
+            <MinTempYear>false</MinTempYear>
+        </TemperatureRecord>
+    </Control>
+</ClimateProductType>
