@@ -1,0 +1,70 @@
+Preliminary Local Climatological Data (WS Form: F-6)
+
+                                          Station:   $stationName
+                                          Month:     $month
+                                          Year:      $year
+                                          Latitude:  $latdeg$latmin $north      
+                                          Longitude: $longdeg$longmin $west    
+
+  Temperature in F:       :PCPN:    Snow:  Wind      :Sunshine: Sky     :PK WND 
+================================================================================
+1   2   3   4   5  6A  6B    7    8   9   10  11  12  13   14  15   16   17  18
+                                     12Z  AVG MX 2MIN
+DY MAX MIN AVG DEP HDD CDD  WTR  SNW DPTH SPD SPD DIR MIN PSBL S-S WX    SPD DR
+================================================================================
+
+#foreach ($d in $dailyList)
+$d.dy$d.max$d.min$d.avg$d.dep$d.hdd$d.cdd$d.wtr$d.snw$d.dpth$d.spd$d.mxspd$d.dir$d.minsun$d.psbl$d.ss$d.ws$d.isp$d.dr
+#end
+================================================================================
+SM$sumMax$sumMin      $sumHdd$sumCdd$sumWtr$sumSnw   $sumAvgspd      $sumMinSun     $sumSS              
+================================================================================
+AV$avgmax$avgmin                             $avgspd FASTST$avgms$avgpsbl$avgss    MAX(MPH)  
+                                 MISC ---->  $maxflag$maxspd $maxdir               $maxgflag$maxgspd $maxgdir   
+================================================================================
+Notes:
+# Last of several occurrences
+
+Column 17 Peak Wind in M.P.H.
+
+Preliminary Local Climatological Data (WS Form: F-6) , Page 2
+
+                                          Station:   $stationName
+                                          Month:     $month
+                                          Year:      $year
+                                          Latitude:  $latdeg$latmin $north      
+                                          Longitude: $longdeg$longmin $west                   
+
+[Temperature Data]      [Precipitation Data]       Symbols used in column 16    
+
+Average Monthly:$avgTempf   Total for Month:$tfm    1 = Fog or Mist              
+DPTR FM Normal: $dptrtemp   DPTR FM Normal:$dptrprcp    2 = Fog Reducing Visibility  
+Highest:  $maxtemp ON $mtday$mtday2  GRTST 24HR $precipMax24H ON $precip24H1      To 1/4 mile or less      
+Lowest:   $mintemp ON $mintday$mintday2                             3 = Thunder                  
+                        Snow, Ice Pellets, Hail    4 = Ice Pellets              
+                        Total Month:$snowTotal  5 = Hail                     
+                        GRTST 24HR $snowMax24H $flagON $snowMax24Hday  6 = Freezing Rain or Drizzle
+                        GRTST Depth: $gdepth  7 = Duststorm or Sandstorm:  
+                                                       VSBY 1/2 mile or less    
+                                                   8 = Smoke or Haze            
+[No. of days with]      [Weather - days with]      9 = Blowing Snow             
+                                                   X = Tornado                  
+Max 32 or below: $max32    0.01 inch or more: $max32i                      
+Max 90 or above: $max90    0.10 inch or more: $max90i                      
+Min 32 or below: $min32    0.50 inch or more: $min32i                      
+Min  0 or below: $min0    1.00 inch or more: $min0i                        
+
+[HDD (Base 65) ]                                                                
+Total This MO.$ttm    Clear  (Scale 0-3)  $s03                                  
+DPTR FM Normal$dfn    PTCLDY (Scale 4-7)  $s47                                  
+Total FM Jul 1$tfj    Cloudy (Scale 8-10) $s80                                  
+DPTR FM Normal$dfn2                                                            
+
+[CDD (BASE 65) ]                                                                
+Total this MO.$ttm2                                                            
+DPTR FM Normal$dfn3    [Pressure Data]                                         
+Total FM Jan 1$tfj2    Highest SLP $maxslp ON $daymaxslp        
+DPTR FM Normal$dfn4    Lowest  SLP $minslp ON $dayminslp        
+
+[Remarks]
+$remarks

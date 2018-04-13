@@ -1,0 +1,128 @@
+#set( $blankLine="")
+#if ($tabType.equals('Metar'))
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+---------------------------------------------------------------------
+#if ($metarList.isEmpty())
+[no data]
+#end
+#foreach ($d in $metarList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Non-Metar'))
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+                                 AnGht
+---------------------------------------------------------------------
+#if ($nonMetarList.isEmpty())
+[no data]
+#end
+#foreach ($d in $nonMetarList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+#if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
+$d.anemHgmt
+#end
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Marine'))
+Location  ID    Min    Date/     Max      Date/     Peak    Date/
+Lat  Lon        Pres   Time      Sust     Time      Gust    Time
+Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+                                 AnGht
+---------------------------------------------------------------------
+#if ($marineList.isEmpty())
+[no data]
+#end
+#foreach ($d in $marineList)
+$d.station
+$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+#if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
+$d.anemHgmt
+#end
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Storm Rainfall'))
+City/Town                    County               ID         Rainfall
+Lat Lon                                                       (in)
+Deg Decimal
+---------------------------------------------------------------------
+#if ($rainfallList.isEmpty())
+[no data]
+#end
+#foreach ($d in $rainfallList)
+$d.cityInfo $d.county $d.id $d.rainfall $d.inp
+$d.lat $d.lon
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Inland Flooding'))
+#if ($floodingList.isEmpty())
+[no data]
+#end
+#foreach ($d in $floodingList)
+$d.flooding
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Water Level'))
+E. Maximum Observed Water Level (WL)...
+---------------------------------------------------------------------
+ID     City/Town       County     State  WL  Datum  Date/   Source
+       or Location                      (ft)        Time
+---------------------------------------------------------------------
+#if ($wlList.isEmpty())
+[no data]
+#end
+#foreach ($d in $wlList)
+$d.id  $d.location $d.county $d.state $d.waterLevel $d.datum $d.dt $d.source $d.inp
+$d.lat $d.lon
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Tornadoes'))
+(Dist)City/Town              County           Date/         EF Scale
+Lat Lon (Deg Decimal)                         Time(UTC)    (If known)
+Description
+---------------------------------------------------------------------
+#if ($tornadoList.isEmpty())
+[no data]
+#end
+#foreach ($d in $tornadoList)
+$d.location $d.county $d.dt $d.efScale $d.inp
+$d.lat  $d.lon
+#if ( $!d.tornadoDesp && $d.tornadoDesp.length() > 0 )
+$blankLine
+$d.tornadoDesp
+#end
+$blankLine
+#end
+
+
+#elseif ($tabType.equals('Storm Effects'))
+County            Deaths           Injuries             Evacuations
+Description
+---------------------------------------------------------------------
+#if ($impactList.isEmpty())
+[no data]
+#end
+#foreach ($d in $impactList)
+$d.county $d.deaths $d.injuries $d.evacs
+$blankLine
+$d.desp
+$blankLine
+#end
+#end

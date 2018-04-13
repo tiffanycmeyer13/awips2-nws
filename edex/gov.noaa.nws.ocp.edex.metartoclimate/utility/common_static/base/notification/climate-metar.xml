@@ -1,0 +1,19 @@
+    <!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+
+    <!--
+        This is an absolute override file, indicating that a higher priority
+        version of the file will completely replace a lower priority version
+        of the file.
+    -->
+<pluginNotificationList>
+    <pluginNotification>
+        <endpointName>metarToClimate</endpointName>
+        <format>PDO</format>
+        <endpointType>DIRECTVM</endpointType>
+        <metadataMap>
+            <mapping key="pluginName">
+                <constraint constraintValue="obs" constraintType="EQUALS"/>
+            </mapping>
+        </metadataMap>
+    </pluginNotification>
+</pluginNotificationList>

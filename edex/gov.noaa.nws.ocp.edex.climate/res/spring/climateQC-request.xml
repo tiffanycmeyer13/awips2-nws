@@ -1,0 +1,15 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <bean id="finddaterequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.qualitycontrol.FindDateServiceHandler"/>
+  
+    <bean id="detfreezedatesrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.qualitycontrol.DetFreezeDatesServiceHandler"/>
+  
+    <bean id="updatefreezedbrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.UpdateFreezeDBHandler"/>
+  
+    <bean id="compareupdatedailyrecordsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.CompareUpdateDailyRecordsHandler"/>
+  
+    <bean id="compareupdateperiodrecordsrequest" class="gov.noaa.nws.ocp.edex.climate.service.handler.CompareUpdatePeriodRecordsHandler"/>
+  
+</beans>

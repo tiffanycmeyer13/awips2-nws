@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: EDEX General Climate
+Bundle-SymbolicName: gov.noaa.nws.ocp.edex.climate
+Bundle-Version: 1.16.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
+ org.eclipse.core.runtime,
+ com.raytheon.uf.edex.core,
+ com.raytheon.uf.edex.ohd,
+ com.raytheon.uf.common.velocity,
+ com.raytheon.uf.viz.core,
+ com.raytheon.uf.edex.plugin.text,
+ org.opensaml,
+ com.raytheon.uf.common.wmo,
+ com.raytheon.edex.common,
+ com.raytheon.uf.common.dataplugin.text,
+ gov.noaa.nws.ocp.common.localization.climate,
+ com.raytheon.uf.common.message,
+ com.raytheon.uf.common.site
+Bundle-Vendor: NWS
+Export-Package: gov.noaa.nws.ocp.edex.climate.creator,
+ gov.noaa.nws.ocp.edex.climate.f6builder,
+ gov.noaa.nws.ocp.edex.climate.formatter
