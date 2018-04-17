@@ -1,0 +1,19 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd">
+    <bean id="cliasosPluginName" class="java.lang.String">
+        <constructor-arg type="java.lang.String" value="cliasos" />
+    </bean>
+    <bean id="cliasosProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+        <property name="pluginName" ref="cliasosPluginName" />
+        <property name="pluginFQN"
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.asos" />
+        <property name="record"
+            value="gov.noaa.nws.ocp.common.dataplugin.climate.asos.ClimateASOSMessageRecord" />
+    </bean>
+    <bean id="cliasosRegistered" factory-bean="pluginRegistry"
+        factory-method="register">
+        <constructor-arg ref="cliasosPluginName" />
+        <constructor-arg ref="cliasosProperties" />
+    </bean>
+</beans>

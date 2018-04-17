@@ -1,0 +1,16 @@
+ use_valid_im
+   T
+ use_valid_pm
+   T
+ Asterisk
+   T
+ Colon
+   T
+ Minus
+   F
+ Small letters
+   T
+ Hour  Min  ampm zone
+    9     0  AM  EST 
+ Hour  Min  ampm zone
+   17     0  PM  EST  

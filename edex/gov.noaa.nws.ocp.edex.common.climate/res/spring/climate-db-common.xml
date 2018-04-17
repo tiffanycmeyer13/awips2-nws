@@ -1,0 +1,48 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Climate Database Configuration -->
+    <bean id="climateDbSessionConfig"
+        class="com.raytheon.uf.edex.database.DatabaseSessionConfiguration">
+        <property name="classFinder" ref="dbClassFinder" />
+        <property name="includes">
+            <list>
+                <value>gov.noaa.nws.ocp.common.dataplugin.climate.asos</value>
+                <value>gov.noaa.nws.ocp.edex.plugin.climate.asos</value>
+                <value>com.raytheon.uf.common.dataplugin.shef</value>
+                <value>com.raytheon.edex.plugin.shef</value>
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="climateSessionFactory"
+        class="com.raytheon.uf.edex.database.DatabaseSessionFactoryBean">
+
+        <property name="configLocation">
+            <value>file:///${edex.home}/conf/db/hibernateConfig/climate/hibernate.cfg.xml
+            </value>
+        </property>
+        <property name="databaseSessionConfiguration" ref="climateDbSessionConfig" />
+    </bean>
+
+    <bean id="climateTxManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="climateSessionFactory" />
+    </bean>
+    
+    <bean id="admin_climateSessionFactory"
+        class="com.raytheon.uf.edex.database.DatabaseSessionFactoryBean">
+
+        <property name="configLocation">
+            <value>file:///${edex.home}/conf/db/hibernateConfig/climate/hibernate.admin.cfg.xml
+            </value>
+        </property>
+        <property name="databaseSessionConfiguration" ref="climateDbSessionConfig" />
+    </bean>
+
+    <bean id="admin_climateTxManager"
+        class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="climateSessionFactory" />
+    </bean>
+</beans>

@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Asos Decoder
+Bundle-SymbolicName: gov.noaa.nws.ocp.edex.plugin.climate.asos
+Bundle-Version: 1.16.0.qualifier
+Bundle-Vendor: NWS
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: com.raytheon.edex.common,
+ com.raytheon.uf.edex.decodertools,
+ javax.measure,
+ org.geotools,
+ com.raytheon.edex.uengine,
+ javax.persistence,
+ org.apache.camel;resolution:=optional,
+ com.raytheon.uf.common.pointdata,
+ com.raytheon.uf.edex.pointdata,
+ com.raytheon.uf.edex.ndm,
+ com.raytheon.uf.common.localization,
+ gov.noaa.nws.ocp.common.dataplugin.climate.asos,
+ gov.noaa.nws.ocp.edex.common.climate,
+ com.raytheon.uf.common.monitor,
+ com.raytheon.uf.common.dataplugin.obs,
+ com.raytheon.uf.common.wmo
+Export-Package: gov.noaa.nws.ocp.edex.plugin.climate.asos, 
+ gov.noaa.nws.ocp.edex.plugin.climate.asos.dao

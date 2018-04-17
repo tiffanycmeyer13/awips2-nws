@@ -1,0 +1,49 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="getavailablerequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.GetAvailableDayOfYearServiceHandler" />
+
+    <bean id="deleteclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.DeleteClimateDayRecordServiceHandler" />
+
+    <bean id="fetchclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchClimateDayRecordServiceHandler" />
+
+    <bean id="saveclimatedayrecordrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.SaveClimateDayRecordServiceHandler" />
+
+    <bean id="updateclimatedaynormnomissingrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.UpdateClimateDayNormNoMissingServiceHandler" />
+
+    <!-- beans for freeze dates table -->
+
+    <bean id="fetchfreezedatesrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchFreezeDatesServiceHandler" />
+
+    <!-- beans for climate_period table -->
+
+    <bean id="fetchclimateperiodrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.FetchClimatePeriodServiceHandler" />
+
+    <bean id="updateclimateperiodrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.initclimate.UpdateClimatePeriodServiceHandler" />
+
+    <!-- beans for mon_climate_norm table -->
+    <bean id="fetchmonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.FetchClimateMonthRecordServiceHandler" />
+
+    <bean id="deletemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.DeleteClimateMonthRecordServiceHandler" />
+
+    <bean id="getavailablemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.GetAvailableMonthOfYearServiceHandler" />
+
+    <bean id="savemonclimatenormrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.SaveClimateMonthRecordServiceHandler" />
+
+    <bean id="updatemonclimatenormnomissingrequest"
+        class="gov.noaa.nws.ocp.edex.climate.service.handler.monclimatenorm.UpdateClimateMonthNormNoMissingServiceHandler" />
+
+</beans>
