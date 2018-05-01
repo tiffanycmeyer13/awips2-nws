@@ -31,7 +31,7 @@ import com.raytheon.uf.viz.alertviz.AlertService;
 
 /**
  * ClimateNotificationJob
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -40,11 +40,11 @@ import com.raytheon.uf.viz.alertviz.AlertService;
  * ------------ ---------- ----------- --------------------------
  * Mar 29, 2017            pwang       Initial creation
  * May 22, 2017            jwu         Some cleanup.
+ * Apr 19, 2018  7013      tgurney     Add "canExit" field and getter/setter
  *
  * </pre>
  *
  * @author pwang
- * @version 1.0
  */
 public class ClimateNotificationJob extends Job implements AlertService {
 
@@ -67,6 +67,8 @@ public class ClimateNotificationJob extends Job implements AlertService {
     }
 
     private boolean embedded = true;
+
+    private boolean canExit = false;
 
     private int exitStatus;
 
@@ -114,7 +116,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
     /**
      * Starts the broker and JMS services to act as the receiver for AlertViz,
      * then schedules the job to process any messages.
-     * 
+     *
      * @param port
      */
     public void start(int port) {
@@ -150,7 +152,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
     /**
      * Adds a callback for getting notified when an alert is received from the
      * receiver.
-     * 
+     *
      * @param callback
      */
     public void addClimateCallback(IClimateMessageCallback callback) {
@@ -160,7 +162,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
     /**
      * Removes a callback for getting notified when an alert is received from
      * the receiver.
-     * 
+     *
      * @param callback
      */
     public void removeClimateCallback(IClimateMessageCallback callback) {
@@ -170,7 +172,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
     /**
      * Adds a general job status listener for getting notified when state
      * changes for receiver
-     * 
+     *
      * @param listener
      */
     public void addClimateNotificationJobListener(
@@ -184,7 +186,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
     /**
      * Removes a general job status listener for getting notified when state
      * changes for receiver
-     * 
+     *
      * @param listener
      */
     public void removeClimateNotificationJobListener(
@@ -208,7 +210,7 @@ public class ClimateNotificationJob extends Job implements AlertService {
 
     /**
      * Handle received message - simply pass onto IClimateMessageCallbacks.
-     * 
+     *
      * @param sm
      */
     public void receive(StatusMessage sm) {
@@ -382,6 +384,15 @@ public class ClimateNotificationJob extends Job implements AlertService {
     @Override
     public void setExitStatus(int exitStatus) {
         this.exitStatus = exitStatus;
+    }
+
+    public void setCanExit(boolean canExit) {
+        this.canExit = canExit;
+    }
+
+    @Override
+    public boolean isCanExit() {
+        return canExit;
     }
 
 }
