@@ -119,6 +119,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 19 SEP 2017  38124      amoore      Use GC for text control sizes.
  * 20 NOV 2017  41128      amoore      Split into multiple classes.
  * 21 NOV 2017  41180      amoore      CLS and CLA should not deal with MSM values.
+ * 03 MAY 2018  20702      amoore      Set a max height of station list.
  * </pre>
  * 
  * @author amoore
@@ -637,9 +638,10 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
 
         GC gc = new GC(myStationList);
         int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        int fontHeight = gc.getFontMetrics().getHeight();
         gc.dispose();
 
-        RowData stationListRD = new RowData(36 * fontWidth, SWT.DEFAULT);
+        RowData stationListRD = new RowData(36 * fontWidth, fontHeight * 8);
 
         myStationList.setLayoutData(stationListRD);
 
