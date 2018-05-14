@@ -34,6 +34,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
+import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 
 /**
  * This class allows date selection and, unlike the regular {@link DateTime}
@@ -73,6 +74,10 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
  * 03 AUG 2017  36726      amoore      Fix cutting off of some components.
  * 18 AUG 2017  36857      amoore      Center date selection text.
  * 19 SEP 2017  38124      amoore      Address review comments.
+ * 14 MAY 2018  20719      amoore      Fix issue in focus loss event where we defaulted to missing date
+ *                                     too early, and lost data when using short-date format.
+ * 17 MAY 2018  20726      amoore      Fix issue where programmatically setting date does not accept
+ *                                     missing date values.
  * </pre>
  * 
  * @author amoore
@@ -323,15 +328,17 @@ public class DateSelectionComp extends AbstractDateComp {
      */
     protected void validateDateText() {
         // validate the date text
-        currDate = ClimateDate.getMissingClimateDate();
         String dateText = dateTF.getText();
         if (dateText.isEmpty()) {
+            // no text present; use missing data
             if (includeYear) {
                 dateTF.setText(ClimateDate.MISSING_FULL_DATE_STRING);
             } else {
                 dateTF.setText(ClimateDate.MISSING_MONTH_DAY_DATE_STRING);
             }
+            currDate = ClimateDate.getMissingClimateDate();
         } else {
+            // non-empty text
             try {
                 if (includeYear && !dateText
                         .equals(ClimateDate.MISSING_FULL_DATE_STRING)) {
@@ -345,15 +352,21 @@ public class DateSelectionComp extends AbstractDateComp {
                      * month-day date is not empty or set to missing date string
                      */
                     validateMonthDayDateText(dateText);
+                } else {
+                    /*
+                     * is set to the missing text
+                     */
+                    currDate = ClimateDate.getMissingClimateDate();
                 }
 
             } catch (ParseException exception) {
                 logger.warn("Could not parse date. " + exception.getMessage());
 
-                // use missing data text
+                // use missing data text and date on error
                 dateTF.setText(
                         includeYear ? ClimateDate.MISSING_FULL_DATE_STRING
                                 : ClimateDate.MISSING_MONTH_DAY_DATE_STRING);
+                currDate = ClimateDate.getMissingClimateDate();
             }
         }
     }
@@ -372,12 +385,17 @@ public class DateSelectionComp extends AbstractDateComp {
         ClimateDate parsedDate = ClimateDate
                 .parseMonthDayDateFromString(dateText);
         /*
+         * date may be null at this point
+         */
+        int currentYear = currDate != null ? currDate.getYear()
+                : ParameterFormatClimate.MISSING;
+        /*
          * The following logic for inferring a user's desired year assumes
          * bounds are no more than a year apart.
          */
         if (upperBound == null && lowerBound == null) {
             // both bounds are null; use current date's year
-            parsedDate.setYear(currDate.getYear());
+            parsedDate.setYear(currentYear);
         } else if (upperBound != null && lowerBound == null) {
             // non-null upper; use that bound's year
             parsedDate.setYear(upperBound.getYear());
@@ -443,21 +461,38 @@ public class DateSelectionComp extends AbstractDateComp {
         return new ClimateDate(currDate);
     }
 
+    /**
+     * Set the current date. If the date is the missing value (99-99-9999 if
+     * including year, 99-99 if not), set to missing.
+     */
     public void setDate(ClimateDate date) {
-        if (includeYear && !date.toFullDateString()
-                .equals(ClimateDate.MISSING_FULL_DATE_STRING)) {
-            /*
-             * full date is not empty or set to missing date string
-             */
-            currDate = validateDateBounds(date);
+        if (includeYear) {
+            if (!date.isMissing()) {
+                /*
+                 * full date not set to missing date values
+                 */
+                currDate = validateDateBounds(date);
+            } else {
+                /*
+                 * missing date
+                 */
+                currDate = ClimateDate.getMissingClimateDate();
+            }
 
             dateTF.setText(currDate.toFullDateString());
-        } else if (!includeYear && !date.toMonthDayDateString()
-                .equals(ClimateDate.MISSING_MONTH_DAY_DATE_STRING)) {
-            /*
-             * month-day date is not empty or set to missing date string
-             */
-            currDate = validateDateBounds(date);
+        } else if (!includeYear) {
+            if (!date.toMonthDayDateString()
+                    .equals(ClimateDate.MISSING_MONTH_DAY_DATE_STRING)) {
+                /*
+                 * month-day date is not set to missing month-day date string
+                 */
+                currDate = validateDateBounds(date);
+            } else {
+                /*
+                 * missing date
+                 */
+                currDate = ClimateDate.getMissingClimateDate();
+            }
 
             dateTF.setText(currDate.toMonthDayDateString());
         }
@@ -730,6 +765,7 @@ public class DateSelectionComp extends AbstractDateComp {
                             dateTime.getMonth() + 1, dateTime.getYear());
 
                     newDate = parentComp.validateDateBounds(newDate);
+
                     parentComp.setDate(newDate);
 
                     String selectedDate;
