@@ -25,6 +25,8 @@ import gov.noaa.nws.ocp.viz.climate.perspective.views.ClimateView;
  * Aug 04, 2016 20744      wpaintsil   Initial creation
  * Aug 17, 2016 20744      wpaintsil   Keyboard shortcuts fix
  * May 04, 2017 33534      jwu         Implement ClimateView to show sent products.
+ * May 03, 2018 20711      amoore      Close listener should only apply to Climate
+ *                                     perspective.
  * </pre>
  * 
  * @author wpaintsil
@@ -64,8 +66,12 @@ public class ClimatePerspectiveManager extends AbstractVizPerspectiveManager {
             @Override
             public void perspectiveClosed(IWorkbenchPage page,
                     IPerspectiveDescriptor perspective) {
-                logger.debug("Closing Climate Perspective");
-                ClimateNotificationJob.getInstance().cancel();
+                if (perspective.getId().compareTo(
+                        "gov.noaa.nws.ocp.viz.climate.perspective.ClimatePerspective") == 0) {
+                    logger.debug("Closing Climate Perspective");
+                    ClimateNotificationJob.getInstance().cancel();
+                    perspectiveWindow.removePerspectiveListener(this);
+                }
             }
         });
     }

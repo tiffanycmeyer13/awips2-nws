@@ -94,6 +94,8 @@ import gov.noaa.nws.ocp.viz.climate.perspective.notify.IClimateMessageCallback;
  *                                     receipt when CAVE or climate perspective are closing.
  * Aug 16, 2017 36648      amoore      Synchronize on table/session given asynchronous messages.
  * Sep 19, 2017 38124      amoore      Use GC for text control sizes.
+ * May 03, 2018 20711      amoore      Climate should stop listening for callbacks when perspective
+ *                                     is closed.
  * </pre>
  *
  * @author jwu
@@ -372,8 +374,9 @@ public class ClimateProdGenerationView extends ViewPart
      */
     @Override
     public void dispose() {
-
         disposeResources();
+
+        ClimateNotificationJob.getInstance().removeClimateCallback(this);
 
         super.dispose();
     }
