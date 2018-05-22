@@ -6,6 +6,7 @@ package gov.noaa.nws.ocp.edex.climate.formatter;
 import java.text.DateFormatSymbols;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.WordUtils;
@@ -28,6 +29,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateDailyReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
+import gov.noaa.nws.ocp.common.localization.climate.climodates.ClimoDatesManager;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.DegreeDaysControlFlags;
@@ -50,6 +52,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * ------------ ---------- ----------- --------------------------
  * Feb 27, 2017 21099      wpaintsil   Initial creation
  * Oct 31, 2017 40112      wpaintsil   Correct period placement in temp sentence.
+ * Apr 20, 2018 DR17116    wpaintsil   Accommodate more than one alternate snow/precip season.
  *
  * </pre>
  *
@@ -87,16 +90,16 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *
     *   Purpose:  This routine is the driver responsible for building the
     *             NWR morning climate summary.
-    *
+     *
      * </pre>
      * 
      * @param dailyData
      * @return
      * @throws ClimateInvalidParameterException
      */
-    public Map<String, ClimateProduct> buildText(
-            ClimateRunData reportData)
-                    throws ClimateInvalidParameterException {
+    @Override
+    public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
+            throws ClimateInvalidParameterException {
         Map<String, ClimateProduct> prod = new HashMap<>();
 
         Map<Integer, ClimateDailyReportData> reportMap = ((ClimateRunDailyData) reportData)
@@ -214,7 +217,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *             the NOAA Weather Radio (NWR) portion of the climate
     *             program.  Sentence formats are documented in the CLIMATE
     *             Design Notebook.
-    *
+     *
      * </pre>
      * 
      * @param reportData
@@ -614,7 +617,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *        MINIMUM RELATIVE HUMIDITY, OR JUST ONE. DEPENDING ON WHICH
     *        FLAGS ARE ON (TRUE) THE SENTENCE WILL READ.... "YESTERDAY'S
     *        MAXIMUM RELATIVE HUMIDITY WAS -- PER CENT AND MINIMUM 
-    *        RELATIVE HUMIDITY WAS -- PER CENT. " 
+    *        RELATIVE HUMIDITY WAS -- PERCENT. "
      * </pre>
      * 
      * @param reportData
@@ -743,7 +746,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *   Purpose: The purpose of this program is to create the wind portion
     *            of the NOAA weather radio. Sentence structure output is 
     *            documented in the climate design notebook.
-    * 
+     * 
      * </pre>
      * 
      * @param reportData
@@ -1401,7 +1404,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *        This routine is going to construct a sentence that will read 
     *        "There were 3.4 inches of snow on the ground as of 7:00 AM 
     *        EST." It will work if the flag "snow depth" is on (TRUE).
-    * 
+     * 
      * </pre>
      * 
      * @param reportData
@@ -1464,8 +1467,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *               we measure precipitation is 0.1 inches.  We will test 
     *               to see if two precipitation measurements are within 0.005,
     *               or half_snow of one another.  We will consider such values
-    *               as being equal if they are within this. 
-    *
+    *               as being equal if they are within this.
+     *
      * </pre>
      * 
      * @param reportData
@@ -1482,6 +1485,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
         DailyClimateData yesterday = reportData.getData();
         ClimateRecordDay yClimate = reportData.getyClimate();
+        List<ClimateDate> snowSeasons = ClimoDatesManager.getInstance()
+                .getClimoDates().getSnowSeasons();
 
         ClimateDate beginDate = new ClimateDate(report.getBeginDate());
 
@@ -1784,77 +1789,106 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
             }
 
             // Repeat above phrase for season
-            if (snowFlag.getSnowTotal().isTotalSeason() && yesterday
-                    .getSnowSeason() != ParameterFormatClimate.MISSING) {
-                if (yesterday.getSnowSeason() == 0 && yesterday
-                        .getSnowDay() == ParameterFormatClimate.TRACE) {
-                    yesterday.setSnowSeason(ParameterFormatClimate.TRACE);
+            if (snowFlag.getSnowTotal().isTotalSeason()
+                    && !yesterday.getSnowSeasons().isEmpty()) {
 
-                } else if (yesterday
-                        .getSnowSeason() == ParameterFormatClimate.TRACE
-                        && (yesterday
-                                .getSnowDay() == ParameterFormatClimate.TRACE
-                                || yesterday.getSnowDay() == 0)) {
-                    yesterday.setPrecipSeason(ParameterFormatClimate.TRACE);
-                }
+                for (int snowSeasonIndex = 0; snowSeasonIndex < yesterday
+                        .getSnowSeasons().size()
+                        && yesterday.getSnowSeasons().get(
+                                snowSeasonIndex) != ParameterFormatClimate.MISSING; snowSeasonIndex++) {
+                    if (yesterday.getSnowSeasons().get(snowSeasonIndex) == 0
+                            && yesterday
+                                    .getSnowDay() == ParameterFormatClimate.TRACE) {
+                        yesterday.setSnowSeasons(snowSeasonIndex,
+                                ParameterFormatClimate.TRACE);
 
-                snowPhrase.append(" The total snowfall for the season ");
-                if (Math.abs(yesterday
-                        .getSnowDay()) < ParameterFormatClimate.HALF_SNOW) {
-                    snowPhrase.append("still ");
-
-                } else if (yesterday
-                        .getSnowDay() != ParameterFormatClimate.MISSING) {
-                    snowPhrase.append("now ");
-                }
-
-                String snowString = String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                        yesterday.getSnowSeason());
-
-                if (yesterday.getSnowSeason() == ParameterFormatClimate.TRACE) {
-                    snowPhrase.append("stands at a trace");
-                } else {
-                    snowPhrase.append("stands at ").append(snowString)
-                            .append(" inches");
-                }
-
-                if (snowFlag.getSnowTotal().isDeparture() && yClimate
-                        .getSnowSeasonMean() != ParameterFormatClimate.MISSING) {
-                    float dySnowSeason = yesterday.getSnowSeason();
-                    float dycSnowSeasonMean = yClimate.getSnowSeasonMean();
-
-                    if (yesterday.getSnowSeason() < 0) {
-                        dySnowSeason = 0;
+                    } else if (yesterday.getSnowSeasons()
+                            .get(snowSeasonIndex) == ParameterFormatClimate.TRACE
+                            && (yesterday
+                                    .getSnowDay() == ParameterFormatClimate.TRACE
+                                    || yesterday.getSnowDay() == 0)) {
+                        yesterday.setPrecipSeasons(snowSeasonIndex,
+                                ParameterFormatClimate.TRACE);
                     }
-                    if (yClimate.getSnowSeasonMean() < 0) {
-                        dycSnowSeasonMean = 0;
-                    }
-                    deltaSnow = dySnowSeason - dycSnowSeasonMean;
 
-                    if (Math.abs(
-                            deltaSnow) < ParameterFormatClimate.HALF_SNOW) {
-                        snowPhrase.append(", which is normal");
+                    ClimateDate snowStartDate = snowSeasons
+                            .get(snowSeasonIndex);
+                    snowPhrase
+                            .append(" The total snowfall for the season since "
+                                    + DateFormatSymbols.getInstance()
+                                            .getMonths()[snowStartDate.getMon()
+                                                    - 1]
+                                    + SPACE + snowStartDate.getDay() + SPACE);
+                    if (Math.abs(yesterday
+                            .getSnowDay()) < ParameterFormatClimate.HALF_SNOW) {
+                        snowPhrase.append("still ");
+
+                    } else if (yesterday
+                            .getSnowDay() != ParameterFormatClimate.MISSING) {
+                        snowPhrase.append("now ");
+                    }
+
+                    String snowString = String.format(FLOAT_COMMAS_ONE_DECIMAL,
+                            yesterday.getSnowSeasons().get(snowSeasonIndex));
+
+                    if (yesterday.getSnowSeasons().get(
+                            snowSeasonIndex) == ParameterFormatClimate.TRACE) {
+                        snowPhrase.append("stands at a trace");
                     } else {
-                        if (deltaSnow < 0) {
-                            which = false;
-                            deltaSnow = Math.abs(deltaSnow);
-                        } else {
-                            which = true;
-                        }
-
-                        snowString = String.format(FLOAT_COMMAS_ONE_DECIMAL,
-                                deltaSnow);
-
-                        snowPhrase.append(", which is ").append(snowString)
-                                .append(" inches ")
-                                .append(ClimateNWRFormat.aboveBelow(which))
-                                .append(" normal ");
+                        snowPhrase.append("stands at ").append(snowString)
+                                .append(" inches");
                     }
-                }
 
-                if (!snowFlag.getSnowTotal().isTotalYear() || yesterday
-                        .getSnowYear() == ParameterFormatClimate.MISSING) {
-                    snowPhrase.append(PERIOD).append(SPACE).append(SPACE);
+                    if (snowFlag.getSnowTotal().isDeparture() && yClimate
+                            .getSnowSeasonMean()
+                            .get(snowSeasonIndex) != ParameterFormatClimate.MISSING) {
+                        float dySnowSeason = yesterday.getSnowSeasons()
+                                .get(snowSeasonIndex);
+                        float dycSnowSeasonMean = yClimate.getSnowSeasonMean()
+                                .get(snowSeasonIndex);
+
+                        if (yesterday.getSnowSeasons()
+                                .get(snowSeasonIndex) < 0) {
+                            dySnowSeason = 0;
+                        }
+                        if (yClimate.getSnowSeasonMean()
+                                .get(snowSeasonIndex) < 0) {
+                            dycSnowSeasonMean = 0;
+                        }
+                        deltaSnow = dySnowSeason - dycSnowSeasonMean;
+
+                        if (Math.abs(
+                                deltaSnow) < ParameterFormatClimate.HALF_SNOW) {
+                            snowPhrase.append(", which is normal");
+                        } else {
+                            if (deltaSnow < 0) {
+                                which = false;
+                                deltaSnow = Math.abs(deltaSnow);
+                            } else {
+                                which = true;
+                            }
+
+                            snowString = String.format(FLOAT_COMMAS_ONE_DECIMAL,
+                                    deltaSnow);
+
+                            snowPhrase.append(", which is ").append(snowString)
+                                    .append(" inches ")
+                                    .append(ClimateNWRFormat.aboveBelow(which))
+                                    .append(" normal ");
+                        }
+                    }
+
+                    // Separate multiple alternate seasons with periods.
+                    if (snowSeasonIndex < yesterday.getSnowSeasons().size() - 1
+                            && yesterday.getSnowSeasons().get(snowSeasonIndex
+                                    + 1) != ParameterFormatClimate.MISSING) {
+                        snowPhrase.append(PERIOD);
+                    }
+
+                    if (!snowFlag.getSnowTotal().isTotalYear() || yesterday
+                            .getSnowYear() == ParameterFormatClimate.MISSING) {
+                        snowPhrase.append(PERIOD).append(SPACE).append(SPACE);
+                    }
                 }
             }
 
@@ -1872,15 +1906,19 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     yesterday.setPrecipYear(ParameterFormatClimate.TRACE);
                 }
 
-                if (snowFlag.getSnowTotal().isTotalSeason() && yesterday
-                        .getSnowSeason() != ParameterFormatClimate.MISSING) {
+                if (snowFlag.getSnowTotal().isTotalSeason()
+                        && !yesterday.getSnowSeasons().isEmpty()
+                        && yesterday.getSnowSeasons()
+                                .get(0) != ParameterFormatClimate.MISSING) {
                     snowPhrase.append(" and the total snowfall for the year ");
                 } else {
                     snowPhrase.append(" The total snow fall for the year ");
                 }
 
-                if (snowFlag.getSnowTotal().isTotalSeason() && yesterday
-                        .getSnowSeason() != ParameterFormatClimate.MISSING) {
+                if (snowFlag.getSnowTotal().isTotalSeason()
+                        && !yesterday.getSnowSeasons().isEmpty()
+                        && yesterday.getSnowSeasons()
+                                .get(0) != ParameterFormatClimate.MISSING) {
                     if (yesterday.getSnowDay() == 0) {
                         snowPhrase.append("still is ");
                     } else if (yesterday
@@ -1975,7 +2013,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *               to see if two precipitation measurements are within 0.005,
     *               or half_precip of one another.  We will consider such values
     *               as being equal if they are within this.
-    * 
+     * 
      * </pre>
      * 
      * @param reportData
@@ -1993,6 +2031,9 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
         PrecipitationControlFlags precipFlag = currentSettings.getControl()
                 .getPrecipControl();
+
+        List<ClimateDate> precipSeasons = ClimoDatesManager.getInstance()
+                .getClimoDates().getPrecipSeasons();
 
         boolean morning = currentSettings
                 .getReportType() == PeriodType.MORN_RAD;
@@ -2022,9 +2063,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     liquidPhrase
                             .append("A trace of precipitation fell yesterday");
                 }
-            } else if (Math
-                    .abs(yesterday
-                            .getPrecip()) < ParameterFormatClimate.HALF_PRECIP
+            } else if (Math.abs(
+                    yesterday.getPrecip()) < ParameterFormatClimate.HALF_PRECIP
                     && yesterday.getPrecip() != ParameterFormatClimate.TRACE) {
 
                 if (currentSettings.getReportType() == PeriodType.INTER_RAD) {
@@ -2201,7 +2241,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
                     liquidPhrase.append("This is ").append(precipString)
                             .append(" inches ")
-                            .append(ClimateNWRFormat.aboveBelow(which));
+                            .append(ClimateNWRFormat.aboveBelow(which))
+                            .append(SPACE);
 
                     if (precipFlag.getPrecipTotal().isNorm()) {
                         precipString = String.format(FLOAT_TWO_DECIMALS1,
@@ -2271,75 +2312,104 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
             liquidPhrase.append(PERIOD + SPACE + SPACE);
         }
 
-        if (precipFlag.getPrecipTotal().isTotalSeason() && yesterday
-                .getPrecipSeason() != ParameterFormatClimate.MISSING_PRECIP) {
-            if (yesterday.getPrecipSeason() == 0
-                    && yesterday.getPrecip() == ParameterFormatClimate.TRACE) {
-                yesterday.setPrecipSeason(ParameterFormatClimate.TRACE);
-            }
-
-            liquidPhrase.append("The total precipitation for the season ");
-
-            if (Math.abs(yesterday
-                    .getPrecip()) < ParameterFormatClimate.HALF_PRECIP) {
-                liquidPhrase.append("still ");
-            } else if (yesterday
-                    .getPrecip() != ParameterFormatClimate.MISSING_PRECIP) {
-                liquidPhrase.append("now ");
-            }
-
-            String precipString = String.format(FLOAT_COMMAS_TWO_DECIMALS,
-                    yesterday.getPrecipSeason());
-
-            if (yesterday.getPrecipSeason() == ParameterFormatClimate.TRACE) {
-                liquidPhrase.append("stands at a trace");
-            } else {
-                liquidPhrase.append("stands at ").append(precipString)
-                        .append(" inches");
-            }
-
-            if (precipFlag.getPrecipTotal().isDeparture() && yClimate
-                    .getPrecipSeasonMean() != ParameterFormatClimate.MISSING_PRECIP) {
-                if (yesterday.getPrecipSeason() == ParameterFormatClimate.TRACE
-                        && yClimate
-                                .getPrecipSeasonMean() != ParameterFormatClimate.TRACE
-                        && yClimate.getPrecipSeasonMean() != 0) {
-                    yesterday.setPrecipSeason(0);
+        if (precipFlag.getPrecipTotal().isTotalSeason()
+                && !yesterday.getPrecipSeasons().isEmpty()) {
+            for (int precipSeasonIndex = 0; precipSeasonIndex < yesterday
+                    .getPrecipSeasons().size()
+                    && yesterday.getPrecipSeasons().get(
+                            precipSeasonIndex) != ParameterFormatClimate.MISSING; precipSeasonIndex++) {
+                if (yesterday.getPrecipSeasons().get(precipSeasonIndex) == 0
+                        && yesterday
+                                .getPrecip() == ParameterFormatClimate.TRACE) {
+                    yesterday.setPrecipSeasons(precipSeasonIndex,
+                            ParameterFormatClimate.TRACE);
                 }
 
-                float deltaPrecip = yesterday.getPrecipSeason()
-                        - yClimate.getPrecipSeasonMean();
+                ClimateDate precipStartDate = precipSeasons
+                        .get(precipSeasonIndex);
+                liquidPhrase
+                        .append("The total precipitation for the season since "
+                                + DateFormatSymbols.getInstance()
+                                        .getMonths()[precipStartDate.getMon()
+                                                - 1]
+                                + SPACE + precipStartDate.getDay() + SPACE);
 
-                if (Math.abs(
-                        deltaPrecip) < ParameterFormatClimate.HALF_PRECIP) {
-                    liquidPhrase.append(", which is normal");
+                if (Math.abs(yesterday
+                        .getPrecip()) < ParameterFormatClimate.HALF_PRECIP) {
+                    liquidPhrase.append("still ");
                 } else if (yesterday
-                        .getPrecipSeason() == ParameterFormatClimate.TRACE
-                        && yClimate.getPrecipSeasonMean() == 0) {
-                    liquidPhrase.append(
-                            ", whereas the normal amount for the season is zero inches");
+                        .getPrecip() != ParameterFormatClimate.MISSING_PRECIP) {
+                    liquidPhrase.append("now ");
+                }
+
+                String precipString = String.format(FLOAT_COMMAS_TWO_DECIMALS,
+                        yesterday.getPrecipSeasons().get(precipSeasonIndex));
+
+                if (yesterday.getPrecipSeasons().get(
+                        precipSeasonIndex) == ParameterFormatClimate.TRACE) {
+                    liquidPhrase.append("stands at a trace");
                 } else {
-                    if (deltaPrecip < 0) {
-                        which = false;
-                        deltaPrecip = Math.abs(deltaPrecip);
-                    } else {
-                        which = true;
+                    liquidPhrase.append("stands at ").append(precipString)
+                            .append(" inches");
+                }
+
+                if (precipFlag.getPrecipTotal().isDeparture() && yClimate
+                        .getPrecipSeasonMean()
+                        .get(precipSeasonIndex) != ParameterFormatClimate.MISSING_PRECIP) {
+                    if (yesterday.getPrecipSeasons()
+                            .get(precipSeasonIndex) == ParameterFormatClimate.TRACE
+                            && yClimate.getPrecipSeasonMean()
+                                    .get(precipSeasonIndex) != ParameterFormatClimate.TRACE
+                            && yClimate.getPrecipSeasonMean()
+                                    .get(precipSeasonIndex) != 0) {
+                        yesterday.setPrecipSeasons(precipSeasonIndex, 0);
                     }
 
-                    precipString = String.format(FLOAT_COMMAS_TWO_DECIMALS,
-                            deltaPrecip);
+                    float deltaPrecip = yesterday.getPrecipSeasons()
+                            .get(precipSeasonIndex)
+                            - yClimate.getPrecipSeasonMean()
+                                    .get(precipSeasonIndex);
 
-                    liquidPhrase.append(", which is ").append(precipString)
-                            .append(" inches ")
-                            .append(ClimateNWRFormat.aboveBelow(which))
-                            .append(" normal");
+                    if (Math.abs(
+                            deltaPrecip) < ParameterFormatClimate.HALF_PRECIP) {
+                        liquidPhrase.append(", which is normal");
+                    } else if (yesterday.getPrecipSeasons()
+                            .get(precipSeasonIndex) == ParameterFormatClimate.TRACE
+                            && yClimate.getPrecipSeasonMean()
+                                    .get(precipSeasonIndex) == 0) {
+                        liquidPhrase.append(
+                                ", whereas the normal amount for the season is zero inches");
+                    } else {
+                        if (deltaPrecip < 0) {
+                            which = false;
+                            deltaPrecip = Math.abs(deltaPrecip);
+                        } else {
+                            which = true;
+                        }
+
+                        precipString = String.format(FLOAT_COMMAS_TWO_DECIMALS,
+                                deltaPrecip);
+
+                        liquidPhrase.append(", which is ").append(precipString)
+                                .append(" inches ")
+                                .append(ClimateNWRFormat.aboveBelow(which))
+                                .append(" normal");
+                    }
                 }
-            }
 
-            if (!precipFlag.getPrecipTotal().isTotalYear()
-                    || precipFlag.getPrecipTotal().isDeparture() || yesterday
-                            .getPrecipYear() == ParameterFormatClimate.MISSING_PRECIP) {
-                liquidPhrase.append(PERIOD).append(SPACE).append(SPACE);
+                // Separate multiple alternate seasons with periods.
+                if (precipSeasonIndex < yesterday.getPrecipSeasons().size() - 1
+                        && yesterday.getPrecipSeasons().get(precipSeasonIndex
+                                + 1) != ParameterFormatClimate.MISSING) {
+                    liquidPhrase.append(PERIOD);
+                }
+
+                if (!precipFlag.getPrecipTotal().isTotalYear()
+                        || precipFlag.getPrecipTotal().isDeparture()
+                        || yesterday
+                                .getPrecipYear() == ParameterFormatClimate.MISSING_PRECIP) {
+                    liquidPhrase.append(PERIOD).append(SPACE).append(SPACE);
+                }
             }
         }
 
@@ -2351,16 +2421,20 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
             }
 
             if (precipFlag.getPrecipTotal().isTotalSeason()
-                    && !precipFlag.getPrecipTotal().isDeparture() && yesterday
-                            .getPrecipSeason() != ParameterFormatClimate.MISSING_PRECIP) {
+                    && !precipFlag.getPrecipTotal().isDeparture()
+                    && !yesterday.getPrecipSeasons().isEmpty()
+                    && yesterday.getPrecipSeasons()
+                            .get(0) != ParameterFormatClimate.MISSING) {
                 liquidPhrase
                         .append("and the total precipitation for the year ");
             } else {
                 liquidPhrase.append("The total precipitation for the year ");
             }
 
-            if (precipFlag.getPrecipTotal().isTotalSeason() && yesterday
-                    .getPrecipSeason() != ParameterFormatClimate.MISSING_PRECIP) {
+            if (precipFlag.getPrecipTotal().isTotalSeason()
+                    && !yesterday.getPrecipSeasons().isEmpty()
+                    && yesterday.getPrecipSeasons()
+                            .get(0) != ParameterFormatClimate.MISSING) {
                 if (yesterday.getPrecip() == 0) {
                     liquidPhrase.append("is still ");
 
@@ -2442,7 +2516,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *
     *   Purpose:  
     *        This subroutine is use only to call other subroutines when the flags
-    *        to the other subroutines are set to TRUE. 
+    *        to the other subroutines are set to TRUE.
      *
      * </pre>
      * 
