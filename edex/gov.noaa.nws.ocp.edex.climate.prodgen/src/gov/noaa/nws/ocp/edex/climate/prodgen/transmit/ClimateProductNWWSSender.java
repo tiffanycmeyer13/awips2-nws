@@ -28,6 +28,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProdSendRecord;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct.ProductStatus;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
+import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateSessionException;
 import gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSession;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 
@@ -45,6 +46,9 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  * Aug 4,  2017 33104      amoore      Address review comments.
  * Oct 10, 2017 39153      amoore      Less action-blocking from dissemination flag.
  * Oct 23, 2017 39792      wpaintsil   Correct line breaks.
+ * May 4,  2018 20705      amoore      Fix issue where NWWS non-local products would keep
+ *                                     the temporary code line for header info after header
+ *                                     parsing. Issue was in OUP logic incompatibility.
  * </pre>
  *
  * @author pwang
@@ -58,7 +62,7 @@ public class ClimateProductNWWSSender {
 
     private String commsHeader;
 
-    private String localProductText;
+    private String cpnsProductText;
 
     private String afosId;
 
@@ -88,9 +92,11 @@ public class ClimateProductNWWSSender {
     }
 
     /**
-     * processCommsHeader
+     * processCommsHeader. Assign comms header for later parsing. Remove comms
+     * header from local store of product text.
      * 
      * @param prod
+     *            product to extract header from.
      */
     public void processCommsHeader(ClimateProduct prod) {
         StringBuilder sb = new StringBuilder();
@@ -104,8 +110,8 @@ public class ClimateProductNWWSSender {
             sb.append(lines[i] + "\n");
         }
 
-        // localProductText: product text without communication header
-        this.localProductText = sb.toString();
+        // product text without communication header
+        this.cpnsProductText = sb.toString();
     }
 
     /**
@@ -185,9 +191,8 @@ public class ClimateProductNWWSSender {
     }
 
     /**
-     * The logic is based on transferNWWS.pl sub createWMOAbbrevHeader()
-     * 
-     * @return
+     * The logic is based on transferNWWS.pl sub createWMOAbbrevHeader().
+     * Assigns local-form header to the product text.
      */
     public void addAFOSHeader() {
         StringBuilder sb = new StringBuilder();
@@ -203,8 +208,8 @@ public class ClimateProductNWWSSender {
         sb.append(storageTime).append("\n");
 
         // Add AfosHeader in the local product
-        sb.append(this.localProductText);
-        this.localProductText = sb.toString();
+        sb.append(this.cpnsProductText);
+        this.cpnsProductText = sb.toString();
     }
 
     /**
@@ -252,11 +257,7 @@ public class ClimateProductNWWSSender {
         rec.setProd_type("NWWS");
         rec.setFile_name(fileName);
 
-        if (localProd) {
-            rec.setProd_text(this.localProductText);
-        } else {
-            rec.setProd_text(prod.getProdText());
-        }
+        rec.setProd_text(this.cpnsProductText);
 
         LocalDateTime sendTime = LocalDateTime.now();
         rec.setSend_time(Timestamp.valueOf(sendTime));
@@ -303,7 +304,7 @@ public class ClimateProductNWWSSender {
         if (cp.getStatus() == ProductStatus.PENDING) {
             // writeProduct will return Long.MIN_VALUE if write failed
             long insertTime = textdb.writeProduct(cp.getPil(),
-                    this.localProductText, operational, null);
+                    this.cpnsProductText, operational, null);
 
             if (insertTime != Long.MIN_VALUE) {
                 // successfully stored
@@ -335,42 +336,101 @@ public class ClimateProductNWWSSender {
     }
 
     /**
-     * Use awips2 OUP handler
+     * Use awips2 OUP handler. Assigns new product text with new translated
+     * header (not original long-form comms header).
      * 
      * @param prod
      * @param operational
-     * @return
+     * @throws ClimateSessionException
      */
-    public boolean forwardToOUP(ClimateProduct prod, boolean operational) {
-        boolean noError = false;
-
+    public void forwardToOUP(ClimateProduct prod, boolean operational)
+            throws ClimateSessionException {
         OfficialUserProduct oup = new OfficialUserProduct();
         oup.setFilename(prod.getName());
-        oup.setProductText(prod.getProdText());
         String awipsWanPil = mapToAwipsID(this.afosId);
         if (awipsWanPil.isEmpty()) {
             // Product ID may be not configured
             // Checking fxatext DB, afos_to_awips
-            String msg = "Unable to send to OUP, the AFOSId : " + this.afosId
-                    + " is not exist in fxatext.afos_to_awips table for the product: "
-                    + prod.getPil();
-            logger.error(msg);
-            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
-                    msg, null);
-            prod.setStatus(ProductStatus.ERROR);
-            prod.setLastAction(ActionOnProduct.SEND, msg);
-            return noError;
+            throw new ClimateSessionException(
+                    "Unable to send to OUP, the AFOSId : " + this.afosId
+                            + " is not exist in fxatext.afos_to_awips table for the product: "
+                            + prod.getPil());
         }
 
         oup.setAwipsWanPil(awipsWanPil);
         oup.setUserDateTimeStamp(this.ddhhmm);
         oup.setSource("Climate");
 
+        /*
+         * Create proper WMO header. Right now the header is in format
+         * 
+         * AFOS ID + AFOS NODE + ttaaii _ CCCC _ Date. Example:
+         * 
+         * OMACLIFNBKOATTAA00 KOMA 041245
+         * 
+         * We want it in this format:
+         * 
+         * Mapped AFOS ID ttaaii _ Mapped AFOS ID CCCC _ Date
+         * 
+         * Mapped nnn + Mapped xxx
+         * 
+         * Example:
+         * 
+         * CDUS43 KOAX 041245
+         * 
+         * CLIFNB
+         * 
+         * OUP Functionality does handle this with ModifyProduct, but does not
+         * cut out the original code from product text. The package is not
+         * exported, and can be somewhat cut down from the original, so make our
+         * own version here.
+         */
+        String cccc = awipsWanPil.substring(0, 4);
+        String nnn = awipsWanPil.substring(4, 7);
+        String xxx = null;
+        if (awipsWanPil.length() >= 10) {
+            xxx = awipsWanPil.substring(7, 10);
+        } else {
+            xxx = awipsWanPil.substring(7);
+        }
+
+        List<AfosToAwips> list = AfosToAwipsLookup
+                .lookupAfosId(cccc, nnn, xxx.trim()).getIdList();
+        if (list.size() == 1) {
+            StringBuilder productNewHeaderBuilder = new StringBuilder();
+            productNewHeaderBuilder.append(list.get(0).getWmottaaii());
+            productNewHeaderBuilder.append(" ");
+            productNewHeaderBuilder.append(list.get(0).getWmocccc());
+            productNewHeaderBuilder.append(" ");
+            productNewHeaderBuilder.append(ddhhmm);
+            productNewHeaderBuilder.append("\n");
+            productNewHeaderBuilder.append(nnn);
+            productNewHeaderBuilder.append(xxx);
+            productNewHeaderBuilder.append("\n");
+            // this text is the original product without original header
+            productNewHeaderBuilder.append(cpnsProductText);
+
+            // assign new product text to request
+            oup.setProductText(productNewHeaderBuilder.toString());
+
+            // assign new product text to this object
+            cpnsProductText = oup.getProductText();
+
+            // we've determined WMO header just now
+            oup.setNeedsWmoHeader(false);
+        } else if (list.isEmpty()) {
+            throw new ClimateSessionException(
+                    "Error building WMO header. No matching ttaaii found for cccc "
+                            + cccc + " nnn " + nnn + " xxx " + xxx);
+        } else {
+            throw new ClimateSessionException(
+                    "Error building WMO header. Too many matching ttaaii found for cccc "
+                            + cccc + " nnn " + nnn + " xxx " + xxx);
+        }
+
         OUPRequest req = new OUPRequest();
         req.setUser(new User(OUPRequest.EDEX_ORIGINATION));
         req.setProduct(oup);
-        OUPResponse resp = null;
-        String additionalInfo = "";
 
         try {
             Object object = RequestRouter.route(req);
@@ -383,66 +443,44 @@ public class ClimateProductNWWSSender {
                 prod.setStatus(ProductStatus.ERROR);
                 prod.setLastAction(ActionOnProduct.SEND, msg);
             } else {
-                resp = (OUPResponse) ((SuccessfulExecution) object)
+                OUPResponse resp = (OUPResponse) ((SuccessfulExecution) object)
                         .getResponse();
 
                 if (resp.hasFailure()) {
+                    String additionalInfo = "";
                     // check which kind of failure
-                    Priority p = Priority.WARN;
                     if (!resp.isAttempted()) {
                         // if was never attempted to send or store even locally
-                        p = Priority.CRITICAL;
                         additionalInfo = "ERROR local store never attempted";
                     } else if (!resp.isSendLocalSuccess()) {
                         // if send/store locally failed
-                        p = Priority.CRITICAL;
                         additionalInfo = "ERROR store locally failed";
                     } else if (!resp.isSendWANSuccess()) {
                         // if send to WAN failed
                         if (resp.getNeedAcknowledgment()) {
                             // if ack was needed, if it never sent then no ack
                             // was received
-                            p = Priority.CRITICAL;
                             additionalInfo = "ERROR send to WAN failed and no acknowledgment received";
                         } else {
                             // if no ack was needed
-                            p = Priority.WARN;
                             additionalInfo = "WARNING send to WAN failed";
                         }
                     } else if (resp.getNeedAcknowledgment()
                             && !resp.isAcknowledged()) {
                         // if sent but not acknowledged when acknowledgment is
                         // needed
-                        p = Priority.CRITICAL;
                         additionalInfo = "ERROR no acknowledgment received";
                     }
                     // Notify user
-                    ClimateProdGenerateSession.sendAlertVizMessage(p,
-                            resp.getMessage(), additionalInfo);
-
-                    logger.error(resp.getMessage());
-
-                    prod.setStatus(ProductStatus.ERROR);
-                    prod.setStatusDesc(resp.getMessage()
+                    throw new ClimateSessionException(resp.getMessage()
                             + " -- Additional Information: " + additionalInfo);
-                    prod.setLastAction(ActionOnProduct.SEND, additionalInfo);
                 } else {
                     prod.setStatus(ProductStatus.SENT);
-                    noError = true;
                 }
             }
         } catch (Exception e) {
-            String msg = "Transmit to NWWS failed with exception: "
-                    + e.getLocalizedMessage();
-            logger.error(msg);
-            prod.setStatus(ProductStatus.ERROR);
-            prod.setStatusDesc(msg);
-            prod.setLastAction(ActionOnProduct.SEND, msg);
-            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
-                    msg, null);
+            throw new ClimateSessionException("Transmit to NWWS failed.", e);
         }
-
-        return noError;
     }
 
     /**
@@ -467,6 +505,8 @@ public class ClimateProductNWWSSender {
         // extract afosId, afosNode, etc
         if (!cpns.extractAfosInfo(prod)) {
             // Fatal error, just return
+            logger.error("Encountered error with product header: ["
+                    + cpns.getCommsHeader() + "]");
             return;
         }
 
@@ -516,12 +556,20 @@ public class ClimateProductNWWSSender {
 
             // Record sent product
             cpns.recordSentNWWSProduct(fileName, prod, user, false);
-        } else if (cpns.forwardToOUP(prod, operational)) {
-            // Record sent product
-            cpns.recordSentNWWSProduct(fileName, prod, user, false);
         } else {
-            logger.error("Error occurred transmitting " + fileName
-                    + " product for " + cpns.getAfosId());
+            // Record sent product
+            try {
+                cpns.forwardToOUP(prod, operational);
+                cpns.recordSentNWWSProduct(fileName, prod, user, false);
+            } catch (Exception e) {
+                String msg = "Error occurred transmitting " + fileName
+                        + " product for " + cpns.getAfosId();
+                ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
+                        msg, null);
+                prod.setStatus(ProductStatus.ERROR);
+                prod.setLastAction(ActionOnProduct.SEND, msg);
+                logger.error(msg, e);
+            }
         }
     }
 
@@ -541,18 +589,18 @@ public class ClimateProductNWWSSender {
     }
 
     /**
-     * @return the localProductText
+     * @return the product text, manipulated by this object
      */
-    public String getLocalProductText() {
-        return localProductText;
+    public String getCPNSProductText() {
+        return cpnsProductText;
     }
 
     /**
-     * @param localProductText
-     *            the localProductText to set
+     * @param cpnsProductText
+     *            the headerLessProductText to set
      */
-    public void setLocalProductText(String localProductText) {
-        this.localProductText = localProductText;
+    public void setCPNSProductText(String cpnsProductText) {
+        this.cpnsProductText = cpnsProductText;
     }
 
     /**

@@ -119,6 +119,8 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 19 SEP 2017  38124      amoore      Use GC for text control sizes.
  * 20 NOV 2017  41128      amoore      Split into multiple classes.
  * 21 NOV 2017  41180      amoore      CLS and CLA should not deal with MSM values.
+ * 03 MAY 2018  20702      amoore      Set a max height of station list.
+ * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
  * </pre>
  * 
  * @author amoore
@@ -637,9 +639,10 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
 
         GC gc = new GC(myStationList);
         int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        int fontHeight = gc.getFontMetrics().getHeight();
         gc.dispose();
 
-        RowData stationListRD = new RowData(36 * fontWidth, SWT.DEFAULT);
+        RowData stationListRD = new RowData(36 * fontWidth, fontHeight * 8);
 
         myStationList.setLayoutData(stationListRD);
 
@@ -849,46 +852,55 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
                 // confirmation
                 completed = MessageDialog.openConfirm(getShell(), "Continue?",
                         "Are you sure you wish to accept all values for the stations?"
-                                + " Unsaved changes will be lost, and"
-                                + " climate execution will proceed to the next step.");
+                                + " Climate execution will proceed to the next step.");
 
                 if (completed) {
-                    HashMap<Integer, ClimatePeriodReportData> savedPeriodReportData = new HashMap<>();
-                    for (Entry<Integer, ClimatePeriodReportData> entry : myOriginalDataMap
-                            .entrySet()) {
-                        ClimatePeriodReportData data = new ClimatePeriodReportData(
-                                entry.getValue());
-                        if (mySavedPeriodDataByStation
-                                .get(entry.getKey()) != null) {
-                            // overwrite data with saved equivalent for the
-                            // request
-                            data.setData(mySavedPeriodDataByStation
-                                    .get(entry.getKey()));
-                        }
-                        savedPeriodReportData.put(entry.getKey(), data);
-                    }
-
-                    CompleteDisplayClimateRequest request = new CompleteDisplayClimateRequest(
-                            mySessionID,
-                            new ClimateRunPeriodData(
-                                    myPeriodDesc.getPeriodType(),
-                                    myPeriodDesc.getDates().getStart(),
-                                    myPeriodDesc.getDates().getEnd(),
-                                    savedPeriodReportData),
-                            myOriginalDataMap,
-                            myStationIdsMismatchOverwriteApproved);
+                    // save displayed values
                     try {
-                        ThriftClient.sendRequest(request);
-                    } catch (VizException e) {
-                        logger.error(
-                                "Error finalizing data after completion of Display module.",
-                                e);
+                        saveValues(false);
+                        /*
+                         * User did not necessarily go through all stations, so
+                         * need to ensure all station data is recorded.
+                         */
+                        HashMap<Integer, ClimatePeriodReportData> savedPeriodReportData = new HashMap<>();
+                        for (Entry<Integer, ClimatePeriodReportData> entry : myOriginalDataMap
+                                .entrySet()) {
+                            ClimatePeriodReportData data = new ClimatePeriodReportData(
+                                    entry.getValue());
+                            if (mySavedPeriodDataByStation
+                                    .get(entry.getKey()) != null) {
+                                // overwrite data with saved equivalent for the
+                                // request
+                                data.setData(mySavedPeriodDataByStation
+                                        .get(entry.getKey()));
+                            }
+                            savedPeriodReportData.put(entry.getKey(), data);
+                        }
+
+                        CompleteDisplayClimateRequest request = new CompleteDisplayClimateRequest(
+                                mySessionID,
+                                new ClimateRunPeriodData(
+                                        myPeriodDesc.getPeriodType(),
+                                        myPeriodDesc.getDates().getStart(),
+                                        myPeriodDesc.getDates().getEnd(),
+                                        savedPeriodReportData),
+                                myOriginalDataMap,
+                                myStationIdsMismatchOverwriteApproved);
+                        try {
+                            ThriftClient.sendRequest(request);
+                            /*
+                             * accept entire report and move on to next step in
+                             * workflow.
+                             */
+                            close();
+                        } catch (VizException e) {
+                            logger.error(
+                                    "Error finalizing data after completion of Display module.",
+                                    e);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error saving period data", e);
                     }
-                    /*
-                     * accept entire report and move on to next step in
-                     * workflow.
-                     */
-                    close();
                 }
             }
         });
