@@ -60,6 +60,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  *                                     of aliasing.
  * 20 NOV 2017  41088      amoore      Remove unnecessary double-checking of report windows
  *                                     for snow section.
+ * 07 MAY 2018  20714      amoore      RER temperature values should be ints, while precip/
+ *                                     snow remain as float.
  * </pre>
  *
  * @author wpaintsil
@@ -244,8 +246,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @throws ClimateInvalidParameterException
      */
     private String buildNWWSTables(boolean morning, ClimateRunData report,
-            ClimateDailyReportData reportData) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            ClimateDailyReportData reportData)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsTables = new StringBuilder();
 
         ColumnSpaces tabs = new ColumnSpaces();
@@ -1175,8 +1177,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSPrecip(ColumnSpaces tabs, ClimateRunData report,
             ClimateReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsPrecip = new StringBuilder();
 
         /**
@@ -1245,8 +1246,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSHeatAndCool(ColumnSpaces tabs,
             ClimateRunData report, ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsHeatAndCool = new StringBuilder();
         ClimateProductFlags heatFlags = currentSettings.getControl()
                 .getDegreeDaysControl().getTotalHDD();
@@ -2002,8 +2002,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSLiquidPrecip(ColumnSpaces tabs,
             ClimateRunData report, ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsLiquidPrecip = new StringBuilder();
 
         boolean snow = false;
@@ -2085,8 +2084,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSSnowPrecip(ColumnSpaces tabs, ClimateRunData report,
             ClimateDailyReportData data, boolean morning)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsSnowPrecip = new StringBuilder();
 
         ClimateProductFlags snowFlags = currentSettings.getControl()
@@ -2177,8 +2175,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSDegreeDay(ColumnSpaces tabs, ClimateRunData report,
             ClimateDailyReportData data, PrecipPeriod precipTime, boolean heat,
-            boolean morning) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            boolean morning)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         StringBuilder nwwsDegreeDay = new StringBuilder();
 
         ClimateProductFlags degreeFlags = heat
@@ -2426,8 +2424,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      */
     private String buildNWWSAnyPrecip(ColumnSpaces tabs, ClimateRunData report,
             ClimateDailyReportData data, PrecipPeriod precipTime, boolean snow,
-            boolean morning) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            boolean morning)
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
         StringBuilder nwwsAnyPrecip = new StringBuilder();
 
@@ -2892,8 +2890,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
      * @param element
      * @param year
      */
-    private void writeBrokenRecs(ClimateDate date, int id, float observed,
-            float record, String element, int year) {
+    private void writeBrokenRecs(ClimateDate date, int id, Number observed,
+            Number record, String element, int year) {
 
         logger.debug("Storing record for element: [" + element + "], year: ["
                 + year + "], record: [" + record + "], observed: [" + observed
