@@ -3,16 +3,22 @@
  **/
 package gov.noaa.nws.ocp.edex.common.climate.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
-import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateSeason;
 import gov.noaa.nws.ocp.common.dataplugin.climate.DailyClimateData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
-import gov.noaa.nws.ocp.edex.common.climate.dao.ClimoDatesDAO;
+import gov.noaa.nws.ocp.common.localization.climate.climodates.ClimoDates;
+import gov.noaa.nws.ocp.common.localization.climate.climodates.ClimoDatesManager;
+import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodNormDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
 
 /**
@@ -37,6 +43,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  * 24 JAN 2017  28499      amoore      Make final, and have private constructor.
  * 20 JUN 2017  35179      amoore      Fix issue with improper summing dates for season/year data.
  * 01 MAR 2018  44624      amoore      Clean up #setSeason with modern logic.
+ * 02 MAY 2018  DR17116    wpaintsil   Accommodate multiple alternate precip/snow seasons.
  * </pre>
  * 
  * @author xzhang
@@ -76,7 +83,7 @@ public final class ClimateDAOUtils {
      * @param current
      */
     private static void updateCool(ClimateDate aDate, int stationId,
-            ClimateDates coolSeason, ClimateDates coolYear,
+            ClimateDate coolSeason, ClimateDate coolYear,
             DailyClimateData current) {
         DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
 
@@ -153,8 +160,8 @@ public final class ClimateDAOUtils {
 
         sumCool = 0;
 
-        if ((aDate.getDay() == coolSeason.getStart().getDay())
-                && (aDate.getMon() == coolSeason.getStart().getMon())) {
+        if ((aDate.getDay() == coolSeason.getDay())
+                && (aDate.getMon() == coolSeason.getMon())) {
 
             current.setNumCoolSeason(current.getNumCool());
 
@@ -166,9 +173,9 @@ public final class ClimateDAOUtils {
              * first of the month.
              */
 
-            beginDate.setDay(coolSeason.getStart().getDay());
-            beginDate.setMon(coolSeason.getStart().getMon());
-            beginDate.setYear(coolSeason.getStart().getYear());
+            beginDate.setDay(coolSeason.getDay());
+            beginDate.setMon(coolSeason.getMon());
+            beginDate.setYear(coolSeason.getYear());
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -204,8 +211,8 @@ public final class ClimateDAOUtils {
 
         sumCool = 0;
 
-        if ((aDate.getDay() == coolYear.getStart().getDay())
-                && (aDate.getMon() == coolYear.getStart().getMon())) {
+        if ((aDate.getDay() == coolYear.getDay())
+                && (aDate.getMon() == coolYear.getMon())) {
 
             current.setNumCoolYear(current.getNumCool());
 
@@ -215,9 +222,9 @@ public final class ClimateDAOUtils {
             // retrieval of the monthly accumulated cooling degree days
             // for days other than the first of the month.
 
-            beginDate.setDay(coolYear.getStart().getDay());
-            beginDate.setMon(coolYear.getStart().getMon());
-            beginDate.setYear(coolYear.getStart().getYear());
+            beginDate.setDay(coolYear.getDay());
+            beginDate.setMon(coolYear.getMon());
+            beginDate.setYear(coolYear.getYear());
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -269,7 +276,7 @@ public final class ClimateDAOUtils {
      * @param current
      */
     private static void updateHeat(ClimateDate aDate, int stationId,
-            ClimateDates heatSeason, ClimateDates heatYear,
+            ClimateDate heatSeason, ClimateDate heatYear,
             DailyClimateData current) {
 
         DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
@@ -339,8 +346,8 @@ public final class ClimateDAOUtils {
 
         sumHeat = 0;
 
-        if ((aDate.getDay() == heatSeason.getStart().getDay())
-                && (aDate.getMon() == heatSeason.getStart().getMon())) {
+        if ((aDate.getDay() == heatSeason.getDay())
+                && (aDate.getMon() == heatSeason.getMon())) {
 
             current.setNumHeatSeason(current.getNumHeat());
 
@@ -350,9 +357,9 @@ public final class ClimateDAOUtils {
             // retrieval of the monthly accumulated heating degree days
             // for days other than the first of the month.
 
-            beginDate.setDay(heatSeason.getStart().getDay());
-            beginDate.setMon(heatSeason.getStart().getMon());
-            beginDate.setYear(heatSeason.getStart().getYear());
+            beginDate.setDay(heatSeason.getDay());
+            beginDate.setMon(heatSeason.getMon());
+            beginDate.setYear(heatSeason.getYear());
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -388,8 +395,8 @@ public final class ClimateDAOUtils {
 
         sumHeat = 0;
 
-        if ((aDate.getDay() == heatYear.getStart().getDay())
-                && (aDate.getMon() == heatYear.getStart().getMon())) {
+        if ((aDate.getDay() == heatYear.getDay())
+                && (aDate.getMon() == heatYear.getMon())) {
 
             current.setNumHeatYear(current.getNumHeat());
 
@@ -399,9 +406,9 @@ public final class ClimateDAOUtils {
             // retrieval of the monthly accumulated heating degree days
             // for days other than the first of the month.
 
-            beginDate.setDay(heatYear.getStart().getDay());
-            beginDate.setMon(heatYear.getStart().getMon());
-            beginDate.setYear(heatYear.getStart().getYear());
+            beginDate.setDay(heatYear.getDay());
+            beginDate.setMon(heatYear.getMon());
+            beginDate.setYear(heatYear.getYear());
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -453,7 +460,7 @@ public final class ClimateDAOUtils {
      * @param current
      */
     private static void updatePrecip(ClimateDate aDate, int informId,
-            ClimateDates precipSeason, ClimateDates precipYear,
+            List<ClimateDate> precipSeasons, ClimateDate precipYear,
             DailyClimateData current) {
 
         DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
@@ -518,61 +525,68 @@ public final class ClimateDAOUtils {
         // Calculate the seasonal accumulated precipitation.
         // Treat the first day of the season as a special cast that
         // requires no INFORMIX calls.
-        precipSum = 0;
-        if ((aDate.getDay() == precipSeason.getStart().getDay())
-                && (aDate.getMon() == precipSeason.getStart().getMon())) {
-            current.setPrecipSeason(current.getPrecip());
+        List<Float> precipValues = new ArrayList<>();
+        for (ClimateDate precipSeason : precipSeasons) {
+            precipSum = 0;
+            if ((aDate.getDay() == precipSeason.getDay())
+                    && (aDate.getMon() == precipSeason.getMon())) {
+                precipValues.add(current.getPrecip());
 
-        } else {
-            // Set up the beginning and ending dates for the
-            // retrieval of the monthly accumulated precipitation
-            // for days other than the first of the month.
-            beginDate = new ClimateDate(precipSeason.getStart());
-            endDate.setYear(aDate.getYear());
-
-            // Get previous day of year
-            iday = aDate.julday() - 1;
-
-            // Set endDate to previous day of year
-            endDate.convertJulday(iday);
-
-            precipSum = dailyClimateDao.sumPrecip(beginDate, endDate, informId);
-
-            // Add today's precipitation to the total if it isn't
-            // missing,; otherwise set the precipitation to missing
-            // except where trace amounts are involved
-
-            if ((current.getPrecip() != ParameterFormatClimate.MISSING_PRECIP)
-                    && (current.getPrecip() != ParameterFormatClimate.TRACE)
-                    && (current.getPrecip() != 0)) {
-
-                if ((precipSum != ParameterFormatClimate.MISSING_PRECIP)
-                        && (precipSum != ParameterFormatClimate.TRACE)) {
-                    current.setPrecipSeason(precipSum + current.getPrecip());
-                } else {
-                    current.setPrecipSeason(current.getPrecip());
-                }
-            } else if (((current.getPrecip() == ParameterFormatClimate.TRACE)
-                    || (current.getPrecip() == 0))
-                    && (precipSum == ParameterFormatClimate.MISSING_PRECIP)) {
-                current.setPrecipSeason(current.getPrecip());
             } else {
-                current.setPrecipSeason(precipSum);
+                // Set up the beginning and ending dates for the
+                // retrieval of the monthly accumulated precipitation
+                // for days other than the first of the month.
+                beginDate = new ClimateDate(precipSeason);
+                endDate.setYear(aDate.getYear());
+
+                // Get previous day of year
+                iday = aDate.julday() - 1;
+
+                // Set endDate to previous day of year
+                endDate.convertJulday(iday);
+
+                precipSum = dailyClimateDao.sumPrecip(beginDate, endDate,
+                        informId);
+
+                // Add today's precipitation to the total if it isn't
+                // missing,; otherwise set the precipitation to missing
+                // except where trace amounts are involved
+
+                if ((current
+                        .getPrecip() != ParameterFormatClimate.MISSING_PRECIP)
+                        && (current.getPrecip() != ParameterFormatClimate.TRACE)
+                        && (current.getPrecip() != 0)) {
+
+                    if ((precipSum != ParameterFormatClimate.MISSING_PRECIP)
+                            && (precipSum != ParameterFormatClimate.TRACE)) {
+                        precipValues.add(precipSum + current.getPrecip());
+                    } else {
+                        precipValues.add(current.getPrecip());
+                    }
+                } else if (((current
+                        .getPrecip() == ParameterFormatClimate.TRACE)
+                        || (current.getPrecip() == 0))
+                        && (precipSum == ParameterFormatClimate.MISSING_PRECIP)) {
+                    precipValues.add(current.getPrecip());
+                } else {
+                    precipValues.add(precipSum);
+                }
             }
         }
+        current.setPrecipSeasons(precipValues);
 
         // Calculate the annual accumulated precipitation.
         // Treat the first day of the season as a special cast that
         // requires no INFORMIX calls.
         precipSum = 0;
-        if ((aDate.getDay() == precipYear.getStart().getDay())
-                && (aDate.getMon() == precipYear.getStart().getMon())) {
+        if ((aDate.getDay() == precipYear.getDay())
+                && (aDate.getMon() == precipYear.getMon())) {
             current.setPrecipYear(current.getPrecip());
         } else {
             // Set up the beginning and ending dates for the
             // retrieval of the monthly accumulated precipitation
             // for days other than the first of the month.
-            beginDate = new ClimateDate(precipYear.getStart());
+            beginDate = new ClimateDate(precipYear);
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -629,7 +643,7 @@ public final class ClimateDAOUtils {
      * @param current
      */
     private static void updateSnow(ClimateDate aDate, int informId,
-            ClimateDates snowSeason, ClimateDates snowYear,
+            List<ClimateDate> snowSeasons, ClimateDate snowYear,
             DailyClimateData current) {
 
         DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
@@ -686,60 +700,69 @@ public final class ClimateDAOUtils {
         // Calculate the seasonal accumulated snowfall.
         // Treat the first day of the season as a special cast that
         // requires no INFORMIX calls.
-        snowSum = 0;
-        if ((aDate.getDay() == snowSeason.getStart().getDay())
-                && (aDate.getMon() == snowSeason.getStart().getMon())) {
-            current.setSnowSeason(current.getSnowDay());
-        } else {
-            // Set up the beginning and ending dates for the
-            // retrieval of the monthly accumulated snowfall
-            // for days other than the first of the month.
-            beginDate = new ClimateDate(snowSeason.getStart());
-            endDate.setYear(aDate.getYear());
-
-            // Get previous day of year
-            iday = aDate.julday() - 1;
-
-            // Set endDate to previous day of year
-            endDate.convertJulday(iday);
-
-            snowSum = dailyClimateDao.sumSnow(beginDate, endDate, informId);
-
-            // Add today's snowfall to the total if it isn't
-            // missing,; otherwise set the snowfall to missing
-            // except where trace amounts are involved
-            if ((current.getSnowDay() != ParameterFormatClimate.MISSING_SNOW)
-                    && (current.getSnowDay() != ParameterFormatClimate.TRACE)
-                    && (current.getSnowDay() != 0)) {
-
-                if ((snowSum != ParameterFormatClimate.MISSING_SNOW)
-                        && (snowSum != ParameterFormatClimate.TRACE)) {
-                    current.setSnowSeason(snowSum + current.getSnowDay());
-                } else {
-                    current.setSnowSeason(current.getSnowDay());
-                }
-            } else if (((current.getSnowDay() == ParameterFormatClimate.TRACE)
-                    || (current.getSnowDay() == 0))
-                    && (snowSum == ParameterFormatClimate.MISSING_SNOW)) {
-                current.setSnowSeason(current.getSnowDay());
+        List<Float> snowValues = new ArrayList<>();
+        for (ClimateDate snowSeason : snowSeasons) {
+            snowSum = 0;
+            if ((aDate.getDay() == snowSeason.getDay())
+                    && (aDate.getMon() == snowSeason.getMon())) {
+                snowValues.add(current.getSnowDay());
             } else {
-                current.setSnowSeason(snowSum);
+                // Set up the beginning and ending dates for the
+                // retrieval of the monthly accumulated snowfall
+                // for days other than the first of the month.
+                beginDate = new ClimateDate(snowSeason);
+                endDate.setYear(aDate.getYear());
+
+                // Get previous day of year
+                iday = aDate.julday() - 1;
+
+                // Set endDate to previous day of year
+                endDate.convertJulday(iday);
+
+                snowSum = dailyClimateDao.sumSnow(beginDate, endDate, informId);
+
+                // Add today's snowfall to the total if it isn't
+                // missing,; otherwise set the snowfall to missing
+                // except where trace amounts are involved
+                if ((current
+                        .getSnowDay() != ParameterFormatClimate.MISSING_SNOW)
+                        && (current
+                                .getSnowDay() != ParameterFormatClimate.TRACE)
+                        && (current.getSnowDay() != 0)) {
+
+                    if ((snowSum != ParameterFormatClimate.MISSING_SNOW)
+                            && (snowSum != ParameterFormatClimate.TRACE)) {
+                        snowValues.add(snowSum + current.getSnowDay());
+                    } else {
+                        snowValues.add(current.getSnowDay());
+                    }
+                } else if (((current
+                        .getSnowDay() == ParameterFormatClimate.TRACE)
+                        || (current.getSnowDay() == 0))
+                        && (snowSum == ParameterFormatClimate.MISSING_SNOW)) {
+                    snowValues.add(current.getSnowDay());
+                } else {
+                    snowValues.add(snowSum);
+                }
+
             }
 
         }
+        current.setSnowSeasons(snowValues);
+
         // Calculate the annual accumulated snowfall.
         // Treat the first day of the season as a special cast that
         // requires no INFORMIX calls.
 
         snowSum = 0;
-        if ((aDate.getDay() == snowYear.getStart().getDay())
-                && (aDate.getMon() == snowYear.getStart().getMon())) {
+        if ((aDate.getDay() == snowYear.getDay())
+                && (aDate.getMon() == snowYear.getMon())) {
             current.setSnowYear(current.getSnowDay());
         } else {
             // Set up the beginning and ending dates for the
             // retrieval of the monthly accumulated snowfall
             // for days other than the first of the month.
-            beginDate = new ClimateDate(snowYear.getStart());
+            beginDate = new ClimateDate(snowYear);
             endDate.setYear(aDate.getYear());
 
             // Get previous day of year
@@ -771,6 +794,116 @@ public final class ClimateDAOUtils {
             }
 
         }
+    }
+
+    /**
+     * Migrated from update_his_precip.f
+     * 
+     * <pre>
+     *   January 1999     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical precipitation.  It determines the monthly 
+     *             accumulated historical precipitation first, followed by the
+     *             seasonal and lastly the annual historical precipitation.
+     * 
+     * </pre>
+     * 
+     * @param aDate
+     * @param stationId
+     * @param precipSeason
+     * @param precipYear
+     * @param yClimate
+     */
+    public static void updateHisPrecip(ClimateDate aDate, int stationId,
+            List<ClimateDate> precipSeasons, ClimateDate precipYear,
+            ClimateRecordDay yClimate) {
+        ClimatePeriodNormDAO climatePeriodNormDAO = new ClimatePeriodNormDAO();
+
+        // First do the monthly total. We need to consider leap years
+        // for summing in the month of February
+        ClimateDate first = new ClimateDate(aDate);
+        ClimateDate last = new ClimateDate(aDate);
+
+        first.setDay(1);
+
+        yClimate.setPrecipMonthMean(
+                climatePeriodNormDAO.sumHisPrecip(first, last, stationId));
+
+        // Now handle the seasonal summations. This is a little
+        // more involved since we need to take into account seasons
+        // that cross yearly boundaries.
+        List<Float> precipSeasonValues = new ArrayList<>();
+        for (ClimateDate precipSeason : precipSeasons) {
+            first = precipSeason;
+            precipSeasonValues.add(
+                    climatePeriodNormDAO.sumHisPrecip(first, last, stationId));
+        }
+        yClimate.setPrecipSeasonMean(precipSeasonValues);
+
+        // Now do the annual precipitation
+        // We have the same potential problems as with the seasonal
+        // precip
+
+        first = precipYear;
+        yClimate.setPrecipYearMean(
+                climatePeriodNormDAO.sumHisPrecip(first, last, stationId));
+    }
+
+    /**
+     * Migrated from update_his_snow.f
+     * 
+     * <pre>
+     *   January 1999     Jason P. Tuell        PRC/TDL
+     *
+     *
+     *   Purpose:  This routine controls the determination of accumulated
+     *             historical snowfall.  It determines the monthly 
+     *             accumulated historical snowfall first, followed by the
+     *             seasonal and lastly the annual historical snowfall.
+     * </pre>
+     * 
+     * @param aDate
+     * @param stationId
+     * @param snowSeason
+     * @param snowYear
+     * @param yClimate
+     */
+    public static void updateHisSnow(ClimateDate aDate, int stationId,
+            List<ClimateDate> snowSeasons, ClimateDate snowYear,
+            ClimateRecordDay yClimate) {
+        ClimatePeriodNormDAO climatePeriodNormDAO = new ClimatePeriodNormDAO();
+
+        ClimateDate first = new ClimateDate(aDate);
+        ClimateDate last = new ClimateDate(aDate);
+
+        // First do the monthly total. We need to consider leap years
+        // for summing in the month of February
+
+        first.setDay(1);
+
+        yClimate.setSnowMonthMean(
+                climatePeriodNormDAO.sumHisSnow(first, last, stationId));
+
+        // Now handle the seasonal summations. This is a little
+        // more involved since we need to take into account seasons
+        // that cross yearly boundaries.
+        List<Float> snowSeasonValues = new ArrayList<>();
+        for (ClimateDate snowSeason : snowSeasons) {
+            first = snowSeason;
+            snowSeasonValues.add(
+                    climatePeriodNormDAO.sumHisSnow(first, last, stationId));
+        }
+        yClimate.setSnowSeasonMean(snowSeasonValues);
+
+        // Now do the annual snow
+        // We have the same potential problems as with the seasonal
+        // snow
+
+        first = snowYear;
+        yClimate.setSnowYearMean(
+                climatePeriodNormDAO.sumHisSnow(first, last, stationId));
     }
 
     /**
@@ -816,22 +949,14 @@ public final class ClimateDAOUtils {
      * @param aDate
      * @param stationId
      * @param cData
+     * @param yClimate
      * @throws ClimateQueryException
      */
     public static void buildDerivedData(ClimateDate aDate, int stationId,
-            DailyClimateData cData) throws ClimateQueryException {
+            DailyClimateData cData, ClimateRecordDay yClimate)
+            throws ClimateQueryException {
 
-        ClimateDates coolSeason = ClimateDates.getMissingClimateDates();
-        ClimateDates coolYear = ClimateDates.getMissingClimateDates();
-        ClimateDates heatSeason = ClimateDates.getMissingClimateDates();
-        ClimateDates heatYear = ClimateDates.getMissingClimateDates();
-        ClimateDates precipSeason = ClimateDates.getMissingClimateDates();
-        ClimateDates precipYear = ClimateDates.getMissingClimateDates();
-        ClimateDates snowSeason = ClimateDates.getMissingClimateDates();
-        ClimateDates snowYear = ClimateDates.getMissingClimateDates();
-
-        setSeason(aDate, coolSeason, coolYear, heatSeason, heatYear,
-                precipSeason, precipYear, snowSeason, snowYear);
+        ClimateSeason season = getSeason(aDate);
 
         int maxRh = cData.getMaxRelHumid();
         int minRh = cData.getMinRelHumid();
@@ -843,14 +968,39 @@ public final class ClimateDAOUtils {
             cData.setMeanRelHumid(ParameterFormatClimate.MISSING);
         }
 
-        updateHeat(aDate, stationId, heatSeason, heatYear, cData);
+        updateHeat(aDate, stationId, season.getHeatSeason(),
+                season.getHeatYear(), cData);
 
-        updateCool(aDate, stationId, coolSeason, coolYear, cData);
+        updateCool(aDate, stationId, season.getCoolSeason(),
+                season.getCoolYear(), cData);
 
-        updatePrecip(aDate, stationId, precipSeason, precipYear, cData);
+        updatePrecip(aDate, stationId, season.getPrecipSeasons(),
+                season.getPrecipYear(), cData);
 
-        updateSnow(aDate, stationId, snowSeason, snowYear, cData);
+        updateSnow(aDate, stationId, season.getSnowSeasons(),
+                season.getSnowYear(), cData);
 
+        // Update snow/precip norms
+        if (yClimate != null) {
+            updateHisPrecip(aDate, stationId, season.getPrecipSeasons(),
+                    season.getPrecipYear(), yClimate);
+            updateHisSnow(aDate, stationId, season.getSnowSeasons(),
+                    season.getSnowYear(), yClimate);
+        }
+
+    }
+
+    /**
+     * Overload method for when yClimate is not used.
+     * 
+     * @param aDate
+     * @param stationId
+     * @param cData
+     * @throws ClimateQueryException
+     */
+    public static void buildDerivedData(ClimateDate aDate, int stationId,
+            DailyClimateData cData) throws ClimateQueryException {
+        buildDerivedData(aDate, stationId, cData, null);
     }
 
     /**
@@ -870,71 +1020,67 @@ public final class ClimateDAOUtils {
      * <pre>
      * 
      * @param aDate
-     * @param coolSeason
-     * @param coolYear
-     * @param heatSeason
-     * @param heatYear
-     * @param precipSeason
-     * @param precipYear
-     * @param snowSeason
-     * @param snowYear
      * @throws ClimateQueryException
      */
-    public static void setSeason(ClimateDate aDate, ClimateDates coolSeason,
-            ClimateDates coolYear, ClimateDates heatSeason,
-            ClimateDates heatYear, ClimateDates precipSeason,
-            ClimateDates precipYear, ClimateDates snowSeason,
-            ClimateDates snowYear) throws ClimateQueryException {
-        ClimoDatesDAO climoDatesDAO = new ClimoDatesDAO();
+    public static ClimateSeason getSeason(ClimateDate aDate)
+            throws ClimateQueryException {
+        ClimateSeason season = new ClimateSeason();
 
         ClimateDate firstDay = new ClimateDate(1, 1, aDate.getYear());
-        ClimateDate lastDay = new ClimateDate(31, 12, aDate.getYear());
 
         int iday;
         int monStart;
 
         /*
-         * Retrieve the seasonal and yearly dates for snow and precipitation
-         * from the data base. If they aren't in the data base, then set them
-         * here.
+         * Legacy comment: Retrieve the seasonal and yearly dates for snow and
+         * precipitation from the data base. If they aren't in the data base,
+         * then set them here.
          */
-        boolean noDates = climoDatesDAO.getSeason(precipSeason, precipYear,
-                snowSeason, snowYear);
+        // Retrieve the climo_dates information from localization instead of the
+        // database table.
+        ClimoDates localClimoDates = ClimoDatesManager.getInstance()
+                .getClimoDates();
+
+        List<ClimateDate> precipSeasons = localClimoDates.getPrecipSeasons();
+        ClimateDate precipYear = localClimoDates.getPrecipYear();
+        List<ClimateDate> snowSeasons = localClimoDates.getSnowSeasons();
+        ClimateDate snowYear = localClimoDates.getSnowYear();
+
+        ClimateDate heatYear = ClimateDate.getMissingClimateDate();
+        ClimateDate coolYear = ClimateDate.getMissingClimateDate();
+        ClimateDate heatSeason = ClimateDate.getMissingClimateDate();
+        ClimateDate coolSeason = ClimateDate.getMissingClimateDate();
 
         /*
-         * Define the start of the heating year. According to the TSPs, the heat
-         * year is defined to start at 1 July.
+         * Legacy comment: Define the start of the heating year. According to
+         * the TSPs, the heat year is defined to start at 1 July.
          */
-        heatYear.setStart(new ClimateDate(1, 7, aDate.getYear()));
-        heatYear.setEnd(new ClimateDate(30, 6, aDate.getYear()));
-        setYear(aDate, heatYear.getStart());
+        heatYear.setDateFromDate(new ClimateDate(1, 7, aDate.getYear()));
+        setYear(aDate, heatYear);
 
         /*
-         * Define the start of the cooling year. According to the TSPs, the heat
-         * year is defined to start at 1 January.
+         * Legacy comment: Define the start of the cooling year. According to
+         * the TSPs, the heat year is defined to start at 1 January.
          */
-        coolYear.setStart(firstDay);
-        coolYear.setEnd(lastDay);
-        setYear(aDate, coolYear.getStart());
+        coolYear.setDateFromDate(firstDay);
+        setYear(aDate, coolYear);
 
         /*
-         * Only set the annual dates for snow and precipitation if they aren't
-         * available in the data base.
+         * Legacy comment: Only set the annual dates for snow and precipitation
+         * if they aren't available in the data base.
          * 
          * Define the start of the snow year. According to the TSPs, the snow
          * year is defined to start at 1 July.
          */
-        snowYear.setStart(new ClimateDate(1, 7, aDate.getYear()));
-        snowYear.setEnd(new ClimateDate(30, 6, aDate.getYear()));
-        setYear(aDate, snowYear.getStart());
+        snowYear.setDateFromDate(new ClimateDate(1, 7, aDate.getYear()));
+        setYear(aDate, snowYear);
 
         /*
-         * Define the start of the precipitation year. According to the TSPs,
-         * the precipitation year is defined to start at 1 January.
+         * Legacy comment: Define the start of the precipitation year. According
+         * to the TSPs, the precipitation year is defined to start at 1 January.
          */
-        precipYear.setStart(firstDay);
-        precipYear.setEnd(lastDay);
-        setYear(aDate, precipYear.getStart());
+        precipYear.setDateFromDate(firstDay);
+        setYear(aDate, precipYear);
 
         /*
          * Determine the month of the starting season for the current date
@@ -945,78 +1091,81 @@ public final class ClimateDAOUtils {
          * the heating and cooling degree dates first since they dates fixed in
          * the TSPs
          */
-        coolSeason.setStart(new ClimateDate(1, monStart, aDate.getYear()));
-        heatSeason.setStart(new ClimateDate(1, monStart, aDate.getYear()));
+        coolSeason
+                .setDateFromDate(new ClimateDate(1, monStart, aDate.getYear()));
+        heatSeason
+                .setDateFromDate(new ClimateDate(1, monStart, aDate.getYear()));
 
-        coolSeason.setEnd(new ClimateDate(aDate));
-        heatSeason.setEnd(new ClimateDate(aDate));
-
-        setYear(aDate, coolSeason.getStart());
-        setYear(aDate, heatSeason.getStart());
+        setYear(aDate, coolSeason);
+        setYear(aDate, heatSeason);
 
         // Now do the seasonal dates for snow and precip
 
         /*
-         * Don't forget the case where the alternate year is the the same as the
-         * default year. In this case, we revert to the standard definition of
-         * the season.
+         * Legacy comment: Don't forget the case where the alternate year is the
+         * the same as the default year. In this case, we revert to the standard
+         * definition of the season.
          */
 
         // Precip first
-        if (!noDates && (precipSeason.getStart().getDay() > 0)
-                && (precipSeason.getStart().getDay() < 32)
-                && (precipSeason.getStart().getMon() > 0)
-                && (precipSeason.getStart().getMon() < 13)) {
-            iday = precipSeason.getStart().julday();
+        for (ClimateDate precipSeason : precipSeasons) {
+            if ((precipSeason.getDay() > 0) && (precipSeason.getDay() < 32)
+                    && (precipSeason.getMon() > 0)
+                    && (precipSeason.getMon() < 13)) {
+                iday = precipSeason.julday();
 
-            precipSeason.setEnd(new ClimateDate(aDate));
+                if (iday == 1) {
+                    precipSeason.setDay(1);
+                    precipSeason.setMon(monStart);
 
-            if (iday == 1) {
-                precipSeason.getStart().setDay(1);
-                precipSeason.getStart().setMon(monStart);
+                    setYear(aDate, precipSeason);
+                } else {
+                    setYear(aDate, precipSeason);
+                }
 
-                setYear(aDate, precipSeason.getStart());
             } else {
-                setYear(aDate, precipSeason.getStart());
+
+                precipSeason.setDay(1);
+                precipSeason.setMon(monStart);
+
+                setYear(aDate, precipSeason);
             }
-
-        } else {
-
-            precipSeason.getStart().setDay(1);
-            precipSeason.getStart().setMon(monStart);
-
-            precipSeason.setEnd(new ClimateDate(aDate));
-
-            setYear(aDate, precipSeason.getStart());
         }
-
         // Snow
-        if (!noDates && (snowSeason.getStart().getDay() > 0)
-                && (snowSeason.getStart().getDay() < 32)
-                && (snowSeason.getStart().getMon() > 0)
-                && (snowSeason.getStart().getMon() < 13)) {
-            snowSeason.setEnd(new ClimateDate(aDate));
 
-            if ((snowSeason.getStart().getDay() == 1)
-                    && (snowSeason.getStart().getMon() == 7)) {
+        for (ClimateDate snowSeason : snowSeasons) {
+            if ((snowSeason.getDay() > 0) && (snowSeason.getDay() < 32)
+                    && (snowSeason.getMon() > 0)
+                    && (snowSeason.getMon() < 13)) {
 
-                snowSeason.getStart().setDay(1);
-                snowSeason.getStart().setMon(monStart);
+                if ((snowSeason.getDay() == 1) && (snowSeason.getMon() == 7)) {
 
-                setYear(aDate, snowSeason.getStart());
+                    snowSeason.setDay(1);
+                    snowSeason.setMon(monStart);
+
+                    setYear(aDate, snowSeason);
+                } else {
+                    setYear(aDate, snowSeason);
+                }
+
             } else {
-                setYear(aDate, snowSeason.getStart());
+                snowSeason.setDay(1);
+                snowSeason.setMon(monStart);
+
+                setYear(aDate, snowSeason);
             }
-
-        } else {
-            snowSeason.getStart().setDay(1);
-            snowSeason.getStart().setMon(monStart);
-
-            snowSeason.setEnd(new ClimateDate(aDate));
-
-            setYear(aDate, snowSeason.getStart());
         }
 
+        season.setCoolSeason(coolSeason);
+        season.setCoolYear(coolYear);
+        season.setHeatSeason(heatSeason);
+        season.setHeatYear(heatYear);
+        season.setPrecipSeasons(precipSeasons);
+        season.setPrecipYear(precipYear);
+        season.setSnowSeasons(snowSeasons);
+        season.setSnowYear(snowYear);
+
+        return season;
     }
 
     /**

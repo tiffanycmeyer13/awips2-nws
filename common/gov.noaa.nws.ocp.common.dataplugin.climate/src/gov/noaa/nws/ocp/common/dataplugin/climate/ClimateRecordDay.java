@@ -3,6 +3,9 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
@@ -21,6 +24,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * Nov 13, 2015            xzhang     Initial creation
  * Jul 22, 2016 20712	   wpaintsil  Serialization
  * 20 SEP 2016  21378      amoore     Added method to get missing value instance.
+ * 01 MAY 2018  DR17116    wpaintsil  Accommodate multiple alternate snow/precip seasons.
  * 
  * </pre>
  * 
@@ -93,7 +97,7 @@ public class ClimateRecordDay {
      * mean accumulated seasonal precip
      */
     @DynamicSerializeElement
-    private float precipSeasonMean;
+    private List<Float> precipSeasonMean;
 
     /**
      * mean accumulated yearly precip
@@ -165,7 +169,7 @@ public class ClimateRecordDay {
      * mean accumulated seasonal snowfall
      */
     @DynamicSerializeElement
-    private float snowSeasonMean;
+    private List<Float> snowSeasonMean;
 
     /**
      * mean accumulated yearly snowfall
@@ -422,7 +426,7 @@ public class ClimateRecordDay {
     /**
      * @return the precipSeasonMean
      */
-    public float getPrecipSeasonMean() {
+    public List<Float> getPrecipSeasonMean() {
         return precipSeasonMean;
     }
 
@@ -430,7 +434,7 @@ public class ClimateRecordDay {
      * @param precipSeasonMean
      *            the precipSeasonMean to set
      */
-    public void setPrecipSeasonMean(float precipSeasonMean) {
+    public void setPrecipSeasonMean(List<Float> precipSeasonMean) {
         this.precipSeasonMean = precipSeasonMean;
     }
 
@@ -602,7 +606,7 @@ public class ClimateRecordDay {
     /**
      * @return the snowSeasonMean
      */
-    public float getSnowSeasonMean() {
+    public List<Float> getSnowSeasonMean() {
         return snowSeasonMean;
     }
 
@@ -610,7 +614,7 @@ public class ClimateRecordDay {
      * @param snowSeasonMean
      *            the snowSeasonMean to set
      */
-    public void setSnowSeasonMean(float snowSeasonMean) {
+    public void setSnowSeasonMean(List<Float> snowSeasonMean) {
         this.snowSeasonMean = snowSeasonMean;
     }
 
@@ -878,7 +882,7 @@ public class ClimateRecordDay {
         this.minTempRecord = ParameterFormatClimate.MISSING;
         this.precipMean = ParameterFormatClimate.MISSING;
         this.precipMonthMean = ParameterFormatClimate.MISSING;
-        this.precipSeasonMean = ParameterFormatClimate.MISSING;
+        this.precipSeasonMean = new ArrayList<>();
         this.precipYearMean = ParameterFormatClimate.MISSING;
         this.precipDayRecord = ParameterFormatClimate.MISSING;
         this.precipMonthRecord = ParameterFormatClimate.MISSING;
@@ -886,7 +890,7 @@ public class ClimateRecordDay {
         this.precipYearRecord = ParameterFormatClimate.MISSING;
         this.snowDayMean = ParameterFormatClimate.MISSING;
         this.snowMonthMean = ParameterFormatClimate.MISSING;
-        this.snowSeasonMean = ParameterFormatClimate.MISSING;
+        this.snowSeasonMean = new ArrayList<>();
         this.snowYearMean = ParameterFormatClimate.MISSING;
         this.snowDayRecord = ParameterFormatClimate.MISSING;
         this.snowMonthRecord = ParameterFormatClimate.MISSING;
