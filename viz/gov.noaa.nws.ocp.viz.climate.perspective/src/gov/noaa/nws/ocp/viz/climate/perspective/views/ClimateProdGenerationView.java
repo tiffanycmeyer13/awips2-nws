@@ -96,6 +96,9 @@ import gov.noaa.nws.ocp.viz.climate.perspective.notify.IClimateMessageCallback;
  * Sep 19, 2017 38124      amoore      Use GC for text control sizes.
  * May 03, 2018 20711      amoore      Climate should stop listening for callbacks when perspective
  *                                     is closed.
+ * Jun 07, 2018 20760      amoore      Product Process buttons need min size set, or in some
+ *                                     situations they may be squished vertically until CAVE is
+ *                                     restarted/the perspective is re-initialized.
  * </pre>
  *
  * @author jwu
@@ -536,14 +539,19 @@ public class ClimateProdGenerationView extends ViewPart
     private void createManageSessionSection(Composite parent) {
         // Group for session info/status.
         manageSessionGrp = new Group(parent, SWT.NONE);
-        manageSessionGrp.setLayoutData(
-                new GridData(SWT.CENTER, SWT.CENTER, true, false));
+        manageSessionGrp.setFont(size12FontBold);
+        GridData manageSessionGrpGD = new GridData(SWT.CENTER, SWT.CENTER, true,
+                true);
+        GC gc = new GC(manageSessionGrp);
+        int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        gc.dispose();
+        manageSessionGrpGD.minimumWidth = 120 * fontWidth;
+        manageSessionGrp.setLayoutData(manageSessionGrpGD);
         GridLayout manageSessionGrpLayout = new GridLayout(1, false);
         manageSessionGrpLayout.verticalSpacing = 3;
         manageSessionGrpLayout.marginWidth = 25;
         manageSessionGrp.setLayout(manageSessionGrpLayout);
         manageSessionGrp.setText("Current Product Process");
-        manageSessionGrp.setFont(size12FontBold);
 
         // Composite for session info (type/run type/start time).
         Composite sessionInfoComp = new Composite(manageSessionGrp, SWT.NONE);
@@ -625,15 +633,15 @@ public class ClimateProdGenerationView extends ViewPart
                 stateLblGd5);
 
         // buttons for current session's status.
-        GridData statusBtnGd1 = new GridData(SWT.FILL, SWT.CENTER, true, false,
+        GridData statusBtnGd1 = new GridData(SWT.FILL, SWT.CENTER, true, true,
                 1, 1);
         createBtn = createStatusBtn(sessionStateComp, SessionStage.CREATE,
                 statusBtnGd1);
-        GridData statusBtnGd2 = new GridData(SWT.FILL, SWT.CENTER, true, false,
+        GridData statusBtnGd2 = new GridData(SWT.FILL, SWT.CENTER, true, true,
                 1, 1);
         displayBtn = createStatusBtn(sessionStateComp, SessionStage.DISPLAY,
                 statusBtnGd2);
-        GridData statusBtnGd3 = new GridData(SWT.FILL, SWT.CENTER, true, false,
+        GridData statusBtnGd3 = new GridData(SWT.FILL, SWT.CENTER, true, true,
                 1, 1);
         formatBtn = createStatusBtn(sessionStateComp, SessionStage.FORMAT,
                 statusBtnGd3);
@@ -654,7 +662,7 @@ public class ClimateProdGenerationView extends ViewPart
         // Create a group to hold the table.
         Group statusGrp = new Group(parent, SWT.NONE);
         statusGrp.setLayoutData(
-                new GridData(SWT.CENTER, SWT.BOTTOM, true, false));
+                new GridData(SWT.CENTER, SWT.BOTTOM, true, true));
         GridLayout statusLayout = new GridLayout(1, false);
         statusLayout.horizontalSpacing = 5;
         statusLayout.marginWidth = 3;
@@ -686,6 +694,7 @@ public class ClimateProdGenerationView extends ViewPart
             GridData statusTableGd = new GridData(SWT.CENTER, SWT.CENTER, false,
                     false, 1, 1);
             statusTableGd.heightHint = 14 * fontHeight;
+            statusTableGd.minimumWidth = 135 * fontWidth;
             cpgSessionTable.setLayoutData(statusTableGd);
 
             int[] sessionColWidths = new int[] { 12 * fontWidth, 13 * fontWidth,
@@ -2062,7 +2071,7 @@ public class ClimateProdGenerationView extends ViewPart
      * @param stage
      *            Value of a StateState.
      * @param grdData
-     *            GridData for button layout.
+     *            GridData for button layout. Set min size in this method.
      * @return createStatusBtn() Button
      */
     private Button createStatusBtn(Composite parent, SessionStage stage,
@@ -2072,8 +2081,17 @@ public class ClimateProdGenerationView extends ViewPart
 
         btn = new Button(parent, SWT.PUSH);
         btn.setData(stage);
-        btn.setLayoutData(grdData);
         btn.setFont(size12FontBold);
+
+        GC gc = new GC(btn);
+        int fontWidth = gc.getFontMetrics().getAverageCharWidth();
+        int fontHeight = gc.getFontMetrics().getHeight();
+        gc.dispose();
+
+        grdData.minimumWidth = 20 * fontWidth;
+        grdData.minimumHeight = (3 * fontHeight) / 2;
+
+        btn.setLayoutData(grdData);
         btn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
