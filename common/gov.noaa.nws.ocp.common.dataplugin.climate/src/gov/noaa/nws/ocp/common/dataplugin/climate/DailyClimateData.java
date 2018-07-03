@@ -3,6 +3,9 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
 
@@ -28,6 +31,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 27 OCT 2016  22135      wpaintsil   Add DailyDataMethod field.
  * 25 JAN 2017  22786      amoore      Remove action to split WX array into separate fields.
  *                                     Rename constant to more clear meaning.
+ * 13 APR 2018  DR17116      wpaintsil   Change precipSeason and snowSeason to account 
+ *                                     for multiple alternate seasons.
  * </pre>
  * 
  * @author xzhang
@@ -193,10 +198,11 @@ public class DailyClimateData {
     private float precipMonth;
 
     /**
-     * cumulative precip this season (in.)
+     * cumulative precip this season or for each user-defined alternate season
+     * (in.)
      */
     @DynamicSerializeElement
-    private float precipSeason;
+    private List<Float> precipSeasons;
 
     /**
      * total precip for year to date (in.)
@@ -220,7 +226,7 @@ public class DailyClimateData {
      * cumulative snow this season (in.)
      */
     @DynamicSerializeElement
-    private float snowSeason;
+    private List<Float> snowSeasons;
 
     /**
      * total snow for year to date (in.)
@@ -603,8 +609,8 @@ public class DailyClimateData {
     /**
      * @return the precipSeason
      */
-    public float getPrecipSeason() {
-        return precipSeason;
+    public List<Float> getPrecipSeasons() {
+        return precipSeasons;
     }
 
     /**
@@ -666,8 +672,8 @@ public class DailyClimateData {
     /**
      * @return the snowSeason
      */
-    public float getSnowSeason() {
-        return snowSeason;
+    public List<Float> getSnowSeasons() {
+        return snowSeasons;
     }
 
     /**
@@ -736,11 +742,11 @@ public class DailyClimateData {
         this.minTempTime = ClimateTime.getMissingClimateTime();
         this.precip = ParameterFormatClimate.MISSING_PRECIP;
         this.precipMonth = ParameterFormatClimate.MISSING_PRECIP;
-        this.precipSeason = ParameterFormatClimate.MISSING_PRECIP;
+        this.precipSeasons = new ArrayList<>();
         this.precipYear = ParameterFormatClimate.MISSING_PRECIP;
         this.snowDay = ParameterFormatClimate.MISSING_SNOW_VALUE;
         this.snowMonth = ParameterFormatClimate.MISSING_SNOW_VALUE;
-        this.snowSeason = ParameterFormatClimate.MISSING_SNOW_VALUE;
+        this.snowSeasons = new ArrayList<>();
         this.snowYear = ParameterFormatClimate.MISSING_SNOW_VALUE;
         this.snowGround = ParameterFormatClimate.MISSING_SNOW_VALUE;
         this.numHeat = ParameterFormatClimate.MISSING_DEGREE_DAY;
@@ -995,8 +1001,18 @@ public class DailyClimateData {
      * @param precipSeason
      *            the precipSeason to set
      */
-    public void setPrecipSeason(float precipSeason) {
-        this.precipSeason = precipSeason;
+    public void setPrecipSeasons(List<Float> precipSeasons) {
+        this.precipSeasons = precipSeasons;
+    }
+
+    /**
+     * Set an element by index in the precipSeasons list.
+     * 
+     * @param index
+     * @param value
+     */
+    public void setPrecipSeasons(int index, float value) {
+        precipSeasons.set(index, value);
     }
 
     /**
@@ -1067,8 +1083,18 @@ public class DailyClimateData {
      * @param snowSeason
      *            the snowSeason to set
      */
-    public void setSnowSeason(float snowSeason) {
-        this.snowSeason = snowSeason;
+    public void setSnowSeasons(List<Float> snowSeasons) {
+        this.snowSeasons = snowSeasons;
+    }
+
+    /**
+     * Set an element by index in the snowSeasons list.
+     * 
+     * @param index
+     * @param value
+     */
+    public void setSnowSeasons(int index, float value) {
+        snowSeasons.set(index, value);
     }
 
     /**

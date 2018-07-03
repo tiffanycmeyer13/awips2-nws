@@ -7,6 +7,7 @@ Bundle-Vendor: NWS
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: gov.noaa.nws.ocp.viz.common.climate,
  com.raytheon.uf.viz.core,
- com.raytheon.viz.ui
+ com.raytheon.viz.ui,
+ gov.noaa.nws.ocp.common.localization.climate
 Export-Package: gov.noaa.nws.ocp.viz.climate.configparams,
  gov.noaa.nws.ocp.viz.climate.configparams.support

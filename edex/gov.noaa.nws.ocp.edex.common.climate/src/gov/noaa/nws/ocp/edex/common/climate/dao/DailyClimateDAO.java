@@ -14,6 +14,7 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateWind;
 import gov.noaa.nws.ocp.common.dataplugin.climate.DailyClimateData;
@@ -91,6 +92,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  *                                     is 0. If no result found on trace, 0 is ok, not set to missing.
  * 24 OCT 2017  39817      amoore      Clean up 24-hour precip calculations while investigating validity of
  *                                     calculations. Handle trace better in hourly precip count.
+ * 02 MAY 2018  DR17116    wpaintsil   update yClimate for snow/precip norms.
  * </pre>
  * 
  * @author amoore
@@ -1026,8 +1028,8 @@ public class DailyClimateDAO extends ClimateDAO {
         }
 
         /* average max temp */
-        oPeriodData.setMaxTempMean((int) ParameterFormatClimate.MISSING);
-        float avgmaxT = (int) ParameterFormatClimate.MISSING;
+        oPeriodData.setMaxTempMean(ParameterFormatClimate.MISSING);
+        float avgmaxT = ParameterFormatClimate.MISSING;
         StringBuilder avgMaxTempQuery = new StringBuilder(
                 "SELECT cast(AVG(max_temp) as real) ");
         avgMaxTempQuery.append(" FROM ")
@@ -1079,7 +1081,7 @@ public class DailyClimateDAO extends ClimateDAO {
         minTempQuery.append(" AND station_id = :stationId ");
         minTempQuery.append(" AND min_temp!= :missingValue )");
 
-        oPeriodData.setMinTemp((int) ParameterFormatClimate.MISSING);
+        oPeriodData.setMinTemp(ParameterFormatClimate.MISSING);
         try {
             Object[] results = getDao().executeSQLQuery(minTempQuery.toString(),
                     keyParamMap);
@@ -1213,7 +1215,7 @@ public class DailyClimateDAO extends ClimateDAO {
         precip24HQuery.append(" AND station_id = :stationId ");
         precip24HQuery.append(" AND precip != :missingValue )");
 
-        oPeriodData.setPrecipMax24H((int) ParameterFormatClimate.MISSING);
+        oPeriodData.setPrecipMax24H(ParameterFormatClimate.MISSING);
         try {
             Object[] results = getDao()
                     .executeSQLQuery(precip24HQuery.toString(), keyParamMap);
@@ -1807,7 +1809,7 @@ public class DailyClimateDAO extends ClimateDAO {
 
         /****************** number partly cloudy days **********************/
         if (oPeriodData
-                .getNumMostlyCloudyDays() < (int) ParameterFormatClimate.MISSING) {
+                .getNumMostlyCloudyDays() < ParameterFormatClimate.MISSING) {
             /*
              * smo, DR 16759 thresh = 0.35;
              */
@@ -1851,9 +1853,8 @@ public class DailyClimateDAO extends ClimateDAO {
                     - oPeriodData.getNumPartlyCloudyDays()
                     - oPeriodData.getNumMostlyCloudyDays());
         } else {
-            oPeriodData.setNumFairDays((int) ParameterFormatClimate.MISSING);
-            oPeriodData.setNumPartlyCloudyDays(
-                    (int) ParameterFormatClimate.MISSING);
+            oPeriodData.setNumFairDays(ParameterFormatClimate.MISSING);
+            oPeriodData.setNumPartlyCloudyDays(ParameterFormatClimate.MISSING);
         }
 
         /*******************
@@ -3359,13 +3360,14 @@ public class DailyClimateDAO extends ClimateDAO {
 
         for (ClimateDailyReportData reportData : dataMap.values()) {
             DailyClimateData data = reportData.getData();
+            ClimateRecordDay yClimate = reportData.getyClimate();
             /*
              * Calculate the derived and cumulative fields now that the user has
              * updated the climatology from yesterday. (build_derived_fields)
              */
             try {
-                ClimateDAOUtils.buildDerivedData(date, data.getInformId(),
-                        data);
+                ClimateDAOUtils.buildDerivedData(date, data.getInformId(), data,
+                        yClimate);
             } catch (ClimateQueryException e) {
                 throw new ClimateSessionException(
                         "Error building derived data for date ["

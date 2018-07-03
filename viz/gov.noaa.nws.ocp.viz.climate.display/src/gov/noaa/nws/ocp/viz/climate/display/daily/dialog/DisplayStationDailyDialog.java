@@ -96,6 +96,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListen
  *                                     wind QC tooltips.
  * 04 AUG 2017  36707      amoore      Add warning on closing with X.
  * 19 SEP 2017  38124      amoore      Use GC for text control sizes.
+ * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
  * </pre>
  * 
  * @author amoore
@@ -627,10 +628,13 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
                         completed = MessageDialog.openConfirm(getShell(),
                                 "Continue?",
                                 "Are you sure you wish to accept all values for the stations?"
-                                        + " Unsaved changes will be lost, and"
-                                        + " climate execution will proceed to the next step.");
+                                        + " Climate execution will proceed to the next step.");
 
                         if (completed) {
+                            /*
+                             * Save displayed values.
+                             */
+                            acceptValues();
                             /*
                              * send EDEX request for the Display headless
                              * functionality and continue CPG workflow.
@@ -640,13 +644,13 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
                                             myPeriodType, myDate, myDataMap));
                             try {
                                 ThriftClient.sendRequest(request);
+                                // close the GUI
+                                close();
                             } catch (VizException e) {
                                 logger.error(
                                         "Error finalizing data after completion of Display module.",
                                         e);
                             }
-                            // close the GUI
-                            close();
                         }
                     }
                 });
