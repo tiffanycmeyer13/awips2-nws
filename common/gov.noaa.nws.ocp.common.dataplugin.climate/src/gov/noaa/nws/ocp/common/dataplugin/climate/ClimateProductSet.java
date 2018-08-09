@@ -5,6 +5,7 @@ package gov.noaa.nws.ocp.common.dataplugin.climate;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct.ProductStatus;
  * 11 MAY 2017  33104      amoore      More Find Bugs minor issues.
  * 02 NOV 2016  40210      wpaintsil   Months for the Calendar object are zero-indexed, 
  *                                     whereas LocalDateTime months are one-indexed.
+ * 09 AUG 2018  DR20837    wpaintsil   Shift expiration times to the next day.
  * </pre>
  *
  * @author pwang
@@ -84,7 +86,8 @@ public class ClimateProductSet {
             return null;
         }
 
-        LocalDateTime expiration = LocalDateTime.now();
+        // Ensure the expiration time is a day later.
+        LocalDateTime expiration = LocalDateTime.now().plusDays(1);
 
         for (ClimateProduct cp : prodData.values()) {
             if (cp.getExpirationTime() != null
@@ -111,10 +114,15 @@ public class ClimateProductSet {
      */
     private LocalDateTime getLaterExpiration(Calendar prodExp,
             LocalDateTime currentExp) {
-        LocalDateTime prodexp = LocalDateTime.of(prodExp.get(Calendar.YEAR),
-                prodExp.get(Calendar.MONTH) + 1,
-                prodExp.get(Calendar.DAY_OF_MONTH), prodExp.get(Calendar.HOUR),
-                prodExp.get(Calendar.MINUTE), prodExp.get(Calendar.SECOND));
+
+        LocalDateTime prodexp = LocalDateTime.ofInstant(prodExp.toInstant(),
+                prodExp.getTimeZone() == null ? ZoneId.systemDefault()
+                        : prodExp.getTimeZone().toZoneId());
+
+        // As is, the expiration time chosen in the settings GUI is going to be
+        // on the current day.
+        // Shift the time to the next day.
+        prodexp = prodexp.plusDays(1);
 
         if (prodexp.isAfter(currentExp)) {
             return prodexp;
