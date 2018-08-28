@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: GeoData
 Bundle-SymbolicName: gov.noaa.nws.obs.common.dataplugin.geodata
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.comm,
  com.raytheon.uf.common.serialization,

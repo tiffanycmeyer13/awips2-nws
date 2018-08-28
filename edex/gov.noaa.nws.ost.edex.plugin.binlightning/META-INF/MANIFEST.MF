@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: OST Binlightning
 Bundle-SymbolicName: gov.noaa.nws.ost.edex.plugin.binlightning
 Bundle-Version: 1.14.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Import-Package: com.raytheon.uf.common.dataplugin.binlightning,
  com.raytheon.uf.common.dataplugin.binlightning.dataaccess,
  com.raytheon.uf.common.dataplugin.binlightning.impl,

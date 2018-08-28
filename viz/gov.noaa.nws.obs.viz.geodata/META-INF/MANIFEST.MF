@@ -4,7 +4,7 @@ Bundle-Name: Geodata
 Bundle-SymbolicName: gov.noaa.nws.obs.viz.geodata;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.uf.viz.core.rsc,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.common.dataplugin,

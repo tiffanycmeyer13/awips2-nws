@@ -4,7 +4,7 @@ Bundle-Name: Mping
 Bundle-SymbolicName: gov.noaa.nws.sr.oun.dataplugin.mping
 Bundle-Version: 1.15.0.qualifier
 Bundle-Vendor: NWS OUN
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
  javax.persistence;bundle-version="1.0.0",
