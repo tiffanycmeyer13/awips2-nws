@@ -46,6 +46,7 @@ import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.viz.core.mode.CAVEMode;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
@@ -84,6 +85,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 12 SEP 2017  23215     amoore       Add Select All stations capability.
  * 19 SEP 2017  38124     amoore       Use GC for text control sizes.
  * 17 OCT 2017  39614     amoore       Address review comments.
+ * 28 AUG 2018  DR 20861  dfriedman    Add option to enable transmission of products.
  * </pre>
  * 
  * @author xzhang
@@ -135,6 +137,11 @@ public class F6BuilderDialog extends ClimateCaveDialog {
      * Button to view report.
      */
     protected Button viewCheckButton;
+
+    /**
+     * Button to transmit report.
+     */
+    protected Button transmitCheckButton;
 
     /**
      * Remark text field.
@@ -344,7 +351,7 @@ public class F6BuilderDialog extends ClimateCaveDialog {
     }
 
     /**
-     * Build option section - "Print", "View", and "Remarks".
+     * Build option section - "Print", "View", "Transmit", and "Remarks".
      */
     private void buildOptions() {
 
@@ -382,6 +389,16 @@ public class F6BuilderDialog extends ClimateCaveDialog {
         viewCheckButton.setText("View F6 copies in browser");
         viewCheckButton.setToolTipText(
                 "View copies of generated F6 reports stored on the EDEX server.");
+
+        // "View selected F6s" button
+        transmitCheckButton = new Button(printOpenComp, SWT.CHECK);
+        GridData gd_transmitCheckButton = new GridData(SWT.LEFT, SWT.CENTER, false,
+                false, 2, 1);
+        transmitCheckButton.setLayoutData(gd_transmitCheckButton);
+        transmitCheckButton.setText("Transmit F6 reports for dissemination");
+        transmitCheckButton.setToolTipText(
+                "Transmit F6 generated reports for dissemination.");
+        transmitCheckButton.setSelection(isTransmissionEnabled());
 
         new Label(shell, SWT.NONE);
 
@@ -457,6 +474,7 @@ public class F6BuilderDialog extends ClimateCaveDialog {
                 request.setAdate(date);
 
                 request.setPrint(printCheckButton.getSelection());
+                request.setTransmit(transmitCheckButton.getSelection());
 
                 List<Station> selectedStations = new ArrayList<>();
                 for (int i = 0; i < stationTable.getItemCount(); i++) {
@@ -596,6 +614,28 @@ public class F6BuilderDialog extends ClimateCaveDialog {
         }
 
         return tmpF6Files;
+    }
+
+    /**
+     * Determine if dissemination is allowed as indicated by the global Climate
+     * preferences. Used to determine if the "Transmit" checkbox should be
+     * enabled by default.
+     *
+     * @return true if transmission option should be enabled by default
+     */
+    private boolean isTransmissionEnabled() {
+        ClimateRequest cr = new ClimateRequest();
+        cr.setRequestType(RequestType.GET_GLOBAL);
+        try {
+            ClimateGlobal preferences = (ClimateGlobal) ThriftClient
+                    .sendRequest(cr);
+            if (preferences != null && preferences.isAllowDisseminate()) {
+                return true;
+            }
+        } catch (VizException e) {
+            logger.error("Failed to read preferences.", e);
+        }
+        return false;
     }
 
 }
