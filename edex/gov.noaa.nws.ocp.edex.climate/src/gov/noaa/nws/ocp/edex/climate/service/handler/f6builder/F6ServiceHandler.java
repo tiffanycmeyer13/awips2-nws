@@ -21,6 +21,7 @@ import gov.noaa.nws.ocp.edex.climate.f6builder.F6Builder;
  * 22 FEB 2017  28609      amoore      Address TODOs. Fix comments.
  * 10 MAR 2017  30130      amoore      F6 should not keep output in awips directory, and should
  *                                     delete after printing. Send to textDB on EDEX side, not VIZ.
+ * 28 AUG 2018  DR 20861  dfriedman    Add option to enable transmission of products.
  * </pre>
  * 
  * @author xzhang
@@ -33,6 +34,6 @@ public class F6ServiceHandler implements IRequestHandler<F6ServiceRequest> {
     public Object handleRequest(F6ServiceRequest request) throws Exception {
         return new F6Builder().buildF6ForStations(request.getStations(),
                 request.getAdate(), request.getRemarks(), request.isPrint(),
-                request.isOperational());
+                request.isTransmit(), request.isOperational());
     }
 }

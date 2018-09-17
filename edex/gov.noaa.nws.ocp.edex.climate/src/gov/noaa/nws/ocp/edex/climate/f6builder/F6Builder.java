@@ -23,13 +23,21 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 import com.raytheon.edex.site.SiteUtil;
+import com.raytheon.uf.common.auth.resp.SuccessfulExecution;
+import com.raytheon.uf.common.auth.user.User;
+import com.raytheon.uf.common.dataplugin.text.db.AfosToAwips;
+import com.raytheon.uf.common.dissemination.OUPRequest;
+import com.raytheon.uf.common.dissemination.OUPResponse;
+import com.raytheon.uf.common.dissemination.OfficialUserProduct;
 import com.raytheon.uf.common.message.StatusMessage;
+import com.raytheon.uf.common.serialization.comm.RequestRouter;
 import com.raytheon.uf.common.site.SiteMap;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.edex.core.EDEXUtil;
+import com.raytheon.uf.edex.plugin.text.AfosToAwipsLookup;
 import com.raytheon.uf.edex.plugin.text.db.TextDB;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
@@ -103,6 +111,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 10 OCT 2017  39132      amoore      Check against allowDisseminate flag.
  * 16 OCT 2017  39449      amoore      Print weather line if any weather detected, not just if
  *                                     num_weather_obs value is non-missing.
+ * 28 AUG 2018  DR 20861   dfriedman   Support transmission of F6 reports.
  * </pre>
  * 
  * @author amoore
@@ -130,6 +139,12 @@ public class F6Builder {
      * Prefix for temporary F6 files.
      */
     private static final String OUTPUT_F6_PREFIX = "output_f6_";
+
+    /**
+     * If true, remove restriction that only F6 products for the current site
+     * will be transmitted.
+     */
+    private static final boolean SEND_ANY_SITE = Boolean.getBoolean("climate.f6.sendAnySite");
 
     /** The logger */
     private static final IUFStatusHandler logger = UFStatus
@@ -189,7 +204,7 @@ public class F6Builder {
         }
 
         ClimateDate aDate = ClimateDate.getPreviousDay();
-        return buildF6ForStations(stations, aDate, "", false, true);
+        return buildF6ForStations(stations, aDate, "", false, true, true);
     }
 
     /**
@@ -199,12 +214,13 @@ public class F6Builder {
      * @param aDate
      * @param remarks
      * @param print
+     * @param transmit user or process has requested transmission
      * @param operational
      * @return
      */
     public F6ServiceResponse buildF6ForStations(List<Station> stations,
             ClimateDate aDate, String remarks, boolean print,
-            boolean operational) {
+            boolean transmit, boolean operational) {
 
         boolean hasException = false;
         StringBuilder messages = new StringBuilder();
@@ -221,6 +237,7 @@ public class F6Builder {
 
         String siteName = SiteUtil.getSite();
         String ccc = SiteMap.getInstance().getCCCFromXXXCode(siteName);
+        String site4c = SiteMap.getInstance().getSite4LetterId(siteName);
         if (ccc == null) {
             ccc = siteName;
         }
@@ -228,8 +245,8 @@ public class F6Builder {
         boolean disseminate = ClimateGlobalConfiguration.getGlobal()
                 .isAllowDisseminate();
 
-        if (!disseminate) {
-            messages.append("Dissemination to text DB is disabled!\n");
+        if (transmit && !disseminate) {
+            messages.append("Dissemination over MHS is disabled!\n");
         }
 
         for (Station station : stations) {
@@ -270,20 +287,47 @@ public class F6Builder {
                  * 
                  * Now, let's create the new CF6 product with "CF6ccc" format.
                  */
-                pils[1] = ccc + CF6_PIL_START
+                String f6Pil = ccc + CF6_PIL_START
                         + station.getIcaoId().substring(1);
+                pils[1] = f6Pil;
                 for (String pil : pils) {
+                    boolean ok;
                     long insertTime;
-                    if (disseminate) {
+                    boolean transmitThisProduct = false;
+                    String awipsWanPil = null;
+                    if (pil == f6Pil && operational && transmit && disseminate
+                            && site4c != null) {
+                        awipsWanPil = mapToAwipsID(pil, SEND_ANY_SITE ? null : site4c);
+                        if (awipsWanPil != null) {
+                            transmitThisProduct = true;
+                        } else {
+                            logger.warn(String.format(
+                                    "F6 report with pil %s will not be transmitted because" +
+                                    "it is not in afos2awips.txt or not from site %s",
+                                    pil, site4c));
+                        }
+                    }
+                    if (transmitThisProduct) {
+                        /*
+                         * Transmit the product. This will also store the
+                         * product in the text database.
+                         */
+                        ok = transmitProduct(pil, awipsWanPil, totalContents.toString());
+                        insertTime = ok ? TimeUtil.newDate().getTime() : Long.MIN_VALUE;
+                    } else {
                         insertTime = textdb.writeProduct(pil,
                                 totalContents.toString(), operational, null);
-                    } else {
-                        insertTime = TimeUtil.newDate().getTime();
+                        ok = insertTime != Long.MIN_VALUE;
                     }
 
-                    if (insertTime != Long.MIN_VALUE) {
+                    if (ok) {
+                        String action = transmitThisProduct
+                                ? "transmitted F6 report"
+                                : "stored F6 report to the text database";
+                        String shortAction = transmitThisProduct ? "transmitted"
+                                : "stored";
                         logger.debug(
-                                "Successfully stored F6 report to the text database for station ["
+                                "Successfully " + action + " for station ["
                                         + station.getIcaoId() + "] with PIL ["
                                         + pil + "]");
 
@@ -318,7 +362,7 @@ public class F6Builder {
                                         "F6 product [" + pil + "] generated.");
                             } else {
                                 sm.setMessage("F6 product [" + pil
-                                        + "] generated but not stored. Dissemination is disabled.");
+                                        + "] generated but not transmitted. Dissemination is disabled.");
                             }
 
                             sm.setDetails("F6 report with AFOS ID [" + pil
@@ -336,14 +380,19 @@ public class F6Builder {
                         pilMap.put(pil, reportContent);
 
                         messages.append(
-                                "Successfully created report for Station "
+                                "Successfully created and " + shortAction
+                                        + " report for Station "
                                         + station.getStationName()
                                         + " with PIL " + pil + ".\n");
                     } else {
-                        String message = "Something went wrong storing F6 report to the text database for station "
+                        String action = transmitThisProduct ? "transmitting F6 report" :
+                            "storing F6 report to the text database";
+                        String hint = transmitThisProduct ? ""
+                                : " Ensure connection to text DB and that this would " +
+                                "not be an exact duplicate of an existing report.";
+                        String message = "Something went wrong " + action + " for station "
                                 + station.getIcaoId() + " with PIL " + pil
-                                + ". Ensure connection to text DB and that this is would not be an exact duplicate"
-                                + " of an existing report.\n";
+                                + "." + hint + "\n";
                         logger.error(message);
                         messages.append(message);
                         hasException = true;
@@ -1486,4 +1535,107 @@ public class F6Builder {
         return lines;
     }
 
+    /**
+     * Transmit the given product over MHS using the given product identifier.
+     *
+     * @param pil
+     *            AFOS PIL
+     * @param awipsWanPil
+     *            CCCCNNNXXX as required by OUPRequest
+     * @param productText
+     * @return true if the product was succesfully transmitted, false otherwise
+     */
+    private boolean transmitProduct(String pil, String awipsWanPil, String productText) {
+        OfficialUserProduct oup = new OfficialUserProduct();
+        oup.setFilename(String.format("%s_%s", pil,
+                TimeUtil.getUnixTime(TimeUtil.newDate())));
+        oup.setProductText(productText);
+        oup.setNeedsWmoHeader(true);
+        oup.setAwipsWanPil(awipsWanPil);
+        oup.setSource("Climate");
+
+        OUPRequest req = new OUPRequest();
+        req.setUser(new User(OUPRequest.EDEX_ORIGINATION));
+        req.setProduct(oup);
+
+        try {
+            Object object = RequestRouter.route(req);
+            if (!(object instanceof SuccessfulExecution)) {
+                String msg = "Error transmitting NWWS climate products. Unexpected response class: "
+                        + object.getClass().getName();
+                logger.error(msg);
+            } else {
+                OUPResponse resp = (OUPResponse) ((SuccessfulExecution) object)
+                        .getResponse();
+
+                if (resp.hasFailure()) {
+                    String additionalInfo = "";
+                    // check which kind of failure
+                    if (!resp.isAttempted()) {
+                        // if was never attempted to send or store even locally
+                        additionalInfo = "ERROR local store never attempted";
+                    } else if (!resp.isSendLocalSuccess()) {
+                        // if send/store locally failed
+                        additionalInfo = "ERROR store locally failed";
+                    } else if (!resp.isSendWANSuccess()) {
+                        // if send to WAN failed
+                        if (resp.getNeedAcknowledgment()) {
+                            // if ack was needed, if it never sent then no ack
+                            // was received
+                            additionalInfo = "ERROR send to WAN failed and no acknowledgment received";
+                        } else {
+                            // if no ack was needed
+                            additionalInfo = "WARNING send to WAN failed";
+                        }
+                    } else if (resp.getNeedAcknowledgment()
+                            && !resp.isAcknowledged()) {
+                        // if sent but not acknowledged when acknowledgment is
+                        // needed
+                        additionalInfo = "ERROR no acknowledgment received";
+                    }
+                    logger.error(resp.getMessage()
+                            + " -- Additional Information: " + additionalInfo);
+                } else {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Transmit to NWWS failed.", e);
+        }
+        return false;
+    }
+
+    /**
+     * Maps an AFOS PIL (CCCNNNXXX) to AWIPS product identifier CCCCNNNXXX using
+     * afos2awips.txt to perform table-lookup.
+     *
+     * The logic is based on handleOUP.pl sub "mapToAfosAndWmoIds()". This also
+     * adds a check that the product is one of the site's own as is done in
+     * the legacy "create_f6_product" script.
+     *
+     * @param afosId
+     * @param restrictToSite
+     *            if not null, any returned ID will be for the given site
+     *
+     * @return awipsID
+     */
+    private String mapToAwipsID(String afosId, String restrictToSite) {
+
+        String prodAwipsID = null;
+        List<AfosToAwips> list = AfosToAwipsLookup.lookupWmoId(afosId)
+                .getIdList();
+        for (AfosToAwips ata : list) {
+            String cccc = ata.getWmocccc();
+            if (restrictToSite != null && !restrictToSite.equals(cccc)) {
+                continue;
+            }
+            String awipsId = afosId.substring(3);
+            if (afosId.equals(ata.getAfosid())) {
+                prodAwipsID = cccc + awipsId;
+                break;
+            }
+        }
+
+        return prodAwipsID;
+    }
 }

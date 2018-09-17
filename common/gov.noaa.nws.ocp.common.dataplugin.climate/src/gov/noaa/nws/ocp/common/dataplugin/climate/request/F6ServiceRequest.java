@@ -25,6 +25,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
  * 22 FEB 2017  28609      amoore      Add description.
  * 10 MAR 2017  30130      amoore      F6 should not keep output in awips directory, and should
  *                                     delete after printing. Send to textDB on EDEX side, not VIZ.
+ * 28 AUG 2018  DR 20861   dfriedman   Add option to enable transmission of products.
  * </pre>
  * 
  * @author xzhang
@@ -45,6 +46,9 @@ public class F6ServiceRequest implements IServerRequest {
 
     @DynamicSerializeElement
     private boolean print;
+
+    @DynamicSerializeElement
+    private boolean transmit;
 
     @DynamicSerializeElement
     private boolean operational;
@@ -86,6 +90,14 @@ public class F6ServiceRequest implements IServerRequest {
 
     public void setPrint(boolean print) {
         this.print = print;
+    }
+
+    public boolean isTransmit() {
+        return transmit;
+    }
+
+    public void setTransmit(boolean transmit) {
+        this.transmit = transmit;
     }
 
     public boolean isOperational() {
