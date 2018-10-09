@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -55,6 +56,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 16 JUN 2017  35182      amoore     Add util Date and SQL date as possible construction objects.
  * 24 JUL 2017  33104      amoore     Time format in 24-hours.
  * 18 SEP 2017  38078      amoore     Fixed bad formatting for First of month format.
+ * 24 AUG 2018  DR20863    wpaintsil  With getLocalDate(), create a distinction between machine/GMT
+ *                                    time and local time.
  * </pre>
  * 
  * @author xzhang
@@ -444,11 +447,33 @@ public class ClimateDate {
     }
 
     /**
-     * @return object based on local date.
+     * @return object based on the local date as well as the timezone.
+     * @param timeZone
+     *            the time zone string
+     */
+    public static ClimateDate getLocalDate(String timeZone) {
+        Calendar cal;
+        if (timeZone == null) {
+            cal = TimeUtil.newCalendar();
+        } else {
+            TimeZone localTimeZone = TimeZone.getTimeZone(timeZone);
+
+            cal = TimeUtil.newCalendar(localTimeZone);
+
+            if (!localTimeZone.getID().equalsIgnoreCase(timeZone)) {
+                logger.warn("Formatter tried to use globalDay timezone of: ["
+                        + timeZone + "], but Java parsed this as: ["
+                        + localTimeZone.getID() + "].");
+            }
+        }
+        return new ClimateDate(cal);
+    }
+
+    /**
+     * @return object based on the local date
      */
     public static ClimateDate getLocalDate() {
-        Calendar cal = TimeUtil.newCalendar();
-        return new ClimateDate(cal);
+        return getLocalDate(null);
     }
 
     /**

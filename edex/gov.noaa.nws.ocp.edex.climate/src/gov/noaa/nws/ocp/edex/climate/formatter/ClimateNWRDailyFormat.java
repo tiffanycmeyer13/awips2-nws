@@ -53,6 +53,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * Feb 27, 2017 21099      wpaintsil   Initial creation
  * Oct 31, 2017 40112      wpaintsil   Correct period placement in temp sentence.
  * Apr 20, 2018 DR17116    wpaintsil   Accommodate more than one alternate snow/precip season.
+ * Aug 08, 2018 DR20836    wpaintsil   Minor correction to precip grammar.
  *
  * </pre>
  *
@@ -2241,14 +2242,13 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
                     liquidPhrase.append("This is ").append(precipString)
                             .append(" inches ")
-                            .append(ClimateNWRFormat.aboveBelow(which))
-                            .append(SPACE);
+                            .append(ClimateNWRFormat.aboveBelow(which)).append(SPACE);
 
                     if (precipFlag.getPrecipTotal().isNorm()) {
                         precipString = String.format(FLOAT_TWO_DECIMALS1,
                                 yClimate.getPrecipMonthMean());
 
-                        liquidPhrase.append("the normal amount ")
+                        liquidPhrase.append("the normal amount of ")
                                 .append(precipString).append(" inches for ")
                                 .append(DateFormatSymbols.getInstance()
                                         .getMonths()[beginDate.getMon() - 1])
