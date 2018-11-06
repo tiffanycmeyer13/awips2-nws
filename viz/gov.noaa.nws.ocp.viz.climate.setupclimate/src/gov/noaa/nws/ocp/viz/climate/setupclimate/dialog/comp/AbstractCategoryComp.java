@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -35,7 +37,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductCo
  * 14 DEC 2016  20640      jwu         Initial creation
  * 09 FEB 2017  20640      jwu         Use ClimateGlobal for preference values.
  * 17 MAY 2017  33104      amoore      FindBugs. Package reorg.
- * 30 AUG 2017  37472     jwu         Do fixed GUI adjustment at the end.
+ * 30 AUG 2017  37472      jwu         Do fixed GUI adjustment at the end.
+ * 06 NOV 2018  55207      jwu         Enable some legacy behavior(DR 20889).
  * 
  * </pre>
  * 
@@ -157,6 +160,29 @@ public abstract class AbstractCategoryComp extends Composite {
          */
         switchBetweenNWRnNWWS();
         switchBetweenDailyPeriod();
+
+        /*
+         * Add a listener to all "major" buttons to match legacy behavior: when
+         * a "major" button is selected, the associated composite will be shown.
+         * When a "major" button is de-selected, the associated composite will
+         * be hidden and all buttons in the composite will be de-selected.
+         */
+        for (Button btn : subCategoryMap.keySet()) {
+            btn.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    boolean selected = ((Button) event.widget).getSelection();
+                    Composite minorComp = subCategoryMap.get(btn);
+                    minorComp.setVisible(selected);
+                    minorComp.layout(true, true);
+
+                    if (!selected) {
+                        selectButtons(minorComp, false);
+                    }
+                }
+            });
+        }
+
     }
 
     /**

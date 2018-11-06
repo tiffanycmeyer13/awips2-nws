@@ -30,6 +30,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.PrecipitationCon
  * Dec 14, 2016 20640      jwu          Initial creation
  * FEB 13, 2017 20640      jwu          Adjust GUI for preference values.
  * 17 MAY 2017  33104      amoore       FindBugs. Package reorg.
+ * 20 SEP 2018  55207      jwu          Fix relation between "Last Year's" and 
+ *                                      "-Date" buttons (DR 20889.
  * 
  * </pre>
  * 
@@ -310,16 +312,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
         totalYear2DateBtn = new Button(totalPrecipMinorComp, SWT.CHECK);
         totalYear2DateBtn.setText("Year to Date");
 
-        // Clicking on "major" button will show/hide all items in it.
-        totalMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                totalPrecipMinorComp.setVisible(selected);
-                totalPrecipMinorComp.layout(true, true);
-            }
-        });
-
         // Check if P1 and P2 are defined
         String P1Str = "??";
         String P2Str = "??";
@@ -348,16 +340,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
         precipGEP1LastYearBtn = new Button(precipGEP1MinorComp, SWT.CHECK);
         precipGEP1LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        precipGEP1MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGEP1MinorComp.setVisible(selected);
-                precipGEP1MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with precip. >= P2 inch
         precipGEP2Comp = new Composite(totalComp, SWT.NONE);
         precipGEP2Comp.setLayout(majorCompLayout);
@@ -376,16 +358,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
 
         precipGEP2LastYearBtn = new Button(precipGEP2MinorComp, SWT.CHECK);
         precipGEP2LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        precipGEP2MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGEP2MinorComp.setVisible(selected);
-                precipGEP2MinorComp.layout(true, true);
-            }
-        });
 
         return totalMainComp;
     }
@@ -428,16 +400,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
         precipGE01LastYearBtn = new Button(precipGE01MinorComp, SWT.CHECK);
         precipGE01LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        precipGE01MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGE01MinorComp.setVisible(selected);
-                precipGE01MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with precip. >= 0.10 inch
         precipGE10Comp = new Composite(daysComp, SWT.NONE);
         precipGE10Comp.setLayout(majorCompLayout);
@@ -461,16 +423,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
 
         precipGE10LastYearBtn = new Button(precipGE10MinorComp, SWT.CHECK);
         precipGE10LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        precipGE10MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGE10MinorComp.setVisible(selected);
-                precipGE10MinorComp.layout(true, true);
-            }
-        });
 
         // Composite for days with precip. >= 0.50 inch
         precipGE50Comp = new Composite(daysComp, SWT.NONE);
@@ -496,16 +448,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
         precipGE50LastYearBtn = new Button(precipGE50MinorComp, SWT.CHECK);
         precipGE50LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        precipGE50MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGE50MinorComp.setVisible(selected);
-                precipGE50MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with precip. >= 1.00 inch
         precipGE100Comp = new Composite(daysComp, SWT.NONE);
         precipGE100Comp.setLayout(majorCompLayout);
@@ -529,16 +471,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
 
         precipGE100LastYearBtn = new Button(precipGE100MinorComp, SWT.CHECK);
         precipGE100LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        precipGE100MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipGE100MinorComp.setVisible(selected);
-                precipGE100MinorComp.layout(true, true);
-            }
-        });
 
         return daysComp;
     }
@@ -581,16 +513,6 @@ public class PrecipitationComp extends AbstractCategoryComp {
         precipAvgLastYearBtn = new Button(precipAvgMinorComp, SWT.CHECK);
         precipAvgLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        precipAvgMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipAvgMinorComp.setVisible(selected);
-                precipAvgMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for storm max. precip.
         precipStormMaxComp = new Composite(averageComp, SWT.NONE);
         precipStormMaxComp.setLayout(majorCompLayout);
@@ -614,20 +536,18 @@ public class PrecipitationComp extends AbstractCategoryComp {
         precipStormMaxLastYearBtn = new Button(precipStormMaxAvgMinorComp,
                 SWT.CHECK);
         precipStormMaxLastYearBtn.setText(" Last Year's");
+        precipStormMaxLastYearBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                // De-select "-Date" if "Last Year" is de-selected.
+                updateButton(precipStormMaxDateOfLastBtn,
+                        precipStormMaxLastYearBtn.getSelection());
+            }
+        });
 
         precipStormMaxDateOfLastBtn = new Button(precipStormMaxAvgMinorComp,
                 SWT.CHECK);
         precipStormMaxDateOfLastBtn.setText("  - Date");
-
-        // Clicking on "major" button will show/hide all items in it.
-        precipStormMaxMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precipStormMaxAvgMinorComp.setVisible(selected);
-                precipStormMaxAvgMinorComp.layout(true, true);
-            }
-        });
 
         // Composite for 24 hour precip.
         precip24HRComp = new Composite(averageComp, SWT.NONE);
@@ -650,19 +570,17 @@ public class PrecipitationComp extends AbstractCategoryComp {
 
         precip24HRLastYearBtn = new Button(precip24HRMinorComp, SWT.CHECK);
         precip24HRLastYearBtn.setText("Last Year's");
+        precip24HRLastYearBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                // De-select "-Date" if "Last Year" is de-selected.
+                updateButton(precip24HRDateOfLastBtn,
+                        precip24HRLastYearBtn.getSelection());
+            }
+        });
 
         precip24HRDateOfLastBtn = new Button(precip24HRMinorComp, SWT.CHECK);
         precip24HRDateOfLastBtn.setText(" - Date");
-
-        // Clicking on "major" button will show/hide all items in it.
-        precip24HRMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                precip24HRMinorComp.setVisible(selected);
-                precip24HRMinorComp.layout(true, true);
-            }
-        });
 
         return averageComp;
     }
@@ -683,8 +601,10 @@ public class PrecipitationComp extends AbstractCategoryComp {
         updateButton(precipStormMaxLastYearBtn, !isNWR);
         updateButton(precip24HRLastYearBtn, !isNWR);
 
-        updateButton(precipStormMaxDateOfLastBtn, false);
-        updateButton(precip24HRDateOfLastBtn, false);
+        updateButton(precipStormMaxDateOfLastBtn,
+                !isNWR && precipStormMaxLastYearBtn.getSelection());
+        updateButton(precip24HRDateOfLastBtn,
+                !isNWR && precip24HRLastYearBtn.getSelection());
     }
 
     /**
@@ -718,7 +638,8 @@ public class PrecipitationComp extends AbstractCategoryComp {
         updateButton(totalYear2DateBtn, isDaily);
 
         updateButton(totalRecordMinBtn, !isDaily);
-        updateButton(totalRecordMinYearBtn, false);
+        updateButton(totalRecordMinYearBtn,
+                !isDaily && totalRecordMinBtn.getSelection());
     }
 
     /**
@@ -987,8 +908,9 @@ public class PrecipitationComp extends AbstractCategoryComp {
                         .setSelection(flags.getPrecip24HR().isTimeOfMeasured());
                 precip24HRLastYearBtn
                         .setSelection(flags.getPrecip24HR().isLastYear());
+                precip24HRDateOfLastBtn
+                        .setEnabled(precip24HRLastYearBtn.getSelection());
                 if (precip24HRLastYearBtn.getSelection()) {
-
                     precip24HRDateOfLastBtn
                             .setSelection(flags.getPrecip24HR().isDateOfLast());
                 }
@@ -1002,6 +924,8 @@ public class PrecipitationComp extends AbstractCategoryComp {
 
                 precipStormMaxLastYearBtn
                         .setSelection(flags.getPrecipStormMax().isLastYear());
+                precipStormMaxDateOfLastBtn
+                        .setEnabled(precipStormMaxLastYearBtn.getSelection());
                 if (precipStormMaxLastYearBtn.getSelection()) {
                     precipStormMaxDateOfLastBtn.setSelection(
                             flags.getPrecipStormMax().isDateOfLast());
