@@ -4,8 +4,6 @@
 package gov.noaa.nws.ocp.viz.climate.setupclimate.dialog.comp;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -29,6 +27,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.DegreeDaysContro
  * 22 JUN 2017  33104      amoore       Fix copy-paste error.
  * 11 JUL 2017  33104      amoore       Fix copy-paste error.
  * 16 AUG 2017             jwu          Rename "Year to Date" to "Since ...".
+ * 06 NOV 2018  55207      jwu          Enable some legacy behavior(DR 20889).
  * </pre>
  * 
  * @author jwu
@@ -222,17 +221,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
         totalHDDSinceJuly1Btn = new Button(totalHDDMinorComp, SWT.CHECK);
         totalHDDSinceJuly1Btn.setText("Since July 1");
 
-        // Clicking on "major" button will show/hide all items in it.
-        totalHDDMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                totalHDDMinorComp.setVisible(selected);
-                totalHDDMinorComp.layout(true, true);
-            }
-        });
-
         // Total cooling degree days composite
         Composite totalCDDComp = new Composite(totalMainComp, SWT.NONE);
         totalCDDComp.setLayout(majorCompLayout);
@@ -264,17 +252,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
 
         totalCDDSinceJan1Btn = new Button(totalCDDMinorComp, SWT.CHECK);
         totalCDDSinceJan1Btn.setText("Since January 1");
-
-        // Clicking on "major" button will show/hide all items in it.
-        totalCDDMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                totalCDDMinorComp.setVisible(selected);
-                totalCDDMinorComp.layout(true, true);
-            }
-        });
 
         return totalMainComp;
     }
@@ -319,17 +296,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
         seasonHDDLastYearBtn = new Button(seasonHDDMinorComp, SWT.CHECK);
         seasonHDDLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        seasonHDDMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                seasonHDDMinorComp.setVisible(selected);
-                seasonHDDMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for cooling degree days since Jan. 1st
         Composite seasonCDDComp = new Composite(seasonMainComp, SWT.NONE);
         seasonCDDComp.setLayout(majorCompLayout);
@@ -352,17 +318,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
 
         seasonCDDLastYearBtn = new Button(seasonCDDMinorComp, SWT.CHECK);
         seasonCDDLastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        seasonCDDMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                seasonCDDMinorComp.setVisible(selected);
-                seasonCDDMinorComp.layout(true, true);
-            }
-        });
 
         return seasonMainComp;
     }
@@ -417,17 +372,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
         earlyFreezeRecordBtn = new Button(earlyFreezeMinorComp, SWT.CHECK);
         earlyFreezeRecordBtn.setText("  - Record");
 
-        // Clicking on "major" button will show/hide all items in it.
-        earlyFreezeMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                earlyFreezeMinorComp.setVisible(selected);
-                earlyFreezeMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for cooling degree days since Jan. 1st
         Composite lateFreezeComp = new Composite(freezeComp, SWT.NONE);
         lateFreezeComp.setLayout(majorCompLayout);
@@ -447,17 +391,6 @@ public class DegreeDaysComp extends AbstractCategoryComp {
 
         lateFreezeRecordBtn = new Button(lateFreezeMinorComp, SWT.CHECK);
         lateFreezeRecordBtn.setText("  - Record");
-
-        // Clicking on "major" button will show/hide all items in it.
-        lateFreezeMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                lateFreezeMinorComp.setVisible(selected);
-                lateFreezeMinorComp.layout(true, true);
-            }
-        });
 
         return freezeMainComp;
     }

@@ -29,6 +29,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.TemperatureContr
  * 17 MAY 2017  33104      amoore       FindBugs. Package reorg.
  * 13 MAR 2018  44624      amoore       Address discovered ATAN bug where Last Year's
  *                                      "Date/Time" is not selectable for NWWS.
+ * 06 NOV 2018  55207      jwu         Enable some legacy behavior(DR 20889).
  * </pre>
  * 
  * @author jwu
@@ -338,16 +339,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         maxDateOfLastBtn = new Button(maxTempMinorComp, SWT.CHECK);
         maxDateOfLastBtn.setText(" - Time/Date");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxTempMinorComp.setVisible(selected);
-                maxTempMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for maximum temperature >= 90F
         maxGE90Comp = new Composite(maximumComp, SWT.NONE);
         maxGE90Comp.setLayout(majorCompLayout);
@@ -371,16 +362,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         maxGE90LastYearBtn = new Button(maxGE90MinorComp, SWT.CHECK);
         maxGE90LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxGE90MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxGE90MinorComp.setVisible(selected);
-                maxGE90MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for maximum temperature <= 32F
         maxLE32Comp = new Composite(maximumComp, SWT.NONE);
         maxLE32Comp.setLayout(majorCompLayout);
@@ -403,16 +384,6 @@ public class TemperatureComp extends AbstractCategoryComp {
 
         maxLE32LastYearBtn = new Button(maxLE32MinorComp, SWT.CHECK);
         maxLE32LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        maxLE32MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxLE32MinorComp.setVisible(selected);
-                maxLE32MinorComp.layout(true, true);
-            }
-        });
 
         // Check if T1, T2 and T3 are defined
         String T1Str = DEF_THRESHOLD_STR;
@@ -450,16 +421,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         maxGET1LastYearBtn = new Button(maxGET1MinorComp, SWT.CHECK);
         maxGET1LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxGET1MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxGET1MinorComp.setVisible(selected);
-                maxGET1MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with max temperature >= T2 F
         maxGET2Comp = new Composite(maximumComp, SWT.NONE);
         maxGET2Comp.setLayout(majorCompLayout);
@@ -478,16 +439,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         maxGET2LastYearBtn = new Button(maxGET2MinorComp, SWT.CHECK);
         maxGET2LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxGET2MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxGET2MinorComp.setVisible(selected);
-                maxGET2MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with max temperature <= T3 F
         maxLET3Comp = new Composite(maximumComp, SWT.NONE);
         maxLET3Comp.setLayout(majorCompLayout);
@@ -505,16 +456,6 @@ public class TemperatureComp extends AbstractCategoryComp {
 
         maxLET3LastYearBtn = new Button(maxLET3MinorComp, SWT.CHECK);
         maxLET3LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        maxLET3MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                maxLET3MinorComp.setVisible(selected);
-                maxLET3MinorComp.layout(true, true);
-            }
-        });
 
         return maximumComp;
     }
@@ -604,16 +545,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         minDateOfLastBtn = new Button(minTempMinorComp, SWT.CHECK);
         minDateOfLastBtn.setText(" - Time/Date");
 
-        // Clicking on "major" button will show/hide all items in it.
-        minMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minTempMinorComp.setVisible(selected);
-                minTempMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for minimum temperature <= 32F
         minLE32Comp = new Composite(minimumComp, SWT.NONE);
         minLE32Comp.setLayout(majorCompLayout);
@@ -637,16 +568,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         minLE32LastYearBtn = new Button(minLE32MinorComp, SWT.CHECK);
         minLE32LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        minLE32MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minLE32MinorComp.setVisible(selected);
-                minLE32MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for maximum temperature <= 0F
         minLE0Comp = new Composite(minimumComp, SWT.NONE);
         minLE0Comp.setLayout(majorCompLayout);
@@ -669,16 +590,6 @@ public class TemperatureComp extends AbstractCategoryComp {
 
         minLE0LastYearBtn = new Button(minLE0MinorComp, SWT.CHECK);
         minLE0LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        minLE0MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minLE0MinorComp.setVisible(selected);
-                minLE0MinorComp.layout(true, true);
-            }
-        });
 
         // Check if T4, T5 and T6 are defined
         String T4Str = DEF_THRESHOLD_STR;
@@ -714,16 +625,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         minGET4LastYearBtn = new Button(minGET4MinorComp, SWT.CHECK);
         minGET4LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        minGET4MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minGET4MinorComp.setVisible(selected);
-                minGET4MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with min temperature <= T5 F
         minLET5Comp = new Composite(minimumComp, SWT.NONE);
         minLET5Comp.setLayout(majorCompLayout);
@@ -742,16 +643,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         minLET5LastYearBtn = new Button(minLET5MinorComp, SWT.CHECK);
         minLET5LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        minLET5MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minLET5MinorComp.setVisible(selected);
-                minLET5MinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with min temperature <= T6 F
         minLET6Comp = new Composite(minimumComp, SWT.NONE);
         minLET6Comp.setLayout(majorCompLayout);
@@ -769,16 +660,6 @@ public class TemperatureComp extends AbstractCategoryComp {
 
         minLET6LastYearBtn = new Button(minLET6MinorComp, SWT.CHECK);
         minLET6LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        minLET6MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                minLET6MinorComp.setVisible(selected);
-                minLET6MinorComp.layout(true, true);
-            }
-        });
 
         return minimumComp;
     }
@@ -847,16 +728,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         meanLastYearBtn = new Button(meanTempMinorComp, SWT.CHECK);
         meanLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        meanMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                meanTempMinorComp.setVisible(selected);
-                meanTempMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for average daily maximum temperature
         meanMaxComp = new Composite(meanComp, SWT.NONE);
         meanMaxComp.setLayout(majorCompLayout);
@@ -880,16 +751,6 @@ public class TemperatureComp extends AbstractCategoryComp {
         meanMaxLastYearBtn = new Button(meanMaxMinorComp, SWT.CHECK);
         meanMaxLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        meanMaxMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                meanMaxMinorComp.setVisible(selected);
-                meanMaxMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for average minimum temperature
         meanMinComp = new Composite(meanComp, SWT.NONE);
         meanMinComp.setLayout(majorCompLayout);
@@ -912,16 +773,6 @@ public class TemperatureComp extends AbstractCategoryComp {
 
         meanMinLastYearBtn = new Button(meanMinMinorComp, SWT.CHECK);
         meanMinLastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        meanMinMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                meanMinMinorComp.setVisible(selected);
-                meanMinMinorComp.layout(true, true);
-            }
-        });
 
         return meanComp;
     }
