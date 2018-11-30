@@ -1,0 +1,56 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="subMenu" menuText="Temperature" id="Tempid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="T"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Dewpoint Temperature" id="dpTempid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="DpT"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Dewpoint Depression" id="DpDid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="DpD"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Relative Humidity" id="rhid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="RH"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
+            <substitute key="param" value="T"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Lapse Rate" id="lapseRateid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="gamma"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
+            <substitute key="param" value="T"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Theta-E" id="Thetaeid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="ThetaE"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
+            <substitute key="param" value="T"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Theta-E Lapse Rate" id="theta3lapseid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
+            <substitute key="param" value="gammaE"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
+            <substitute key="param" value="T"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Precipitable Water" id="pwid">
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayersTPW.xml">
+            <substitute key="param" value="PWAT"/>
+        </contribute>
+    </contribute>
+    
+    
+</menuTemplate>

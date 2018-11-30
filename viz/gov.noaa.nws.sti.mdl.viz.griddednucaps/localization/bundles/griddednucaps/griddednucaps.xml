@@ -1,0 +1,48 @@
+    <!--
+    This is a generic bundle used to load one grib resource filtering by parameter,
+    level, and model.  Loads resource as an image. 
+     -->
+<bundle>
+    <displayList>
+        <displays xsi:type="mapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties xsi:type="gridLoadProperties" displayType="IMAGE" loadWithoutData="false">
+                        <capabilities>
+                            <capability xsi:type="colorMapCapability">
+                                <colorMapParameters colorMapName="Grid/gridded data"/>
+                            </capability>
+                            <capability xsi:type="imagingCapability" alpha="1.0" interpolationState="${interpolate;false}" brightness="1.0" contrast="1.0"/>
+                        </capabilities>
+                        <resourceType>PLAN_VIEW</resourceType>
+                    </loadProperties>
+                    <properties isSystemResource="false" isBlinking="false" isMapLayer="false" isHoverOn="false" isVisible="true"/>
+                    <resourceData xsi:type="gridResourceData" sampling="false" spatial="false" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+                        <metadataMap>
+                            <mapping key="info.parameter.abbreviation">
+                                <constraint constraintType="EQUALS" constraintValue="${param}"/>
+                            </mapping>
+                            <mapping key="info.datasetId">
+                                <constraint constraintType="EQUALS" constraintValue="griddednucaps"/>
+                            </mapping>
+                            <mapping key="pluginName">
+                                <constraint constraintType="EQUALS" constraintValue="grid"/>
+                            </mapping>
+                            <mapping key="info.level.leveltwovalue">
+                                <constraint constraintType="IN" constraintValue="${levelTwo;-999999.0}"/>
+                            </mapping>
+                            <mapping key="info.level.levelonevalue">
+                                <constraint constraintType="IN" constraintValue="${levelOne}"/>
+                            </mapping>
+                            <mapping key="info.level.masterLevel.name">
+                                <constraint constraintType="IN" constraintValue="${level}"/>
+                            </mapping>
+                        </metadataMap>
+                        <alertParser xsi:type="gribDataCubeAlertMessageParser"/>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+    </displayList>
+</bundle>
