@@ -89,6 +89,7 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Nov 27, 2017 #40299      wpaintsil   Add row-sorting functionality.
  * Nov 28, 2017 #41389      astrakovsky Fixed rainfall and tornado autocomplete error.
  * Dec 08, 2017 #41955      astrakovsky Improved editing performance for rainfall/tornado tabs.
+ * Dec 10, 2018 #20982      jwu         Allow user type in for storm "Effects".
  * </pre>
  *
  * @author wpaintsil
@@ -646,8 +647,15 @@ public abstract class PshTable {
                         switch (columns[jj].getControlType()) {
 
                         case COMBO:
+
                             control = new CCombo(table,
                                     SWT.BORDER | SWT.READ_ONLY);
+
+                            // DR 20982: allow user type-in for
+                            // Injuries/Deaths/Evacuation numbers
+                            if (tab.getTabType() == PshDataCategory.EFFECT) {
+                                ((CCombo) control).setEditable(true);
+                            }
 
                             selectComboItem((CCombo) control,
                                     columns[jj].getDropdownList(),
@@ -1824,16 +1832,22 @@ public abstract class PshTable {
         }
 
         // Find which one to be selected.
-        int sel = 0;
+        int nitem = 0;
+        int sel = -1;
         for (String listItem : items) {
             if (selected.equals(listItem)) {
+                sel = nitem;
                 break;
             }
-            sel++;
+            nitem++;
         }
 
         // Select.
-        combo.select(sel);
+        if (sel >= 0) {
+            combo.select(sel);
+        } else {
+            combo.setText(selected);
+        }
     }
 
 }
