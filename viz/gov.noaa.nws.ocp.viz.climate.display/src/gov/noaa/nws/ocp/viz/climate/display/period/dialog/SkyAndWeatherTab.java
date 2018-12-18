@@ -35,6 +35,8 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * </pre>
  * 
  * @author amoore
@@ -887,7 +889,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myHeavySnowTF
                 .setText(String.valueOf(iSavedPeriodData.getNumHeavySnow()));
         mySnowTF.setText(String.valueOf(iSavedPeriodData.getNumSnow()));
-        myLightSnowTF.setText(String.valueOf(iSavedPeriodData.getNumSnow()));
+        myLightSnowTF
+                .setText(String.valueOf(iSavedPeriodData.getNumLightSnow()));
         myIcePelletsTF
                 .setText(String.valueOf(iSavedPeriodData.getNumIcePellets()));
         myFogTF.setText(String.valueOf(iSavedPeriodData.getNumFog()));
@@ -998,7 +1001,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         myHeavySnowTF
                 .setText(String.valueOf(iDailyBuildData.getNumHeavySnow()));
         mySnowTF.setText(String.valueOf(iDailyBuildData.getNumSnow()));
-        myLightSnowTF.setText(String.valueOf(iDailyBuildData.getNumSnow()));
+        myLightSnowTF
+                .setText(String.valueOf(iDailyBuildData.getNumLightSnow()));
         myIcePelletsTF
                 .setText(String.valueOf(iDailyBuildData.getNumIcePellets()));
         myFogTF.setText(String.valueOf(iDailyBuildData.getNumFog()));

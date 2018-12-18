@@ -37,6 +37,8 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * </pre>
  * 
  * @author amoore
@@ -1610,6 +1612,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             myAvgMinTempLbl.setMatched();
         }
 
+        // Mean Relative Humidity
+        myMeanRelHumTF.setText(String.valueOf(iSavedPeriodData.getMeanRh()));
+
         // min temp under 32
         if (msmPeriodData != null
                 && iSavedPeriodData.getNumMinLessThan32F() == msmPeriodData
@@ -1844,6 +1849,28 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             myAvgMaxTempLbl.setMatched();
         }
 
+        // mean temperature
+        if (iMonthlyAsosData == null || iDailyBuildData
+                .getMeanTemp() != ParameterFormatClimate.MISSING) {
+            if (iMonthlyAsosData == null || iMonthlyAsosData
+                    .getMeanTemp() == ParameterFormatClimate.MISSING) {
+                // monthly data is missing but daily is not, so set daily data
+                DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
+                        DataValueOrigin.DAILY_DATABASE);
+                myMeanTempLbl.setMatched();
+            } else if (!ClimateUtilities.floatingEquals(
+                    iMonthlyAsosData.getMeanTemp(),
+                    iDailyBuildData.getMeanTemp())) {
+                // neither monthly nor daily data is missing, and they are
+                // different, so flag the text box
+                myMeanTempLbl.setNotMatched(iMonthlyAsosData.getMeanTemp(),
+                        iDailyBuildData.getMeanTemp());
+                tempTabMismatch = true;
+            }
+        } else {
+            myMeanTempLbl.setMatched();
+        }
+
         // max temp over 90
         if (iMonthlyAsosData == null || iDailyBuildData
                 .getNumMaxGreaterThan90F() != ParameterFormatClimate.MISSING) {
@@ -1972,6 +1999,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         } else {
             myAvgMinTempLbl.setMatched();
         }
+
+        // Mean Relative Humidity
+        myMeanRelHumTF.setText(String.valueOf(iDailyBuildData.getMeanRh()));
 
         // min temp under 32
         if (iMonthlyAsosData == null || iDailyBuildData

@@ -39,6 +39,8 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListen
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * </pre>
  * 
  * @author amoore
@@ -923,6 +925,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         // snow total
         myTotalSnowTF.setText(String.valueOf(iSavedPeriodData.getSnowTotal()));
 
+        // total water equivalent
+        myTotalSnowWaterEquivTF
+                .setText(String.valueOf(iSavedPeriodData.getSnowWater()));
+
         // max snow 24H
         // check MSM first
         if (msmPeriodData != null && isPeriodDataEqualForFloat(
@@ -1087,6 +1093,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
 
         // snow total
         myTotalSnowTF.setText(String.valueOf(iDailyBuildData.getSnowTotal()));
+
+        // snow water equivalent
+        myTotalSnowWaterEquivTF
+                .setText(String.valueOf(iDailyBuildData.getSnowWater()));
 
         // max snow 24H
         if (iMonthlyAsosData == null || !ClimateUtilities.floatingEquals(

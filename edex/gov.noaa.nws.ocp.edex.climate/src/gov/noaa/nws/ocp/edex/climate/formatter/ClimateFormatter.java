@@ -19,8 +19,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 import gov.noaa.nws.ocp.common.dataplugin.climate.rer.RecordClimateRawData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.rer.StationInfo;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
 import gov.noaa.nws.ocp.edex.climate.record.RecordClimate;
 
@@ -44,6 +44,8 @@ import gov.noaa.nws.ocp.edex.climate.record.RecordClimate;
  * 11 MAY 2017  33104      amoore      Logging.
  * 19 MAY 2017  30163      wpaintsil   Consolidate algorithms for checking new daily records
  *                                     in ClimateNWWSDailyFormat.
+ * 17 DEC 2018  DR21053    wpaintsil   Missing stations can cause exceptions.
+ * 
  *
  * </pre>
  *
@@ -102,9 +104,8 @@ public class ClimateFormatter {
      * @throws ClimateQueryException
      */// TODO: remove this overload when the operational flag is determined in
       // CPG.
-    public Map<String, ClimateProduct> formatClimate(
-            ClimateRunData reportData) throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+    public Map<String, ClimateProduct> formatClimate(ClimateRunData reportData)
+            throws ClimateQueryException, ClimateInvalidParameterException {
         return formatClimate(reportData, true);
     }
 
@@ -119,10 +120,9 @@ public class ClimateFormatter {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    public Map<String, ClimateProduct> formatClimate(
-            ClimateRunData reportData, boolean operational)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+    public Map<String, ClimateProduct> formatClimate(ClimateRunData reportData,
+            boolean operational)
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
         Map<String, ClimateProduct> products = new HashMap<>();
 
@@ -185,54 +185,63 @@ public class ClimateFormatter {
      * @throws ClimateQueryException
      * @throws ClimateInvalidParameterException
      */
-    private Map<String, ClimateProduct> formatClimate(
-            ClimateRunData reportData, ClimateProductType settings)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+    private Map<String, ClimateProduct> formatClimate(ClimateRunData reportData,
+            ClimateProductType settings)
+            throws ClimateQueryException, ClimateInvalidParameterException {
 
-        Map<String, ClimateProduct> productMap;
+        Map<String, ClimateProduct> productMap = new HashMap<>();
 
-        switch (settings.getReportType()) {
+        if (settings.getStations() != null) {
+            switch (settings.getReportType()) {
 
-        case MORN_RAD:
-        case EVEN_RAD:
-        case INTER_RAD:
-            ClimateFormat dailyRadioFormatter = new ClimateNWRDailyFormat(
-                    settings, globalConfig);
-            productMap = dailyRadioFormatter.buildText(reportData);
-            break;
-        case MORN_NWWS:
-        case EVEN_NWWS:
-        case INTER_NWWS:
-            ClimateFormat dailyWireFormatter = new ClimateNWWSDailyFormat(
-                    settings, globalConfig);
-            productMap = dailyWireFormatter.buildText(reportData);
+            case MORN_RAD:
+            case EVEN_RAD:
+            case INTER_RAD:
+                ClimateFormat dailyRadioFormatter = new ClimateNWRDailyFormat(
+                        settings, globalConfig);
+                productMap = dailyRadioFormatter.buildText(reportData);
+                break;
+            case MORN_NWWS:
+            case EVEN_NWWS:
+            case INTER_NWWS:
+                ClimateFormat dailyWireFormatter = new ClimateNWWSDailyFormat(
+                        settings, globalConfig);
+                productMap = dailyWireFormatter.buildText(reportData);
 
-            // Climate record data is stored only with daily nwws.
-            writeStationInfo(settings);
-            // buildText() for ClimateNWWSDailyFormat also creates a list of any
-            // new records.
-            // getDailyRecordData() returns that list.
-            rawDatas.addAll(((ClimateNWWSDailyFormat) dailyWireFormatter)
-                    .getDailyRecordData());
-            break;
-        case MONTHLY_RAD:
-        case SEASONAL_RAD:
-        case ANNUAL_RAD:
-            ClimateFormat periodRadioFormatter = new ClimateNWRPeriodFormat(
-                    settings, globalConfig);
-            productMap = periodRadioFormatter.buildText(reportData);
-            break;
-        case MONTHLY_NWWS:
-        case SEASONAL_NWWS:
-        case ANNUAL_NWWS:
-            ClimateFormat periodWireFormatter = new ClimateNWWSPeriodFormat(
-                    settings, globalConfig);
-            productMap = periodWireFormatter.buildText(reportData);
-            break;
-        default:
-            throw new ClimateInvalidParameterException("Invalid period type: "
-                    + settings.getReportType().toString());
+                // Climate record data is stored only with daily nwws.
+                writeStationInfo(settings);
+                // buildText() for ClimateNWWSDailyFormat also creates a list of
+                // any
+                // new records.
+                // getDailyRecordData() returns that list.
+                rawDatas.addAll(((ClimateNWWSDailyFormat) dailyWireFormatter)
+                        .getDailyRecordData());
+                break;
+            case MONTHLY_RAD:
+            case SEASONAL_RAD:
+            case ANNUAL_RAD:
+                ClimateFormat periodRadioFormatter = new ClimateNWRPeriodFormat(
+                        settings, globalConfig);
+                productMap = periodRadioFormatter.buildText(reportData);
+                break;
+            case MONTHLY_NWWS:
+            case SEASONAL_NWWS:
+            case ANNUAL_NWWS:
+                ClimateFormat periodWireFormatter = new ClimateNWWSPeriodFormat(
+                        settings, globalConfig);
+                productMap = periodWireFormatter.buildText(reportData);
+                break;
+            default:
+                throw new ClimateInvalidParameterException(
+                        "Invalid period type: "
+                                + settings.getReportType().toString());
+
+            }
+        } else {
+            logger.error(
+                    "No stations have been selected for the product settings file: "
+                            + settings.getPreferedFileName()
+                            + ". Text products cannot be generated. Check product settings in the Climate Report Format dialog.");
 
         }
 

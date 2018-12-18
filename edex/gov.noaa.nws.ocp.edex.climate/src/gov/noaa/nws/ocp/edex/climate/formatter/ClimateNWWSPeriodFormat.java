@@ -53,6 +53,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * 20 NOV 2017  41088      amoore      Remove unnecessary double-checking of report windows
  *                                     for snow section.
  * 20 NOV 2017  41125      amoore      Mean RH section should not be dependent on sky section.
+ * 13 DEC 2018  DR21053    wpaintsil   Some null checks needed to prevent exceptions.
  *
  * </pre>
  *
@@ -117,6 +118,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             throws ClimateQueryException, ClimateInvalidParameterException {
 
         Map<String, ClimateProduct> prod = new HashMap<>();
+
         Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateRunPeriodData) reportData)
                 .getReportMap();
         StringBuilder productText = new StringBuilder();
@@ -143,6 +145,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             productText.append(NWWS_FOOTNOTE);
         }
+
         productText.append("\n").append(PRODUCT_TERMINATOR).append("\n");
 
         prod.put(getName(),
@@ -2694,7 +2697,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosActDate() - 1,
                                         periodTabs.getPosActDate() - 1
                                                 + dateString.length(),
-                                dateString);
+                                        dateString);
 
                         dateLines.append(multipleYear(
                                 new SimpleDateFormat(RECORD_DATE_FORMAT_STRING),
@@ -2734,7 +2737,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                             .replace(periodTabs.getPosValue() + 6,
                                     periodTabs.getPosValue() + 6
                                             + RECORD_SYMBOL.length(),
-                            RECORD_SYMBOL);
+                                    RECORD_SYMBOL);
                 }
                 integerLine1.replace(periodTabs.getPosValue() + 1,
                         periodTabs.getPosValue() + 1
@@ -2760,7 +2763,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosActDate() - 1,
                                         periodTabs.getPosActDate() - 1
                                                 + dateString.length(),
-                                dateString);
+                                        dateString);
                         dateLines.append(multipleYear(
                                 new SimpleDateFormat(SHORT_DATE_FORMAT_STRING),
                                 dayActualList, periodTabs.getPosActDate() - 1));
@@ -2868,7 +2871,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     .replace(periodTabs.getPosLastDate(),
                                             periodTabs.getPosLastDate()
                                                     + dateString.length(),
-                                    dateString);
+                                            dateString);
 
                             dateLines.append(multipleYear(
                                     new SimpleDateFormat(
@@ -2974,7 +2977,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     .replace(periodTabs.getPosActDate() - 1,
                                             periodTabs.getPosActDate() - 1
                                                     + dateString.length(),
-                                    dateString);
+                                            dateString);
 
                             dateLines.append(multipleYear(
                                     new SimpleDateFormat(
@@ -2995,7 +2998,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     .replace(periodTabs.getPosActDate() - 1,
                                             periodTabs.getPosActDate() - 1
                                                     + yearString.length(),
-                                    yearString);
+                                            yearString);
                             dateLines.append(multipleYear(
                                     new SimpleDateFormat(YEAR_FORMAT_STRING),
                                     dayRecordList,
@@ -3023,7 +3026,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosActDate() - 1,
                                         periodTabs.getPosActDate() - 1
                                                 + datesString.length(),
-                                datesString);
+                                        datesString);
                         dateLines.append(multipleYear(
                                 new SimpleDateFormat(RECORD_DATE_FORMAT_STRING),
                                 recordDates, periodTabs.getPosActDate() - 1,
@@ -3094,7 +3097,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosActDate() - 1,
                                         periodTabs.getPosActDate() - 1
                                                 + datesString.length(),
-                                datesString);
+                                        datesString);
                     }
                 }
             }
@@ -3249,7 +3252,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosDepart(),
                                         periodTabs.getPosDepart()
                                                 + valueString.length(),
-                                valueString);
+                                        valueString);
 
                     }
                 }
@@ -3297,7 +3300,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                 }
 
-                if (valueFlag.isDateOfLast()) {
+                if (valueFlag.isDateOfLast() && lastYearDate1 != null) {
                     if (lastYearDate1
                             .getDay() != ParameterFormatClimate.MISSING_DATE
                             || lastYearDate1
@@ -3313,13 +3316,13 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 .replace(periodTabs.getPosLastDate(),
                                         periodTabs.getPosLastDate()
                                                 + dateString.length(),
-                                dateString);
+                                        dateString);
                     }
                 }
 
                 if (valueFlag.isDateOfLast()
                         && lastYearValue != ParameterFormatClimate.MISSING
-                        && !lastYearDates.isEmpty()) {
+                        && lastYearDates != null && !lastYearDates.isEmpty()) {
                     if (lastYearDates.get(0).getStart()
                             .getDay() != ParameterFormatClimate.DUMMY_DATA
                             && lastYearDates.get(0).getStart()
@@ -3376,10 +3379,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                             periodTabs.getPosValue(), true));
 
                                 } else {
-                                    floatLine1
-                                            .replace(periodTabs.getPosActDate(),
-                                                    periodTabs.getPosActDate()
-                                                            + 2,
+                                    floatLine1.replace(
+                                            periodTabs.getPosActDate(),
+                                            periodTabs.getPosActDate() + 2,
                                             ParameterFormatClimate.MM);
 
                                 }

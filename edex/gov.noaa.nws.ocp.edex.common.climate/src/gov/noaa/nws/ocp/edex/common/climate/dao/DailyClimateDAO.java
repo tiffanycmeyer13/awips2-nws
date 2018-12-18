@@ -93,6 +93,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 24 OCT 2017  39817      amoore      Clean up 24-hour precip calculations while investigating validity of
  *                                     calculations. Handle trace better in hourly precip count.
  * 02 MAY 2018  DR17116    wpaintsil   update yClimate for snow/precip norms.
+ * 01 OCT 2018  DR20918    wpaintsil   Add checks for trace values in sumPrecip() & sumSnow().
+ * 18 DEC 2018  DR21053    wpaintsil   Correct query and conditional in the fix for the above DR20918.
  * </pre>
  * 
  * @author amoore
@@ -728,6 +730,21 @@ public class DailyClimateDAO extends ClimateDAO {
         sumPrecip = ((Number) queryForOneValue(query.toString(), paramMap,
                 ParameterFormatClimate.MISSING_PRECIP)).floatValue();
 
+        if (sumPrecip <= 0
+                || sumPrecip == ParameterFormatClimate.MISSING_PRECIP) {
+            // look for trace values
+            query = new StringBuilder("SELECT precip FROM ");
+            query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            query.append(" WHERE date >= :startDate");
+            query.append(" AND date <= :endDate");
+            query.append(" AND station_id = :stationId");
+            query.append(" AND precip = ").append(ParameterFormatClimate.TRACE);
+            query.append(" LIMIT 1 ");
+
+            sumPrecip = ((Number) queryForOneValue(query.toString(), paramMap,
+                    ParameterFormatClimate.MISSING_PRECIP)).floatValue();
+        }
+
         return sumPrecip;
     }
 
@@ -779,6 +796,20 @@ public class DailyClimateDAO extends ClimateDAO {
 
         sumSnow = ((Number) queryForOneValue(query.toString(), paramMap,
                 ParameterFormatClimate.MISSING_PRECIP)).floatValue();
+
+        if (sumSnow <= 0 || sumSnow == ParameterFormatClimate.MISSING_PRECIP) {
+            // look for trace values
+            query = new StringBuilder("SELECT snow FROM ");
+            query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            query.append(" WHERE date >= :startDate");
+            query.append(" AND date <= :endDate");
+            query.append(" AND station_id = :stationId");
+            query.append(" AND snow = ").append(ParameterFormatClimate.TRACE);
+            query.append(" LIMIT 1 ");
+
+            sumSnow = ((Number) queryForOneValue(query.toString(), paramMap,
+                    ParameterFormatClimate.MISSING_PRECIP)).floatValue();
+        }
 
         return sumSnow;
     }
