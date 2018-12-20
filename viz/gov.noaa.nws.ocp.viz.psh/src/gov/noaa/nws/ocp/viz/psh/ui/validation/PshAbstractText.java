@@ -24,12 +24,14 @@ import org.eclipse.swt.widgets.Text;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Oct 17, 2017 VL39233     wpaintsil  Initial creation.
- * Dec 17, 2018 DR20981     jwu        Allow immediate type-in in date/time
- *                                     wind text field when user tabs
- *                                     over to such a field.
+ * Date         Ticket#  Engineer    Description
+ * ------------ -------- ----------- --------------------------
+ * Oct 17, 2017 VL39233  wpaintsil  Initial creation.
+ * Dec 17, 2018 DR20981  jwu        Allow immediate type-in in date/time
+ *                                  wind text field when user tabs
+ *                                  over to such a field.
+ * Dec 18, 2018 DR20978  jwu        Add getter/setter for textField.
+
  * </pre>
  * 
  * @author wpaintsil
@@ -144,6 +146,7 @@ public abstract class PshAbstractText extends PshAbstractControl {
                     // when tabs over, set cursor at beginning.
                     textField.setSelection(0);
                 }
+
             }
         });
 
@@ -178,6 +181,21 @@ public abstract class PshAbstractText extends PshAbstractControl {
      */
     public void addListener(int eventType, Listener listener) {
         textField.addListener(eventType, listener);
+    }
+
+    /**
+     * @return the textField
+     */
+    public Text getTextField() {
+        return textField;
+    }
+
+    /**
+     * @param textField
+     *            the textField to set
+     */
+    public void setTextField(Text textField) {
+        this.textField = textField;
     }
 
     /**
