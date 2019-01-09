@@ -1,0 +1,58 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="1000 MB" id="100Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="1000.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="925 MB" id="925Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="925.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="850 MB" id="850Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="850.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="700 MB" id="700Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="700.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="500 MB" id="500Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="500.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="300 MB" id="300Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="300.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="250 MB" id="250Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="250.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="200 MB" id="200Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="200.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="100 MB" id="100Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="100.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    
+    
+</menuTemplate>
