@@ -1,0 +1,48 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Temperature 2m" id="griddednucapsproduct">
+        <substitute key="param" value="T" />
+        <substitute key="level" value="FHAG" />
+        <substitute key="levelOne" value="2.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Relative Humidity 2m" id="griddednucapsproduct">
+        <substitute key="param" value="RH" />
+        <substitute key="level" value="FHAG" />
+        <substitute key="levelOne" value="2.0" />
+    </contribute>
+    <!-- TODO Critical temperature Heights -->
+    
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Ozone Anomaly" id="griddednucapsproduct">
+        <substitute key="param" value="OZA" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Total Ozone" id="griddednucapsproduct">
+        <substitute key="param" value="TOZNE" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Tropopause Level" id="griddednucapsproduct">
+        <substitute key="param" value="TPH" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Haines Index" id="griddednucapsproduct">
+        <substitute key="param" value="HI" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+    </contribute>
+    <!-- TODO Mixing Height -->
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Quality Control" id="griddednucapsproduct">
+        <substitute key="param" value="QUAL" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="interpolate" value="false" />
+    </contribute>
+</menuTemplate>

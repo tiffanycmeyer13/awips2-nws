@@ -11,6 +11,8 @@ import java.util.Map;
 import org.apache.commons.lang.math.NumberUtils;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.AutoCompleteField;
+import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -89,6 +91,8 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Nov 27, 2017 #40299      wpaintsil   Add row-sorting functionality.
  * Nov 28, 2017 #41389      astrakovsky Fixed rainfall and tornado autocomplete error.
  * Dec 08, 2017 #41955      astrakovsky Improved editing performance for rainfall/tornado tabs.
+ * Dec 10, 2018 DR20982     jwu         Allow user type in for storm "Effects".
+ * Dec 18, 2018 DR20978     jwu         Add match cities as auto assist while user is typing in.
  * </pre>
  *
  * @author wpaintsil
@@ -183,6 +187,10 @@ public abstract class PshTable {
     private Button saveButton;
 
     private Button revertButton;
+
+    // Get PSH cities from localization
+    private static PshCities pshCities = PshConfigurationManager.getInstance()
+            .getCities();
 
     /**
      * The logger
@@ -646,8 +654,15 @@ public abstract class PshTable {
                         switch (columns[jj].getControlType()) {
 
                         case COMBO:
+
                             control = new CCombo(table,
                                     SWT.BORDER | SWT.READ_ONLY);
+
+                            // DR 20982: allow user type-in for
+                            // Injuries/Deaths/Evacuation numbers
+                            if (tab.getTabType() == PshDataCategory.EFFECT) {
+                                ((CCombo) control).setEditable(true);
+                            }
 
                             selectComboItem((CCombo) control,
                                     columns[jj].getDropdownList(),
@@ -717,8 +732,7 @@ public abstract class PshTable {
 
                         // Match city in entry to city in localization
                         boolean foundCity = false;
-                        List<PshCity> cityList = PshConfigurationManager
-                                .getInstance().getCities().getCities();
+                        List<PshCity> cityList = pshCities.getCities();
                         if (jj == 0 && (tab.getTabType()
                                 .equals(PshDataCategory.RAINFALL)
                                 || tab.getTabType()
@@ -1403,7 +1417,8 @@ public abstract class PshTable {
                     (PshText) currentEditorRow.get(0).getEditor(),
                     (Text) currentEditorRow.get(4).getEditor(),
                     (CCombo) currentEditorRow.get(6).getEditor(),
-                    (PshNumberText) currentEditorRow.get(7).getEditor());
+                    (PshNumberText) currentEditorRow.get(7).getEditor(),
+                    (Text) currentEditorRow.get(1).getEditor());
 
         }
 
@@ -1417,7 +1432,8 @@ public abstract class PshTable {
                     (PshText) currentEditorRow.get(0).getEditor(),
                     (Text) currentEditorRow.get(1).getEditor(),
                     (CCombo) currentEditorRow.get(6).getEditor(),
-                    (PshNumberText) currentEditorRow.get(7).getEditor());
+                    (PshNumberText) currentEditorRow.get(7).getEditor()
+                    , null);
 
         }
 
@@ -1435,10 +1451,16 @@ public abstract class PshTable {
      */
     private void autocompleteRainfallTornadoes(PshNumberText latField,
             PshNumberText lonField, PshText cityField, Text countyField,
-            CCombo dirField, PshNumberText distField) {
+            CCombo dirField, PshNumberText distField, Text idField) {
 
-        // get PSH cities from localization
-        PshCities cities = PshConfigurationManager.getInstance().getCities();
+        /*
+         * DR 20978 - Add match cities as auto assist while user is typing in to
+         * avoid errors.
+         */
+        AutoCompleteField cityLookup = new AutoCompleteField(
+                cityField.getTextField(), new TextContentAdapter(),
+                new String[] {});
+
 
         // get PSH counties with geometry
         List<PshCounty> counties = PshUtil.getCountyGeodata();
@@ -1451,7 +1473,7 @@ public abstract class PshTable {
                 if (latField.isFocusControl()
                         && NumberUtils.isNumber(latField.getText())
                         && NumberUtils.isNumber(lonField.getText())) {
-                    autocompleteLatLon(cities, counties,
+                    autocompleteLatLon(pshCities, counties,
                             Double.parseDouble(latField.getText()),
                             Double.parseDouble(lonField.getText()), cityField,
                             countyField, dirField, distField);
@@ -1469,7 +1491,7 @@ public abstract class PshTable {
                 if (lonField.isFocusControl()
                         && NumberUtils.isNumber(latField.getText())
                         && NumberUtils.isNumber(lonField.getText())) {
-                    autocompleteLatLon(cities, counties,
+                    autocompleteLatLon(pshCities, counties,
                             Double.parseDouble(latField.getText()),
                             Double.parseDouble(lonField.getText()), cityField,
                             countyField, dirField, distField);
@@ -1487,8 +1509,13 @@ public abstract class PshTable {
                 // only look for point if focused
                 if (cityField.isFocusControl()) {
 
-                    autocompleteCity(cities, counties, latField, lonField,
-                            cityField, countyField, dirField, distField);
+                    // Update the content of the auto-complete field.
+                    String[] cs = findCities(cityField.getText());
+                    cityLookup.setProposals(cs);
+
+                    autocompleteCity(pshCities, counties, latField, lonField,
+                            cityField, countyField, dirField, distField,
+                            idField);
                 }
 
             }
@@ -1645,7 +1672,8 @@ public abstract class PshTable {
      */
     private void autocompleteCity(PshCities cities, List<PshCounty> counties,
             PshNumberText latField, PshNumberText lonField, PshText cityField,
-            Text countyField, CCombo dirField, PshNumberText distField) {
+            Text countyField, CCombo dirField, PshNumberText distField,
+            Text idField) {
 
         // check if valid city entered
         boolean cityFound = false;
@@ -1653,9 +1681,19 @@ public abstract class PshTable {
             if (city.getName().equalsIgnoreCase(cityField.getText())) {
                 cityField.setData(city);
                 cityFound = true;
+
+                // Auto-complete lat/lon/county/id.
+                latField.setText(String.valueOf(city.getLat()));
+                lonField.setText(String.valueOf(city.getLon()));
+                countyField.setText(city.getCounty());
+                if (idField != null) {
+                    idField.setText(city.getStationID());
+                }
+
                 break;
             }
         }
+
         // unset if not valid
         if (!cityFound) {
             cityField.setData(null);
@@ -1824,16 +1862,46 @@ public abstract class PshTable {
         }
 
         // Find which one to be selected.
-        int sel = 0;
+        int nitem = 0;
+        int sel = -1;
         for (String listItem : items) {
             if (selected.equals(listItem)) {
+                sel = nitem;
                 break;
             }
-            sel++;
+            nitem++;
         }
 
         // Select.
-        combo.select(sel);
+        if (sel >= 0) {
+            combo.select(sel);
+        } else {
+            combo.setText(selected);
+        }
+    }
+
+    /**
+     * Find an array of city names starting with the given string (case
+     * insensitive).
+     * 
+     * @param name
+     *            name to start with.
+     * 
+     * @return String[] Array of city names starting with the given string.
+     */
+    private String[] findCities(String name) {
+
+        List<String> cities = new ArrayList<>();
+        if (name != null && !name.isEmpty()) {
+            for (PshCity city : pshCities.getCities()) {
+                String cname = city.getName().toUpperCase();
+                if (cname.startsWith(name.toUpperCase())) {
+                    cities.add(city.getName());
+                }
+            }
+        }
+
+        return cities.toArray(new String[] {});
     }
 
 }
