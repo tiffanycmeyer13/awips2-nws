@@ -116,6 +116,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 16 OCT 2017   39454    amoore      Minimum periodicity is 0, not 1.
  * 15 NOV 2017   39338    amoore      When loading a default product, use current localization site as node.
  * 13 MAR 2018   44624    amoore      Resolved issue found where only CONUS sites could properly define products.
+ * 06 NOV 2018   55583    jwu         Fix some layout & alignment issues (DR20915).
  * </pre>
  * 
  * @author jwu
@@ -442,7 +443,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         // Comp to hold report type/configuration/stations
         Composite idComp = new Composite(topComp, SWT.NONE);
         GridLayout idGL = new GridLayout(3, false);
-        idGL.horizontalSpacing = 25;
+        idGL.horizontalSpacing = 60;
         idComp.setLayout(idGL);
         idComp.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, true, true));
 
@@ -686,7 +687,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         // Create report type
         Composite reportTypeComp = new Composite(parent, SWT.NONE);
         RowLayout reportTypeLayout = new RowLayout(SWT.VERTICAL);
-        reportTypeLayout.spacing = 5;
+        reportTypeLayout.spacing = 6;
         reportTypeLayout.marginWidth = 5;
         reportTypeLayout.center = true;
         reportTypeComp.setLayout(reportTypeLayout);
@@ -802,8 +803,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
 
         reportConfigComp = new Composite(parent, SWT.NONE);
         RowLayout reportConfigLayout = new RowLayout(SWT.VERTICAL);
-        reportConfigLayout.spacing = 5;
-        reportConfigLayout.marginLeft = 30;
+        reportConfigLayout.spacing = 1;
         reportConfigLayout.center = true;
         reportConfigComp.setLayout(reportConfigLayout);
 
@@ -825,7 +825,8 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         Composite reportConfigHeaderComp = new Composite(parent, SWT.NONE);
 
         RowLayout reportConfigHeaderLayout = new RowLayout(SWT.VERTICAL);
-        reportConfigHeaderLayout.spacing = 5;
+        reportConfigHeaderLayout.spacing = 1;
+        reportConfigHeaderLayout.marginLeft = 40;
         reportConfigHeaderLayout.center = true;
         reportConfigHeaderComp.setLayout(reportConfigHeaderLayout);
 
@@ -960,7 +961,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
 
             // Create and layout widgets
             RowLayout reportConfigInfoLayout = new RowLayout(SWT.VERTICAL);
-            reportConfigInfoLayout.spacing = 5;
+            reportConfigInfoLayout.spacing = 1;
             reportConfigInfoLayout.fill = true;
             reportConfigInfoNWRComp.setLayout(reportConfigInfoLayout);
             reportConfigInfoNWWSComp.setLayout(reportConfigInfoLayout);
@@ -982,7 +983,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             gc.dispose();
 
             RowData periodicitySpinnerRD = new RowData(6 * fontWidth,
-                    (3 * fontHeight) / 2);
+                    fontHeight);
             periodicitySpinner.setLayoutData(periodicitySpinnerRD);
             periodicitySpinner.setMaximum(3600);
             periodicitySpinner.setMinimum(0);
@@ -1040,8 +1041,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             lacLbl.setText("LAC:");
             lacTxt = new Text(lacComp, ClimateLayoutValues.TEXT_FIELD_STYLE);
 
-            RowData lacTxtRD = new RowData(25 * fontWidth,
-                    (3 * fontHeight) / 2);
+            RowData lacTxtRD = new RowData(25 * fontWidth, fontHeight);
             lacTxt.setLayoutData(lacTxtRD);
             lacTxt.setTextLimit(7);
             lacTxt.setToolTipText(
@@ -1059,8 +1059,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             addressTxt = new Text(addressComp,
                     ClimateLayoutValues.TEXT_FIELD_STYLE);
 
-            RowData addressTxtRD = new RowData(18 * fontWidth,
-                    (3 * fontHeight) / 2);
+            RowData addressTxtRD = new RowData(18 * fontWidth, fontHeight);
             addressTxt.setLayoutData(addressTxtRD);
             addressTxt.setTextLimit(3);
         }
@@ -1085,16 +1084,18 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         Composite stationListComp = new Composite(parent, SWT.NONE);
         RowLayout stationListLayout = new RowLayout(SWT.VERTICAL);
         stationListLayout.spacing = 5;
-        stationListLayout.marginLeft = 25;
+        stationListLayout.marginLeft = 15;
         stationListLayout.center = true;
         stationListComp.setLayout(stationListLayout);
 
         Label stationLbl = new Label(stationListComp, SWT.NORMAL);
         stationLbl.setText("Select Stations\n   for Product");
 
-        RowData stationListData = new RowData(80, 200);
         stationNames = new List(stationListComp,
                 SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+
+        RowData stationListData = new RowData(SWT.DEFAULT,
+                7 * stationNames.getItemHeight());
         stationNames.setLayoutData(stationListData);
 
         // Add all stations to the list.
@@ -1119,22 +1120,22 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
 
         Composite editComp = new Composite(parent, SWT.NONE);
         GridLayout editCompLayout = new GridLayout(4, true);
-        editCompLayout.horizontalSpacing = 40;
+        editCompLayout.horizontalSpacing = 10;
         editCompLayout.marginWidth = 20;
         editCompLayout.marginTop = 5;
         editComp.setLayout(editCompLayout);
 
         editComp.setLayoutData(
-                new GridData(SWT.CENTER, SWT.CENTER, true, true));
+                new GridData(SWT.CENTER, SWT.CENTER, false, false));
 
-        GridData editRepPerBtnGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+        GridData editingBtnGd = new GridData(SWT.FILL, SWT.CENTER, true,
                 false, 1, 1);
-        editRepPerBtnGd.widthHint = 185;
+        editingBtnGd.minimumWidth = 180;
 
         Button editReportPeriodBtn = new Button(editComp, SWT.NORMAL);
         editReportPeriodBtn.setText("Edit Reporting Periods");
         editReportPeriodBtn.setFont(size10Font);
-        editReportPeriodBtn.setLayoutData(editRepPerBtnGd);
+        editReportPeriodBtn.setLayoutData(editingBtnGd);
         editReportPeriodBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -1142,14 +1143,13 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             }
         });
 
-        GridData annualPerBtnGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+        GridData annualPeriodGd = new GridData(SWT.FILL, SWT.CENTER, true,
                 false, 1, 1);
-        annualPerBtnGd.widthHint = 175;
-
+        annualPeriodGd.minimumWidth = 180;
         Button annualPeriodBtn = new Button(editComp, SWT.NORMAL);
         annualPeriodBtn.setText("Edit Annual Periods");
         annualPeriodBtn.setFont(size10Font);
-        annualPeriodBtn.setLayoutData(annualPerBtnGd);
+        annualPeriodBtn.setLayoutData(annualPeriodGd);
         annualPeriodBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -1157,14 +1157,13 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             }
         });
 
-        GridData userValBtnGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+        GridData userValuesBtnGd = new GridData(SWT.FILL, SWT.CENTER, true,
                 false, 1, 1);
-        userValBtnGd.widthHint = 200;
-
+        userValuesBtnGd.minimumWidth = 180;
         Button userValuesBtn = new Button(editComp, SWT.NORMAL);
         userValuesBtn.setText("Change Threshold Values");
         userValuesBtn.setFont(size10Font);
-        userValuesBtn.setLayoutData(userValBtnGd);
+        userValuesBtn.setLayoutData(userValuesBtnGd);
         userValuesBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -1172,14 +1171,13 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
             }
         });
 
-        GridData editStationsBtnGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+        GridData editStationsGd = new GridData(SWT.FILL, SWT.CENTER, true,
                 false, 1, 1);
-        editStationsBtnGd.widthHint = 165;
-
+        editStationsGd.minimumWidth = 180;
         Button editStationsBtn = new Button(editComp, SWT.NORMAL);
         editStationsBtn.setText("Edit Station List");
         editStationsBtn.setFont(size10Font);
-        editStationsBtn.setLayoutData(editStationsBtnGd);
+        editStationsBtn.setLayoutData(editStationsGd);
         editStationsBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -1253,6 +1251,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         Group catContentGrp = new Group(parent, SWT.NONE);
         GridLayout catContentLayout = new GridLayout(2, false);
         catContentLayout.horizontalSpacing = 0;
+        catContentLayout.verticalSpacing = 15;
         catContentLayout.marginWidth = 3;
         catContentGrp.setLayout(catContentLayout);
         catContentGrp.setText("Categories");
@@ -1278,7 +1277,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         GridLayout catChkAllNoneLayout = new GridLayout(2, false);
         catChkAllNoneLayout.marginTop = 0;
         catChkAllNoneLayout.marginRight = 0;
-        catChkAllNoneLayout.verticalSpacing = 9;
+        catChkAllNoneLayout.verticalSpacing = 7;
         catChkAllNoneComp.setLayout(catChkAllNoneLayout);
 
         Label catChkAllNoneLbl = new Label(catChkAllNoneComp, SWT.NORMAL);
@@ -1299,7 +1298,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         catChkAllNoneComp.setLayoutData(catListGD);
 
         RowLayout catListLayout = new RowLayout(SWT.VERTICAL);
-        catListLayout.marginTop = 25;
+        catListLayout.marginTop = 23;
         catListLayout.marginLeft = 15;
         catListLayout.spacing = 5;
         catListComp.setLayout(catListLayout);
@@ -1373,9 +1372,9 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         // Create auxiliary categories
         auxCatChkAllNoneComp = new Composite(allNoneComp, SWT.NONE);
         GridLayout auxChkLayout = new GridLayout(2, false);
-        auxChkLayout.marginTop = 10;
+        auxChkLayout.marginTop = 6;
         auxChkLayout.marginLeft = 0;
-        auxChkLayout.verticalSpacing = 9;
+        auxChkLayout.verticalSpacing = 7;
         auxCatChkAllNoneComp.setLayout(auxChkLayout);
 
         auxCatChkAllNoneLbl = new Label(catListComp, SWT.NORMAL);
@@ -2546,6 +2545,9 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
                 auxCatChkAllNoneLbl.getParent().layout();
             }
         }
+
+        catListLbl.getParent().layout(true);
+
     }
 
 }

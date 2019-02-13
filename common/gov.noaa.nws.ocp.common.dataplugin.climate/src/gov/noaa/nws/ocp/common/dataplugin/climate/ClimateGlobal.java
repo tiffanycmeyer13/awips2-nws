@@ -3,6 +3,9 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
@@ -40,6 +43,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 10 JUL 2017  33104      amoore      Default to blocking dissemination.
  * 18 AUG 2017  37104      amoore      Add IFPS office name and timezone.
  * 06 NOV 2017  35731      pwang       Added properties for controlling if an product can be auto generated
+ * 12 OCT 2018  DR 20897   dfriedman   Add stationDesignatorOverrides field.
  * </pre>
  * 
  * @author xzhang
@@ -246,6 +250,14 @@ public class ClimateGlobal {
      */
     @DynamicSerializeElement
     private boolean autoCLA = true;
+
+    /**
+     * Maps station IDs to product IDs. Used for cases in which the site part of
+     * the product ID cannot be determined by taking the last three characters
+     * of the station ID.  Currently only used for F6 products.
+     */
+    @DynamicSerializeElement
+    private Map<String, String> stationDesignatorOverrides;
 
     /**
      * Empty constructor.
@@ -509,6 +521,27 @@ public class ClimateGlobal {
         this.autoCLA = autoCLA;
     }
 
+    /**
+     * @return an unmodifiable map
+     */
+    public Map<String, String> getStationDesignatorOverrides() {
+        if (stationDesignatorOverrides == null) {
+            stationDesignatorOverrides = Collections.emptyMap();
+        }
+        return stationDesignatorOverrides;
+    }
+
+    /**
+     * Set a new value for the designator overrides. A deep copy is made of the
+     * argument so it may be modified without affecting this instance.
+     *
+     * @param stationDesignatorOverrides
+     */
+    public void setStationDesignatorOverrides(Map<String, String> stationDesignatorOverrides) {
+        this.stationDesignatorOverrides = Collections
+                .unmodifiableMap(new HashMap<>(stationDesignatorOverrides));
+    }
+
     public void setDataToMissing() {
         noAsterisk = false;
         noColon = false;
@@ -565,6 +598,8 @@ public class ClimateGlobal {
         globals.setP1(ParameterFormatClimate.MISSING_PRECIP);
         globals.setP2(ParameterFormatClimate.MISSING_PRECIP);
         globals.setS1(ParameterFormatClimate.MISSING_SNOW);
+
+        globals.setStationDesignatorOverrides(new HashMap());
 
         return globals;
     }

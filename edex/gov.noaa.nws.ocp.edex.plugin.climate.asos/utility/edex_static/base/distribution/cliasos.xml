@@ -6,4 +6,5 @@
 -->
 <requestPatterns xmlns:ns2="group">
     <regex>^C[DS]US27.*</regex>
+    <regex>^C[SX]US4[1-6].*</regex>
 </requestPatterns>

@@ -39,6 +39,9 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTy
  * 16 AUG 2018  DR20837    wpaintsil   Corrected updateNWRHeader() to shift the local 
  *                                     date/time (including date) to the UTC date/time. 
  *                                     It was only shifting the hour.
+ * Sep 19, 2018 DR20888    wpaintsil   The time in the opening sentence should be 12 hour time.
+ * 08 NOV 2018  DR20943    wpaintsil   Apply the current local date to the expiration/effective 
+ *                                     times rather than the dates stored in the product settings.
  * </pre>
  *
  * @author wpaintsil
@@ -255,8 +258,9 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
                 nwrComment.append("for this evening, as of ");
             }
 
-            nwrComment.append(tempTime.toHourMinString()).append(SPACE)
-                    .append(tempTime.getAmpm()).append(",");
+            ClimateTime tempTime12Hr = tempTime.to12HourTime();
+            nwrComment.append(tempTime12Hr.toHourMinString()).append(SPACE)
+                    .append(tempTime12Hr.getAmpm()).append(",");
         } else {
             nwrComment.append("for ")
                     .append(ClimateNWRFormat.timeFrame(morning, false))
@@ -455,11 +459,8 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
 
         // Convert effective date and time to UTC
         Calendar effectiveLocal = TimeUtil.newCalendar(localTimeZone);
-        effectiveLocal.set(header.getEffectiveDate().getYear(),
-                header.getEffectiveDate().getMon() - 1,
-                header.getEffectiveDate().getDay(),
-                header.getEffectiveTime().getHour(),
-                header.getEffectiveTime().getMin());
+        effectiveLocal.set(Calendar.HOUR, header.getEffectiveTime().getHour());
+        effectiveLocal.set(Calendar.MINUTE, header.getEffectiveTime().getMin());
 
         Calendar effectiveGMT = TimeUtil.newGmtCalendar();
         effectiveGMT.setTimeInMillis(effectiveLocal.getTimeInMillis());
@@ -468,10 +469,9 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
 
         // Convert expiration date and time to UTC
         Calendar expirationLocal = TimeUtil.newCalendar(localTimeZone);
-        expirationLocal.set(header.getExpirationDate().getYear(),
-                header.getExpirationDate().getMon() - 1,
-                header.getExpirationDate().getDay(),
-                header.getExpirationTime().getHour(),
+        expirationLocal.set(Calendar.HOUR,
+                header.getExpirationTime().getHour());
+        expirationLocal.set(Calendar.MINUTE,
                 header.getExpirationTime().getMin());
 
         Calendar expirationGMT = TimeUtil.newGmtCalendar();

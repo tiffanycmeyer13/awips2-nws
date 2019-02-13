@@ -4,8 +4,6 @@
 package gov.noaa.nws.ocp.viz.climate.setupclimate.dialog.comp;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -25,6 +23,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * ------------ ---------- -----------  --------------------------
  * Dec 14, 2016 20640      jwu          Initial creation
  * 17 MAY 2017  33104      amoore       FindBugs. Package reorg.
+ * 06 NOV 2018  55207      jwu          Enable some legacy behavior(DR 20889).
  * </pre>
  * 
  * @author jwu
@@ -157,17 +156,6 @@ public class WindComp extends AbstractCategoryComp {
         maxWindTimeOfMeasuredBtn = new Button(maxWindMinorComp, SWT.CHECK);
         maxWindTimeOfMeasuredBtn.setText("Time/Date\nof Occurrence");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxWindMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                maxWindMinorComp.setVisible(selected);
-                maxWindMinorComp.layout(true, true);
-            }
-        });
-
         // Maximum gust composite
         Composite maxGustComp = new Composite(windMainComp, SWT.NONE);
         maxGustComp.setLayout(majorCompLayout);
@@ -184,17 +172,6 @@ public class WindComp extends AbstractCategoryComp {
         maxGustTimeOfMeasuredBtn = new Button(maxGustMinorComp, SWT.CHECK);
         maxGustTimeOfMeasuredBtn.setText("Time/Date\nof Occurrence");
         maxGustTimeOfMeasuredBtn.setAlignment(SWT.TOP);
-
-        // Clicking on "major" button will show/hide all items in it.
-        maxGustMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                maxGustMinorComp.setVisible(selected);
-                maxGustMinorComp.layout(true, true);
-            }
-        });
 
         return windMainComp;
     }

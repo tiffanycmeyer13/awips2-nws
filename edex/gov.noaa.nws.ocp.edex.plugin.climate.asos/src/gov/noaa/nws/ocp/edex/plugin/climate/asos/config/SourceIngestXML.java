@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlElements;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Aug 3, 2016  20905      pwang     Initial creation
+ * 12 OCT 2018  20941      pwang     Removed "site level" ingest station filter to avoid confusion
  *
  * </pre>
  *
@@ -76,6 +77,11 @@ public class SourceIngestXML {
             return true;
         }
         for (String dk : dataKey) {
+            //Default will be "NONE"
+            if (dk.equalsIgnoreCase("NONE")) {
+                return false;
+            }
+            //Can be a single "ALL", or list of ICAOs, like "KMSH"
             if (dk.equalsIgnoreCase("ALL") || dk.equalsIgnoreCase(key)) {
                 return true;
             }
