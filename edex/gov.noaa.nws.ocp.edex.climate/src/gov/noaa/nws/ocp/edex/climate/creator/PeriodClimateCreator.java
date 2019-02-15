@@ -39,6 +39,10 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  * 08 NOV 2017  40624      amoore      Monthly period needs special
  *                                     logic to check against daily
  *                                     tables, not period tables.
+ * 07 NOV 2018  DR20923    wpaintsil   Modify the special monthly logic
+ *                                     to send a flag instead of the OTHER
+ *                                     period type. Incorrect values appear
+ *                                     otherwise.
  * </pre>
  * 
  * @author amoore
@@ -86,8 +90,7 @@ public final class PeriodClimateCreator {
             ClimateDate beginDate, ClimateDate endDate,
             ClimateGlobal globalValues, List<Station> climateStations,
             boolean cronOrManualMostRecent)
-                    throws ClimateInvalidParameterException,
-                    ClimateQueryException {
+            throws ClimateInvalidParameterException, ClimateQueryException {
 
         List<PeriodData> lastYearPeriodDatas = new ArrayList<>();
 
@@ -252,8 +255,7 @@ public final class PeriodClimateCreator {
              * If monthly, build from daily tables (period type 0)
              */
             climatePeriodDAO.buildPeriodObsClimo(beginDate, endDate,
-                    currPeriodData, globalValues,
-                    monthly ? PeriodType.OTHER : periodType);
+                    currPeriodData, globalValues, periodType, monthly);
             // freeze dates, originally a part of build_period_obs_climo
             buildPeriodObsFreezeDates(monthly ? PeriodType.OTHER : periodType,
                     beginDate, endDate, currPeriodData, currStationID);

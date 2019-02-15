@@ -4,8 +4,6 @@
 package gov.noaa.nws.ocp.viz.climate.setupclimate.dialog.comp;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
@@ -26,6 +24,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.RelativeHumidity
  * ------------ ---------- -----------  --------------------------
  * Dec 14, 2016 20640      jwu          Initial creation
  * 17 MAY 2017  33104      amoore       FindBugs. Package reorg.
+ * 06 NOV 2018  55207      jwu          Enable some legacy behavior(DR 20889).
  * </pre>
  * 
  * @author jwu
@@ -170,17 +169,6 @@ public class RelativeHumidityComp extends AbstractCategoryComp {
         maxRHLastYearBtn = new Button(maxRHMinorComp, SWT.CHECK);
         maxRHLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        maxRHMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                maxRHMinorComp.setVisible(selected);
-                maxRHMinorComp.layout(true, true);
-            }
-        });
-
         // Minimum RH composite
         Composite minRHComp = new Composite(rhMainComp, SWT.NONE);
         minRHComp.setLayout(majorCompLayout);
@@ -201,17 +189,6 @@ public class RelativeHumidityComp extends AbstractCategoryComp {
         minRHLastYearBtn = new Button(minRHMinorComp, SWT.CHECK);
         minRHLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        minRHMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                minRHMinorComp.setVisible(selected);
-                minRHMinorComp.layout(true, true);
-            }
-        });
-
         // Mean RH composite
         Composite meanRHComp = new Composite(rhMainComp, SWT.NONE);
         meanRHComp.setLayout(majorCompLayout);
@@ -228,17 +205,6 @@ public class RelativeHumidityComp extends AbstractCategoryComp {
 
         meanRHLastYearBtn = new Button(meanRHMinorComp, SWT.CHECK);
         meanRHLastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        meanRHMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                meanRHMinorComp.setVisible(selected);
-                meanRHMinorComp.layout(true, true);
-            }
-        });
 
         return rhMainComp;
     }

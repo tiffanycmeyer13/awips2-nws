@@ -30,6 +30,7 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
 import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListener;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Snow tab of the Period Display dialog.
@@ -870,7 +871,8 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         dataToSave.setSnowMaxStorm(myGreatestSnowStormTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myGreatestSnowStormTF.getText()));
+                        : ClimateGUIUtils
+                                .parseFloat(myGreatestSnowStormTF.getText()));
         dataToSave.getSnowStormList().clear();
         for (int i = 0; i < myGreatestSnowStormBeginDates.length; i++) {
             ClimateDate startDate = myGreatestSnowStormBeginDates[i].getDate();
@@ -894,25 +896,27 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         dataToSave.setSnowTotal(myTotalSnowTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myTotalSnowTF.getText()));
+                        : ClimateGUIUtils.parseFloat(myTotalSnowTF.getText()));
         dataToSave.setSnowWater(myTotalSnowWaterEquivTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myTotalSnowWaterEquivTF.getText()));
-        dataToSave.setNumSnowGreaterThanTR(
-                Integer.parseInt(myAnySnowGreaterThanTraceTF.getText()));
+                        : ClimateGUIUtils
+                                .parseFloat(myTotalSnowWaterEquivTF.getText()));
+        dataToSave.setNumSnowGreaterThanTR(ClimateGUIUtils
+                .parseInt(myAnySnowGreaterThanTraceTF.getText()));
         dataToSave.setNumSnowGreaterThan1(
-                Integer.parseInt(mySnowGreaterThan1TF.getText()));
+                ClimateGUIUtils.parseInt(mySnowGreaterThan1TF.getText()));
 
         if (mySnowCustomGreaterS1TF.isEnabled()) {
-            dataToSave.setNumSnowGreaterThanS1(
-                    Integer.parseInt(mySnowCustomGreaterS1TF.getText()));
+            dataToSave.setNumSnowGreaterThanS1(ClimateGUIUtils
+                    .parseInt(mySnowCustomGreaterS1TF.getText()));
         }
 
         dataToSave.setSnowGroundMean(myAvgSnowDepthGroundTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myAvgSnowDepthGroundTF.getText()));
+                        : ClimateGUIUtils
+                                .parseFloat(myAvgSnowDepthGroundTF.getText()));
 
         recordSnowGroundDepthMax(dataToSave);
     }
@@ -1299,7 +1303,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         dataToSave.setSnowMax24H(
                 saveValue.equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(saveValue));
+                        : ClimateGUIUtils.parseFloat(saveValue));
         dataToSave.getSnow24HDates().clear();
         for (int i = 0; i < myMaxSnow24HourBeginDates.length; i++) {
             ClimateDate startDate = myMaxSnow24HourBeginDates[i].getDate();
@@ -1326,7 +1330,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
     private void recordSnowGroundDepthMax(PeriodData dataToSave)
             throws ParseException {
         dataToSave.setSnowGroundMax(
-                Integer.parseInt(myMaxSnowDepthGroundTF.getText()));
+                ClimateGUIUtils.parseInt(myMaxSnowDepthGroundTF.getText()));
         dataToSave.getSnowGroundMaxDateList().clear();
         for (DateSelectionComp dateComp : myMaxSnowDepthGroundDates) {
             ClimateDate date = dateComp.getDate();

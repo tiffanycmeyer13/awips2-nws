@@ -3,9 +3,11 @@
  **/
 package gov.noaa.nws.ocp.edex.common.climate.dao;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.raytheon.uf.common.time.util.TimeUtil;
@@ -66,6 +68,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.MetarUtils;
  *                                     value is null.
  * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
  * 13 DEC 2017  41565      wpaintsil   Corrected wrong date/time formats.
+ * 24 OCT 2018  DR20945    wpaintsil   Include both METAR and SPECI observations 
+ *                                     in the FSS_contin_real query.
  * </pre>
  * 
  * @author amoore
@@ -221,8 +225,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
 
     public void buildDailyObsWeather(ClimateDates window,
             DailyClimateData dailyClimateData, DailyDataMethod dailyDataMethod)
-                    throws ClimateQueryException,
-                    ClimateInvalidParameterException {
+            throws ClimateQueryException, ClimateInvalidParameterException {
         int stationID = dailyClimateData.getInformId();
 
         /* Determine the length of the time period being computed. */
@@ -468,7 +471,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
      */
     private int getWeatherElements(DailyClimateData dailyClimateData,
             String nominalTime, String wxQuery, Map<String, Object> paramMap)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         int wxQueryResultsCount = 0;
         try {
             int[] snapshot = new int[9];
@@ -924,7 +927,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
 
     public void getSkyCover(ClimateDates window,
             DailyClimateData dailyClimateData, DailyDataMethod qc)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         int informId = dailyClimateData.getInformId();
 
         /*
@@ -1782,13 +1785,16 @@ public class ClimateCreatorDAO extends ClimateDAO {
      *            ID key of element to look for
      * @param dateTime
      *            date time string in format "yyyy-MM-dd hh24:mm".
+     * @param includeSPECI
+     *            true to include SPECI observations
      * @return the value and data quality descriptor for the given element, or
      *         the missing value (9999) and an empty descriptor if no records
      *         were found.
      * @throws ClimateQueryException
      */
-    public FSSReportResult getMetarConreal(int informId, int elementID,
-            String dateTime) throws ClimateQueryException {
+    public List<FSSReportResult> getMetarConreal(int informId, int elementID,
+            String dateTime, boolean includeSPECI)
+            throws ClimateQueryException {
         /*
          * Legacy documentation:
          * 
@@ -1826,7 +1832,12 @@ public class ClimateCreatorDAO extends ClimateDAO {
         query.append(
                 "WHERE to_char(f.nominal_dtime, 'yyyy-MM-dd HH24:MI') = :dateTime");
         query.append(" AND f.station_id = :informId");
-        query.append(" AND f.report_subtype = 'MTR' ");
+        query.append(" AND (f.report_subtype = 'MTR' ");
+        if (includeSPECI) {
+            query.append(" OR f.report_subtype = 'SPECI') ");
+        } else {
+            query.append(") ");
+        }
         query.append(" ORDER BY f.valid_dtime ASC, f.correction DESC, ");
         query.append(" f.origin_dtime DESC");
 
@@ -1839,43 +1850,50 @@ public class ClimateCreatorDAO extends ClimateDAO {
             Object[] results = getDao().executeSQLQuery(query.toString(),
                     paramMap);
             if ((results != null) && (results.length >= 1)) {
-                Object result = results[0];
-                if (result instanceof Object[]) {
-                    Object[] oa = (Object[]) result;
-                    // valid time used only for sorting, cannot be null
-                    // correction is used only for sorting, could be null
-                    // origin time is used only for sorting, could be null
 
-                    double elementValue;
-                    Object elementValueObj = oa[3];
-                    // element value could be null
-                    if (elementValueObj != null) {
-                        elementValue = ((Number) elementValueObj).doubleValue();
+                List<FSSReportResult> resultList = new ArrayList<FSSReportResult>();
 
-                        // dqd could be null
-                        String dqd;
-                        Object dqdObj = oa[4];
-                        if (dqdObj != null) {
-                            dqd = (String) dqdObj;
+                for (Object result : results) {
+                    if (result instanceof Object[]) {
+                        Object[] oa = (Object[]) result;
+                        // valid time used only for sorting, cannot be null
+                        // correction is used only for sorting, could be null
+                        // origin time is used only for sorting, could be null
+
+                        double elementValue;
+                        Object elementValueObj = oa[3];
+                        // element value could be null
+                        if (elementValueObj != null) {
+                            elementValue = ((Number) elementValueObj)
+                                    .doubleValue();
+
+                            // dqd could be null
+                            String dqd;
+                            Object dqdObj = oa[4];
+                            if (dqdObj != null) {
+                                dqd = (String) dqdObj;
+                            } else {
+                                logger.warn("DQD for query [" + query
+                                        + "] and map: [" + paramMap
+                                        + "] is null. Empty DQD will be used.");
+                                dqd = "";
+                            }
+
+                            resultList.add(
+                                    new FSSReportResult(elementValue, dqd));
+
                         } else {
-                            logger.warn("DQD for query [" + query
+                            logger.warn("Element value for query [" + query
                                     + "] and map: [" + paramMap
-                                    + "] is null. Empty DQD will be used.");
-                            dqd = "";
+                                    + "] is null. Returning missing value.");
                         }
-
-                        return new FSSReportResult(elementValue, dqd);
                     } else {
-                        logger.warn("Element value for query [" + query
-                                + "] and map: [" + paramMap
-                                + "] is null. Returning missing value.");
+                        throw new ClimateQueryException(
+                                "Unexpected return type from query, expected Object[], got "
+                                        + result.getClass().getName());
                     }
-                } else {
-                    throw new ClimateQueryException(
-                            "Unexpected return type from query, expected Object[], got "
-                                    + result.getClass().getName());
                 }
-
+                return resultList;
             } else {
                 logger.warn("Couldn't find a report for report time " + dateTime
                         + "Z. Missing value will be returned for query: ["
@@ -1890,7 +1908,28 @@ public class ClimateCreatorDAO extends ClimateDAO {
                     e);
         }
 
-        return new FSSReportResult();
+        return new ArrayList<FSSReportResult>();
+    }
+
+    /**
+     * Overload for the above. Does not include SPECI observations.
+     * 
+     * @param informId
+     * @param elementID
+     * @param dateTime
+     * @return
+     * @throws ClimateQueryException
+     */
+    public FSSReportResult getMetarConreal(int informId, int elementID,
+            String dateTime) throws ClimateQueryException {
+        List<FSSReportResult> result = getMetarConreal(informId, elementID,
+                dateTime, false);
+
+        if (!result.isEmpty()) {
+            return result.get(0);
+        } else {
+            return new FSSReportResult();
+        }
     }
 
     /**
@@ -2097,7 +2136,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
 
     public void getAllSpeciWinds(ClimateDates window, int informId,
             ClimateWind wind, ClimateTime windTime, boolean windOrGust)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         String beginDateTimeString = window.getStart().toFullDateString() + " "
                 + window.getStartTime().toHourMinString();
         String endDateTimeString = window.getEnd().toFullDateString() + " "

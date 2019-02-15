@@ -26,6 +26,7 @@ import gov.noaa.nws.ocp.viz.climate.display.period.dialog.support.DataValueOrigi
 import gov.noaa.nws.ocp.viz.climate.display.period.dialog.support.MismatchLabel;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Sky and weather tab of the Period Display dialog.
@@ -696,24 +697,31 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
     @Override
     protected void saveValues(PeriodData dataToSave)
             throws VizException, NumberFormatException, ParseException {
-        dataToSave.setNumThunderStorms(Integer.parseInt(myThunderTF.getText()));
+        dataToSave.setNumThunderStorms(
+                ClimateGUIUtils.parseInt(myThunderTF.getText()));
         dataToSave.setNumFreezingRain(
-                Integer.parseInt(myFreezingRainTF.getText()));
-        dataToSave.setNumLightSnow(Integer.parseInt(myLightSnowTF.getText()));
-        dataToSave
-                .setNumMixedPrecip(Integer.parseInt(myMixedPrecipTF.getText()));
+                ClimateGUIUtils.parseInt(myFreezingRainTF.getText()));
+        dataToSave.setNumLightSnow(
+                ClimateGUIUtils.parseInt(myLightSnowTF.getText()));
+        dataToSave.setNumMixedPrecip(
+                ClimateGUIUtils.parseInt(myMixedPrecipTF.getText()));
         dataToSave.setNumLightFreezingRain(
-                Integer.parseInt(myLightFreezingRainTF.getText()));
-        dataToSave.setNumIcePellets(Integer.parseInt(myIcePelletsTF.getText()));
-        dataToSave.setNumHeavyRain(Integer.parseInt(myHeavyRainTF.getText()));
-        dataToSave.setNumHail(Integer.parseInt(myHailTF.getText()));
-        dataToSave.setNumFog(Integer.parseInt(myFogTF.getText()));
-        dataToSave.setNumRain(Integer.parseInt(myRainTF.getText()));
-        dataToSave.setNumHeavySnow(Integer.parseInt(myHeavySnowTF.getText()));
-        dataToSave.setNumFogQuarterSM(Integer.parseInt(myHeavyFogTF.getText()));
-        dataToSave.setNumLightRain(Integer.parseInt(myLightRainTF.getText()));
-        dataToSave.setNumSnow(Integer.parseInt(mySnowTF.getText()));
-        dataToSave.setNumHaze(Integer.parseInt(myHazeTF.getText()));
+                ClimateGUIUtils.parseInt(myLightFreezingRainTF.getText()));
+        dataToSave.setNumIcePellets(
+                ClimateGUIUtils.parseInt(myIcePelletsTF.getText()));
+        dataToSave.setNumHeavyRain(
+                ClimateGUIUtils.parseInt(myHeavyRainTF.getText()));
+        dataToSave.setNumHail(ClimateGUIUtils.parseInt(myHailTF.getText()));
+        dataToSave.setNumFog(ClimateGUIUtils.parseInt(myFogTF.getText()));
+        dataToSave.setNumRain(ClimateGUIUtils.parseInt(myRainTF.getText()));
+        dataToSave.setNumHeavySnow(
+                ClimateGUIUtils.parseInt(myHeavySnowTF.getText()));
+        dataToSave.setNumFogQuarterSM(
+                ClimateGUIUtils.parseInt(myHeavyFogTF.getText()));
+        dataToSave.setNumLightRain(
+                ClimateGUIUtils.parseInt(myLightRainTF.getText()));
+        dataToSave.setNumSnow(ClimateGUIUtils.parseInt(mySnowTF.getText()));
+        dataToSave.setNumHaze(ClimateGUIUtils.parseInt(myHazeTF.getText()));
 
         recordFairDays(dataToSave);
         recordPartlyCloudyDays(dataToSave);
@@ -721,7 +729,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
 
         recordPercentPossibleSun(dataToSave);
 
-        dataToSave.setMeanSkyCover(Float.parseFloat(mySkyCoverTF.getText()));
+        dataToSave.setMeanSkyCover(
+                ClimateGUIUtils.parseFloat(mySkyCoverTF.getText()));
     }
 
     @Override
@@ -1075,7 +1084,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
      * @param dataToSave
      */
     private void recordFairDays(PeriodData dataToSave) {
-        dataToSave.setNumFairDays(Integer.parseInt(myFairTF.getText()));
+        dataToSave.setNumFairDays(ClimateGUIUtils.parseInt(myFairTF.getText()));
         dataToSave.getDataMethods()
                 .setFairDaysQc(myFairTF.getToolTip().getQcValue());
     }
@@ -1087,7 +1096,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
      */
     private void recordPartlyCloudyDays(PeriodData dataToSave) {
         dataToSave.setNumPartlyCloudyDays(
-                Integer.parseInt(myPartlyCloudyTF.getText()));
+                ClimateGUIUtils.parseInt(myPartlyCloudyTF.getText()));
         dataToSave.getDataMethods()
                 .setPcDaysQc(myPartlyCloudyTF.getToolTip().getQcValue());
     }
@@ -1099,7 +1108,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
      */
     private void recordMostlyCloudyDays(PeriodData dataToSave) {
         dataToSave.setNumMostlyCloudyDays(
-                Integer.parseInt(myMostlyCloudyTF.getText()));
+                ClimateGUIUtils.parseInt(myMostlyCloudyTF.getText()));
         dataToSave.getDataMethods()
                 .setCloudyDaysQc(myMostlyCloudyTF.getToolTip().getQcValue());
     }
@@ -1111,7 +1120,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
      */
     private void recordPercentPossibleSun(PeriodData dataToSave) {
         dataToSave.setPossSun(
-                Integer.parseInt(myPercentPossSunshineTF.getText()));
+                ClimateGUIUtils.parseInt(myPercentPossSunshineTF.getText()));
         dataToSave.getDataMethods().setPossSunQc(
                 myPercentPossSunshineTF.getToolTip().getQcValue());
     }

@@ -10,6 +10,8 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.localization.LocalizationManager;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
+
 /**
  * 
  * GUI Utility class for Climate.
@@ -22,6 +24,7 @@ import com.raytheon.uf.viz.core.localization.LocalizationManager;
  * ------------ ---------- ----------- --------------------------
  * 06 DEC 2016  26345      astrakovsky Initial creation
  * 24 JAN 2017  28499      amoore      Make final, and have private constructor.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * </pre>
  * 
  * @author astrakovsky
@@ -71,4 +74,53 @@ public final class ClimateGUIUtils {
         }
         return wfo;
     }
+
+    /**
+     * Parse Integer from String with exception handling.
+     * 
+     * @param text
+     * @return the value of the parsed integer
+     */
+    public static int parseInt(String text) {
+        int value;
+        try {
+            value = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            value = ParameterFormatClimate.MISSING;
+        }
+        return value;
+    }
+
+    /**
+     * Parse Float from String with exception handling.
+     * 
+     * @param text
+     * @return the value of the parsed float
+     */
+    public static float parseFloat(String text) {
+        float value;
+        try {
+            value = Float.parseFloat(text);
+        } catch (NumberFormatException e) {
+            value = ParameterFormatClimate.MISSING;
+        }
+        return value;
+    }
+
+    /**
+     * Parse Double from String with exception handling.
+     * 
+     * @param text
+     * @return the value of the parsed double
+     */
+    public static double parseDouble(String text) {
+        double value;
+        try {
+            value = Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            value = ParameterFormatClimate.MISSING;
+        }
+        return value;
+    }
+
 }

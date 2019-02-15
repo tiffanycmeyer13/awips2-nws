@@ -26,6 +26,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.viz.climate.display.common.DisplayValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Wind tab of the Period Display dialog.
@@ -35,6 +36,7 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * </pre>
  * 
  * @author amoore
@@ -677,12 +679,13 @@ public class WindTab extends DisplayStationPeriodTabItem {
         }
 
         dataToSave.getMaxWindList().clear();
-        float maxWindSpeed = Float.parseFloat(myMaxWindSpeedTF.getText());
+        float maxWindSpeed = ClimateGUIUtils
+                .parseFloat(myMaxWindSpeedTF.getText());
         if ((int) maxWindSpeed != ParameterFormatClimate.MISSING_SPEED) {
             maxWindSpeed *= knotsmphMultiplier;
         }
         for (Text text : myMaxWindDirTFs) {
-            int maxWindSpeedDir = Integer.parseInt(text.getText());
+            int maxWindSpeedDir = ClimateGUIUtils.parseInt(text.getText());
             if (maxWindSpeedDir != ParameterFormatClimate.MISSING) {
                 dataToSave.getMaxWindList()
                         .add(new ClimateWind(maxWindSpeedDir, maxWindSpeed));
@@ -703,7 +706,8 @@ public class WindTab extends DisplayStationPeriodTabItem {
             }
         }
 
-        float avgWindSpeed = Float.parseFloat(myAverageWindSpeedTF.getText());
+        float avgWindSpeed = ClimateGUIUtils
+                .parseFloat(myAverageWindSpeedTF.getText());
         if ((int) avgWindSpeed != ParameterFormatClimate.MISSING_SPEED) {
             avgWindSpeed *= knotsmphMultiplier;
         }
@@ -715,16 +719,17 @@ public class WindTab extends DisplayStationPeriodTabItem {
             resultWindSpeed *= knotsmphMultiplier;
         }
         dataToSave.setResultWind(new ClimateWind(
-                Integer.parseInt(myResultantWindDirTF.getText()),
+                ClimateGUIUtils.parseInt(myResultantWindDirTF.getText()),
                 resultWindSpeed));
 
         dataToSave.getMaxGustList().clear();
-        float maxGustSpeed = Float.parseFloat(myMaxGustSpeedTF.getText());
+        float maxGustSpeed = ClimateGUIUtils
+                .parseFloat(myMaxGustSpeedTF.getText());
         if ((int) maxGustSpeed != ParameterFormatClimate.MISSING_SPEED) {
             maxGustSpeed *= knotsmphMultiplier;
         }
         for (Text text : myMaxGustDirTFs) {
-            int maxGustSpeedDir = Integer.parseInt(text.getText());
+            int maxGustSpeedDir = ClimateGUIUtils.parseInt(text.getText());
             if (maxGustSpeedDir != ParameterFormatClimate.MISSING) {
                 dataToSave.getMaxGustList()
                         .add(new ClimateWind(maxGustSpeedDir, maxGustSpeed));

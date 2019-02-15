@@ -85,6 +85,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  * 15 NOV 2017  40988      amoore      Fix error introduced by 40624 changes. Explicitly order max/min
  *                                     queries.
  * 21 NOV 2017  41180      amoore      CLS and CLA should not deal with MSM values.
+ * 07 NOV 2018  DR20923    wpaintsil   Queries for dates may return a single date object 
+ *                                     rather than an array.
+ *                                     Revise monthly period logic in buildPeriodObsClimo.
  * </pre>
  * 
  * @author amoore
@@ -136,7 +139,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      */
     public PeriodData buildPeriodObsClimo(ClimateDate beginDate,
             ClimateDate endDate, PeriodData periodData,
-            ClimateGlobal globalValues, PeriodType itype)
+            ClimateGlobal globalValues, PeriodType itype, boolean monthly)
             throws ClimateQueryException, ClimateInvalidParameterException {
         // interval of days (add 1 to account for first day)
         int numDays = (int) TimeUnit.DAYS
@@ -162,10 +165,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         /* average max temp */
-        if (PeriodType.OTHER.equals(itype)) {
+        if (/* PeriodType.OTHER.equals(itype) */monthly) {
             // monthly or other period type; average using the max temp column
-            periodData.setMaxTempMean(
-                    avgMaxTemp(beginDate, endDate, itype, stationID));
+            periodData.setMaxTempMean(avgMaxTemp(beginDate, endDate,
+                    PeriodType.OTHER, stationID));
         } else {
             // seasonal or annual; average using existing averages
             periodData.setMaxTempMean(
@@ -173,21 +176,23 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         /* number of days for max temp thresholds */
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             periodData.setNumMaxGreaterThan90F(sumReportMaxTempGreater90F(
-                    beginDate, endDate, itype, stationID));
+                    beginDate, endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumMaxLessThan32F(sumReportMaxTempLess32F(beginDate,
-                    endDate, itype, stationID));
+                    endDate, PeriodType.OTHER, stationID));
 
-            periodData.setNumMaxGreaterThanT1F(sumReportMaxTempGreaterT1F(
-                    beginDate, endDate, itype, stationID, globalValues));
+            periodData.setNumMaxGreaterThanT1F(
+                    sumReportMaxTempGreaterT1F(beginDate, endDate,
+                            PeriodType.OTHER, stationID, globalValues));
 
-            periodData.setNumMaxGreaterThanT2F(sumReportMaxTempGreaterT2F(
-                    beginDate, endDate, itype, stationID, globalValues));
+            periodData.setNumMaxGreaterThanT2F(
+                    sumReportMaxTempGreaterT2F(beginDate, endDate,
+                            PeriodType.OTHER, stationID, globalValues));
 
             periodData.setNumMaxLessThanT3F(sumReportMaxTempLessT3F(beginDate,
-                    endDate, itype, stationID, globalValues));
+                    endDate, PeriodType.OTHER, stationID, globalValues));
         }
         // get min temp
         periodData.setMinTemp(
@@ -200,10 +205,10 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         /* average min temp */
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             // monthly or other period type; average using the min temp column
-            periodData.setMinTempMean(
-                    avgMinTemp(beginDate, endDate, itype, stationID));
+            periodData.setMinTempMean(avgMinTemp(beginDate, endDate,
+                    PeriodType.OTHER, stationID));
         } else {
             // seasonal or annual; average using existing averages
             periodData.setMinTempMean(
@@ -211,21 +216,22 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         /* number of days for min temp thresholds */
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             periodData.setNumMinLessThan32F(sumReportMinTempLess32F(beginDate,
-                    endDate, itype, stationID));
+                    endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumMinLessThan0F(sumReportMinTempLess0F(beginDate,
-                    endDate, itype, stationID));
+                    endDate, PeriodType.OTHER, stationID));
 
-            periodData.setNumMinGreaterThanT4F(sumReportMinTempGreaterT4F(
-                    beginDate, endDate, itype, stationID, globalValues));
+            periodData.setNumMinGreaterThanT4F(
+                    sumReportMinTempGreaterT4F(beginDate, endDate,
+                            PeriodType.OTHER, stationID, globalValues));
 
             periodData.setNumMinLessThanT5F(sumReportMinTempLessT5F(beginDate,
-                    beginDate, itype, stationID, globalValues));
+                    beginDate, PeriodType.OTHER, stationID, globalValues));
 
             periodData.setNumMinLessThanT6F(sumReportMinTempLessT6F(beginDate,
-                    endDate, itype, stationID, globalValues));
+                    endDate, PeriodType.OTHER, stationID, globalValues));
         }
 
         /*
@@ -247,9 +253,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 getSumTotalPrecip(beginDate, endDate, stationID, itype));
 
         // average precipitation for month (only for period type 0 (monthly))
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             float averagePrecip = getAvgTotalPrecip(beginDate, endDate,
-                    stationID, itype);
+                    stationID, PeriodType.OTHER);
 
             if (averagePrecip != ParameterFormatClimate.MISSING_PRECIP) {
                 periodData.setPrecipMeanDay(averagePrecip);
@@ -259,24 +265,26 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         // threshold precipitation
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             periodData.setNumPrcpGreaterThan01(sumReportPrecipGreater01(
-                    beginDate, endDate, itype, stationID));
+                    beginDate, endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumPrcpGreaterThan10(sumReportPrecipGreater10(
-                    beginDate, endDate, itype, stationID));
+                    beginDate, endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumPrcpGreaterThan50(sumReportPrecipGreater50(
-                    beginDate, endDate, itype, stationID));
+                    beginDate, endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumPrcpGreaterThan100(sumReportPrecipGreater100(
-                    beginDate, endDate, itype, stationID));
+                    beginDate, endDate, PeriodType.OTHER, stationID));
 
-            periodData.setNumPrcpGreaterThanP1(sumReportPrecipGreaterP1(
-                    beginDate, endDate, itype, stationID, globalValues));
+            periodData.setNumPrcpGreaterThanP1(
+                    sumReportPrecipGreaterP1(beginDate, endDate,
+                            PeriodType.OTHER, stationID, globalValues));
 
-            periodData.setNumPrcpGreaterThanP2(sumReportPrecipGreaterP2(
-                    beginDate, endDate, itype, stationID, globalValues));
+            periodData.setNumPrcpGreaterThanP2(
+                    sumReportPrecipGreaterP2(beginDate, endDate,
+                            PeriodType.OTHER, stationID, globalValues));
         }
 
         /*
@@ -288,14 +296,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
          * In cases where DSM might be missing, this will end up being the max
          * 24-hr value for the F-6 report
          */
-        if (PeriodType.OTHER.equals(itype)) {
-            periodData.setPrecipMax24H(
-                    getMaxTotalPrecip(beginDate, endDate, stationID, itype));
+        if (monthly) {
+            periodData.setPrecipMax24H(getMaxTotalPrecip(beginDate, endDate,
+                    stationID, PeriodType.OTHER));
 
             if (periodData.getPrecipMax24H() == 0) {
                 /* check for trace amounts */
                 int traceReports = getNumTotalPrecipTrace(beginDate, endDate,
-                        stationID, itype);
+                        stationID, PeriodType.OTHER);
                 if ((traceReports == 0)
                         || (traceReports == ParameterFormatClimate.MISSING)) {
                     // no reports with trace precipitation
@@ -328,7 +336,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
          * or year. Do a separate SQL on the month 24 hr max to get the season
          * and year values
          */
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             Calendar searchRange24HoursBeginCal = beginDate
                     .getCalendarFromClimateDate();
             searchRange24HoursBeginCal.add(Calendar.DATE, -1);
@@ -403,7 +411,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         // storm total precipitation
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             /*
              * Legacy documentation:
              * 
@@ -426,7 +434,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         // avg seasonal/yearly precip
-        if (!PeriodType.OTHER.equals(itype)) {
+        if (!monthly) {
             // get mean precip
             periodData.setPrecipMeanDay(
                     getAvgMeanPrecip(beginDate, endDate, stationID, itype));
@@ -511,19 +519,19 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         // get days of different snow amounts
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             periodData.setNumSnowGreaterThanTR(sumReportSnowGreaterTR(beginDate,
-                    endDate, itype, stationID));
+                    endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumSnowGreaterThan1(sumReportSnowGreater1(beginDate,
-                    endDate, itype, stationID));
+                    endDate, PeriodType.OTHER, stationID));
 
             periodData.setNumSnowGreaterThanS1(sumReportSnowGreaterS1(beginDate,
-                    endDate, itype, stationID, globalValues));
+                    endDate, PeriodType.OTHER, stationID, globalValues));
         }
 
         // 24 hour snow
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             /*
              * Legacy documentation:
              * 
@@ -536,7 +544,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             if (periodData.getSnowMax24H() == 0) {
                 /* check for trace amounts */
                 int traceReports = getNumTotalSnowTrace(beginDate, endDate,
-                        stationID, itype);
+                        stationID, PeriodType.OTHER);
 
                 if ((traceReports == 0)
                         || (traceReports == ParameterFormatClimate.MISSING)) {
@@ -553,7 +561,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     && (periodData
                             .getSnowMax24H() != ParameterFormatClimate.TRACE)) {
                 periodData.setSnow24HDates(getMaxTotalSnowOccurrences(beginDate,
-                        endDate, stationID, periodData.getSnowMax24H(), itype));
+                        endDate, stationID, periodData.getSnowMax24H(),
+                        PeriodType.OTHER));
             }
 
         } else {
@@ -570,7 +579,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         }
 
         // snow storm totals
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             /*
              * Task 23241, Legacy left this unimplemented
              * 
@@ -690,7 +699,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 getAvgMeanSkyCover(beginDate, endDate, stationID, itype));
 
         // number cloudy days
-        if (PeriodType.OTHER.equals(itype)) {
+        if (monthly) {
             /*
              * Legacy documentation:
              * 
@@ -799,7 +808,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         data.setInformId(stationId);
 
         return buildPeriodObsClimo(dates.getStart(), dates.getEnd(), data,
-                globalValues, itype);
+                globalValues, itype, false);
     }
 
     /**
@@ -1636,10 +1645,57 @@ public class ClimatePeriodDAO extends ClimateDAO {
         dirQueryParams.put("stationID", stationID);
 
         try {
-            Object[] results = getDao().executeSQLQuery(dateQuery.toString(),
+            Object results = getDao().executeSQLQuery(dateQuery.toString(),
                     dateQueryParams);
-            if ((results != null) && (results.length >= 1)) {
-                for (Object result : results) {
+            if (results != null && results instanceof java.sql.Date) {
+
+                ClimateDate searchDate = new ClimateDate(results);
+                if (!searchDate.isMissing()) {
+                    // add dates to the list
+                    dates.add(searchDate);
+
+                    /*
+                     * look for directions involving this date
+                     * 
+                     * legacy repeated the same search 3 times for Period Type
+                     * 0, whereas other period types did 3 distinct searches.
+                     * Introduced limiter so type 0 only does 1 search and the
+                     * other types still do their multiple distinct searches.
+                     */
+                    for (int searchDirIndex = 1; searchDirIndex <= dirSearchLimit; searchDirIndex++) {
+                        dirQueryParams.put("date",
+                                searchDate.getCalendarFromClimateDate());
+
+                        int direction = ((Number) queryForOneValue(
+                                dirQuery.toString().replaceAll(":dirIndex",
+                                        String.valueOf(searchDirIndex)),
+                                dirQueryParams, ParameterFormatClimate.MISSING))
+                                        .intValue();
+                        if (direction != ParameterFormatClimate.MISSING) {
+                            gusts.add(new ClimateWind(direction, maxGustSpeed));
+                        } else {
+                            logger.warn("Could not find expected non-missing"
+                                    + " direction for date ["
+                                    + searchDate.toFullDateString()
+                                    + "], station ID [" + stationID
+                                    + "], using query [" + dirQuery
+                                    + "] and map [" + dirQueryParams.toString()
+                                    + "]. Date retrieved from query: ["
+                                    + dateQuery + "] and map: ["
+                                    + dateQueryParams.toString() + "]."
+                                    + "\nUsing missing value and"
+                                    + " skipping to next date.");
+                            gusts.add(new ClimateWind(
+                                    ParameterFormatClimate.MISSING,
+                                    maxGustSpeed));
+                            break;
+                        }
+                    }
+                }
+
+            } else if ((results != null)
+                    && (((Object[]) results).length >= 1)) {
+                for (Object result : (Object[]) results) {
                     if (result instanceof Object[]) {
                         Object[] oa = (Object[]) result;
                         for (int searchDateIndex = 0; searchDateIndex < expectedDateResultSize; searchDateIndex++) {
@@ -1847,10 +1903,57 @@ public class ClimatePeriodDAO extends ClimateDAO {
         dirQueryParams.put("stationID", stationID);
 
         try {
-            Object[] results = getDao().executeSQLQuery(dateQuery.toString(),
+            Object results = getDao().executeSQLQuery(dateQuery.toString(),
                     dateQueryParams);
-            if ((results != null) && (results.length >= 1)) {
-                for (Object result : results) {
+            if (results != null && results instanceof java.sql.Date) {
+
+                ClimateDate searchDate = new ClimateDate(results);
+                if (!searchDate.isMissing()) {
+                    // add dates to the list
+                    dates.add(searchDate);
+
+                    /*
+                     * look for directions involving this date
+                     * 
+                     * legacy repeated the same search 3 times for Period Type
+                     * 0, whereas other period types did 3 distinct searches.
+                     * Introduced limiter so type 0 only does 1 search and the
+                     * other types still do their multiple distinct searches.
+                     */
+                    for (int searchDirIndex = 1; searchDirIndex <= dirSearchLimit; searchDirIndex++) {
+                        dirQueryParams.put("date",
+                                searchDate.getCalendarFromClimateDate());
+
+                        int direction = ((Number) queryForOneValue(
+                                dirQuery.toString().replaceAll(":dirIndex",
+                                        String.valueOf(searchDirIndex)),
+                                dirQueryParams, ParameterFormatClimate.MISSING))
+                                        .intValue();
+                        if (direction != ParameterFormatClimate.MISSING) {
+                            winds.add(new ClimateWind(direction, maxWindSpeed));
+                        } else {
+                            logger.warn("Could not find expected non-missing"
+                                    + " direction for date ["
+                                    + searchDate.toFullDateString()
+                                    + "], station ID [" + stationID
+                                    + "], using query [" + dirQuery
+                                    + "] and map [" + dirQueryParams.toString()
+                                    + "]. Date retrieved from query: ["
+                                    + dateQuery + "] and map: ["
+                                    + dateQueryParams.toString() + "]."
+                                    + "\nUsing missing value and"
+                                    + " skipping to next date.");
+                            winds.add(new ClimateWind(
+                                    ParameterFormatClimate.MISSING,
+                                    maxWindSpeed));
+                            break;
+                        }
+                    }
+                }
+
+            } else if ((results != null)
+                    && (((Object[]) results).length >= 1)) {
+                for (Object result : (Object[]) results) {
                     if (result instanceof Object[]) {
                         Object[] oa = (Object[]) result;
                         for (int searchDateIndex = 0; searchDateIndex < expectedDateResultSize; searchDateIndex++) {
