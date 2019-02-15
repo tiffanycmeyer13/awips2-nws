@@ -1,0 +1,8 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="subMenu" menuText="Gridded NUCAPS" id="griddednucapsWindow">
+        <contribute xsi:type="titleItem" id="GNLLPTitle" titleText="------ Level/Layer Products ------"/>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/levelAndLayerProducts.xml"></contribute>
+        <contribute xsi:type="titleItem" id="GNSLPTitle" titleText="------ Single Level Products ------"/>
+        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/singleLevelProducts.xml"></contribute>
+    </contribute>
+</menuTemplate>

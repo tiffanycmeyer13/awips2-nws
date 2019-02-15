@@ -1,0 +1,26 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Total Atmosphere" id="TotAtmos">
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="SFC-800 MB" id="SFC500MB">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="1100.0" />
+        <substitute key="levelTwo" value="800.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="800-500 MB" id="800500Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="800.0" />
+        <substitute key="levelTwo" value="500.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="500-300 MB" id="500300Mb">
+        <substitute key="level" value="MB" />
+        <substitute key="levelOne" value="500.0" />
+        <substitute key="levelTwo" value="300.0" />
+    </contribute>
+</menuTemplate>
