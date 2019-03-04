@@ -54,7 +54,10 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * Oct 31, 2017 40112      wpaintsil   Correct period placement in temp sentence.
  * Apr 20, 2018 DR17116    wpaintsil   Accommodate more than one alternate snow/precip season.
  * Aug 08, 2018 DR20836    wpaintsil   Minor correction to precip grammar.
- *
+ * Sep 19, 2018 DR20888    wpaintsil   Ensure there's a period between Sunset 
+ *                                     and Sunrise sentences.
+ * Nov 20, 2018 DR20942    wpaintsil   "Snowfall for the year" wording is misleading. 
+ *                                     Should be "since July 1."
  * </pre>
  *
  * @author wpaintsil
@@ -392,15 +395,12 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         .append(SPACE).append(setPhrase.toString());
             }
         } else {
-            if (noSunset == 1 && noSunrise == 0) {
-                nwrAstro = new StringBuilder(setPhrase.toString())
-                        .append(PERIOD).append(SPACE)
-                        .append(risePhrase.toString());
-            } else if (noSunrise == 1 || noSunset == 1) {
+            if (noSunrise == 1 || noSunset == 1) {
                 nwrAstro = new StringBuilder(setPhrase.toString())
                         .append(risePhrase.toString());
             } else {
-                nwrAstro = new StringBuilder(setPhrase.toString()).append(SPACE)
+                nwrAstro = new StringBuilder(setPhrase.toString())
+                        .append(PERIOD).append(SPACE)
                         .append(risePhrase.toString());
             }
         }
@@ -618,7 +618,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
     *        MINIMUM RELATIVE HUMIDITY, OR JUST ONE. DEPENDING ON WHICH
     *        FLAGS ARE ON (TRUE) THE SENTENCE WILL READ.... "YESTERDAY'S
     *        MAXIMUM RELATIVE HUMIDITY WAS -- PER CENT AND MINIMUM 
-    *        RELATIVE HUMIDITY WAS -- PERCENT. "
+    *        RELATIVE HUMIDITY WAS -- PER CENT. "
      * </pre>
      * 
      * @param reportData
@@ -1911,9 +1911,9 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         && !yesterday.getSnowSeasons().isEmpty()
                         && yesterday.getSnowSeasons()
                                 .get(0) != ParameterFormatClimate.MISSING) {
-                    snowPhrase.append(" and the total snowfall for the year ");
+                    snowPhrase.append(" and the total snowfall since July 1 ");
                 } else {
-                    snowPhrase.append(" The total snow fall for the year ");
+                    snowPhrase.append(" The total snowfall since July 1 ");
                 }
 
                 if (snowFlag.getSnowTotal().isTotalSeason()
@@ -2242,7 +2242,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
                     liquidPhrase.append("This is ").append(precipString)
                             .append(" inches ")
-                            .append(ClimateNWRFormat.aboveBelow(which)).append(SPACE);
+                            .append(ClimateNWRFormat.aboveBelow(which))
+                            .append(SPACE);
 
                     if (precipFlag.getPrecipTotal().isNorm()) {
                         precipString = String.format(FLOAT_TWO_DECIMALS1,

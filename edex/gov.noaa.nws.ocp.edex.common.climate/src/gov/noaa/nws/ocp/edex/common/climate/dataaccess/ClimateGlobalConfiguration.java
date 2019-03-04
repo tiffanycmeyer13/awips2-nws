@@ -6,17 +6,21 @@ package gov.noaa.nws.ocp.edex.common.climate.dataaccess;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.PathManagerFactory;
+import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
@@ -51,6 +55,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 04 OCT 2017  38067      amoore      Fix PM/IM delay in data reports.
  * 20 OCT 2017  39784      amoore      Prefer SITE, then REGION, then BASE, not just BASE.
  * 06 NOV 2017  35731      pwang       added properties for controlling if an product can be auto generated
+ * 19 SEP 2018  DR 20890   dfriedman   Save preferences with a LocalizationFile.
+ * 12 OCT 2018  DR 20897   dfriedman   Support AFOS designator overrides.
+ * 23 OCT 2018  DR 20919   dfriedman   Make properties available to Spring.
  * </pre>
  * 
  * @author xzhang
@@ -84,6 +91,11 @@ public class ClimateGlobalConfiguration {
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
             LocalizationLevel.SITE, LocalizationLevel.REGION,
             LocalizationLevel.BASE };
+
+    /**
+     * Name of placeholder property for site time zone in Spring XML files.
+     */
+    private static final String CPG_CRON_TIMEZONE_SPRING_PROPERTY = "climate.cpg.cron.timezone";
 
     /**
      * @return global configuration values from SITE-REGION-BASE in that
@@ -176,6 +188,8 @@ public class ClimateGlobalConfiguration {
                         .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
                         .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setStationDesignatorOverrides(parseStationDesignatorOverrides(
+                        prop.getProperty("climate.stationDesignatorOverrides")));
 
                 // got to end without error; use this globalDay file
                 success = true;
@@ -224,89 +238,122 @@ public class ClimateGlobalConfiguration {
         LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
                 LocalizationLevel.SITE);
 
-        File globalDayParentPath = pm.getFile(lc, GLOBAL_DAY_DIR);
-        File globalDayFullPath = new File(globalDayParentPath, GLOBAL_DAY_FILE);
+        ILocalizationFile lf = pm.getLocalizationFile(lc, GLOBAL_DAY_PATH);
 
-        try {
-            if (!globalDayParentPath.exists()) {
-                if (!globalDayParentPath.mkdirs()) {
-                    logger.error("The directory: ["
-                            + globalDayParentPath.getAbsolutePath()
-                            + "] does not exist and a path could not be created.");
-                } else {
-                    logger.debug("The directory: ["
-                            + globalDayParentPath.getAbsolutePath()
-                            + "] did not exist but the path was created.");
-                }
-            }
+        try (SaveableOutputStream output = lf.openOutputStream()) {
+            // set the properties value
+            prop.setProperty("climate.T1", String.valueOf(global.getT1()));
+            prop.setProperty("climate.T2", String.valueOf(global.getT2()));
+            prop.setProperty("climate.T3", String.valueOf(global.getT3()));
+            prop.setProperty("climate.T4", String.valueOf(global.getT4()));
+            prop.setProperty("climate.T5", String.valueOf(global.getT5()));
+            prop.setProperty("climate.T6", String.valueOf(global.getT6()));
+            prop.setProperty("climate.P1", String.valueOf(global.getP1()));
+            prop.setProperty("climate.P2", String.valueOf(global.getP2()));
+            prop.setProperty("climate.S1", String.valueOf(global.getS1()));
+            prop.setProperty("climate.noAsterisk",
+                    global.isNoAsterisk() ? "T" : "F");
+            prop.setProperty("climate.useValidPm",
+                    global.isUseValidPm() ? "T" : "F");
+            prop.setProperty("climate.evening",
+                    global.getValidPm().toFullString());
+            prop.setProperty("climate.useValidIm",
+                    global.isUseValidIm() ? "T" : "F");
+            prop.setProperty("climate.intermediate",
+                    global.getValidIm().toFullString());
+            prop.setProperty("climate.noMinus",
+                    global.isNoMinus() ? "T" : "F");
+            prop.setProperty("climate.noSmallLetters",
+                    global.isNoSmallLetters() ? "T" : "F");
+            prop.setProperty("climate.noColon",
+                    global.isNoColon() ? "T" : "F");
+            prop.setProperty("climate.displayWait",
+                    Integer.toString(global.getDisplayWait()));
+            prop.setProperty("climate.reviewWait",
+                    Integer.toString(global.getReviewWait()));
+            prop.setProperty("climate.allowAutoSend",
+                    global.isAllowAutoSend() ? "true" : "false");
+            prop.setProperty("climate.copyNWRTo", global.getCopyNWRTo());
+            prop.setProperty("climate.allowDisseminate",
+                    global.isAllowDisseminate() ? "true" : "false");
+            prop.setProperty("climate.siteofficename",
+                    global.getOfficeName());
+            prop.setProperty("climate.sitetimezone", global.getTimezone());
 
-            try (OutputStream output = new FileOutputStream(
-                    globalDayFullPath)) {
-                // set the properties value
-                prop.setProperty("climate.T1", String.valueOf(global.getT1()));
-                prop.setProperty("climate.T2", String.valueOf(global.getT2()));
-                prop.setProperty("climate.T3", String.valueOf(global.getT3()));
-                prop.setProperty("climate.T4", String.valueOf(global.getT4()));
-                prop.setProperty("climate.T5", String.valueOf(global.getT5()));
-                prop.setProperty("climate.T6", String.valueOf(global.getT6()));
-                prop.setProperty("climate.P1", String.valueOf(global.getP1()));
-                prop.setProperty("climate.P2", String.valueOf(global.getP2()));
-                prop.setProperty("climate.S1", String.valueOf(global.getS1()));
-                prop.setProperty("climate.noAsterisk",
-                        global.isNoAsterisk() ? "T" : "F");
-                prop.setProperty("climate.useValidPm",
-                        global.isUseValidPm() ? "T" : "F");
-                prop.setProperty("climate.evening",
-                        global.getValidPm().toFullString());
-                prop.setProperty("climate.useValidIm",
-                        global.isUseValidIm() ? "T" : "F");
-                prop.setProperty("climate.intermediate",
-                        global.getValidIm().toFullString());
-                prop.setProperty("climate.noMinus",
-                        global.isNoMinus() ? "T" : "F");
-                prop.setProperty("climate.noSmallLetters",
-                        global.isNoSmallLetters() ? "T" : "F");
-                prop.setProperty("climate.noColon",
-                        global.isNoColon() ? "T" : "F");
-                prop.setProperty("climate.displayWait",
-                        Integer.toString(global.getDisplayWait()));
-                prop.setProperty("climate.reviewWait",
-                        Integer.toString(global.getReviewWait()));
-                prop.setProperty("climate.allowAutoSend",
-                        global.isAllowAutoSend() ? "true" : "false");
-                prop.setProperty("climate.copyNWRTo", global.getCopyNWRTo());
-                prop.setProperty("climate.allowDisseminate",
-                        global.isAllowDisseminate() ? "true" : "false");
-                prop.setProperty("climate.siteofficename",
-                        global.getOfficeName());
-                prop.setProperty("climate.sitetimezone", global.getTimezone());
+            prop.setProperty("climate.autoF6",
+                    global.isAutoF6() ? "true" : "false");
+            prop.setProperty("climate.autoAM",
+                    global.isAutoAM() ? "true" : "false");
+            prop.setProperty("climate.autoIM",
+                    global.isAutoIM() ? "true" : "false");
+            prop.setProperty("climate.autoPM",
+                    global.isAutoPM() ? "true" : "false");
+            prop.setProperty("climate.autoCLM",
+                    global.isAutoCLM() ? "true" : "false");
+            prop.setProperty("climate.autoCLS",
+                    global.isAutoCLS() ? "true" : "false");
+            prop.setProperty("climate.autoCLA",
+                    global.isAutoCLA() ? "true" : "false");
+            prop.setProperty("climate.stationDesignatorOverrides",
+                    formatStationDesignatorOverrides(
+                            global.getStationDesignatorOverrides()));
 
-                prop.setProperty("climate.autoF6",
-                        global.isAutoF6() ? "true" : "false");
-                prop.setProperty("climate.autoAM",
-                        global.isAutoAM() ? "true" : "false");
-                prop.setProperty("climate.autoIM",
-                        global.isAutoIM() ? "true" : "false");
-                prop.setProperty("climate.autoPM",
-                        global.isAutoPM() ? "true" : "false");
-                prop.setProperty("climate.autoCLM",
-                        global.isAutoCLM() ? "true" : "false");
-                prop.setProperty("climate.autoCLS",
-                        global.isAutoCLS() ? "true" : "false");
-                prop.setProperty("climate.autoCLA",
-                        global.isAutoCLA() ? "true" : "false");
-
-                // save properties
-                prop.store(output, null);
-            } catch (Exception e) {
-                logger.error("Error setting global day properties.", e);
-                status = -1;
-            }
+            // save properties
+            prop.store(output, null);
+            output.save();
         } catch (Exception e) {
-            logger.error("Error with global day properties directory", e);
-            status = -2;
+            logger.error("Error saving global day properties.", e);
+            status = -1;
         }
 
         return status;
+    }
+
+    /**
+     * Parse the "climate.stationDesignatorOverrides" setting into a Map.
+     * <p>
+     * The format is a sequence of ',' separated elements. Each element is of
+     * the form {station ID}:{product designator}. Invalid elements are
+     * ignored (and lost if saved again.)
+     *
+     * @param text
+     * @return
+     */
+    private static Map<String, String> parseStationDesignatorOverrides(String text) {
+        return Stream.of((text != null ? text : "").split(","))
+            .map(elem -> Stream.of(elem.split(":"))
+                    .map(p -> p.trim())
+                    .toArray(String[]::new))
+            .filter(parts -> parts.length == 2 && parts[0].length() > 0
+                    && parts[1].length() > 0)
+            .collect(Collectors.toMap(
+                    parts -> parts[0], parts -> parts[1],
+                    (a, b) -> a)); // ignore duplicates, favoring the first value
+    }
+
+    /**
+     * Format a map of station IDs to product IDs into text for the
+     * "climate.stationDesignatorOverrides" setting.
+     *
+     * @param map
+     * @return
+     */
+    private static String formatStationDesignatorOverrides(Map<String, String> map) {
+        return (map != null ? map : new HashMap<String, String>()).entrySet()
+                .stream()
+                .map(e -> e.getKey() + ':' + e.getValue())
+                .sorted()
+                .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Retrieve properties to be used in Spring XML files.  Currently only
+     * the site time zone is provided.
+     */
+    public static Properties getSpringProperties() {
+        Properties props = new Properties();
+        ClimateGlobal globalConfig = getGlobal();
+        props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, globalConfig.getTimezone());
+        return props;
     }
 }

@@ -39,6 +39,9 @@ import gov.noaa.nws.ocp.edex.plugin.climate.asos.dao.ClimateASOSMessageDAO;
  * 07 SEP 2017  37754      amoore    Exceptions instead of boolean returns.
  * 31 OCT 2017  40231      amoore    Clean up of MSM/DSM parsing and records. Better
  *                                   logging. Get rid of serialization tags.
+ * 20 SEP 2018  20896      pwang     Enable to decode DSM and MSM with C[SX]US4[123456] WMO IDs
+ * 12 OCT 2018  20941      pwang     Removed "site level" ingest station filter to avoid confusion
+ * 
  * </pre>
  *
  * @author pwang
@@ -56,11 +59,23 @@ public class ClimateASOSMessageDecoder {
 
     private static final String MSG_BEGIN = "\\w{3,4}\\s+[DM]S\\s+.*";
 
-    private static final String MSG_END = ".*=";
+    private static final String MSG_AWIPS_ID = "\\w{3}[A-Z0-9]{1,3}";
+
+    // Only valid for the collective DSM/MSM with C[DS]US27 WMO IDs
+    private static final String CDSUS27_MSG_END = ".*=";
+
+    private static final String CSXUS4_WMO_ID = "C[SX]US4[123456]";
 
     private static final Pattern MSG_BEGIN_PATTERN = Pattern.compile(MSG_BEGIN);
 
-    private static final Pattern MSG_END_PATTERN = Pattern.compile(MSG_END);
+    private static final Pattern MSG_AWIPS_ID_PATTERN = Pattern
+            .compile(MSG_AWIPS_ID);
+
+    private static final Pattern CDSUS27_MSG_END_PATTERN = Pattern
+            .compile(CDSUS27_MSG_END);
+
+    private static final Pattern CSXUS4_WMO_ID_PATTERN = Pattern
+            .compile(CSXUS4_WMO_ID);
 
     private ClimateASOSMessageDAO dao;
 
@@ -110,7 +125,6 @@ public class ClimateASOSMessageDecoder {
 
             StringBuilder sb = null;
             while ((oneline = br.readLine()) != null) {
-                // Trim spaces of the line
                 String line = oneline.trim();
 
                 if (line.isEmpty()) {
@@ -125,32 +139,100 @@ public class ClimateASOSMessageDecoder {
                     line = line + "\r\n";
                     header = new WMOHeader(line.getBytes());
 
-                    // If site specify the SITE filter, ONLY decode
-                    // configured sites
-                    if (!theFilter.ingestSourceSiteAllowed(header.getCccc())) {
-                        // no need continue
-                        logger.info("DSM / MSM data from the site: ["
-                                + header.getCccc() + "] will not be decoded!");
-                        return;
+                    // check if the ingestFile contains DSM/MSM with C[SX]US4*
+                    if (CSXUS4_WMO_ID_PATTERN.matcher(header.getTtaaii())
+                            .matches()) {
+                        /*
+                         * In DSM/MSM with C[SX]US4*, subsequent line will be
+                         * the AWIPS ID (NNNxxx)
+                         */
+                        String aiLine = br.readLine();
+
+                        // ensure the AWIPS ID line is valid
+                        if (aiLine == null || aiLine.isEmpty()) {
+                            aiLine = br.readLine();
+                        }
+
+                        aiLine = aiLine.trim();
+                        if (MSG_AWIPS_ID_PATTERN.matcher(aiLine).matches()) {
+                            String prodCategory = aiLine.substring(0, 3);
+                            /*
+                             * There are message with CSUS4* header but not
+                             * DSM/MSM, stop to decode it if the product is not
+                             * a MSM / DSM
+                             */
+                            if (!prodCategory.equalsIgnoreCase("DSM")
+                                    && !prodCategory.equalsIgnoreCase("MSM")) {
+                                logger.info("The message in the file "
+                                        + ingestFile.getName()
+                                        + " is not valid DSM or MSM, ignored");
+                                return;
+                            }
+                        }
+
+                    }
+                    // check if the ingestFile contains DSM/MSM with C[SX]US4*
+                    if (CSXUS4_WMO_ID_PATTERN.matcher(header.getTtaaii())
+                            .matches()) {
+                        /*
+                         * In DSM/MSM with C[SX]US4*, subsequent line will be
+                         * the AWIPS ID (NNNxxx)
+                         */
+                        String aiLine = br.readLine();
+
+                        // ensure the AWIPS ID line is valid
+                        if (aiLine == null || aiLine.isEmpty()) {
+                            aiLine = br.readLine();
+                        }
+
+                        aiLine = aiLine.trim();
+                        if (MSG_AWIPS_ID_PATTERN.matcher(aiLine).matches()) {
+                            String prodCategory = aiLine.substring(0, 3);
+                            /*
+                             * There are message with CSUS4* header but not
+                             * DSM/MSM, stop to decode it if the product is not
+                             * a MSM / DSM
+                             */
+                            if (!prodCategory.equalsIgnoreCase("DSM")
+                                    && !prodCategory.equalsIgnoreCase("MSM")) {
+                                logger.info("The message in the file "
+                                        + ingestFile.getName()
+                                        + " is not valid DSM or MSM, ignored");
+                                return;
+                            }
+                        }
+
                     }
 
                 } else if (MSG_BEGIN_PATTERN.matcher(line).lookingAt()) {
                     // Found a new message
-                    String station = line.substring(0, line.indexOf(" "));
+                    String stationCode = line.substring(0, line.indexOf(" "));
 
-                    if (theFilter.ingestSourceStationAllowed(station.trim())) {
+                    if (theFilter
+                            .ingestSourceStationAllowed(stationCode.trim())) {
+                        if (sb != null && sb.length() > 0) {
+                            /*
+                             * If no END_PATTERN detected, before start decoding
+                             * a new record, add previous message to the message
+                             * list, if it exist.
+                             */
+                            messageList.add(sb.toString());
+                        }
                         sb = new StringBuilder();
                         sb.append(line);
                     } else {
-                        // MSM from the station is not ingested
                         logger.info("DSM / MSM data from the station: ["
-                                + station.trim() + "] under site: ["
-                                + header.getCccc() + "] will not be decoded!");
+                                + stationCode.trim() + "] will not be decoded!");
+
                         sb = null;
                     }
 
-                } else if (MSG_END_PATTERN.matcher(line).lookingAt()) {
-                    // Reach the end of message
+                } else if (CDSUS27_MSG_END_PATTERN.matcher(line).lookingAt()) {
+                    /*
+                     * END_PATTERN only exists in the collective DSM/MSM with
+                     * C[DS]US27. No END_PATTERN exists in the DSM/MSM with
+                     * C[SX]US4*
+                     */
                     line = line.substring(0, line.indexOf("="));
                     if (sb != null) {
                         sb.append(line);
@@ -159,16 +241,23 @@ public class ClimateASOSMessageDecoder {
                         logger.debug(
                                 "New ASOS message: [" + sb.toString() + "]");
 
-                        // restart message builder
                         sb = null;
                     }
 
                 } else {
-                    // Message lines
+                    // add message lines before the END_PATTERN detected
+                    // or reach to a new BEGIN_PATTERN
                     if (sb != null) {
                         sb.append(line);
                     }
                 }
+            }
+            /*
+             * End of the file reached but no END_PATTERN is detected, add the
+             * message to the list for decoding
+             */
+            if (sb != null && sb.length() > 0) {
+                messageList.add(sb.toString());
             }
 
         } catch (FileNotFoundException e) {
@@ -184,8 +273,6 @@ public class ClimateASOSMessageDecoder {
         List<ClimateASOSMessageRecord> records = new ArrayList<ClimateASOSMessageRecord>();
 
         for (String message : messageList) {
-            logger.debug("Decoding ASOS message: [" + message + "]");
-
             ASOSMessageParser parser = ASOSMessageParserFactory
                     .getASOSMessageParser(message);
             if (null == parser) {
@@ -198,14 +285,16 @@ public class ClimateASOSMessageDecoder {
             ClimateASOSMessageRecord record = parser.parse(message);
 
             if (record == null) {
-                logger.error("The ASOS parser returned no records for file: ["
-                        + ingestFile.getName() + "].");
+                logger.error(
+                        "The ASOS parser returned no records for the message:"
+                                + message + " in the file ["
+                                + ingestFile.getName() + "].");
             } else {
                 records.add(record);
             }
         }
 
-        // Persist to the database
+        // Persist to the climate database
         for (ClimateASOSMessageRecord record : records) {
             try {
                 dao.storeToTable(record);

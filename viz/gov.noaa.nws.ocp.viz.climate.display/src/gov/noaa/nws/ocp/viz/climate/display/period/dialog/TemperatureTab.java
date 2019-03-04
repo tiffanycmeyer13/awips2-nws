@@ -28,6 +28,7 @@ import gov.noaa.nws.ocp.viz.climate.display.period.dialog.support.MismatchLabel;
 import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
 import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Temperature tab of the Period Display dialog.
@@ -37,6 +38,8 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * </pre>
  * 
  * @author amoore
@@ -1240,42 +1243,43 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         recordMinTempLess0(dataToSave);
 
         if (myMinTempGreaterDegT4TF.isEnabled()) {
-            dataToSave.setNumMinGreaterThanT4F(
-                    Integer.parseInt(myMinTempGreaterDegT4TF.getText()));
+            dataToSave.setNumMinGreaterThanT4F(ClimateGUIUtils
+                    .parseInt(myMinTempGreaterDegT4TF.getText()));
         }
 
         if (myMinTempLessDegT5TF.isEnabled()) {
             dataToSave.setNumMinLessThanT5F(
-                    Integer.parseInt(myMinTempLessDegT5TF.getText()));
+                    ClimateGUIUtils.parseInt(myMinTempLessDegT5TF.getText()));
         }
 
         if (myMinTempLessDegT6TF.isEnabled()) {
             dataToSave.setNumMinLessThanT6F(
-                    Integer.parseInt(myMinTempLessDegT6TF.getText()));
+                    ClimateGUIUtils.parseInt(myMinTempLessDegT6TF.getText()));
         }
 
         recordMinTemp(dataToSave);
 
         recordAvgMinTemp(dataToSave);
 
-        dataToSave.setMeanRh(Integer.parseInt(myMeanRelHumTF.getText()));
+        dataToSave
+                .setMeanRh(ClimateGUIUtils.parseInt(myMeanRelHumTF.getText()));
 
         recordMaxTempGreater90(dataToSave);
         recordMaxTempLess32(dataToSave);
 
         if (myMaxTempGreaterDegT1TF.isEnabled()) {
-            dataToSave.setNumMaxGreaterThanT1F(
-                    Integer.parseInt(myMaxTempGreaterDegT1TF.getText()));
+            dataToSave.setNumMaxGreaterThanT1F(ClimateGUIUtils
+                    .parseInt(myMaxTempGreaterDegT1TF.getText()));
         }
 
         if (myMaxTempGreaterDegT2TF.isEnabled()) {
-            dataToSave.setNumMaxGreaterThanT2F(
-                    Integer.parseInt(myMaxTempGreaterDegT2TF.getText()));
+            dataToSave.setNumMaxGreaterThanT2F(ClimateGUIUtils
+                    .parseInt(myMaxTempGreaterDegT2TF.getText()));
         }
 
         if (myMaxTempLessDegT3TF.isEnabled()) {
             dataToSave.setNumMaxLessThanT3F(
-                    Integer.parseInt(myMaxTempLessDegT3TF.getText()));
+                    ClimateGUIUtils.parseInt(myMaxTempLessDegT3TF.getText()));
         }
 
         recordMaxTemp(dataToSave);
@@ -1610,6 +1614,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             myAvgMinTempLbl.setMatched();
         }
 
+        // Mean Relative Humidity
+        myMeanRelHumTF.setText(String.valueOf(iSavedPeriodData.getMeanRh()));
+
         // min temp under 32
         if (msmPeriodData != null
                 && iSavedPeriodData.getNumMinLessThan32F() == msmPeriodData
@@ -1844,6 +1851,28 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             myAvgMaxTempLbl.setMatched();
         }
 
+        // mean temperature
+        if (iMonthlyAsosData == null || iDailyBuildData
+                .getMeanTemp() != ParameterFormatClimate.MISSING) {
+            if (iMonthlyAsosData == null || iMonthlyAsosData
+                    .getMeanTemp() == ParameterFormatClimate.MISSING) {
+                // monthly data is missing but daily is not, so set daily data
+                DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
+                        DataValueOrigin.DAILY_DATABASE);
+                myMeanTempLbl.setMatched();
+            } else if (!ClimateUtilities.floatingEquals(
+                    iMonthlyAsosData.getMeanTemp(),
+                    iDailyBuildData.getMeanTemp())) {
+                // neither monthly nor daily data is missing, and they are
+                // different, so flag the text box
+                myMeanTempLbl.setNotMatched(iMonthlyAsosData.getMeanTemp(),
+                        iDailyBuildData.getMeanTemp());
+                tempTabMismatch = true;
+            }
+        } else {
+            myMeanTempLbl.setMatched();
+        }
+
         // max temp over 90
         if (iMonthlyAsosData == null || iDailyBuildData
                 .getNumMaxGreaterThan90F() != ParameterFormatClimate.MISSING) {
@@ -1972,6 +2001,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         } else {
             myAvgMinTempLbl.setMatched();
         }
+
+        // Mean Relative Humidity
+        myMeanRelHumTF.setText(String.valueOf(iDailyBuildData.getMeanRh()));
 
         // min temp under 32
         if (iMonthlyAsosData == null || iDailyBuildData
@@ -2177,7 +2209,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      * @param dataToSave
      */
     private void recordHeatingDegreeDays(PeriodData dataToSave) {
-        dataToSave.setNumHeatTotal(Integer.parseInt(myHeatingDaysTF.getText()));
+        dataToSave.setNumHeatTotal(
+                ClimateGUIUtils.parseInt(myHeatingDaysTF.getText()));
         dataToSave.getDataMethods()
                 .setHeatQc(myHeatingDaysTF.getToolTip().getQcValue());
     }
@@ -2188,7 +2221,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      * @param dataToSave
      */
     private void recordCoolingDegreeDays(PeriodData dataToSave) {
-        dataToSave.setNumCoolTotal(Integer.parseInt(myCoolingDaysTF.getText()));
+        dataToSave.setNumCoolTotal(
+                ClimateGUIUtils.parseInt(myCoolingDaysTF.getText()));
         dataToSave.getDataMethods()
                 .setCoolQc(myCoolingDaysTF.getToolTip().getQcValue());
     }
@@ -2200,7 +2234,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      */
     private void recordMinTempLess32(PeriodData dataToSave) {
         dataToSave.setNumMinLessThan32F(
-                Integer.parseInt(myMinTempLess32DegTF.getText()));
+                ClimateGUIUtils.parseInt(myMinTempLess32DegTF.getText()));
         dataToSave.getDataMethods()
                 .setMinLE32Qc(myMinTempLess32DegTF.getToolTip().getQcValue());
     }
@@ -2212,7 +2246,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      */
     private void recordMinTempLess0(PeriodData dataToSave) {
         dataToSave.setNumMinLessThan0F(
-                Integer.parseInt(myMinTempLess0DegTF.getText()));
+                ClimateGUIUtils.parseInt(myMinTempLess0DegTF.getText()));
         dataToSave.getDataMethods()
                 .setMinLE0Qc(myMinTempLess0DegTF.getToolTip().getQcValue());
     }
@@ -2223,7 +2257,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      * @param dataToSave
      */
     private void recordMinTemp(PeriodData dataToSave) throws ParseException {
-        dataToSave.setMinTemp(Integer.parseInt(myMinTempTF.getText()));
+        dataToSave.setMinTemp(ClimateGUIUtils.parseInt(myMinTempTF.getText()));
         dataToSave.getDayMinTempList().clear();
         for (DateSelectionComp dateComp : myMinTempDates) {
             ClimateDate date = dateComp.getDate();
@@ -2259,7 +2293,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId()).getData()
                     .getMinTempMean();
         } else {
-            saveValue = Float.parseFloat(myAvgMinTempTF.getText());
+            saveValue = ClimateGUIUtils.parseFloat(myAvgMinTempTF.getText());
         }
         dataToSave.setMinTempMean(saveValue);
         dataToSave.getDataMethods()
@@ -2273,7 +2307,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      */
     private void recordMaxTempGreater90(PeriodData dataToSave) {
         dataToSave.setNumMaxGreaterThan90F(
-                Integer.parseInt(myMaxTempGreater90DegTF.getText()));
+                ClimateGUIUtils.parseInt(myMaxTempGreater90DegTF.getText()));
         dataToSave.getDataMethods().setMaxTempGE90Qc(
                 myMaxTempGreater90DegTF.getToolTip().getQcValue());
     }
@@ -2285,7 +2319,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      */
     private void recordMaxTempLess32(PeriodData dataToSave) {
         dataToSave.setNumMaxLessThan32F(
-                Integer.parseInt(myMaxTempLess32DegTF.getText()));
+                ClimateGUIUtils.parseInt(myMaxTempLess32DegTF.getText()));
         dataToSave.getDataMethods().setMaxTempLE32Qc(
                 myMaxTempLess32DegTF.getToolTip().getQcValue());
     }
@@ -2296,7 +2330,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
      * @param dataToSave
      */
     private void recordMaxTemp(PeriodData dataToSave) throws ParseException {
-        dataToSave.setMaxTemp(Integer.parseInt(myMaxTempTF.getText()));
+        dataToSave.setMaxTemp(ClimateGUIUtils.parseInt(myMaxTempTF.getText()));
         dataToSave.getDayMaxTempList().clear();
         for (DateSelectionComp dateComp : myMaxTempDates) {
             ClimateDate date = dateComp.getDate();
@@ -2332,7 +2366,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId()).getData()
                     .getMaxTempMean();
         } else {
-            saveValue = Float.parseFloat(myAvgMaxTempTF.getText());
+            saveValue = ClimateGUIUtils.parseFloat(myAvgMaxTempTF.getText());
         }
         dataToSave.setMaxTempMean(saveValue);
         dataToSave.getDataMethods()
@@ -2362,7 +2396,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     .get(myPeriodDialog.myCurrStation.getInformId()).getData()
                     .getMeanTemp();
         } else {
-            saveValue = Float.parseFloat(myMeanTempTF.getText());
+            saveValue = ClimateGUIUtils.parseFloat(myMeanTempTF.getText());
         }
         dataToSave.setMeanTemp(saveValue);
         dataToSave.getDataMethods()

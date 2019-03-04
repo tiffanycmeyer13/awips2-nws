@@ -30,6 +30,7 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
 import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
 import gov.noaa.nws.ocp.viz.common.climate.comp.QCTextComp;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListener;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Precip tab of the Period Display dialog.
@@ -39,6 +40,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListen
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * </pre>
  * 
  * @author amoore
@@ -948,7 +950,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         dataToSave.setPrecipStormMax(myGreatestPrecipStormTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myGreatestPrecipStormTF.getText()));
+                        : ClimateGUIUtils
+                                .parseFloat(myGreatestPrecipStormTF.getText()));
         dataToSave.getPrecipStormList().clear();
         for (int i = 0; i < myGreatestPrecipStormBeginDates.length; i++) {
             ClimateDate startDate = myGreatestPrecipStormBeginDates[i]
@@ -974,7 +977,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         dataToSave.setPrecipMeanDay(myAvgDailyPrecipTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myAvgDailyPrecipTF.getText()));
+                        : ClimateGUIUtils
+                                .parseFloat(myAvgDailyPrecipTF.getText()));
 
         recordPrecipGreater01(dataToSave);
         recordPrecipGreater10(dataToSave);
@@ -982,13 +986,13 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         recordPrecipGreater100(dataToSave);
 
         if (myPrecipInchesGreaterP1TF.isEnabled()) {
-            dataToSave.setNumPrcpGreaterThanP1(
-                    Integer.parseInt(myPrecipInchesGreaterP1TF.getText()));
+            dataToSave.setNumPrcpGreaterThanP1(ClimateGUIUtils
+                    .parseInt(myPrecipInchesGreaterP1TF.getText()));
         }
 
         if (myPrecipInchesGreaterP2TF.isEnabled()) {
-            dataToSave.setNumPrcpGreaterThanP2(
-                    Integer.parseInt(myPrecipInchesGreaterP2TF.getText()));
+            dataToSave.setNumPrcpGreaterThanP2(ClimateGUIUtils
+                    .parseInt(myPrecipInchesGreaterP2TF.getText()));
         }
     }
 
@@ -1572,7 +1576,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         dataToSave.setPrecipMax24H(
                 saveValue.equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(saveValue));
+                        : ClimateGUIUtils.parseFloat(saveValue));
         dataToSave.getPrecip24HDates().clear();
         for (int i = 0; i < myMaxPrecip24HourBeginDates.length; i++) {
             ClimateDate startDate = myMaxPrecip24HourBeginDates[i].getDate();
@@ -1617,7 +1621,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         dataToSave.setPrecipTotal(
                 saveValue.equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(saveValue));
+                        : ClimateGUIUtils.parseFloat(saveValue));
         dataToSave.getDataMethods()
                 .setPrecipQc(myTotalPrecipTF.getToolTip().getQcValue());
     }
@@ -1629,7 +1633,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
      */
     private void recordPrecipGreater01(PeriodData dataToSave) {
         dataToSave.setNumPrcpGreaterThan01(
-                Integer.parseInt(myPrecipInchesGreater01TF.getText()));
+                ClimateGUIUtils.parseInt(myPrecipInchesGreater01TF.getText()));
         dataToSave.getDataMethods().setPrecipGE01Qc(
                 myPrecipInchesGreater01TF.getToolTip().getQcValue());
     }
@@ -1641,7 +1645,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
      */
     private void recordPrecipGreater10(PeriodData dataToSave) {
         dataToSave.setNumPrcpGreaterThan10(
-                Integer.parseInt(myPrecipInchesGreater10TF.getText()));
+                ClimateGUIUtils.parseInt(myPrecipInchesGreater10TF.getText()));
         dataToSave.getDataMethods().setPrecipGE10Qc(
                 myPrecipInchesGreater10TF.getToolTip().getQcValue());
     }
@@ -1653,7 +1657,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
      */
     private void recordPrecipGreater50(PeriodData dataToSave) {
         dataToSave.setNumPrcpGreaterThan50(
-                Integer.parseInt(myPrecipInchesGreater50TF.getText()));
+                ClimateGUIUtils.parseInt(myPrecipInchesGreater50TF.getText()));
         dataToSave.getDataMethods().setPrecipGE50Qc(
                 myPrecipInchesGreater50TF.getToolTip().getQcValue());
     }
@@ -1665,7 +1669,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
      */
     private void recordPrecipGreater100(PeriodData dataToSave) {
         dataToSave.setNumPrcpGreaterThan100(
-                Integer.parseInt(myPrecipInchesGreater100TF.getText()));
+                ClimateGUIUtils.parseInt(myPrecipInchesGreater100TF.getText()));
         dataToSave.getDataMethods().setPrecipGE100Qc(
                 myPrecipInchesGreater100TF.getToolTip().getQcValue());
     }
