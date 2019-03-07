@@ -5,42 +5,22 @@
         of the file. Currently only BASE and SITE are read by AWIPS.
 -->
 <ClimateIngestConfig xmlns:ns2="group">
-<!-- Example using filters: 
+    <!-- Example of the site level climate_ingest_config.xm for OAX
     <filter>
-        <sourceIngest group="SITE">
-            <dataKey>KZNY</dataKey>
-        </sourceIngest>
         <sourceIngest group="STATION">
-            <dataKey>KJFK</dataKey>
-            <dataKey>KEWR</dataKey>
-            <dataKey>KLGA</dataKey>
+            <dataKey>KOMA</dataKey>
+            <dataKey>KOAX</dataKey>
+            <dataKey>KLNK</dataKey>
+            <dataKey>KOFK</dataKey>
+            <dataKey>KFNB</dataKey>
+            <dataKey>KTOE</dataKey>
         </sourceIngest>
     </filter> 
-    
-    The above filter would allow every portion of this message through to decoding:
-    956
-    CSUS27 KZNY 011706
-    KJFK MS 08 88-0116/ 60-272830/819/674/747/00000000/0/304/30010/003/
-    032280917+/976230447+/250/11070100/622930/09120051/13120056/14120101/
-    15120106/16120113/20180857/22050545/26050549/27050601/27050601/
-    27050601/27050601/NN/00/0=
-    KEWR MS 08 93-01/ 59-2627/819/660/740/00020000/0/285/29990/002/
-    031280830+/975230435+/549/12090700/990202/27021124/45021115/66021122/
-    80021126/90021126/92021140/92021140/92021140/95021227/95021227/
-    95021227/95021227/NN/00/0=
-    KLGA MS 08 91-0122/ 61-2930/819/689/754/00020000/0/331/29985/002/
-    032280836+/974230422+/352/13080200/911819+/28180806/37180809/
-    50180806/59180809/79180809/81180809/82180809/84180809/84180809/
-    85180809/86180915/87180915/NN/00/0=
     -->
     <filter>
-        <!-- Allowed IDs in the WMO Header of the message, or ALL -->
-        <sourceIngest group="SITE">
-            <dataKey>ALL</dataKey>
-        </sourceIngest>
-        <!-- Allowed IDs in the individual reports of the message, or ALL -->
+        <!-- Allowed ICAO (station-code) list, or ALL for any station. Default NONE -->
         <sourceIngest group="STATION">
-            <dataKey>ALL</dataKey>
+            <dataKey>NONE</dataKey>
         </sourceIngest>
     </filter>
 </ClimateIngestConfig>

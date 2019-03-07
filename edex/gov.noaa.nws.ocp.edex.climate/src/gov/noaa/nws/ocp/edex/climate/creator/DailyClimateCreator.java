@@ -80,6 +80,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  * 13 DEC 2017  41565      wpaintsil   Fix IM/PM discrepancies.
  * 13 APR 2018  DR17116    wpaintsil   Wherever precipSeason and snowSeason are used, change
  *                                     the algorithm to account for multiple seasons.
+ * 23 OCT 2018  DR20945    wpaintsil   Include SPECI observations for relative humidity.
  * </pre>
  * 
  * @author amoore
@@ -1192,48 +1193,54 @@ public final class DailyClimateCreator {
 
             currTime.setHour(ihour);
 
-            double temperature = getTemp(tempDate, currTime, stationID);
+            List<Double> temperature = getTemp(tempDate, currTime, stationID);
 
-            double dewpoint = getDew(tempDate, currTime, stationID);
+            List<Double> dewpoint = getDew(tempDate, currTime, stationID);
 
-            // Now calculate RH for each valid temperature and dewpoint.
-            if ((temperature != ParameterFormatClimate.MISSING)
-                    && (dewpoint != ParameterFormatClimate.MISSING)) {
-                /*
-                 * Discrepancy with Legacy #69/DAI #74: In Legacy, humidity
-                 * calculations would round temp/dew values after unit
-                 * conversion of each, then round the resulting humidity, and
-                 * then do comparisons for max/min humidity. Rounding should not
-                 * be done until the last possible moment, and so in Migrated
-                 * values may be different, but additionally times may be
-                 * different as improper rounding may have been ignoring true
-                 * min/max relative humidity values.
-                 */
-                double currHumidity = ((ClimateUtilities
-                        .vaporPressureFromTemperature(dewpoint))
-                        / (ClimateUtilities
-                                .vaporPressureFromTemperature(temperature)))
-                        * 100;
+            for (int jj = 0; jj < temperature.size()
+                    && jj < dewpoint.size(); jj++) {
+                double jjTemp = temperature.get(jj);
+                double jjDew = dewpoint.get(jj);
 
-                /*
-                 * Now determine the max and min RH and the hours at which they
-                 * were observed. TODO Task 36087 In Migrated Climate, as in
-                 * Legacy, the hour of max or mean relative humidity is
-                 * determined by an index number representative of how many
-                 * hours have been processed thus far. However, this is not
-                 * necessarily the same as the actual hour of the data,
-                 * depending on what time of day the looped processing started
-                 * at. The actual hour seems to already be calculated within the
-                 * loop.
-                 */
-                if (currHumidity > maxRH) {
-                    maxRH = currHumidity;
-                    hourMaxRH = i;
-                }
+                // Now calculate RH for each valid temperature and dewpoint.
+                if ((jjTemp != ParameterFormatClimate.MISSING)
+                        && (jjDew != ParameterFormatClimate.MISSING)) {
+                    /*
+                     * Discrepancy with Legacy #69/DAI #74: In Legacy, humidity
+                     * calculations would round temp/dew values after unit
+                     * conversion of each, then round the resulting humidity,
+                     * and then do comparisons for max/min humidity. Rounding
+                     * should not be done until the last possible moment, and so
+                     * in Migrated values may be different, but additionally
+                     * times may be different as improper rounding may have been
+                     * ignoring true min/max relative humidity values.
+                     */
+                    double currHumidity = ((ClimateUtilities
+                            .vaporPressureFromTemperature(jjDew))
+                            / (ClimateUtilities
+                                    .vaporPressureFromTemperature(jjTemp)))
+                            * 100;
 
-                if (currHumidity < minRH) {
-                    minRH = currHumidity;
-                    hourMinRH = i;
+                    /*
+                     * Now determine the max and min RH and the hours at which
+                     * they were observed. TODO Task 36087 In Migrated Climate,
+                     * as in Legacy, the hour of max or mean relative humidity
+                     * is determined by an index number representative of how
+                     * many hours have been processed thus far. However, this is
+                     * not necessarily the same as the actual hour of the data,
+                     * depending on what time of day the looped processing
+                     * started at. The actual hour seems to already be
+                     * calculated within the loop.
+                     */
+                    if (currHumidity > maxRH) {
+                        maxRH = currHumidity;
+                        hourMaxRH = i;
+                    }
+
+                    if (currHumidity < minRH) {
+                        minRH = currHumidity;
+                        hourMinRH = i;
+                    }
                 }
             }
         }
@@ -3147,13 +3154,15 @@ public final class DailyClimateCreator {
      *
      * </pre>
      * 
+     * Modified to include SPECI observations.
+     * 
      * @param date
      * @param time
      * @param stationID
      * @return
      */
-
-    private double getDew(ClimateDate date, ClimateTime time, int stationID) {
+    private List<Double> getDew(ClimateDate date, ClimateTime time,
+            int stationID) {
         Calendar cal = date.getCalendarFromClimateDate();
         cal.set(Calendar.HOUR_OF_DAY, time.getHour());
         cal.set(Calendar.MINUTE, time.getMin());
@@ -3161,7 +3170,7 @@ public final class DailyClimateCreator {
         String datetime = ClimateDate.getFullDateTimeFormat()
                 .format(cal.getTime());
 
-        double dewpoint;
+        List<Double> dewpoint = new ArrayList<>();
         try {
             /*
              * This function will retrieve the dew_pt reported during a single
@@ -3171,14 +3180,16 @@ public final class DailyClimateCreator {
              * been determined, a quality check done on the data to see whether
              * or not the data is legitimate.
              */
-            FSSReportResult result = climateCreatorDAO.getMetarConreal(
-                    stationID, MetarUtils.METAR_DEWPOINT_2_TENTHS, datetime);
-
-            if (result.isMissing()) {
-                dewpoint = ParameterFormatClimate.MISSING;
-            } else {
-                dewpoint = ClimateUtilities
-                        .celsiusToFahrenheit(result.getValue());
+            List<FSSReportResult> results = climateCreatorDAO.getMetarConreal(
+                    stationID, MetarUtils.METAR_DEWPOINT_2_TENTHS, datetime,
+                    true);
+            for (FSSReportResult result : results) {
+                if (result.isMissing()) {
+                    dewpoint.add((double) ParameterFormatClimate.MISSING);
+                } else {
+                    dewpoint.add(ClimateUtilities
+                            .celsiusToFahrenheit(result.getValue()));
+                }
             }
         } catch (ClimateQueryException e) {
             logger.error(
@@ -3189,20 +3200,22 @@ public final class DailyClimateCreator {
              * report but no dew_point_in_tenths (i.e., STATUS_FAILURE)
              */
             try {
-                FSSReportResult result = climateCreatorDAO.getMetarConreal(
-                        stationID, MetarUtils.METAR_DEWPOINT, datetime);
-
-                if (result.isMissing()) {
-                    dewpoint = ParameterFormatClimate.MISSING;
-                } else {
-                    dewpoint = ClimateUtilities
-                            .celsiusToFahrenheit(result.getValue());
+                List<FSSReportResult> results = climateCreatorDAO
+                        .getMetarConreal(stationID, MetarUtils.METAR_DEWPOINT,
+                                datetime, true);
+                for (FSSReportResult result : results) {
+                    if (result.isMissing()) {
+                        dewpoint.add((double) ParameterFormatClimate.MISSING);
+                    } else {
+                        dewpoint.add(ClimateUtilities
+                                .celsiusToFahrenheit(result.getValue()));
+                    }
                 }
             } catch (ClimateQueryException e2) {
                 logger.error(
                         "Failed to get dewpoint from METAR in whole degrees. Returning missing value.",
                         e2);
-                return ParameterFormatClimate.MISSING;
+                dewpoint.add((double) ParameterFormatClimate.MISSING);
             }
         }
 
@@ -3211,15 +3224,17 @@ public final class DailyClimateCreator {
          * query return against Temp bounds. Assumed to be a bug from copying
          * code from get_temp.c to get_dew.c.
          */
-        if (dewpoint == ParameterFormatClimate.MISSING
-                || dewpoint < ParameterBounds.MIN_DEW_QC
-                || dewpoint > ParameterBounds.MAX_DEW_QC) {
-            logger.warn("Dewpoint [" + dewpoint
-                    + "] is missing or outside acceptable range. Missing value will be returned.");
-            return ParameterFormatClimate.MISSING;
-        } else {
-            return dewpoint;
+        for (int ii = 0; ii < dewpoint.size(); ii++) {
+            double iiDew = dewpoint.get(ii);
+            if (iiDew == ParameterFormatClimate.MISSING
+                    || iiDew < ParameterBounds.MIN_DEW_QC
+                    || iiDew > ParameterBounds.MAX_DEW_QC) {
+                logger.warn("Dewpoint [" + iiDew
+                        + "] is missing or outside acceptable range. Missing value will be returned.");
+                dewpoint.set(ii, (double) ParameterFormatClimate.MISSING);
+            }
         }
+        return dewpoint;
     }
 
     /**
@@ -3241,13 +3256,15 @@ public final class DailyClimateCreator {
      *
      * </pre>
      * 
+     * Modified to include SPECI observations.
+     * 
      * @param date
      * @param time
      * @param stationID
      * @return
      */
-
-    private double getTemp(ClimateDate date, ClimateTime time, int stationID) {
+    private List<Double> getTemp(ClimateDate date, ClimateTime time,
+            int stationID) {
         Calendar cal = date.getCalendarFromClimateDate();
         cal.set(Calendar.HOUR_OF_DAY, time.getHour());
         cal.set(Calendar.MINUTE, time.getMin());
@@ -3255,7 +3272,7 @@ public final class DailyClimateCreator {
         String datetime = ClimateDate.getFullDateTimeFormat()
                 .format(cal.getTime());
 
-        double temperature;
+        List<Double> temperature = new ArrayList<>();
         try {
             /*
              * This function will retrieve the temperature reported during a
@@ -3265,14 +3282,16 @@ public final class DailyClimateCreator {
              * status has been determined, a quality check done on the data to
              * see whether or not the data is legitimate.
              */
-            FSSReportResult result = climateCreatorDAO.getMetarConreal(
-                    stationID, MetarUtils.METAR_TEMP_2_TENTHS, datetime);
+            List<FSSReportResult> results = climateCreatorDAO.getMetarConreal(
+                    stationID, MetarUtils.METAR_TEMP_2_TENTHS, datetime, true);
 
-            if (result.isMissing()) {
-                temperature = ParameterFormatClimate.MISSING;
-            } else {
-                temperature = ClimateUtilities
-                        .celsiusToFahrenheit(result.getValue());
+            for (FSSReportResult result : results) {
+                if (result.isMissing()) {
+                    temperature.add((double) ParameterFormatClimate.MISSING);
+                } else {
+                    temperature.add(ClimateUtilities
+                            .celsiusToFahrenheit(result.getValue()));
+                }
             }
 
         } catch (ClimateQueryException e) {
@@ -3284,32 +3303,38 @@ public final class DailyClimateCreator {
              * then we will try to get the hourly temp in whole deg. C
              */
             try {
-                FSSReportResult result = climateCreatorDAO.getMetarConreal(
-                        stationID, MetarUtils.METAR_TEMP, datetime);
-
-                if (result.isMissing()) {
-                    temperature = ParameterFormatClimate.MISSING;
-                } else {
-                    temperature = ClimateUtilities
-                            .celsiusToFahrenheit(result.getValue());
+                List<FSSReportResult> results = climateCreatorDAO
+                        .getMetarConreal(stationID, MetarUtils.METAR_TEMP,
+                                datetime, true);
+                for (FSSReportResult result : results) {
+                    if (result.isMissing()) {
+                        temperature
+                                .add((double) ParameterFormatClimate.MISSING);
+                    } else {
+                        temperature.add(ClimateUtilities
+                                .celsiusToFahrenheit(result.getValue()));
+                    }
                 }
             } catch (ClimateQueryException e2) {
                 logger.error(
                         "Failed to get temperature from METAR in whole degrees. Returning missing value.",
                         e2);
-                return ParameterFormatClimate.MISSING;
+                temperature.add((double) ParameterFormatClimate.MISSING);
             }
         }
 
-        if (temperature == ParameterFormatClimate.MISSING
-                || temperature < ParameterBounds.TEMP_LOWER_BOUND
-                || temperature > ParameterBounds.TEMP_UPPER_BOUND_QC) {
-            logger.warn("Temperature [" + temperature
-                    + "] is missing or outside acceptable range. Missing value will be returned.");
-            return ParameterFormatClimate.MISSING;
-        } else {
-            return temperature;
+        for (int ii = 0; ii < temperature.size(); ii++) {
+            double iiTemp = temperature.get(ii);
+            if (iiTemp == ParameterFormatClimate.MISSING
+                    || iiTemp < ParameterBounds.TEMP_LOWER_BOUND
+                    || iiTemp > ParameterBounds.TEMP_UPPER_BOUND_QC) {
+                logger.warn("Temperature [" + iiTemp
+                        + "] is missing or outside acceptable range. Missing value will be returned.");
+                temperature.set(ii, (double) ParameterFormatClimate.MISSING);
+            }
         }
+
+        return temperature;
     }
 
     /**

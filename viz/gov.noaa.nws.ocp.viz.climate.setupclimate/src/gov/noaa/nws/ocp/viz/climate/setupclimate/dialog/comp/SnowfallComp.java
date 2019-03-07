@@ -33,6 +33,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.SnowControlFlags
  * 14 MAR 2018  44624      amoore       Fix ATAN bug where daily snowfall normals
  *                                      option was not reliably available in
  *                                      NWWS mode.
+ * 20 SEP 2018  55207      jwu          Fix relation between "Last Year's" and 
+ *                                      "-Date" buttons (DR 20889.
  * </pre>
  * 
  * @author jwu
@@ -317,17 +319,6 @@ public class SnowfallComp extends AbstractCategoryComp {
         totalYear2DateBtn = new Button(totalsnowMinorComp, SWT.CHECK);
         totalYear2DateBtn.setText("Year to Date");
 
-        // Clicking on "major" button will show/hide all items in it.
-        totalMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                totalsnowMinorComp.setVisible(selected);
-                totalsnowMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for total snow since July 1st
         snowJuly1Comp = new Composite(totalsnowComp, SWT.NONE);
         snowJuly1Comp.setLayout(majorCompLayout);
@@ -353,17 +344,6 @@ public class SnowfallComp extends AbstractCategoryComp {
         snowJuly1LastYearBtn = new Button(snowJuly1MinorComp, SWT.CHECK);
         snowJuly1LastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        snowJuly1MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowJuly1MinorComp.setVisible(selected);
-                snowJuly1MinorComp.layout(true, true);
-            }
-        });
-
         // Get a label string for S1
         String S1Str = getThresholdString(preferenceValues.getS1());
 
@@ -385,17 +365,6 @@ public class SnowfallComp extends AbstractCategoryComp {
 
         snowGES1LastYearBtn = new Button(snowGEP1MinorComp, SWT.CHECK);
         snowGES1LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowGES1MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowGEP1MinorComp.setVisible(selected);
-                snowGEP1MinorComp.layout(true, true);
-            }
-        });
 
         return totalMainComp;
     }
@@ -451,32 +420,14 @@ public class SnowfallComp extends AbstractCategoryComp {
         snowDepthAvgDepartureBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                if (isDaily) {
-                    // Enable/disable "Normal" button (Legacy behavior)
-                    snowDepthAvgNormBtn.setEnabled(
-                            snowDepthAvgDepartureBtn.getSelection());
-
                     if (!snowDepthAvgDepartureBtn.getSelection()) {
                         snowDepthAvgNormBtn.setSelection(false);
                     }
-                }
             }
         });
 
         snowDepthAvgNormBtn = new Button(snowDepthAvgMinorComp, SWT.CHECK);
         snowDepthAvgNormBtn.setText("Normal");
-        snowDepthAvgNormBtn.setEnabled(snowDepthAvgDepartureBtn.getSelection());
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowDepthAvgMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowDepthAvgMinorComp.setVisible(selected);
-                snowDepthAvgMinorComp.layout(true, true);
-            }
-        });
 
         // Composite for snow depth maximum
         snowDepthMaxComp = new Composite(daysComp, SWT.NONE);
@@ -499,21 +450,18 @@ public class SnowfallComp extends AbstractCategoryComp {
 
         snowDepthMaxLastYearBtn = new Button(snowDepthMaxMinorComp, SWT.CHECK);
         snowDepthMaxLastYearBtn.setText("Last Year's");
+        snowDepthMaxLastYearBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                // De-select "-Date" if "Last Year" is de-selected.
+                updateButton(snowDepthMaxDateOfLastBtn,
+                        snowDepthMaxLastYearBtn.getSelection());
+            }
+        });
 
         snowDepthMaxDateOfLastBtn = new Button(snowDepthMaxMinorComp,
                 SWT.CHECK);
         snowDepthMaxDateOfLastBtn.setText("  - Date");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowDepthMaxMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowDepthMaxMinorComp.setVisible(selected);
-                snowDepthMaxMinorComp.layout(true, true);
-            }
-        });
 
         // Composite for days with any snow
         snowAnyComp = new Composite(daysComp, SWT.NONE);
@@ -538,17 +486,6 @@ public class SnowfallComp extends AbstractCategoryComp {
         snowAnyLastYearBtn = new Button(snowAnyMinorComp, SWT.CHECK);
         snowAnyLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        snowAnyMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowAnyMinorComp.setVisible(selected);
-                snowAnyMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for days with snow >= 1.00 inch
         snowGE100Comp = new Composite(daysComp, SWT.NONE);
         snowGE100Comp.setLayout(majorCompLayout);
@@ -572,17 +509,6 @@ public class SnowfallComp extends AbstractCategoryComp {
 
         snowGE100LastYearBtn = new Button(snowGE100MinorComp, SWT.CHECK);
         snowGE100LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowGE100MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowGE100MinorComp.setVisible(selected);
-                snowGE100MinorComp.layout(true, true);
-            }
-        });
 
         return daysComp;
     }
@@ -627,17 +553,6 @@ public class SnowfallComp extends AbstractCategoryComp {
                 SWT.CHECK);
         snowWaterTotalLastYearBtn.setText("Last Year's");
 
-        // Clicking on "major" button will show/hide all items in it.
-        snowWaterTotalMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowWaterTotalMinorComp.setVisible(selected);
-                snowWaterTotalMinorComp.layout(true, true);
-            }
-        });
-
         // Composite for snow total water equivalent since July 1st
         snowWaterJuly1Comp = new Composite(averageComp, SWT.NONE);
         snowWaterJuly1Comp.setLayout(majorCompLayout);
@@ -663,17 +578,6 @@ public class SnowfallComp extends AbstractCategoryComp {
         snowWaterJuly1LastYearBtn = new Button(snowWaterJuly1MinorComp,
                 SWT.CHECK);
         snowWaterJuly1LastYearBtn.setText("Last Year's");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowWaterJuly1MeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowWaterJuly1MinorComp.setVisible(selected);
-                snowWaterJuly1MinorComp.layout(true, true);
-            }
-        });
 
         // Composite for 24 hour snow.
         snow24HRComp = new Composite(averageComp, SWT.NONE);
@@ -701,20 +605,17 @@ public class SnowfallComp extends AbstractCategoryComp {
 
         snow24HRLastYearBtn = new Button(snow24HRMinorComp, SWT.CHECK);
         snow24HRLastYearBtn.setText("Last Year's");
+        snow24HRLastYearBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                // De-select "-Date" if "Last Year" is de-selected.
+                updateButton(snow24HRDateOfLastBtn,
+                        snow24HRLastYearBtn.getSelection());
+            }
+        });
 
         snow24HRDateOfLastBtn = new Button(snow24HRMinorComp, SWT.CHECK);
         snow24HRDateOfLastBtn.setText("  - Date");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snow24HRMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snow24HRMinorComp.setVisible(selected);
-                snow24HRMinorComp.layout(true, true);
-            }
-        });
 
         // Composite for storm max. snow.
         snowStormMaxComp = new Composite(averageComp, SWT.NONE);
@@ -738,21 +639,18 @@ public class SnowfallComp extends AbstractCategoryComp {
         snowStormMaxLastYearBtn = new Button(snowStormMaxAvgMinorComp,
                 SWT.CHECK);
         snowStormMaxLastYearBtn.setText(" Last Year's");
+        snowStormMaxLastYearBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                // De-select "-Date" if "Last Year" is de-selected.
+                updateButton(snowStormMaxDateOfLastBtn,
+                        snowStormMaxLastYearBtn.getSelection());
+            }
+        });
 
         snowStormMaxDateOfLastBtn = new Button(snowStormMaxAvgMinorComp,
                 SWT.CHECK);
         snowStormMaxDateOfLastBtn.setText("  - Date");
-
-        // Clicking on "major" button will show/hide all items in it.
-        snowStormMaxMeasuredBtn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                boolean selected = ((Button) event.widget).getSelection();
-                // enableButtons(minorComp, false);
-                snowStormMaxAvgMinorComp.setVisible(selected);
-                snowStormMaxAvgMinorComp.layout(true, true);
-            }
-        });
 
         return averageComp;
     }
@@ -774,9 +672,12 @@ public class SnowfallComp extends AbstractCategoryComp {
         updateButton(snowStormMaxLastYearBtn, !isNWR);
         updateButton(snowGES1LastYearBtn, !isNWR);
 
-        updateButton(snowDepthMaxDateOfLastBtn, false);
-        updateButton(snow24HRDateOfLastBtn, false);
-        updateButton(snowStormMaxDateOfLastBtn, false);
+        updateButton(snowDepthMaxDateOfLastBtn,
+                !isNWR && snowDepthMaxLastYearBtn.getSelection());
+        updateButton(snow24HRDateOfLastBtn,
+                !isNWR && snow24HRLastYearBtn.getSelection());
+        updateButton(snowStormMaxDateOfLastBtn,
+                !isNWR && snowStormMaxLastYearBtn.getSelection());
     }
 
     /**
@@ -1082,8 +983,9 @@ public class SnowfallComp extends AbstractCategoryComp {
                         .setSelection(flags.getSnow24hr().isLastYear());
                 snow24HRDateOfLastBtn
                         .setSelection(flags.getSnow24hr().isDateOfLast());
+                snow24HRDateOfLastBtn
+                        .setEnabled(snow24HRLastYearBtn.getSelection());
                 if (snow24HRLastYearBtn.getSelection()) {
-
                     snow24HRDateOfLastBtn
                             .setSelection(flags.getSnow24hr().isDateOfLast());
                 }
@@ -1098,8 +1000,9 @@ public class SnowfallComp extends AbstractCategoryComp {
             if (!isNWR) {
                 snowStormMaxLastYearBtn
                         .setSelection(flags.getSnowStormMax().isLastYear());
+                snowStormMaxDateOfLastBtn
+                        .setEnabled(snowStormMaxLastYearBtn.getSelection());
                 if (snowStormMaxLastYearBtn.getSelection()) {
-
                     snowStormMaxDateOfLastBtn.setSelection(
                             flags.getSnowStormMax().isDateOfLast());
                 }
@@ -1137,8 +1040,9 @@ public class SnowfallComp extends AbstractCategoryComp {
             if (!isNWR) {
                 snowDepthMaxLastYearBtn
                         .setSelection(flags.getSnowDepthMax().isLastYear());
+                snowDepthMaxLastYearBtn
+                        .setEnabled(snowDepthMaxLastYearBtn.getSelection());
                 if (snowDepthMaxLastYearBtn.getSelection()) {
-
                     snowDepthMaxDateOfLastBtn.setSelection(
                             flags.getSnowDepthMax().isDateOfLast());
                 }

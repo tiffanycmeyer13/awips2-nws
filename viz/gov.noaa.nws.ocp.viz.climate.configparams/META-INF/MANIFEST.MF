@@ -8,6 +8,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: gov.noaa.nws.ocp.viz.common.climate,
  com.raytheon.uf.viz.core,
  com.raytheon.viz.ui,
- gov.noaa.nws.ocp.common.localization.climate
+ gov.noaa.nws.ocp.common.localization.climate,
+ org.eclipse.core.databinding.observable,
+ org.eclipse.jface.databinding
 Export-Package: gov.noaa.nws.ocp.viz.climate.configparams,
  gov.noaa.nws.ocp.viz.climate.configparams.support

@@ -57,6 +57,7 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.QCToolTip;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListener;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * This class displays the Daily Station Climate values.
@@ -97,6 +98,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListen
  * 04 AUG 2017  36707      amoore      Add warning on closing with X.
  * 19 SEP 2017  38124      amoore      Use GC for text control sizes.
  * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
+ * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * </pre>
  * 
  * @author amoore
@@ -1688,34 +1690,38 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
             knotsmphMultiplier = 1;
         }
 
-        int newMaxTemp = Integer.parseInt(myMaxTempTF.getText());
+        int newMaxTemp = ClimateGUIUtils.parseInt(myMaxTempTF.getText());
         if (newMaxTemp != myData.getMaxTemp()) {
             myData.setMaxTemp(newMaxTemp);
             myData.getDataMethods().setMaxTempQc(QCValues.MANUAL_ENTRY);
         }
         myData.setMaxTempTime(new ClimateTime(myMaxTempTimeTF.getText()));
 
-        int newMinTemp = Integer.parseInt(myMinTempTF.getText());
+        int newMinTemp = ClimateGUIUtils.parseInt(myMinTempTF.getText());
         if (newMinTemp != myData.getMinTemp()) {
             myData.setMinTemp(newMinTemp);
             myData.getDataMethods().setMinTempQc(QCValues.MANUAL_ENTRY);
         }
         myData.setMinTempTime(new ClimateTime(myMinTempTimeTF.getText()));
 
-        myData.setMaxRelHumid(Integer.parseInt(myMaxRelHumTF.getText()));
+        myData.setMaxRelHumid(
+                ClimateGUIUtils.parseInt(myMaxRelHumTF.getText()));
         myData.setMaxRelHumidHour(
-                Integer.parseInt(myMaxRelHumHourTF.getText()));
-        myData.setMinRelHumid(Integer.parseInt(myMinRelHumTF.getText()));
+                ClimateGUIUtils.parseInt(myMaxRelHumHourTF.getText()));
+        myData.setMinRelHumid(
+                ClimateGUIUtils.parseInt(myMinRelHumTF.getText()));
         myData.setMinRelHumidHour(
-                Integer.parseInt(myMinRelHumHourTF.getText()));
+                ClimateGUIUtils.parseInt(myMinRelHumHourTF.getText()));
 
         // calculate max wind speed
-        float newMaxWindSpeed = Float.parseFloat(myMaxWindSpeedTF.getText());
+        float newMaxWindSpeed = ClimateGUIUtils
+                .parseFloat(myMaxWindSpeedTF.getText());
         if ((int) newMaxWindSpeed != ParameterFormatClimate.MISSING_SPEED) {
             newMaxWindSpeed *= knotsmphMultiplier;
         }
         ClimateWind newMaxWind = new ClimateWind(
-                Integer.parseInt(myMaxWindDirTF.getText()), newMaxWindSpeed);
+                ClimateGUIUtils.parseInt(myMaxWindDirTF.getText()),
+                newMaxWindSpeed);
         if (!newMaxWind.equals(myData.getMaxWind())) {
             myData.setMaxWind(newMaxWind);
             myData.getDataMethods().setMaxWindQc(QCValues.MANUAL_ENTRY);
@@ -1723,12 +1729,14 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
         myData.setMaxWindTime(new ClimateTime(myMaxWindTimeTF.getText()));
 
         // calculate max gust speed
-        float maxGustSpeed = Float.parseFloat(myMaxGustSpeedTF.getText());
+        float maxGustSpeed = ClimateGUIUtils
+                .parseFloat(myMaxGustSpeedTF.getText());
         if ((int) maxGustSpeed != ParameterFormatClimate.MISSING_SPEED) {
             maxGustSpeed *= knotsmphMultiplier;
         }
         ClimateWind newMaxGust = new ClimateWind(
-                Integer.parseInt(myMaxGustDirTF.getText()), maxGustSpeed);
+                ClimateGUIUtils.parseInt(myMaxGustDirTF.getText()),
+                maxGustSpeed);
         if (!newMaxGust.equals(myData.getMaxGust())) {
             myData.setMaxGust(newMaxGust);
             myData.getDataMethods().setMaxGustQc(QCValues.MANUAL_ENTRY);
@@ -1736,7 +1744,8 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
         myData.setMaxGustTime(new ClimateTime(myMaxGustTimeTF.getText()));
 
         // calculate avg wind speed
-        float avgWindSpeed = Float.parseFloat(myAvgWindSpeedTF.getText());
+        float avgWindSpeed = ClimateGUIUtils
+                .parseFloat(myAvgWindSpeedTF.getText());
         if ((int) avgWindSpeed != ParameterFormatClimate.MISSING_SPEED) {
             avgWindSpeed *= knotsmphMultiplier;
         }
@@ -1749,7 +1758,7 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
         float newPrecip = myPrecipTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(myPrecipTF.getText());
+                        : ClimateGUIUtils.parseFloat(myPrecipTF.getText());
         if (!ClimateUtilities.floatingEquals(newPrecip, myData.getPrecip())) {
             myData.setPrecip(newPrecip);
             myData.getDataMethods().setPrecipQc(QCValues.MANUAL_ENTRY);
@@ -1758,21 +1767,22 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
         float newSnow = mySnowDayFallTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(mySnowDayFallTF.getText());
+                        : ClimateGUIUtils.parseFloat(mySnowDayFallTF.getText());
         if (!ClimateUtilities.floatingEquals(newSnow, myData.getSnowDay())) {
             myData.setSnowDay(newSnow);
             myData.getDataMethods().setSnowQc(QCValues.MANUAL_ENTRY);
         }
 
-        myData.setMinutesSun(Integer.parseInt(myMinutesSunTF.getText()));
+        myData.setMinutesSun(
+                ClimateGUIUtils.parseInt(myMinutesSunTF.getText()));
 
-        int newPossSun = Integer.parseInt(myPercentPossSunTF.getText());
+        int newPossSun = ClimateGUIUtils.parseInt(myPercentPossSunTF.getText());
         if (newPossSun != myData.getPercentPossSun()) {
             myData.setPercentPossSun(newPossSun);
             myData.getDataMethods().setPossSunQc(QCValues.MANUAL_ENTRY);
         }
 
-        float newSkyCover = Float.parseFloat(mySkyCoverTF.getText());
+        float newSkyCover = ClimateGUIUtils.parseFloat(mySkyCoverTF.getText());
         if (!ClimateUtilities.floatingEquals(newSkyCover,
                 myData.getSkyCover())) {
             myData.setSkyCover(newSkyCover);
@@ -1782,15 +1792,16 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
         float newSnowGround = mySnowOnGroundTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : Float.parseFloat(mySnowOnGroundTF.getText());
+                        : ClimateGUIUtils
+                                .parseFloat(mySnowOnGroundTF.getText());
         if (!ClimateUtilities.floatingEquals(newSnowGround,
                 myData.getSnowGround())) {
             myData.setSnowGround(newSnowGround);
             myData.getDataMethods().setDepthQc(QCValues.MANUAL_ENTRY);
         }
 
-        myData.setMaxSlp(Double.parseDouble(myMaxSLPTF.getText()));
-        myData.setMinSlp(Double.parseDouble(myMinSLPTF.getText()));
+        myData.setMaxSlp(ClimateGUIUtils.parseDouble(myMaxSLPTF.getText()));
+        myData.setMinSlp(ClimateGUIUtils.parseDouble(myMinSLPTF.getText()));
 
         // copy of wxtype array before its altered
         int[] oldWxType = Arrays.copyOf(myData.getWxType(),

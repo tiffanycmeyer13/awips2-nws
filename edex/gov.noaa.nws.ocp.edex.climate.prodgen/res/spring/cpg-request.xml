@@ -90,25 +90,32 @@
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateF6">
     </bean>
 
+    <bean id="climateGlobalDayProperties"
+        class="gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration"
+        factory-method="getSpringProperties" />
+
     <camelContext id="cpg-request-camel"
         xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
 
+        <propertyPlaceholder id="climateGlobalDayPropertiesPlaceholder"
+            location="ref:climateGlobalDayProperties" />
+
         <endpoint id="autoCpgAMCron"
-            uri="clusteredquartz://cpg/autocreateclimeAM/?cron=${cpg.am.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeAM/?cron=${cpg.am.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
         <endpoint id="autoCpgPMCron"
-            uri="clusteredquartz://cpg/autocreateclimePM/?cron=${cpg.pm.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimePM/?cron=${cpg.pm.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
         <endpoint id="autoCpgIMCron"
-            uri="clusteredquartz://cpg/autocreateclimeIM/?cron=${cpg.im.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeIM/?cron=${cpg.im.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
 
         <endpoint id="autoCpgMonCron"
-            uri="clusteredquartz://cpg/autocreateclimeMon/?cron=${cpg.mon.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeMon/?cron=${cpg.mon.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
         <endpoint id="autoCpgSeaCron"
-            uri="clusteredquartz://cpg/autocreateclimeSea/?cron=${cpg.sea.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeSea/?cron=${cpg.sea.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
         <endpoint id="autoCpgAnnCron"
-            uri="clusteredquartz://cpg/autocreateclimeAnn/?cron=${cpg.ann.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeAnn/?cron=${cpg.ann.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
 
         <endpoint id="autoCpgF6Cron"
-            uri="clusteredquartz://cpg/autocreateclimeF6/?cron=${cpg.f6.cron}" />
+            uri="clusteredquartz://cpg/autocreateclimeF6/?cron=${cpg.f6.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
 
         <route id="cpgAMWork">
             <from uri="autoCpgAMCron" />
@@ -187,8 +194,4 @@
             </doTry>
         </route>
     </camelContext>
-
-    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
-        <constructor-arg ref="cpg-request-camel" />
-    </bean>
 </beans>
