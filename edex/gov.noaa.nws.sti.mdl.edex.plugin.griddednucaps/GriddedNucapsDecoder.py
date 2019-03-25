@@ -166,19 +166,16 @@ class GriddedNucapsDecoder():
     def findSurface(self, pres, surfpres):
         pres = np.array(pres)
         diff = surfpres - (pres + 5.0)
-        idx = np.where(diff > 0.0)
-        lsurface = np.size(idx)
-
-        return int(lsurface)
+        return np.count_nonzero(diff > 0.0)
 
 
     # #Calculate the 2m parameters such as temperature at 2m
     def calc_2m_param(self):
         nobs = np.shape(self.latitude)[0]
-        botlevel = np.ones(nobs, dtype=np.float) * FILL_VAL
+        botlevel = np.full(nobs, FILL_VAL, dtype=np.float)
         pres = self.pressure[0]
         surfpres = self.surface_pressure
-        temp2 = np.ones(nobs, dtype=np.float) * FILL_VAL
+        temp2 = np.full(nobs, FILL_VAL, dtype=np.float)
 
         for iobs in range(0, nobs):
             surflev = self.findSurface(pres, surfpres[iobs])
@@ -196,7 +193,7 @@ class GriddedNucapsDecoder():
         nlev = np.shape(pres)[0]
         nlev_std = len(stdplev)
         nobs = len(self.latitude)
-        stdT = np.ones((nobs, nlev_std), dtype=float) * FILL_VAL
+        stdT = np.full((nobs, nlev_std), FILL_VAL, dtype=float)
         for iobs in range(0, nobs):
             sfc = botlevel[iobs]
 
@@ -211,11 +208,11 @@ class GriddedNucapsDecoder():
         nlev = np.shape(pres)[0]
         nlev_std = len(stdplev)
         nobs = len(self.latitude)
-        stdwv = np.ones((nobs, nlev_std), dtype=float) * FILL_VAL
+        stdwv = np.full((nobs, nlev_std), FILL_VAL, dtype=float)
 
         for iobs in range(0, nobs):
             sfc = botlevel[iobs]
-            lev_wvcd = np.ones(nlev, dtype=np.float) * FILL_VAL
+            lev_wvcd = np.full(nlev, FILL_VAL, dtype=np.float)
 
             lev_wvcd[0] = wvcd[iobs, 0]
 
@@ -277,8 +274,8 @@ class GriddedNucapsDecoder():
         shapes = np.shape(temp)
         nlev = shapes[1]
         nobs = shapes[0]
-        temp_2m = np.ones((nobs), dtype=float) * FILL_VAL
-        wv_2m = np.ones((nobs), dtype=float) * FILL_VAL
+        temp_2m = np.full((nobs), FILL_VAL, dtype=float)
+        wv_2m = np.full((nobs), FILL_VAL, dtype=float)
         for i in range(nobs):
             sfc = botlev[i]
             temp_2m[i] = temp[i, sfc - 1]
@@ -298,7 +295,7 @@ class GriddedNucapsDecoder():
     # Convert mixing ratio to relative humidity for sounding
     def convert_mr2rh(self, wvmr, pres, temp):
         nlev = np.shape(wvmr)[0]
-        relhum = np.ones((nlev), dtype=float) * FILL_VAL
+        relhum = np.full((nlev), FILL_VAL, dtype=float)
         for i in range(nlev):
             if (wvmr[i] != np.nan or temp[i] != np.nan):
                 relhum[i] = self.convert_mr2rh_single(wvmr[i], pres[i], temp[i])
@@ -309,8 +306,8 @@ class GriddedNucapsDecoder():
         pres = self.pressure[0, :]
         nlev = len(pres)
         nobs = len(self.latitude)
-        wvcd = np.ones((nobs, nlev), dtype=float) * FILL_VAL
-        ozcd = np.ones((nobs, nlev), dtype=float) * FILL_VAL
+        wvcd = np.full((nobs, nlev), FILL_VAL, dtype=float)
+        ozcd = np.full((nobs, nlev), FILL_VAL, dtype=float)
         delta_p = np.zeros((nlev), dtype=float)
         delta_p[0] = pres[0]
         delta_p[1:nlev] = pres[1:nlev ] - pres[0: nlev - 1]
@@ -333,7 +330,7 @@ class GriddedNucapsDecoder():
 
         totwat = np.zeros((nobs), dtype=np.float)
         totoz = np.zeros((nobs), dtype=np.float)
-        totDU = np.ones((nobs), dtype=np.float) * FILL_VAL
+        totDU = np.full((nobs), FILL_VAL, dtype=np.float)
         pwlow = np.zeros((nobs), dtype=np.float)
         pwmid = np.zeros((nobs), dtype=np.float)
         pwhigh = np.zeros((nobs), dtype=np.float)
@@ -379,7 +376,7 @@ class GriddedNucapsDecoder():
         nlev = len(pres)
         shape = np.shape(wvcd)
         nobs = shape[0]
-        wvmr = np.ones((nobs, nlev), dtype=float) * FILL_VAL
+        wvmr = np.full((nobs, nlev), FILL_VAL, dtype=float)
 
         deltap = np.zeros((nlev), dtype=float)
         deltap[0] = pres[0]
@@ -458,7 +455,7 @@ class GriddedNucapsDecoder():
     # #Find Ozone anomaly based on totalOzone and latitude of the observation points
     def calculateOzoneAnomaly(self, totalOzone):
         nobs = len(self.latitude)
-        ozanom = np.ones((nobs), dtype=float) * FILL_VAL
+        ozanom = np.full((nobs), FILL_VAL, dtype=float)
         for i in range(nobs):
             month = self.getMonth(self.times[i])
             climoValue = self.getOzoneClimoValue(month, self.latitude[i])
@@ -470,7 +467,7 @@ class GriddedNucapsDecoder():
         nobs = len(self.latitude)
         nlev = len(self.pressure[0, :])
 
-        troplevel = np.ones((nobs), dtype=float) * FILL_VAL
+        troplevel = np.full((nobs), FILL_VAL, dtype=float)
         for i in range(nobs):
             month = self.getMonth(self.times[i])
             ozthresh = 91. + 28. * (np.sin(np.pi * (int(month) - 2) / 6))
@@ -568,7 +565,7 @@ class GriddedNucapsDecoder():
             ####Flag this needs to be checked
             t2m, wvcd2m = self.get_2m_param(psurf, stdT, stdwv, botlev, blmult)
 
-            rh2m = np.ones((nobs), dtype=float) * FILL_VAL
+            rh2m = np.full((nobs), FILL_VAL, dtype=float)
 
             for i in range(nobs - 1):
                 deltap = psurf[i] - stdplev[int(botlev[i]) - 1]
@@ -584,7 +581,7 @@ class GriddedNucapsDecoder():
                 else:
                     stdwv[i, sfc] = FILL_VAL
 
-            stdrelhum = np.ones((nobs, nlev), dtype=np.float) * FILL_VAL
+            stdrelhum = np.full((nobs, nlev), FILL_VAL, dtype=np.float)
 
             stdwvmr = self.convert_cd2mr(stdwv, np.asarray(stdplev, dtype=np.float), psurf, botlev)
 
