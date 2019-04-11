@@ -171,38 +171,6 @@ public class ClimateASOSMessageDecoder {
                         }
 
                     }
-                    // check if the ingestFile contains DSM/MSM with C[SX]US4*
-                    if (CSXUS4_WMO_ID_PATTERN.matcher(header.getTtaaii())
-                            .matches()) {
-                        /*
-                         * In DSM/MSM with C[SX]US4*, subsequent line will be
-                         * the AWIPS ID (NNNxxx)
-                         */
-                        String aiLine = br.readLine();
-
-                        // ensure the AWIPS ID line is valid
-                        if (aiLine == null || aiLine.isEmpty()) {
-                            aiLine = br.readLine();
-                        }
-
-                        aiLine = aiLine.trim();
-                        if (MSG_AWIPS_ID_PATTERN.matcher(aiLine).matches()) {
-                            String prodCategory = aiLine.substring(0, 3);
-                            /*
-                             * There are message with CSUS4* header but not
-                             * DSM/MSM, stop to decode it if the product is not
-                             * a MSM / DSM
-                             */
-                            if (!prodCategory.equalsIgnoreCase("DSM")
-                                    && !prodCategory.equalsIgnoreCase("MSM")) {
-                                logger.info("The message in the file "
-                                        + ingestFile.getName()
-                                        + " is not valid DSM or MSM, ignored");
-                                return;
-                            }
-                        }
-
-                    }
 
                 } else if (MSG_BEGIN_PATTERN.matcher(line).lookingAt()) {
                     // Found a new message
