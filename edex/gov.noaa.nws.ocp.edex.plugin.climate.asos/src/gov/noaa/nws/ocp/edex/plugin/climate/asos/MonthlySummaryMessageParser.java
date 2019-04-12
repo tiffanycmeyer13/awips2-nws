@@ -46,6 +46,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 31 OCT 2017  40231      amoore      Clean up of MSM/DSM parsing and records. Better
  *                                     logging. Get rid of serialization tags.
  * 03 NOV 2017  36736      amoore      Make several parts and logic static.
+ * 07 MAR 2019  DR20939    pwang       Fix the unit of max 24 snow
+ * 
  * </pre>
  *
  * @author pwang
@@ -479,7 +481,11 @@ public class MonthlySummaryMessageParser extends ASOSMessageParser {
                 } else if (groupName.equalsIgnoreCase("sunshinePercent")) {
                     msm.setSunshinePercent(Short.parseShort(value));
                 } else if (groupName.equalsIgnoreCase("max24HourSnow")) {
-                    msm.setMax24HourSnow(Float.parseFloat(value));
+                    /*
+                     * Convert from tenth of inch (reported in MSM) to inch
+                     */
+                    float val = Float.parseFloat(value) / 10;
+                    msm.setMax24HourSnow(val);
                 } else if (groupName
                         .equalsIgnoreCase("max24HourSnowStartDate")) {
                     msm.setMax24HourSnowStartDate(Short.parseShort(value));

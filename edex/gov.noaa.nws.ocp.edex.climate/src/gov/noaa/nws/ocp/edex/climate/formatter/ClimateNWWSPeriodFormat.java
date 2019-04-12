@@ -54,6 +54,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  *                                     for snow section.
  * 20 NOV 2017  41125      amoore      Mean RH section should not be dependent on sky section.
  * 13 DEC 2018  DR21053    wpaintsil   Some null checks needed to prevent exceptions.
+ * 09 APR 2019  DR21217    wpaintsil   Wrong precision on temp departure from normals.
  *
  * </pre>
  *
@@ -3240,7 +3241,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                         float departValue = av - nv;
                         String valueString;
-                        if (snow == DecimalPlaces.SNOW) {
+                        if (snow == DecimalPlaces.TEMP) {
                             valueString = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                     departValue);
 
