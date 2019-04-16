@@ -29,6 +29,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.AnnualDialog;
+import gov.noaa.nws.ocp.viz.climate.configparams.support.F6ProductIDsDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.StationEditDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.ThresholdsDialog;
 import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
@@ -56,6 +57,7 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
  * 21 DEC 2016  26904     wpaintsil   Make this dialog appear in the task bar. Center child dialogs.
  * 27 JUL 2017  33104     amoore      Do not use effectively final functionality, for 1.7 build.
  * 03 AUG 2017  36715     amoore      Adjust sizing to fit text.
+ * 12 OCT 2018  DR 20897  dfriedman   Add button to open F6 product ID overrides dialog.
  * </pre>
  * 
  * @author xzhang
@@ -463,6 +465,29 @@ public class ClimatePreferencesDialog extends ClimateCaveChangeTrackDialog {
             }
         });
 
+        Button prodIdBtn = new Button(shell, SWT.PUSH);
+        GridData prodIdGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+                false, 2, 1);
+        prodIdGd.widthHint = 320;
+        prodIdBtn.setLayoutData(prodIdGd);
+        prodIdBtn.setText("Edit F6 Product ID Overrides");
+        prodIdBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                F6ProductIDsDialog f6ProductIDsDialog = new F6ProductIDsDialog(
+                        shell, preferenceValues);
+
+                f6ProductIDsDialog.open();
+
+                // center this dialog based on cave window dimensions and
+                // location.
+                int width = f6ProductIDsDialog.getShell().getSize().x;
+                int height = f6ProductIDsDialog.getShell().getSize().y;
+                f6ProductIDsDialog.getShell().setLocation(new Point(
+                        caveLocation.x + (caveWidth - width) / 2,
+                        caveLocation.y + (caveHeight - height) / 2));
+            }
+        });
     }
 
     /**

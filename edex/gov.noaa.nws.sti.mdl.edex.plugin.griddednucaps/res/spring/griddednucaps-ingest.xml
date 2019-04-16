@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://camel.apache.org/schema/spring
+http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <!-- Class to aggregate files into a bunch of files to be decoded at the same time. 
+    The amount of files to be processed at one time needs to be around 5 in order to keep the horizontal
+    interpolation from consuming too much memory. This strategy also takes into consideration the satellite-->
+    <bean id="aggStra" class="gov.noaa.nws.sti.mdl.edex.plugin.griddednucaps.TimeBasedAggregationStrategy">
+        <property name="camelContext" ref="griddednucaps-camel-clustered"/>
+        <property name="checkInterval" value="10000"/>
+        <property name="lastFileMaxAge" value="120000"/>
+        <property name="millisInBatch" value="640000"/>
+        <property name="filesInBatch" value="20"/>
+        <property name="aggregateProcessorId" value="aggStrata"/>
+    </bean>
+    <bean id="addDeleteOnCompletion" class="gov.noaa.nws.sti.mdl.edex.plugin.griddednucaps.AddDeleteOnCompletion"/>
+    <bean id="decodeNUCAPSSatelliteInformation" class="gov.noaa.nws.sti.mdl.edex.plugin.griddednucaps.ExtractSatelliteFileInformation"/>
+    <bean id="griddedNUCAPSDecoder" class="gov.noaa.nws.sti.mdl.edex.plugin.griddednucaps.GriddedNucapsDecoder"/>
+
+
+    <bean id="griddednucapsDistRegistry" factory-bean="distributionSrv" factory-method="register">
+        <constructor-arg value="griddednucaps" />
+        <constructor-arg value="jms-durable:queue:Ingest.Griddednucaps" />
+    </bean>
+    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
+        <constructor-arg ref="griddednucaps-camel-clustered" />
+    </bean>
+    <!-- Files are run through first pipeline in order to aggregate the files into bunches of 5, or after 
+        lapse in getting files in 5 min. Then the files are processed. Then they are forwarded onto the second pipeline to
+        get decoded and processed.
+     -->
+    <camelContext id="griddednucaps-camel-clustered" xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+
+        <route id="griddednucapsIngestRoute">
+            <from uri="jms-durable:queue:Ingest.Griddednucaps" />
+                <setHeader headerName="pluginName">
+                    <constant>griddednucaps</constant>
+                </setHeader>
+            <doTry>
+                <pipeline>
+                    <bean ref="stringToFile" />
+                    <bean ref="getFileWithoutWmoHeader"/>
+                    <bean ref="decodeNUCAPSSatelliteInformation"/>
+                    <aggregate id="aggStrata" strategyRef="aggStra" completionSize="5" >
+                        <correlationExpression>      
+                            <simple>header</simple>
+                         </correlationExpression>
+                        <to uri="direct:griddedNucaps2"/>
+                    </aggregate>
+                </pipeline>
+            <doCatch>
+                <exception>java.lang.Throwable</exception>
+                    <to uri="log:griddednucaps?level=ERROR" />
+            </doCatch>
+            </doTry>
+        </route>
+        <route id="griddednucapsIngestRoute2">
+            <from uri="direct:griddedNucaps2" />
+            <doTry>
+                <pipeline>
+                    <bean ref="addDeleteOnCompletion"/>
+                    <bean ref="griddedNUCAPSDecoder" method="decode"/>
+                    <to uri="direct-vm:persistIndexAlert" />
+                </pipeline>
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:griddednucaps?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+    </camelContext>
+
+</beans>

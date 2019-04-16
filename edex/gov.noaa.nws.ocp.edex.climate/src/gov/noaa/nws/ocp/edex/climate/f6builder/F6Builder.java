@@ -112,6 +112,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 16 OCT 2017  39449      amoore      Print weather line if any weather detected, not just if
  *                                     num_weather_obs value is non-missing.
  * 28 AUG 2018  DR 20861   dfriedman   Support transmission of F6 reports.
+ * 12 OCT 2018  DR 20897   dfriedman   Support stationDesignatorOverrides field.
+ * 19 NOV 2018  DR 21013   wpaintsil   Correct column alignment.
  * </pre>
  * 
  * @author amoore
@@ -144,7 +146,8 @@ public class F6Builder {
      * If true, remove restriction that only F6 products for the current site
      * will be transmitted.
      */
-    private static final boolean SEND_ANY_SITE = Boolean.getBoolean("climate.f6.sendAnySite");
+    private static final boolean SEND_ANY_SITE = Boolean
+            .getBoolean("climate.f6.sendAnySite");
 
     /** The logger */
     private static final IUFStatusHandler logger = UFStatus
@@ -214,13 +217,14 @@ public class F6Builder {
      * @param aDate
      * @param remarks
      * @param print
-     * @param transmit user or process has requested transmission
+     * @param transmit
+     *            user or process has requested transmission
      * @param operational
      * @return
      */
     public F6ServiceResponse buildF6ForStations(List<Station> stations,
-            ClimateDate aDate, String remarks, boolean print,
-            boolean transmit, boolean operational) {
+            ClimateDate aDate, String remarks, boolean print, boolean transmit,
+            boolean operational) {
 
         boolean hasException = false;
         StringBuilder messages = new StringBuilder();
@@ -242,8 +246,9 @@ public class F6Builder {
             ccc = siteName;
         }
 
-        boolean disseminate = ClimateGlobalConfiguration.getGlobal()
-                .isAllowDisseminate();
+        ClimateGlobal globalConfig = ClimateGlobalConfiguration.getGlobal();
+        boolean disseminate = globalConfig.isAllowDisseminate();
+        Map<String, String> stationDesignatorOverrides = globalConfig.getStationDesignatorOverrides();
 
         if (transmit && !disseminate) {
             messages.append("Dissemination over MHS is disabled!\n");
@@ -287,8 +292,12 @@ public class F6Builder {
                  * 
                  * Now, let's create the new CF6 product with "CF6ccc" format.
                  */
-                String f6Pil = ccc + CF6_PIL_START
-                        + station.getIcaoId().substring(1);
+                String icao = station.getIcaoId();
+                String xxxId = stationDesignatorOverrides.get(icao);
+                if (xxxId == null) {
+                    xxxId = icao.substring(1);
+                }
+                String f6Pil = ccc + CF6_PIL_START + xxxId;
                 pils[1] = f6Pil;
                 for (String pil : pils) {
                     boolean ok;
@@ -297,13 +306,14 @@ public class F6Builder {
                     String awipsWanPil = null;
                     if (pil == f6Pil && operational && transmit && disseminate
                             && site4c != null) {
-                        awipsWanPil = mapToAwipsID(pil, SEND_ANY_SITE ? null : site4c);
+                        awipsWanPil = mapToAwipsID(pil,
+                                SEND_ANY_SITE ? null : site4c);
                         if (awipsWanPil != null) {
                             transmitThisProduct = true;
                         } else {
                             logger.warn(String.format(
-                                    "F6 report with pil %s will not be transmitted because" +
-                                    "it is not in afos2awips.txt or not from site %s",
+                                    "F6 report with pil %s will not be transmitted because"
+                                            + "it is not in afos2awips.txt or not from site %s",
                                     pil, site4c));
                         }
                     }
@@ -312,8 +322,10 @@ public class F6Builder {
                          * Transmit the product. This will also store the
                          * product in the text database.
                          */
-                        ok = transmitProduct(pil, awipsWanPil, totalContents.toString());
-                        insertTime = ok ? TimeUtil.newDate().getTime() : Long.MIN_VALUE;
+                        ok = transmitProduct(pil, awipsWanPil,
+                                totalContents.toString());
+                        insertTime = ok ? TimeUtil.newDate().getTime()
+                                : Long.MIN_VALUE;
                     } else {
                         insertTime = textdb.writeProduct(pil,
                                 totalContents.toString(), operational, null);
@@ -326,10 +338,9 @@ public class F6Builder {
                                 : "stored F6 report to the text database";
                         String shortAction = transmitThisProduct ? "transmitted"
                                 : "stored";
-                        logger.debug(
-                                "Successfully " + action + " for station ["
-                                        + station.getIcaoId() + "] with PIL ["
-                                        + pil + "]");
+                        logger.debug("Successfully " + action + " for station ["
+                                + station.getIcaoId() + "] with PIL [" + pil
+                                + "]");
 
                         // store record of product to DB
                         try {
@@ -379,20 +390,20 @@ public class F6Builder {
                         }
                         pilMap.put(pil, reportContent);
 
-                        messages.append(
-                                "Successfully created and " + shortAction
-                                        + " report for Station "
-                                        + station.getStationName()
-                                        + " with PIL " + pil + ".\n");
+                        messages.append("Successfully created and "
+                                + shortAction + " report for Station "
+                                + station.getStationName() + " with PIL " + pil
+                                + ".\n");
                     } else {
-                        String action = transmitThisProduct ? "transmitting F6 report" :
-                            "storing F6 report to the text database";
+                        String action = transmitThisProduct
+                                ? "transmitting F6 report"
+                                : "storing F6 report to the text database";
                         String hint = transmitThisProduct ? ""
-                                : " Ensure connection to text DB and that this would " +
-                                "not be an exact duplicate of an existing report.";
-                        String message = "Something went wrong " + action + " for station "
-                                + station.getIcaoId() + " with PIL " + pil
-                                + "." + hint + "\n";
+                                : " Ensure connection to text DB and that this would "
+                                        + "not be an exact duplicate of an existing report.";
+                        String message = "Something went wrong " + action
+                                + " for station " + station.getIcaoId()
+                                + " with PIL " + pil + "." + hint + "\n";
                         logger.error(message);
                         messages.append(message);
                         hasException = true;
@@ -856,9 +867,9 @@ public class F6Builder {
                 int ispeed = ClimateUtilities
                         .nint(dailyData.getMaxGust().getSpeed());
                 dailyData.getMaxGust().setSpeed(ispeed);
-                dailyValueMap.put("isp", String.format("%3s", ispeed));
+                dailyValueMap.put("isp", String.format("%5s", ispeed));
             } else {
-                dailyValueMap.put("isp", String.format("%3s", "M"));
+                dailyValueMap.put("isp", String.format("%5s", "M"));
             }
 
             /* direction of maximum gust or peak */
@@ -1545,7 +1556,8 @@ public class F6Builder {
      * @param productText
      * @return true if the product was succesfully transmitted, false otherwise
      */
-    private boolean transmitProduct(String pil, String awipsWanPil, String productText) {
+    private boolean transmitProduct(String pil, String awipsWanPil,
+            String productText) {
         OfficialUserProduct oup = new OfficialUserProduct();
         oup.setFilename(String.format("%s_%s", pil,
                 TimeUtil.getUnixTime(TimeUtil.newDate())));
@@ -1610,8 +1622,8 @@ public class F6Builder {
      * afos2awips.txt to perform table-lookup.
      *
      * The logic is based on handleOUP.pl sub "mapToAfosAndWmoIds()". This also
-     * adds a check that the product is one of the site's own as is done in
-     * the legacy "create_f6_product" script.
+     * adds a check that the product is one of the site's own as is done in the
+     * legacy "create_f6_product" script.
      *
      * @param afosId
      * @param restrictToSite

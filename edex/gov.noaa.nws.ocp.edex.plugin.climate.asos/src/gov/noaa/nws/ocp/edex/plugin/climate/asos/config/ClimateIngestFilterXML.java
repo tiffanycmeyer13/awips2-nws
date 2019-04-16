@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlElements;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Aug 3, 2016  20905      pwang     Initial creation
+ * 12 OCT 2018  20941      pwang     Removed "site level" ingest station filter to avoid confusion
  *
  * </pre>
  *
@@ -66,24 +67,6 @@ public class ClimateIngestFilterXML {
         }
 
         return null;
-    }
-
-    /**
-     * ingestSourceSiteAllowed return if the DSM/MSM data from given site is
-     * allowed to ingest If the SITE filter is not configured, assume all SITEs
-     * allowed Key is case insensitive
-     * 
-     * @param siteKey
-     * @return
-     */
-    public boolean ingestSourceSiteAllowed(String siteKey) {
-        SourceIngestXML sg = getSourceFilterGroup("SITE");
-        if (sg != null && !sg.getDataKey().isEmpty()) {
-            return sg.matchDataKey(siteKey);
-        }
-
-        // No limit for sites if no SITE defined
-        return true;
     }
 
     /**

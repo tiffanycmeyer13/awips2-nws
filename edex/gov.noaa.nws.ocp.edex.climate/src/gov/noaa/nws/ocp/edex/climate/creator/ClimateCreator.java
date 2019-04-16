@@ -110,6 +110,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguratio
  * 30 JUN 2017  35729      amoore      Move #determineWindow from ClimateCreator to Daily DAO.
  * 07 JUL 2017  33104      amoore      Split Daily and Period logic into separate classes.
  * 24 JUL 2017  33104      amoore      Use 24-hour time.
+ * 18 DEC 2018  DR21053    wpaintsil   Use local timezone in date retrieval.
  * </pre>
  * 
  * @author amoore
@@ -214,7 +215,7 @@ public class ClimateCreator {
      */
     public ClimateRunPeriodData createClimate(boolean isManualNonRecentRun,
             PeriodType iPeriodType, ClimateDate beginDate, ClimateDate endDate)
-                    throws ClimateException {
+            throws ClimateException {
 
         /*********************************************************************
          * Get the all the climate stations from the master station table. The
@@ -371,11 +372,14 @@ public class ClimateCreator {
             }
         }
 
+        // Use local timezone
+        String timeZone = ClimateGlobalConfiguration.getGlobal().getTimezone();
+
         switch (itype) {
         // Daily morning reports
         case MORN_NWWS:
         case MORN_RAD:
-            aDate.setDateFromDate(ClimateDate.getLocalDate());
+            aDate.setDateFromDate(ClimateDate.getLocalDate(timeZone));
 
             if ((aDate.getDay() < 1) || (aDate.getDay() > 31)
                     || (aDate.getMon() < 1) || (aDate.getMon() > 12)) {
@@ -425,7 +429,7 @@ public class ClimateCreator {
         case INTER_NWWS:
         case INTER_RAD:
 
-            aDate.setDateFromDate(ClimateDate.getLocalDate());
+            aDate.setDateFromDate(ClimateDate.getLocalDate(timeZone));
 
             if ((aDate.getDay() < 1) || (aDate.getDay() > 31)
                     || (aDate.getMon() < 1) || (aDate.getMon() > 12)) {

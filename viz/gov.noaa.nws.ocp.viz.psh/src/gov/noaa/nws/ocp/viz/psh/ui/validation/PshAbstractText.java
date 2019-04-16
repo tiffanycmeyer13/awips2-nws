@@ -6,6 +6,8 @@ package gov.noaa.nws.ocp.viz.psh.ui.validation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -22,9 +24,14 @@ import org.eclipse.swt.widgets.Text;
  * 
  * <pre>
  * SOFTWARE HISTORY
- * Date         Ticket#     Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Oct 17, 2017 #39233      wpaintsil   Initial creation.
+ * Date         Ticket#  Engineer    Description
+ * ------------ -------- ----------- --------------------------
+ * Oct 17, 2017 VL39233  wpaintsil  Initial creation.
+ * Dec 17, 2018 DR20981  jwu        Allow immediate type-in in date/time
+ *                                  wind text field when user tabs
+ *                                  over to such a field.
+ * Dec 18, 2018 DR20978  jwu        Add getter/setter for textField.
+
  * </pre>
  * 
  * @author wpaintsil
@@ -120,13 +127,29 @@ public abstract class PshAbstractText extends PshAbstractControl {
                 if (template() != null && textField.getText().isEmpty()) {
                     textField.setText(template());
                 }
+
                 if (verifyListener != null) {
                     textField.addVerifyListener(verifyListener);
                 }
-                textField.selectAll();
+            }
+        });
+
+        /*
+         * DR20981 - Allow user to type in immediately when user tabs to this
+         * text field.
+         */
+        textField.addKeyListener(new KeyAdapter() {
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.keyCode == SWT.TAB) {
+                    // when tabs over, set cursor at beginning.
+                    textField.setSelection(0);
+                }
 
             }
         });
+
     }
 
     /**
@@ -158,6 +181,21 @@ public abstract class PshAbstractText extends PshAbstractControl {
      */
     public void addListener(int eventType, Listener listener) {
         textField.addListener(eventType, listener);
+    }
+
+    /**
+     * @return the textField
+     */
+    public Text getTextField() {
+        return textField;
+    }
+
+    /**
+     * @param textField
+     *            the textField to set
+     */
+    public void setTextField(Text textField) {
+        this.textField = textField;
     }
 
     /**

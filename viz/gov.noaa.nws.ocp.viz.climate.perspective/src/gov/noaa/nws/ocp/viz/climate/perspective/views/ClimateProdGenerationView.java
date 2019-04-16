@@ -99,6 +99,7 @@ import gov.noaa.nws.ocp.viz.climate.perspective.notify.IClimateMessageCallback;
  * Jun 07, 2018 20760      amoore      Product Process buttons need min size set, or in some
  *                                     situations they may be squished vertically until CAVE is
  *                                     restarted/the perspective is re-initialized.
+ * Nov 05, 2018 55588      jwu         Update NWR Send button title & climate view layout (DR 20917).
  * </pre>
  *
  * @author jwu
@@ -201,7 +202,7 @@ public class ClimateProdGenerationView extends ViewPart
 
     private static final String NA = "N/A";
 
-    private static final String SEE_NWRWAVES = "See NWRWaves";
+    private static final String SEE_NWRWAVES = "Use NWRWAVES\nBrowser";
 
     /**
      * User name.
@@ -222,7 +223,7 @@ public class ClimateProdGenerationView extends ViewPart
 
     private static final int MIN_VIEWER_WIDTH = 1000;
 
-    private static final int MIN_VIEWER_HEIGHT = 1000;
+    private static final int MIN_VIEWER_HEIGHT = 700;
 
     private Composite mainComp;
 
@@ -417,6 +418,10 @@ public class ClimateProdGenerationView extends ViewPart
         Label monitorLbl = new Label(mainComp, SWT.NORMAL);
         monitorLbl.setText("Climate Product Generation Monitor");
         monitorLbl.setFont(size14FontBold);
+        GridData gd = new GridData(SWT.CENTER, SWT.TOP, false, false);
+        gd.verticalIndent = 10;
+
+        monitorLbl.setLayoutData(gd);
 
         // Group to start a new session.
         createStartSessionSection(mainComp);
