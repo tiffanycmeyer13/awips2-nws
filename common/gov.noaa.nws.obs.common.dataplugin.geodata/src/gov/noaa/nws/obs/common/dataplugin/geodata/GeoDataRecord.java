@@ -17,7 +17,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
 import com.raytheon.uf.common.dataplugin.persist.PersistablePluginDataObject;
@@ -37,15 +36,16 @@ import com.vividsolutions.jts.geom.Geometry;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 07/25/2016     19064      jburks    Initial creation (DCS 19064)
- * 08/20/2016     19064    mcomerford  Added method to return all Attribute names
+ * Date          Ticket#    Engineer    Description
+ * ------------  ---------- ----------- --------------------------
+ * 07/25/2016    19064      jburks      Initial creation (DCS 19064)
+ * 08/20/2016    19064      mcomerford  Added method to return all Attribute
+ *                                      names
+ * Apr 24, 2019  6140       tgurney     Hibernate 5 GeometryType fix
  *
  * </pre>
  *
  * @author jason.burks
- * @version 1.0
  */
 
 @Entity
@@ -74,7 +74,6 @@ public class GeoDataRecord extends PersistablePluginDataObject {
     private String product;
 
     @Column(name = "geometry", columnDefinition = "geometry")
-    @Type(type = "org.hibernate.spatial.GeometryType")
     @XmlJavaTypeAdapter(value = GeometryAdapter.class)
     @DataURI(position = 3)
     @DynamicSerializeElement
@@ -95,92 +94,50 @@ public class GeoDataRecord extends PersistablePluginDataObject {
     @DynamicSerializeElement
     private Set<IntegerAttribute> integerAtt = new HashSet<>();
 
-    /**
-     * @return the source
-     */
     public String getSource() {
         return source;
     }
 
-    /**
-     * @param source
-     *            the source to set
-     */
     public void setSource(String source) {
         this.source = source;
     }
 
-    /**
-     * @return the product
-     */
     public String getProduct() {
         return product;
     }
 
-    /**
-     * @param product
-     *            the product to set
-     */
     public void setProduct(String product) {
         this.product = product;
     }
 
-    /**
-     * @return the geometry
-     */
     public Geometry getGeometry() {
         return geometry;
     }
 
-    /**
-     * @param geometry
-     *            the geometry to set
-     */
     public void setGeometry(Geometry geometry) {
         this.geometry = geometry;
     }
 
-    /**
-     * @return the stringAtt
-     */
     public Set<StringAttribute> getStringAtt() {
         return stringAtt;
     }
 
-    /**
-     * @param stringAtt
-     *            the stringAtt to set
-     */
     public void setStringAtt(Set<StringAttribute> stringAtt) {
         this.stringAtt = stringAtt;
     }
 
-    /**
-     * @return the floatAtt
-     */
     public Set<FloatAttribute> getFloatAtt() {
         return floatAtt;
     }
 
-    /**
-     * @param floatAtt
-     *            the floatAtt to set
-     */
     public void setFloatAtt(Set<FloatAttribute> floatAtt) {
         this.floatAtt = floatAtt;
     }
 
-    /**
-     * @return the integerAtt
-     */
     public Set<IntegerAttribute> getIntegerAtt() {
         return integerAtt;
     }
 
-    /**
-     * @param integerAtt
-     *            the integerAtt to set
-     */
     public void setIntegerAtt(Set<IntegerAttribute> integerAtt) {
         this.integerAtt = integerAtt;
     }
@@ -198,7 +155,7 @@ public class GeoDataRecord extends PersistablePluginDataObject {
      */
     public List<String> getAttNames() {
 
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         for (IntegerAttribute intAtt : getIntegerAtt()) {
             names.add(intAtt.getName());
         }
@@ -216,10 +173,9 @@ public class GeoDataRecord extends PersistablePluginDataObject {
     public int hashCode() {
         final int prime = 31;
         int result = super.hashCode();
-        result = prime * result
-                + ((geometry == null) ? 0 : geometry.hashCode());
-        result = prime * result + ((product == null) ? 0 : product.hashCode());
-        result = prime * result + ((source == null) ? 0 : source.hashCode());
+        result = prime * result + (geometry == null ? 0 : geometry.hashCode());
+        result = prime * result + (product == null ? 0 : product.hashCode());
+        result = prime * result + (source == null ? 0 : source.hashCode());
         return result;
     }
 
