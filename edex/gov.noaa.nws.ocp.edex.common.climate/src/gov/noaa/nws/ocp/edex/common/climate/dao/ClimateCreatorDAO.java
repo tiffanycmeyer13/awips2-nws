@@ -73,6 +73,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.MetarUtils;
  * 20 MAR 2019  DR21158    wpaintsil   Correct the SPECI queries for wx values.
  * 20 MAR 2019  DR 21189   dfriedman   Change queries to compare timestamps
  *                                     instead of formatted strings.
+ * 24 APR 2019  DR 21258   dfriedman   Correct valid time ordering in getMetarCategSingle.
  * </pre>
  * 
  * @author amoore
@@ -1338,7 +1339,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
         query.append(" WHERE f.nominal_dtime = :dateTime");
         query.append(" AND f.station_id = :informId");
         query.append(" AND f.report_subtype = 'MTR' ");
-        query.append(" ORDER BY f.valid_dtime DESC, f.correction DESC, ");
+        query.append(" ORDER BY f.valid_dtime ASC, f.correction DESC, ");
         query.append(" f.origin_dtime DESC");
 
         Map<String, Object> paramMap = new HashMap<>();
