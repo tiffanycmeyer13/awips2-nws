@@ -117,6 +117,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 15 NOV 2017   39338    amoore      When loading a default product, use current localization site as node.
  * 13 MAR 2018   44624    amoore      Resolved issue found where only CONUS sites could properly define products.
  * 06 NOV 2018   55583    jwu         Fix some layout & alignment issues (DR20915).
+ * 30 APR 2019   DR20915  wpaintsil   Further adjustments to alignment.
  * </pre>
  * 
  * @author jwu
@@ -1128,8 +1129,8 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         editComp.setLayoutData(
                 new GridData(SWT.CENTER, SWT.CENTER, false, false));
 
-        GridData editingBtnGd = new GridData(SWT.FILL, SWT.CENTER, true,
-                false, 1, 1);
+        GridData editingBtnGd = new GridData(SWT.FILL, SWT.CENTER, true, false,
+                1, 1);
         editingBtnGd.minimumWidth = 180;
 
         Button editReportPeriodBtn = new Button(editComp, SWT.NORMAL);
@@ -1249,9 +1250,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
      */
     private void createCategorySection(Composite parent) {
         Group catContentGrp = new Group(parent, SWT.NONE);
-        GridLayout catContentLayout = new GridLayout(2, false);
-        catContentLayout.horizontalSpacing = 0;
-        catContentLayout.verticalSpacing = 15;
+        GridLayout catContentLayout = new GridLayout(1, true);
         catContentLayout.marginWidth = 3;
         catContentGrp.setLayout(catContentLayout);
         catContentGrp.setText("Categories");
@@ -1261,50 +1260,25 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         Composite allNoneComp = new Composite(catContentGrp, SWT.NONE);
 
         GridData allNoneGD = new GridData();
-        allNoneGD.verticalAlignment = SWT.TOP;
+        allNoneGD.grabExcessHorizontalSpace = true;
         allNoneComp.setLayoutData(allNoneGD);
 
-        GridLayout allNoneLayout = new GridLayout(1, false);
-        allNoneLayout.verticalSpacing = 12;
+        GridLayout allNoneLayout = new GridLayout(2, false);
+        allNoneLayout.horizontalSpacing = 25;
+        allNoneLayout.verticalSpacing = 0;
         allNoneComp.setLayout(allNoneLayout);
 
-        Composite catChkAllNoneComp = new Composite(allNoneComp, SWT.NONE);
-
-        GridData catChkAllNoneGD = new GridData();
-        catChkAllNoneGD.verticalAlignment = SWT.TOP;
-        catChkAllNoneComp.setLayoutData(catChkAllNoneGD);
-
-        GridLayout catChkAllNoneLayout = new GridLayout(2, false);
-        catChkAllNoneLayout.marginTop = 0;
-        catChkAllNoneLayout.marginRight = 0;
-        catChkAllNoneLayout.verticalSpacing = 7;
-        catChkAllNoneComp.setLayout(catChkAllNoneLayout);
-
-        Label catChkAllNoneLbl = new Label(catChkAllNoneComp, SWT.NORMAL);
-        catChkAllNoneLbl.setText(" Include\nAll  None");
+        Label catChkAllNoneLbl = new Label(allNoneComp, SWT.NORMAL);
+        catChkAllNoneLbl.setText(" Include\n  All  None");
         catChkAllNoneLbl.setFont(size10Font);
-        GridData catChkAllNoneLblGD = new GridData();
-        catChkAllNoneLblGD.horizontalSpan = 2;
-        catChkAllNoneLbl.setLayoutData(catChkAllNoneLblGD);
+        catChkAllNoneLbl.setAlignment(SWT.CENTER);
 
         includeAllChkBtns = new HashMap<>();
         includeNoneChkBtns = new HashMap<>();
 
-        // Create the list of main categories
-        Composite catListComp = new Composite(catContentGrp, SWT.NONE);
-
-        GridData catListGD = new GridData();
-        catListGD.verticalAlignment = SWT.TOP;
-        catChkAllNoneComp.setLayoutData(catListGD);
-
-        RowLayout catListLayout = new RowLayout(SWT.VERTICAL);
-        catListLayout.marginTop = 23;
-        catListLayout.marginLeft = 15;
-        catListLayout.spacing = 5;
-        catListComp.setLayout(catListLayout);
-
-        catListLbl = new Label(catListComp, SWT.NORMAL);
+        catListLbl = new Label(allNoneComp, SWT.NORMAL);
         catListLbl.setText("YESTERDAY'S");
+        catListLbl.setAlignment(SWT.LEFT);
         catListLbl.setFont(size10BoldFont);
 
         categoryList = new ArrayList<>();
@@ -1312,6 +1286,17 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         for (ClimateReportElementCategory cat : ClimateReportElementCategory
                 .values()) {
             if (!cat.isAuxiliary()) {
+                Composite catChkAllNoneComp = new Composite(allNoneComp,
+                        SWT.NONE);
+
+                GridData catChkAllNoneGD = new GridData();
+                catChkAllNoneGD.grabExcessHorizontalSpace = true;
+                catChkAllNoneComp.setLayoutData(catChkAllNoneGD);
+
+                GridLayout catChkAllNoneLayout = new GridLayout(2, true);
+                catChkAllNoneLayout.verticalSpacing = 0;
+                catChkAllNoneComp.setLayout(catChkAllNoneLayout);
+
                 Button allChkBtn = new Button(catChkAllNoneComp, SWT.CHECK);
                 allChkBtn.setData(cat);
                 includeAllChkBtns.put(cat, allChkBtn);
@@ -1342,7 +1327,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
                     }
                 });
 
-                Button catButton = new Button(catListComp, SWT.RADIO);
+                Button catButton = new Button(allNoneComp, SWT.RADIO);
                 catButton.setText(cat.getCategory());
 
                 catButton.addSelectionListener(new SelectionAdapter() {
@@ -1370,16 +1355,25 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         categoryList.get(0).setSelection(true);
 
         // Create auxiliary categories
-        auxCatChkAllNoneComp = new Composite(allNoneComp, SWT.NONE);
+        auxCatChkAllNoneComp = new Composite(catContentGrp, SWT.NONE);
+
+        GridData auxCatChkAllNoneGD = new GridData();
+        auxCatChkAllNoneGD.grabExcessHorizontalSpace = true;
+        auxCatChkAllNoneComp.setLayoutData(auxCatChkAllNoneGD);
+
         GridLayout auxChkLayout = new GridLayout(2, false);
-        auxChkLayout.marginTop = 6;
-        auxChkLayout.marginLeft = 0;
-        auxChkLayout.verticalSpacing = 7;
+        auxChkLayout.verticalSpacing = 0;
+        auxChkLayout.horizontalSpacing = 30;
         auxCatChkAllNoneComp.setLayout(auxChkLayout);
 
-        auxCatChkAllNoneLbl = new Label(catListComp, SWT.NORMAL);
+        Label spaceLbl = new Label(auxCatChkAllNoneComp, SWT.NORMAL);
+        spaceLbl.setText("");
+        spaceLbl.setAlignment(SWT.LEFT);
+        spaceLbl.setFont(size10BoldFont);
+
+        auxCatChkAllNoneLbl = new Label(auxCatChkAllNoneComp, SWT.NORMAL);
         auxCatChkAllNoneLbl.setText("TODAY's");
-        auxCatChkAllNoneLbl.setAlignment(SWT.CENTER);
+        auxCatChkAllNoneLbl.setAlignment(SWT.LEFT);
         auxCatChkAllNoneLbl.setFont(size10BoldFont);
 
         auxCategoryList = new ArrayList<>();
@@ -1388,7 +1382,18 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
                 .values()) {
             if (cat.isAuxiliary()) {
 
-                Button allChkBtn = new Button(auxCatChkAllNoneComp, SWT.CHECK);
+                Composite catChkAllNoneComp = new Composite(
+                        auxCatChkAllNoneComp, SWT.NONE);
+
+                GridData catChkAllNoneGD = new GridData();
+                catChkAllNoneGD.grabExcessHorizontalSpace = true;
+                catChkAllNoneComp.setLayoutData(catChkAllNoneGD);
+
+                GridLayout catChkAllNoneLayout = new GridLayout(2, true);
+                catChkAllNoneLayout.verticalSpacing = 0;
+                catChkAllNoneComp.setLayout(catChkAllNoneLayout);
+
+                Button allChkBtn = new Button(catChkAllNoneComp, SWT.CHECK);
                 allChkBtn.setData(cat);
                 includeAllChkBtns.put(cat, allChkBtn);
                 allChkBtn.addSelectionListener(new SelectionAdapter() {
@@ -1405,7 +1410,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
                     }
                 });
 
-                Button noneChkBtn = new Button(auxCatChkAllNoneComp, SWT.CHECK);
+                Button noneChkBtn = new Button(catChkAllNoneComp, SWT.CHECK);
                 noneChkBtn.setData(cat);
                 includeNoneChkBtns.put(cat, noneChkBtn);
                 noneChkBtn.addSelectionListener(new SelectionAdapter() {
@@ -1422,7 +1427,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
                     }
                 });
 
-                Button catButton = new Button(catListComp, SWT.RADIO);
+                Button catButton = new Button(auxCatChkAllNoneComp, SWT.RADIO);
                 catButton.setText(cat.getCategory());
 
                 catButton.addSelectionListener(new SelectionAdapter() {

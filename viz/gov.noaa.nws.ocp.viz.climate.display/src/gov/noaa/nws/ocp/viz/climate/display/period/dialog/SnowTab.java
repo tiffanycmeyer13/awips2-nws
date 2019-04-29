@@ -42,6 +42,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
+ * 30 APR 2019  DR21261    wpaintsil   Data population missing for avg snow depth.
  * </pre>
  * 
  * @author amoore
@@ -1011,6 +1012,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                     String.valueOf(iSavedPeriodData.getNumSnowGreaterThanS1()));
         }
 
+        // average snow depth
+        myAvgSnowDepthGroundTF
+                .setText(String.valueOf(iSavedPeriodData.getSnowGroundMean()));
+
         // max snow depth on ground 24H
         // check MSM first
         if (msmPeriodData != null && isPeriodDataEqualForFloat(
@@ -1161,6 +1166,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
             mySnowCustomGreaterS1TF.setText(
                     String.valueOf(iDailyBuildData.getNumSnowGreaterThanS1()));
         }
+
+        // average snow depth
+        myAvgSnowDepthGroundTF
+                .setText(String.valueOf(iDailyBuildData.getSnowGroundMean()));
 
         // max snow depth on ground 24H
         if (iMonthlyAsosData == null || iDailyBuildData
