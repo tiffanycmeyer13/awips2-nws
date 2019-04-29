@@ -29,7 +29,7 @@ import com.raytheon.viz.ui.UiUtil;
 import com.raytheon.viz.ui.VizWorkbenchManager;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDisplay;

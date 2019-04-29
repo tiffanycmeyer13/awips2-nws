@@ -2,12 +2,15 @@ package gov.noaa.nws.obs.viz.geodata.style;
 
 import java.text.ParsePosition;
 
-import javax.measure.converter.UnitConverter;
-import javax.measure.unit.Unit;
-import javax.measure.unit.UnitFormat;
+import javax.measure.Unit;
+import javax.measure.UnitConverter;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+
+import com.raytheon.uf.common.units.UnitConv;
+
+import tec.uom.se.format.SimpleUnitFormat;
 
 /**
  * GenericGeometryAttribute
@@ -119,7 +122,7 @@ public class GenericGeometryStyleAttribute {
      * 
      * @param value
      *            The value in its original units.
-     * @return The converted value in it's new units.
+     * @return The converted value in its new units.
      */
     public double convertValue(double value) {
 
@@ -127,11 +130,12 @@ public class GenericGeometryStyleAttribute {
         if (this.dataUnits == null || this.displayUnits == null) {
             return value;
         }
-        Unit<?> convertFrom = UnitFormat.getUCUMInstance()
+        Unit<?> convertFrom = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII)
                 .parseObject(this.dataUnits, new ParsePosition(0));
-        Unit<?> convertTo = UnitFormat.getUCUMInstance()
+        Unit<?> convertTo = SimpleUnitFormat.getInstance(SimpleUnitFormat.Flavor.ASCII)
                 .parseObject(this.displayUnits, new ParsePosition(0));
-        UnitConverter converter = convertFrom.getConverterTo(convertTo);
+        UnitConverter converter = UnitConv.getConverterToUnchecked(convertFrom,
+                convertTo);
 
         return converter.convert(value);
     }
