@@ -5,7 +5,8 @@ package gov.noaa.nws.ocp.edex.common.climate.util;
 
 /**
  * Values from metar_utils.h. METAR values in database are stored by special key
- * values, listed here..
+ * values, listed here..  Also includes definitions of special precipitation
+ * values from Common_Defs.h used in the fss_contin_real table.
  * 
  * <pre>
  * 
@@ -15,6 +16,7 @@ package gov.noaa.nws.ocp.edex.common.climate.util;
  * ------------ ---------- ----------- --------------------------
  * 07 Oct 2016  21378      amoore      Initial creation.
  * 24 JAN 2017  28499      amoore      Make final, and have private constructor.
+ * 26 Apr 2019  DR 21195   dfriedman   Add special case precipitation values.
  * </pre>
  * 
  * @author amoore
@@ -83,6 +85,19 @@ public final class MetarUtils {
     public static final int METAR_PEAK_WIND_TIME = 25828;
 
     public static final int METAR_SUNSHINE_DURATION = 25829;
+
+    /**
+     * Legacy documentation: Used to indicate that the precipitation sensor was
+     * not operational.
+     */
+    public static final int PNO_PRESENT = -1;
+
+    /**
+     * Indicates a trace amount of precipitation in fss_contin_real. Note this
+     * is different from the value of TRACE = -1 used almost everywhere else in
+     * Climate.
+     */
+    public static final int FSS_CONTIN_TRACE = -2;
 
     /**
      * Private constructor. This is a utility class.

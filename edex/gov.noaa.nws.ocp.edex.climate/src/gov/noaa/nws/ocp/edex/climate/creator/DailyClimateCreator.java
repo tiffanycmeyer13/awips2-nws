@@ -83,6 +83,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  * 23 OCT 2018  DR20945    wpaintsil   Include SPECI observations for relative humidity.
  * 20 MAR 2019  DR 21189   dfriedman   Change queries to compare timestamps
  *                                     instead of formatted strings.
+ * 26 APR 2019  DR 21195   dfriedman   Handle both special case precipitation values.
  * </pre>
  * 
  * @author amoore
@@ -1419,7 +1420,7 @@ public final class DailyClimateCreator {
                         dailyClimateData.getInformId(),
                         MetarUtils.METAR_6HR_PRECIP, nominalTimeCal);
 
-                if (!result.isMissing()) {
+                if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
                     /*
                      * The 6xxx precip group containing the 6 hour rain amount
                      * was present.
@@ -1455,7 +1456,7 @@ public final class DailyClimateCreator {
                             dailyClimateData.getInformId(),
                             MetarUtils.METAR_3HR_PRECIP, nominalTimeCal);
 
-                    if (!result.isMissing()) {
+                    if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
                         /*
                          * The 6xxx precip group containing the 3 hourly rain
                          * amount was present. We need to individually process
@@ -1521,7 +1522,8 @@ public final class DailyClimateCreator {
                                     MetarUtils.METAR_6HR_PRECIP,
                                     nominalTimeCal);
 
-                    if (sixHourResult.isMissing()) {
+                    if (sixHourResult.isMissing() || sixHourResult
+                            .getValue() == MetarUtils.PNO_PRESENT) {
                         sixHourMissingOrError = true;
                     } else {
                         rainAmount = tallyRainAmount(rainAmount,
@@ -1546,7 +1548,8 @@ public final class DailyClimateCreator {
                                             MetarUtils.METAR_3HR_PRECIP,
                                             nominalTimeCal);
 
-                            if (threeHourResult.isMissing()) {
+                            if (threeHourResult.isMissing() || threeHourResult
+                                    .getValue() == MetarUtils.PNO_PRESENT) {
                                 threeHourMissingOrError = true;
                             } else {
                                 threeHour = true;
@@ -1690,7 +1693,8 @@ public final class DailyClimateCreator {
                                     MetarUtils.METAR_3HR_PRECIP,
                                     nominalTimeCal);
 
-                    if (threeHourResult.isMissing()) {
+                    if (threeHourResult.isMissing() || threeHourResult
+                            .getValue() == MetarUtils.PNO_PRESENT) {
                         threeHourMissingOrError = true;
                     } else {
                         rainAmount = tallyRainAmount(rainAmount,
@@ -3713,7 +3717,7 @@ public final class DailyClimateCreator {
                         informId, MetarUtils.METAR_1HR_PRECIP,
                         nominalTimeCal);
 
-                if (!result.isMissing()) {
+                if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
                     precip = tallyRainAmount(precip, result.getValue());
                 } else {
                     logger.warn("The [" + nominalTimeString
@@ -3896,13 +3900,17 @@ public final class DailyClimateCreator {
                 || ClimateUtilities.floatingEquals(elementValue,
                         ClimateCreatorDAO.R_MISS));
         /*
-         * legacy parsing of METARs allowed for precip values less than the
+         * Legacy parsing of METARs allowed for precip values less than the
          * trace value of -1, so cannot just return a potentially bad value.
          * Clear out potentially bad trace indicators.
+         *
+         * Also explicitly handle the special value of -2, indicating a trace
+         * of precipitation, here.  Legacy climate converts the -2 to
+         * CLIMATE_TRACE (-1) at the end of compute_daily_precip.
          */
         precip = precip < 0 ? ParameterFormatClimate.TRACE : precip;
-        elementValue = elementValue < 0 ? ParameterFormatClimate.TRACE
-                : elementValue;
+        elementValue = elementValue == MetarUtils.FSS_CONTIN_TRACE || elementValue < 0
+                ? ParameterFormatClimate.TRACE : elementValue;
 
         /*
          * Check what case we are in. Want to sum the 2 values, but should not
