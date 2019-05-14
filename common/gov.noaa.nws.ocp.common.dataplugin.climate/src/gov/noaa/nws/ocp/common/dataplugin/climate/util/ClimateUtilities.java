@@ -4,9 +4,9 @@
 package gov.noaa.nws.ocp.common.dataplugin.climate.util;
 
 import java.sql.Timestamp;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.TimeZone;
 
 import com.raytheon.uf.common.time.util.TimeUtil;
 
@@ -46,6 +46,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 15 JUN 2017  35184      amoore      Fix issue with resultant wind calculations where wind sums
  *                                     were not scaled down by number of observed hours.
  * 16 JUN 2017  35185      amoore      Move List comparison to Period Dialog, as that is the only user.
+ * 08 MAR 2019  DR#21117   wpaintsil   Correct nint() to better resemble the legacy ninttemp.c function.
+ * 04 APR 2019  DR21220    wpaintsil   The timezone transitions to daylight savings time a day late.
+ *                                     ZonedDateTime handles the transition better.
  * </pre>
  * 
  * @author amoore
@@ -234,7 +237,9 @@ public final class ClimateUtilities {
      * @return
      */
     public static int nint(double d) {
-        return (int) (d > 0 ? d + 0.51 : d - 0.51);
+
+        return (int) Math.round(d);
+
     }
 
     /**
@@ -271,7 +276,8 @@ public final class ClimateUtilities {
      * </pre>
      */
     public static int nint(float d) {
-        return (int) (d > 0 ? d + 0.51 : d - 0.51);
+        return Math.round(d);
+
     }
 
     /**
@@ -412,8 +418,8 @@ public final class ClimateUtilities {
                     "Unknown UTC offset: [" + numOffUTC + "]");
         }
 
-        return TimeZone.getTimeZone(timeZone)
-                .inDaylightTime(aDate.getCalendarFromClimateDate().getTime());
+        return ZoneId.of(timeZone).getRules().isDaylightSavings(
+                aDate.getZonedDateTimeFromClimateDate(timeZone).toInstant());
     }
 
     /**

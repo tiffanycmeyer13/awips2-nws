@@ -21,6 +21,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 28 DEC 2016  22781      amoore      Wind speed precision correction.
  * 28 DEC 2016  22784      amoore      Sky cover listener.
  * 22 MAY 2017  33104      amoore      Fix wind direction precision listener.
+ * 20 MAR 2019  DR21197    wpaintsil   Add a new class for the snow depth field (TextIntWithTListener).
  * </pre>
  * 
  * @author amoore
@@ -46,7 +47,7 @@ public class ClimateTextListeners {
     /**
      * Snow int text listener. For snow depth (but not a snow depth average).
      */
-    private final TextIntListener snowDepthListener = new TextIntListener(
+    private final TextIntWithTListener snowDepthListener = new TextIntWithTListener(
             (int) ParameterBounds.SNOW_LOWER_BOUND,
             (int) ParameterBounds.SNOW_UPPER_BOUND,
             (int) ParameterFormatClimate.MISSING_SNOW);
@@ -151,7 +152,7 @@ public class ClimateTextListeners {
      * @return the snow depth listener. For snow depth (but not a snow depth
      *         average).
      */
-    public TextIntListener getSnowDepthListener() {
+    public TextIntWithTListener getSnowDepthListener() {
         return snowDepthListener;
     }
 

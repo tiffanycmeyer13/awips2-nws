@@ -95,6 +95,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 02 MAY 2018  DR17116    wpaintsil   update yClimate for snow/precip norms.
  * 01 OCT 2018  DR20918    wpaintsil   Add checks for trace values in sumPrecip() & sumSnow().
  * 18 DEC 2018  DR21053    wpaintsil   Correct query and conditional in the fix for the above DR20918.
+ * 14 MAR 2018  DR21137    wpaintsil   The snowfall column was being cast to an integer when it should 
+ *                                     be cast to a float (retrieveDailySummary()).
  * </pre>
  * 
  * @author amoore
@@ -2547,7 +2549,7 @@ public class DailyClimateDAO extends ClimateDAO {
                             // snow in the day/solid precip
                             yesterday.setSnowDay(oa[20] == null
                                     ? ParameterFormatClimate.MISSING_SNOW
-                                    : ((Number) oa[20]).intValue());
+                                    : ((Number) oa[20]).floatValue());
                             // snow on ground depth
                             yesterday.setSnowGround(oa[21] == null
                                     ? ParameterFormatClimate.MISSING_SNOW

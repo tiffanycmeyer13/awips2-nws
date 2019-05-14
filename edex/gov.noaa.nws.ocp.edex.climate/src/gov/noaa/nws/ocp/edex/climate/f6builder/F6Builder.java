@@ -114,6 +114,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 28 AUG 2018  DR 20861   dfriedman   Support transmission of F6 reports.
  * 12 OCT 2018  DR 20897   dfriedman   Support stationDesignatorOverrides field.
  * 19 NOV 2018  DR 21013   wpaintsil   Correct column alignment.
+ * 08 MAR 2019  DR 21160   wpaintsil   WX columns should be blank instead of 'M.'
  * </pre>
  * 
  * @author amoore
@@ -248,7 +249,8 @@ public class F6Builder {
 
         ClimateGlobal globalConfig = ClimateGlobalConfiguration.getGlobal();
         boolean disseminate = globalConfig.isAllowDisseminate();
-        Map<String, String> stationDesignatorOverrides = globalConfig.getStationDesignatorOverrides();
+        Map<String, String> stationDesignatorOverrides = globalConfig
+                .getStationDesignatorOverrides();
 
         if (transmit && !disseminate) {
             messages.append("Dissemination over MHS is disabled!\n");
@@ -858,7 +860,7 @@ public class F6Builder {
                 dailyValueMap.put("ws",
                         String.format(" %-4s", wxsb.toString()));
             } else {
-                dailyValueMap.put("ws", String.format(" %-4s", "M"));
+                dailyValueMap.put("ws", String.format(" %-4s", " "));
             }
 
             /* maximum gust or peak wind speed */

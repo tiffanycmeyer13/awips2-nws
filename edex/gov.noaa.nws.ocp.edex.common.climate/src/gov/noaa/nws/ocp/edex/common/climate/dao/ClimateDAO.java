@@ -56,6 +56,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  *                                     a special case.
  * 24 OCT 2017  39817      amoore      Clean up 24-hour precip calculations while investigating validity of
  *                                     calculations. Handle trace better in hourly precip count.
+ * 03 APR 2019  DR21211    wpaintsil   Correct mistake in daysPastThresh() query string.
+ * 08 APR 2019  DR 21226   dfriedman   Exclude trace precip values for averages in buildElement.
  * </pre>
  * 
  * @author amoore
@@ -384,7 +386,7 @@ public class ClimateDAO {
         queryParams.put("beginDate", beginDate.getCalendarFromClimateDate());
         queryParams.put("endDate", endDate.getCalendarFromClimateDate());
         queryParams.put("value", threshold);
-        queryParams.put("missing", threshold);
+        queryParams.put("missing", missing);
         String element, idCol, endCol, startCol;
 
         StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM ");
@@ -587,7 +589,9 @@ public class ClimateDAO {
          * if we are calculating sum precip or snow and allowing trace gave back
          * not missing, try excluding trace, which is the preferred data query.
          */
-        if ((ClimateDAO.BuildElementType.SUM.equals(buildType)) && precipOrSnow
+        if ((ClimateDAO.BuildElementType.SUM.equals(buildType)
+                || ClimateDAO.BuildElementType.AVG.equals(buildType))
+                && precipOrSnow
                 && (!ClimateUtilities.floatingEquals(
                         baseResultNumber.doubleValue(),
                         missingValue.doubleValue()))) {
@@ -816,8 +820,8 @@ public class ClimateDAO {
                             // 2. OR current max is trace and current sum is >0?
                             || ((currentMaxPrecipValue == ParameterFormatClimate.TRACE
                                     && currSum > 0))
-                                    // 3. OR current max is >0 and current sum
-                                    // is > than current max?
+                            // 3. OR current max is >0 and current sum
+                            // is > than current max?
                             || (currentMaxPrecipValue > 0
                                     && currSum > currentMaxPrecipValue)) {
 
