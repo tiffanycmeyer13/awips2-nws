@@ -124,8 +124,8 @@
         <geoDataMatches>
             <source>VIIRS</source>
             <product>Active Fires</product>
-            <attribute>Fire Pixels/FP_power</attribute>
-            <attribute>Fire Pixels/FP_confidence</attribute>
+            <attribute>Fire_Pixels/FP_power</attribute>
+            <attribute>Fire_Pixels/FP_confidence</attribute>
         </geoDataMatches>
 
         <!-- Image Preferences -->
@@ -133,27 +133,27 @@
 
             <!-- GeometryPreferences -->
             <lineWidthFloatAtt>
-                <name>Fire Pixels/FP_power</name>
+                <name>Fire_Pixels/FP_power</name>
             </lineWidthFloatAtt>
             <sampleCutoffFloatAtt>
-                <name>Fire Pixels/FP_power</name>
+                <name>Fire_Pixels/FP_power</name>
             </sampleCutoffFloatAtt>
             <lineColorFloatAtt>
-                <name>Fire Pixels/FP_confidence</name>
+                <name>Fire_Pixels/FP_confidence</name>
             </lineColorFloatAtt>
             <minPointMag>1.0</minPointMag>
             <maxPointMag>3.0</maxPointMag>
             <pointDisplay>DISC</pointDisplay>
             <attributeConvert>
-                <dataName>Fire Pixels/FP_power</dataName>
+                <dataName>Fire_Pixels/FP_power</dataName>
                 <dataUnits>MW</dataUnits>
-                <displayName>Fire Power</displayName>
+                <displayName>Fire_Power</displayName>
                 <displayUnits>MW</displayUnits>
             </attributeConvert>
             <attributeConvert>
-                <dataName>Fire Pixels/FP_confidence</dataName>
+                <dataName>Fire_Pixels/FP_confidence</dataName>
                 <dataUnits>%</dataUnits>
-                <displayName>Fire Confidence</displayName>
+                <displayName>Fire_Confidence</displayName>
                 <displayUnits>%</displayUnits>
             </attributeConvert>
 
