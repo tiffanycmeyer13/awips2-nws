@@ -95,8 +95,8 @@
         <product>
             <value value="Active Fires" />
         </product>
-        <lat name="Fire Pixels/FP_latitude" />
-        <lon name="Fire Pixels/FP_longitude" />
+        <lat name="Fire_Pixels/FP_latitude" />
+        <lon name="Fire_Pixels/FP_longitude" />
         <geomType>
             <value value="0" />
         </geomType>
@@ -108,10 +108,10 @@
         </geomNels>
         <atts>
             <geomAtt>
-                <variable name="Fire Pixels/FP_power" />
+                <variable name="Fire_Pixels/FP_power" />
             </geomAtt>
             <geomAtt>
-                <variable name="Fire Pixels/FP_confidence" />
+                <variable name="Fire_Pixels/FP_confidence" />
             </geomAtt>
         </atts>
         <dataTime>
