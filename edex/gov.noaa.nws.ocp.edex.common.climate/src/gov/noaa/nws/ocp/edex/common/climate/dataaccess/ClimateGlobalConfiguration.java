@@ -58,6 +58,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 19 SEP 2018  DR 20890   dfriedman   Save preferences with a LocalizationFile.
  * 12 OCT 2018  DR 20897   dfriedman   Support AFOS designator overrides.
  * 23 OCT 2018  DR 20919   dfriedman   Make properties available to Spring.
+ * 13 MAY 2019  DR 21151   dfriedman   Do not cause EDEX to fail to start if Climate config is bad.
  * </pre>
  * 
  * @author xzhang
@@ -353,7 +354,13 @@ public class ClimateGlobalConfiguration {
     public static Properties getSpringProperties() {
         Properties props = new Properties();
         ClimateGlobal globalConfig = getGlobal();
-        props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, globalConfig.getTimezone());
+        if (globalConfig != null) {
+            props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY,
+                    globalConfig.getTimezone());
+        } else {
+            logger.error("Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
+            props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, "GMT");
+        }
         return props;
     }
 }
