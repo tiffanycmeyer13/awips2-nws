@@ -47,6 +47,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 31 OCT 2017  40231      amoore      Clean up of MSM/DSM parsing and records. Better
  *                                     logging. Get rid of serialization tags.
  * 03 NOV 2017  36736      amoore      Make several parts and logic static.
+ * 11 APR 2019  DR 21229   dfriedman   Change valid time type to string.
  * </pre>
  *
  * @author pwang
@@ -251,7 +252,7 @@ public class DailySummaryMessageParser extends ASOSMessageParser {
                     // the only boolean field
                     dsm.setCorrection(true);
                 } else if (groupName.equalsIgnoreCase("messageValidTime")) {
-                    dsm.setMessageValidTime(Short.parseShort(value));
+                    dsm.setMessageValidTime(adjustTimeString(value));
                 } else if (groupName.equalsIgnoreCase("day")) {
                     dsm.setDay(Short.parseShort(value));
                 } else if (groupName.equalsIgnoreCase("month")) {

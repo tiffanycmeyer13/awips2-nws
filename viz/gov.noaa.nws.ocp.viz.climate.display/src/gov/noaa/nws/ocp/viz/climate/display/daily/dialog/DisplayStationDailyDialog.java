@@ -99,6 +99,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 19 SEP 2017  38124      amoore      Use GC for text control sizes.
  * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 20 MAR 2019  DR21197    wpaintsil   Snow Depth field should only allow integers.
  * </pre>
  * 
  * @author amoore
@@ -789,7 +790,7 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
                         myData.getDataMethods().getSkyCoverQc());
 
                 mySnowOnGroundTF.setTextAndTip(
-                        String.valueOf(myData.getSnowGround()),
+                        String.valueOf((int) myData.getSnowGround()),
                         myData.getDataMethods().getDepthQc());
 
                 myMaxSLPTF.setText(String.valueOf(myData.getMaxSlp()));
@@ -981,9 +982,9 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
                 "Snow on Ground (INCHES)", QCValueType.SNOWDEPTH);
         ((RowLayout) mySnowOnGroundTF.getLayout()).marginLeft = 0;
         mySnowOnGroundTF.addListener(SWT.Verify,
-                myDisplayListeners.getSnowFallListener());
+                myDisplayListeners.getSnowDepthListener());
         mySnowOnGroundTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getSnowFallListener());
+                myDisplayListeners.getSnowDepthListener());
         mySnowOnGroundTF.addListener(SWT.Modify, changeListener);
 
         // max SLP label
@@ -1789,11 +1790,10 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
             myData.getDataMethods().setSkyCoverQc(QCValues.MANUAL_ENTRY);
         }
 
-        float newSnowGround = mySnowOnGroundTF.getText()
+        int newSnowGround = (int) (mySnowOnGroundTF.getText()
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
-                        : ClimateGUIUtils
-                                .parseFloat(mySnowOnGroundTF.getText());
+                        : ClimateGUIUtils.parseInt(mySnowOnGroundTF.getText()));
         if (!ClimateUtilities.floatingEquals(newSnowGround,
                 myData.getSnowGround())) {
             myData.setSnowGround(newSnowGround);

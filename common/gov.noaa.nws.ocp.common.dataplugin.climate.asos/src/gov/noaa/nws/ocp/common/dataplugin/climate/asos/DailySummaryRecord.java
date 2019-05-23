@@ -3,6 +3,7 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate.asos;
 
+import java.sql.Time;
 import java.util.Calendar;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
  * 05 MAY 2017    33104      amoore      Use common functionality.
  * 31 OCT 2017    40231      amoore      Clean up of MSM/DSM parsing and records. Better
  *                                       logging. Get rid of serialization tags.
+ * 11 APR 2019    DR 21229   dfriedman   Store valid time in table.
  * </pre>
  * 
  * @author pwang
@@ -46,10 +48,9 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
     private boolean correction = false;
 
     /**
-     * maps to ZZZZ for intermediate daily summary message, MISSING_VAL_4_DIGITS
-     * when not intermediate report
+     * maps to ZZZZ for intermediate daily summary message, null if not present
      */
-    private short messageValidTime;
+    private String messageValidTime;
 
     /**
      * have to derive from DSM creation time in the text database (Note Local
@@ -218,7 +219,7 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
          * set all the default/missing values, based on DSM documentation,
          * legacy C++ code, and possibly expected missing values in DB
          */
-        messageValidTime = MISSING_VAL_4_DIGITS;
+        messageValidTime = null;
         Calendar now = TimeUtil.newCalendar();
         year = (short) now.get(Calendar.YEAR);
         day = 0;
@@ -278,7 +279,7 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
     /**
      * @return the messageValidTime
      */
-    public short getMessageValidTime() {
+    public String getMessageValidTime() {
         return messageValidTime;
     }
 
@@ -286,7 +287,7 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
      * @param messageValidTime
      *            the messageValidTime to set
      */
-    public void setMessageValidTime(short messageValidTime) {
+    public void setMessageValidTime(String messageValidTime) {
         this.messageValidTime = messageValidTime;
     }
 
@@ -746,8 +747,10 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         } else {
             return null;
         }
-        // valid_time is not used in this case
-        sb.append(",NULL");
+
+        sb.append(',');
+        addTimeToQuery(sb, "messageValidTime", messageValidTime, queryParams);
+
         sb.append(",");
         sb.append(year);
         if (getDayOfYear().length() == 5) {
@@ -760,24 +763,14 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(",:maxT");
         queryParams.put("maxT", maxT);
 
-        if (maxTTime != null) {
-            sb.append(",'");
-            sb.append(maxTTime);
-            sb.append("'");
-        } else {
-            sb.append(",NULL");
-        }
+        sb.append(',');
+        addTimeToQuery(sb, "maxTTime", maxTTime, queryParams);
 
         sb.append(",:minT");
         queryParams.put("minT", minT);
 
-        if (minTTime != null) {
-            sb.append(",'");
-            sb.append(minTTime);
-            sb.append("'");
-        } else {
-            sb.append(",NULL");
-        }
+        sb.append(',');
+        addTimeToQuery(sb, "minTTime", minTTime, queryParams);
 
         sb.append(",:maxTDaytime");
         queryParams.put("maxTDaytime", maxTDaytime);
@@ -788,13 +781,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(",:minSeaLevelPressure");
         queryParams.put("minSeaLevelPressure", minSeaLevelPressure);
 
-        if (minSeaLevelPressureTime != null) {
-            sb.append(",'");
-            sb.append(minSeaLevelPressureTime);
-            sb.append("'");
-        } else {
-            sb.append(",NULL");
-        }
+        sb.append(',');
+        addTimeToQuery(sb, "minSeaLevelPressureTime", minSeaLevelPressureTime, queryParams);
 
         sb.append(",:totalPrecip");
         queryParams.put("totalPrecip", totalPrecip);
@@ -817,13 +805,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(",:windSpeed2MinFastest");
         queryParams.put("windSpeed2MinFastest", windSpeed2MinFastest);
 
-        if (windSpeed2MinFastestTime != null) {
-            sb.append(",'");
-            sb.append(windSpeed2MinFastestTime);
-            sb.append("'");
-        } else {
-            sb.append(",NULL");
-        }
+        sb.append(',');
+        addTimeToQuery(sb, "windSpeed2MinFastestTime", windSpeed2MinFastestTime, queryParams);
 
         sb.append(",:peakWindDirection");
         queryParams.put("peakWindDirection", peakWindDirection);
@@ -831,13 +814,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(",:peakWindSpeed");
         queryParams.put("peakWindSpeed", peakWindSpeed);
 
-        if (peakWindTime != null) {
-            sb.append(",'");
-            sb.append(peakWindTime);
-            sb.append("'");
-        } else {
-            sb.append(",NULL");
-        }
+        sb.append(',');
+        addTimeToQuery(sb, "peakWindTime", peakWindTime, queryParams);
 
         sb.append(",:wxSymbol1");
         queryParams.put("wxSymbol1", wxSymbol[0]);
@@ -891,27 +869,20 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append("year=:year");
         queryParams.put("year", year);
 
+        sb.append(", valid_time=");
+        addTimeToQuery(sb, "messageValidTime", messageValidTime, queryParams);
+
         sb.append(", maxtemp_cal=:maxT");
         queryParams.put("maxT", maxT);
 
-        if (maxTTime != null) {
-            sb.append(", maxtemp_cal_time='");
-            sb.append(maxTTime);
-            sb.append("'");
-        } else {
-            sb.append(", maxtemp_cal_time=NULL");
-        }
+        sb.append(", maxtemp_cal_time=");
+        addTimeToQuery(sb, "maxTTime", maxTTime, queryParams);
 
         sb.append(", mintemp_cal=:minT");
         queryParams.put("minT", minT);
 
-        if (minTTime != null) {
-            sb.append(", mintemp_cal_time='");
-            sb.append(minTTime);
-            sb.append("'");
-        } else {
-            sb.append(", mintemp_cal_time=NULL");
-        }
+        sb.append(", mintemp_cal_time=");
+        addTimeToQuery(sb, "minTTime", minTTime, queryParams);
 
         sb.append(", maxtemp_day=:maxTDaytime");
         queryParams.put("maxTDaytime", maxTDaytime);
@@ -922,13 +893,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(", min_press=:minSeaLevelPressure");
         queryParams.put("minSeaLevelPressure", minSeaLevelPressure);
 
-        if (minSeaLevelPressureTime != null) {
-            sb.append(", min_press_time='");
-            sb.append(minSeaLevelPressureTime);
-            sb.append("'");
-        } else {
-            sb.append(", min_press_time=NULL");
-        }
+        sb.append(", min_press_time=");
+        addTimeToQuery(sb, "minSeaLevelPressureTime", minSeaLevelPressureTime, queryParams);
 
         sb.append(", equiv_water=:totalPrecip");
         queryParams.put("totalPrecip", totalPrecip);
@@ -954,13 +920,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(", max2min_wspd=:windSpeed2MinFastest");
         queryParams.put("windSpeed2MinFastest", windSpeed2MinFastest);
 
-        if (windSpeed2MinFastestTime != null) {
-            sb.append(", max2min_wnd_time='");
-            sb.append(windSpeed2MinFastestTime);
-            sb.append("'");
-        } else {
-            sb.append(", max2min_wnd_time=NULL");
-        }
+        sb.append(", max2min_wnd_time=");
+        addTimeToQuery(sb, "windSpeed2MinFastestTime", windSpeed2MinFastestTime, queryParams);
 
         sb.append(", pkwnd_dir=:peakWindDirection");
         queryParams.put("peakWindDirection", peakWindDirection);
@@ -968,13 +929,8 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
         sb.append(", pkwnd_spd=:peakWindSpeed");
         queryParams.put("peakWindSpeed", peakWindSpeed);
 
-        if (peakWindTime != null) {
-            sb.append(", pkwnd_time='");
-            sb.append(peakWindTime);
-            sb.append("'");
-        } else {
-            sb.append(", pkwnd_time=NULL");
-        }
+        sb.append(", pkwnd_time=");
+        addTimeToQuery(sb, "peakWindTime", peakWindTime, queryParams);
 
         sb.append(", wx1=:wxSymbol1");
         queryParams.put("wxSymbol1", wxSymbol[0]);
@@ -1019,4 +975,27 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
 
         return sb.toString();
     }
+
+    /**
+     * Add a named time parameter and value to a query.
+     *
+     * @param sb
+     * @param paramName
+     * @param value
+     * @param queryParams
+     */
+    private static void addTimeToQuery(StringBuilder sb, String paramName, String value, Map<String, Object> queryParams) {
+        /*
+         * Due to the limited interface exposed by CoreDao, it is not possible
+         * to use parameter substitution for the NULL case: Trying to use pass a
+         * Java null will result in a PostgreSQL bytea NULL being sent.
+         */
+        if (value != null) {
+            sb.append(':').append(paramName);
+            queryParams.put(paramName, Time.valueOf(value + ":00"));
+        } else {
+            sb.append("NULL");
+        }
+    }
+
 }

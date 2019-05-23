@@ -4,6 +4,8 @@
 package gov.noaa.nws.ocp.edex.climate.formatter;
 
 import java.text.DateFormatSymbols;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -42,6 +44,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTy
  * Sep 19, 2018 DR20888    wpaintsil   The time in the opening sentence should be 12 hour time.
  * 08 NOV 2018  DR20943    wpaintsil   Apply the current local date to the expiration/effective 
  *                                     times rather than the dates stored in the product settings.
+ * 15 MAR 2019  DR21191    wpaintsil   Use ZonedDateTime instead of Calendar.
  * </pre>
  *
  * @author wpaintsil
@@ -458,26 +461,28 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
         TimeZone localTimeZone = parseTimeZone();
 
         // Convert effective date and time to UTC
-        Calendar effectiveLocal = TimeUtil.newCalendar(localTimeZone);
-        effectiveLocal.set(Calendar.HOUR, header.getEffectiveTime().getHour());
-        effectiveLocal.set(Calendar.MINUTE, header.getEffectiveTime().getMin());
+        ZonedDateTime effectiveTime = ZonedDateTime
+                .now(localTimeZone.toZoneId())
+                .withHour(header.getEffectiveTime().getHour())
+                .withMinute(header.getEffectiveTime().getMin())
+                .withZoneSameInstant(ZoneOffset.UTC);
 
-        Calendar effectiveGMT = TimeUtil.newGmtCalendar();
-        effectiveGMT.setTimeInMillis(effectiveLocal.getTimeInMillis());
-        header.setEffectiveDate(new ClimateDate(effectiveGMT));
-        header.setEffectiveTime(new ClimateTime(effectiveGMT));
+        header.setEffectiveDate(new ClimateDate(effectiveTime.getDayOfMonth(),
+                effectiveTime.getMonthValue(), effectiveTime.getYear()));
+        header.setEffectiveTime(new ClimateTime(effectiveTime.getHour(),
+                effectiveTime.getMinute()));
 
         // Convert expiration date and time to UTC
-        Calendar expirationLocal = TimeUtil.newCalendar(localTimeZone);
-        expirationLocal.set(Calendar.HOUR,
-                header.getExpirationTime().getHour());
-        expirationLocal.set(Calendar.MINUTE,
-                header.getExpirationTime().getMin());
+        ZonedDateTime expirationTime = ZonedDateTime
+                .now(localTimeZone.toZoneId())
+                .withHour(header.getExpirationTime().getHour())
+                .withMinute(header.getExpirationTime().getMin())
+                .withZoneSameInstant(ZoneOffset.UTC);
 
-        Calendar expirationGMT = TimeUtil.newGmtCalendar();
-        expirationGMT.setTimeInMillis(expirationLocal.getTimeInMillis());
-        header.setExpirationDate(new ClimateDate(expirationGMT));
-        header.setExpirationTime(new ClimateTime(expirationGMT));
+        header.setExpirationDate(new ClimateDate(expirationTime.getDayOfMonth(),
+                expirationTime.getMonthValue(), expirationTime.getYear()));
+        header.setExpirationTime(new ClimateTime(expirationTime.getHour(),
+                expirationTime.getMinute()));
 
         currentSettings.setHeader(header);
     }

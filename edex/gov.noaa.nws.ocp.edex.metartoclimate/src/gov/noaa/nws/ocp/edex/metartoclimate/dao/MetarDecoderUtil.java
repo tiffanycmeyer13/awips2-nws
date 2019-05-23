@@ -32,6 +32,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  * ------------ ---------- ----------- --------------------------
  * 07 SEP 2017  37754      amoore      Initial creation.
  * 27 OCT 2017  40123      amoore      Simply time nominalization logic.
+ * 26 APR 2019  DR 21195   dfriedman   Fix "precip not available" processing.
  * </pre>
  * 
  * @author amoore
@@ -1569,7 +1570,7 @@ public final class MetarDecoderUtil {
         }
 
         /* precip flag */
-        surfaceObs.setPrecipPresent(decodedMetar.isNoRain() ? 1 : 0);
+        surfaceObs.setPrecipPresent(decodedMetar.isNoRain() ? 0 : 1);
 
         /* hourly precip */
         if (decodedMetar.getHourlyPrecip() != (float) Integer.MAX_VALUE) {

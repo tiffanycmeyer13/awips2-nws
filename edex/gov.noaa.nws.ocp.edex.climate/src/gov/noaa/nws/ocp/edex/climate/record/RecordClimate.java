@@ -55,6 +55,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
  *                                     Formatted and RER headers.
  * 16 OCT 2017  39138      wpaintsil   Use same "National Weather Service" header 
  *                                     logic as Formatter.
+ * 03 APR 2019  DR 21222   dfriedman   Use time zone in MND header time format.
  * </pre>
  * 
  * @author amoore
@@ -294,7 +295,7 @@ public final class RecordClimate {
             // get current datetime
             Calendar cal = Calendar.getInstance(tz);
             Date time = cal.getTime();
-            SimpleDateFormat[] formats = getRERDateFormat();
+            SimpleDateFormat[] formats = getRERDateFormat(tz);
             recordBuilder.append(formats[0].format(time)).append(" ")
                     .append(tz.getDisplayName(tz.inDaylightTime(time),
                             TimeZone.SHORT))
@@ -465,8 +466,12 @@ public final class RecordClimate {
      * Split into two formats, with intention of shortened timezone names (with
      * logic of DST included) being placed in between.
      */
-    private static SimpleDateFormat[] getRERDateFormat() {
-        return new SimpleDateFormat[] { new SimpleDateFormat("hhmm a"),
+    private static SimpleDateFormat[] getRERDateFormat(TimeZone tz) {
+        SimpleDateFormat[] formats = new SimpleDateFormat[] { new SimpleDateFormat("hhmm a"),
                 new SimpleDateFormat("E MMM dd yyyy") };
+        for (SimpleDateFormat sdf : formats) {
+            sdf.setTimeZone(tz);
+        }
+        return formats;
     }
 }
