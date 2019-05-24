@@ -118,6 +118,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 13 MAR 2018   44624    amoore      Resolved issue found where only CONUS sites could properly define products.
  * 06 NOV 2018   55583    jwu         Fix some layout & alignment issues (DR20915).
  * 30 APR 2019   DR20915  wpaintsil   Further adjustments to alignment.
+ * 21 MAY 2019   DR21196  dfriedman   Use correct CaveSWTDialog life cycle functions.
  * </pre>
  * 
  * @author jwu
@@ -411,19 +412,6 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         // Prepare fonts.
         createFonts();
 
-        // Listener when dialog closes.
-        shell.addListener(SWT.Close, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                if (closeThisDialog()) {
-                    disposeFontsColors();
-                    close();
-                } else {
-                    event.doit = false;
-                }
-            }
-        });
-
         // Menus.
         createMenuBar();
 
@@ -567,12 +555,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         closeMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                if (closeThisDialog()) {
-                    disposeFontsColors();
-                    close();
-                } else {
-                    event.doit = false;
-                }
+                close();
             }
         });
 
@@ -1496,12 +1479,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         closeBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                if (closeThisDialog()) {
-                    disposeFontsColors();
-                    close();
-                } else {
-                    event.doit = false;
-                }
+                close();
             }
         });
     }
@@ -1555,10 +1533,17 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
      * 
      * @return boolean
      */
-    protected boolean closeThisDialog() {
+    @Override
+    public boolean shouldClose() {
         return MessageDialog.openConfirm(getShell(), "Close?",
                 "Are you sure you wish to close? "
                         + "Unsaved changes will be lost.");
+    }
+
+    @Override
+    protected void disposed() {
+        super.disposed();
+        disposeFontsColors();
     }
 
     /**
