@@ -9,8 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +60,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 19 SEP 2018  DR 20890   dfriedman   Save preferences with a LocalizationFile.
  * 12 OCT 2018  DR 20897   dfriedman   Support AFOS designator overrides.
  * 23 OCT 2018  DR 20919   dfriedman   Make properties available to Spring.
+ * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
  * </pre>
  * 
  * @author xzhang
@@ -188,8 +191,11 @@ public class ClimateGlobalConfiguration {
                         .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
                         .equalsIgnoreCase("true") ? true : false);
-                resGlobal.setStationDesignatorOverrides(parseStationDesignatorOverrides(
-                        prop.getProperty("climate.stationDesignatorOverrides")));
+                resGlobal.setStationDesignatorOverrides(
+                        parseStationDesignatorOverrides(prop.getProperty(
+                                "climate.stationDesignatorOverrides")));
+                resGlobal.setSnowReportingStations(parseSnowReportingStations(
+                        prop.getProperty("climate.snowReportingStations")));
 
                 // got to end without error; use this globalDay file
                 success = true;
@@ -261,12 +267,10 @@ public class ClimateGlobalConfiguration {
                     global.isUseValidIm() ? "T" : "F");
             prop.setProperty("climate.intermediate",
                     global.getValidIm().toFullString());
-            prop.setProperty("climate.noMinus",
-                    global.isNoMinus() ? "T" : "F");
+            prop.setProperty("climate.noMinus", global.isNoMinus() ? "T" : "F");
             prop.setProperty("climate.noSmallLetters",
                     global.isNoSmallLetters() ? "T" : "F");
-            prop.setProperty("climate.noColon",
-                    global.isNoColon() ? "T" : "F");
+            prop.setProperty("climate.noColon", global.isNoColon() ? "T" : "F");
             prop.setProperty("climate.displayWait",
                     Integer.toString(global.getDisplayWait()));
             prop.setProperty("climate.reviewWait",
@@ -276,8 +280,7 @@ public class ClimateGlobalConfiguration {
             prop.setProperty("climate.copyNWRTo", global.getCopyNWRTo());
             prop.setProperty("climate.allowDisseminate",
                     global.isAllowDisseminate() ? "true" : "false");
-            prop.setProperty("climate.siteofficename",
-                    global.getOfficeName());
+            prop.setProperty("climate.siteofficename", global.getOfficeName());
             prop.setProperty("climate.sitetimezone", global.getTimezone());
 
             prop.setProperty("climate.autoF6",
@@ -297,6 +300,9 @@ public class ClimateGlobalConfiguration {
             prop.setProperty("climate.stationDesignatorOverrides",
                     formatStationDesignatorOverrides(
                             global.getStationDesignatorOverrides()));
+            prop.setProperty("climate.snowReportingStations",
+                    formatSnowReportingStations(
+                            global.getSnowReportingStations()));
 
             // save properties
             prop.store(output, null);
@@ -313,22 +319,36 @@ public class ClimateGlobalConfiguration {
      * Parse the "climate.stationDesignatorOverrides" setting into a Map.
      * <p>
      * The format is a sequence of ',' separated elements. Each element is of
-     * the form {station ID}:{product designator}. Invalid elements are
-     * ignored (and lost if saved again.)
+     * the form {station ID}:{product designator}. Invalid elements are ignored
+     * (and lost if saved again.)
      *
      * @param text
      * @return
      */
-    private static Map<String, String> parseStationDesignatorOverrides(String text) {
+    private static Map<String, String> parseStationDesignatorOverrides(
+            String text) {
         return Stream.of((text != null ? text : "").split(","))
-            .map(elem -> Stream.of(elem.split(":"))
-                    .map(p -> p.trim())
-                    .toArray(String[]::new))
-            .filter(parts -> parts.length == 2 && parts[0].length() > 0
-                    && parts[1].length() > 0)
-            .collect(Collectors.toMap(
-                    parts -> parts[0], parts -> parts[1],
-                    (a, b) -> a)); // ignore duplicates, favoring the first value
+                .map(elem -> Stream.of(elem.split(":")).map(p -> p.trim())
+                        .toArray(String[]::new))
+                .filter(parts -> parts.length == 2 && parts[0].length() > 0
+                        && parts[1].length() > 0)
+                .collect(Collectors.toMap(parts -> parts[0], parts -> parts[1],
+                        (a, b) -> a)); // ignore duplicates, favoring the first
+                                       // value
+    }
+
+    /**
+     * Parse the "climate.snowReportingStations" setting into a Set.
+     * <p>
+     * The format is a sequence of ',' separated elements. Each element is of
+     * the form {station ID}.
+     *
+     * @param text
+     * @return
+     */
+    private static Set<String> parseSnowReportingStations(String text) {
+        return Stream.of((text != null ? text : "").trim().split("\\s*,\\s*"))
+                .filter(str -> str.length() > 0).collect(Collectors.toSet());
     }
 
     /**
@@ -338,22 +358,33 @@ public class ClimateGlobalConfiguration {
      * @param map
      * @return
      */
-    private static String formatStationDesignatorOverrides(Map<String, String> map) {
+    private static String formatStationDesignatorOverrides(
+            Map<String, String> map) {
         return (map != null ? map : new HashMap<String, String>()).entrySet()
-                .stream()
-                .map(e -> e.getKey() + ':' + e.getValue())
-                .sorted()
+                .stream().map(e -> e.getKey() + ':' + e.getValue()).sorted()
                 .collect(Collectors.joining(", "));
     }
 
     /**
-     * Retrieve properties to be used in Spring XML files.  Currently only
-     * the site time zone is provided.
+     * Format a set of station IDs into text for the
+     * "climate.snowReportingStations" setting.
+     *
+     * @param set
+     * @return
+     */
+    private static String formatSnowReportingStations(Set<String> set) {
+        return String.join(", ", (set != null ? set : new HashSet<>()));
+    }
+
+    /**
+     * Retrieve properties to be used in Spring XML files. Currently only the
+     * site time zone is provided.
      */
     public static Properties getSpringProperties() {
         Properties props = new Properties();
         ClimateGlobal globalConfig = getGlobal();
-        props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, globalConfig.getTimezone());
+        props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY,
+                globalConfig.getTimezone());
         return props;
     }
 }
