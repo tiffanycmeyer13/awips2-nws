@@ -97,6 +97,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 18 DEC 2018  DR21053    wpaintsil   Correct query and conditional in the fix for the above DR20918.
  * 14 MAR 2018  DR21137    wpaintsil   The snowfall column was being cast to an integer when it should 
  *                                     be cast to a float (retrieveDailySummary()).
+ * 30 APR 2019  DR21261    wpaintsil   num_wind_obs column missing from queries.
  * </pre>
  * 
  * @author amoore
@@ -2794,6 +2795,7 @@ public class DailyClimateDAO extends ClimateDAO {
         queryParams.put("result_wind_spd", iData.getResultWind().getSpeed());
         queryParams.put("result_x", iData.getResultX());
         queryParams.put("result_y", iData.getResultY());
+        queryParams.put("num_wind_obs", iData.getNumWndObs());
         queryParams.put("avg_wind_speed", iData.getAvgWindSpeed());
         queryParams.put("min_sun", iData.getMinutesSun());
         queryParams.put("percent_pos_sun", iData.getPercentPossSun());
@@ -2871,6 +2873,7 @@ public class DailyClimateDAO extends ClimateDAO {
             update.append(", result_wind_spd=:result_wind_spd");
             update.append(", result_x=:result_x");
             update.append(", result_y=:result_y");
+            update.append(", num_wind_obs=:num_wind_obs");
             update.append(", avg_wind_speed=:avg_wind_speed");
             update.append(", min_sun=:min_sun");
             update.append(", percent_pos_sun=:percent_pos_sun");
@@ -2960,6 +2963,8 @@ public class DailyClimateDAO extends ClimateDAO {
             insert.append("result_wind_spd,");
             // result x and y
             insert.append("result_x, result_y,");
+            // number of wind observations
+            insert.append("num_wind_obs,");
             // avg wind, minutes sun
             insert.append("avg_wind_speed, min_sun,");
             // percent of possible sun
@@ -3022,6 +3027,8 @@ public class DailyClimateDAO extends ClimateDAO {
             insert.append(":result_wind_spd,");
             // result x and y
             insert.append(":result_x, :result_y,");
+            // number of wind obs
+            insert.append(":num_wind_obs,");
             // avg wind spd, minutes sun
             insert.append(":avg_wind_speed, :min_sun,");
             // percent of possible sun
