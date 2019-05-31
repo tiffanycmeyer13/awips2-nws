@@ -55,6 +55,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * 20 NOV 2017  41125      amoore      Mean RH section should not be dependent on sky section.
  * 13 DEC 2018  DR21053    wpaintsil   Some null checks needed to prevent exceptions.
  * 09 APR 2019  DR21217    wpaintsil   Wrong precision on temp departure from normals.
+ * 30 MAY 2017  DR21432    wpaintsil   Correct last year values for threshold line. Correct 
+ *                                     error in date formatting.
  *
  * </pre>
  *
@@ -1745,7 +1747,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                     floatLine1.replace(1, 1 + "Storm Total".length(),
                             "Storm Total");
                     liquidPrecip.append(floatLine1.toString());
-
+                }
+                if (precipFlag.getPrecipStormMax().isTimeOfMeasured()) {
                     StringBuilder floatLine2 = new StringBuilder(
                             buildNWWSFloatLine(precipFlag.getPrecipStormMax(),
                                     ParameterFormatClimate.DUMMY, null,
@@ -2127,7 +2130,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                     floatLine1.replace(1, 1 + "Storm Total".length(),
                             "Storm Total");
                     snowPrecip.append(floatLine1.toString());
+                }
 
+                if (snowFlag.getSnowStormMax().isTimeOfMeasured()) {
                     StringBuilder floatLine2 = new StringBuilder(
                             buildNWWSFloatLine(snowFlag.getSnowStormMax(),
                                     ParameterFormatClimate.DUMMY, null,
@@ -3023,6 +3028,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 + " to "
                                 + getRecordDateFormat(recordDates.get(0)
                                         .getEnd().getCalendarFromClimateDate());
+
                         floatLine1
                                 .replace(periodTabs.getPosActDate() - 1,
                                         periodTabs.getPosActDate() - 1
@@ -3395,16 +3401,16 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                                 .get(0).getEnd()
                                                 .getCalendarFromClimateDate());
 
-                                floatLine1.replace(periodTabs.getPosValue(),
-                                        periodTabs.getPosValue()
+                                floatLine1.replace(periodTabs.getPosLastDate(),
+                                        periodTabs.getPosLastDate()
                                                 + datesString.length(),
                                         datesString);
 
                                 dateLines.append(multipleYear(
                                         new SimpleDateFormat(
                                                 SHORT_DATE_FORMAT_STRING),
-                                        lastYearDates, periodTabs.getPosValue(),
-                                        false));
+                                        lastYearDates,
+                                        periodTabs.getPosLastDate(), false));
                             }
                         }
 
@@ -3491,9 +3497,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 } else {
                     threshLine1.replace(periodTabs.getPosLastYr() + 2,
                             periodTabs.getPosLastYr() + 2
-                                    + String.format(INT_FIVE, actualValue)
+                                    + String.format(INT_FIVE, lastYearValue)
                                             .length(),
-                            String.format(INT_FIVE, actualValue));
+                            String.format(INT_FIVE, lastYearValue));
                 }
             }
         }

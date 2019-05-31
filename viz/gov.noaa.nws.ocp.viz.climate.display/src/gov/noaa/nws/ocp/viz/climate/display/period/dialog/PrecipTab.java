@@ -41,6 +41,9 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 13 JUN 2019  DR21432    wpaintsil   Greatest Storm Total data population not
+ *                                     implemented. Results in missing values 
+ *                                     in the text product.
  * </pre>
  * 
  * @author amoore
@@ -1273,6 +1276,10 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
             myMaxPrecip24HourLbl.setMatched();
         }
 
+        // Greatest Storm Total
+        myGreatestPrecipStormTF
+                .setText(String.valueOf(iSavedPeriodData.getPrecipStormMax()));
+
         if (precipTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);
         } else {
@@ -1472,6 +1479,10 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         } else {
             myMaxPrecip24HourLbl.setMatched();
         }
+
+        // Greatest Storm Total
+        myGreatestPrecipStormTF
+                .setText(String.valueOf(iDailyBuildData.getPrecipStormMax()));
 
         if (precipTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);

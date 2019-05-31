@@ -43,6 +43,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * 30 APR 2019  DR21261    wpaintsil   Data population missing for avg snow depth.
+ * 13 JUN 2019  DR21417    wpaintsil   Trace entry required for snow depth.
  * </pre>
  * 
  * @author amoore
@@ -824,9 +825,9 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myMaxSnowDepthGroundTF.useGridData();
         myMaxSnowDepthGroundTF.addListener(SWT.Verify,
-                myDisplayListeners.getDefaultIntListener());
+                myDisplayListeners.getSnowDepthListener());
         myMaxSnowDepthGroundTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getDefaultIntListener());
+                myDisplayListeners.getSnowDepthListener());
         myMaxSnowDepthGroundTF.addKeyListener(
                 new DataFieldListener(myMaxSnowDepthGroundComboBox,
                         myPeriodDialog.getChangeListener()));
@@ -1083,6 +1084,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
             myMaxSnowDepthGroundLabel.setMatched();
         }
 
+        // Greatest Storm Total
+        myGreatestSnowStormTF
+                .setText(String.valueOf(iSavedPeriodData.getSnowMaxStorm()));
+
         if (snowTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);
         } else {
@@ -1215,6 +1220,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
         } else {
             myMaxSnowDepthGroundLabel.setMatched();
         }
+
+        // Greatest Storm Total
+        myGreatestSnowStormTF
+                .setText(String.valueOf(iDailyBuildData.getSnowMaxStorm()));
 
         if (snowTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);
