@@ -84,6 +84,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  * 20 MAR 2019  DR 21189   dfriedman   Change queries to compare timestamps
  *                                     instead of formatted strings.
  * 26 APR 2019  DR 21195   dfriedman   Handle both special case precipitation values.
+ * 30 APR 2019  DR21261    wpaintsil   numWindObs field was not set, causing missing resultant wind.
+ *                                     Also wrong values set in resultX and resultY fields.
  * </pre>
  * 
  * @author amoore
@@ -1093,10 +1095,12 @@ public final class DailyClimateCreator {
             avgWindSpeed = ParameterFormatClimate.MISSING_SPEED;
             dailyClimateData.setResultX(ParameterFormatClimate.MISSING_SPEED);
             dailyClimateData.setResultY(ParameterFormatClimate.MISSING_SPEED);
+            dailyClimateData.setNumWndObs(ParameterFormatClimate.MISSING);
             dailyClimateData.setResultWind(ClimateWind.getMissingClimateWind());
         } else {
-            dailyClimateData.setResultX(sumX / validHours);
-            dailyClimateData.setResultY(sumY / validHours);
+            dailyClimateData.setResultX(sumX);
+            dailyClimateData.setResultY(sumY);
+            dailyClimateData.setNumWndObs(validHours);
             dailyClimateData.setResultWind(ClimateUtilities
                     .buildResultantWind(sumX, sumY, validHours));
 
@@ -1420,7 +1424,8 @@ public final class DailyClimateCreator {
                         dailyClimateData.getInformId(),
                         MetarUtils.METAR_6HR_PRECIP, nominalTimeCal);
 
-                if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
+                if (!result.isMissing()
+                        && result.getValue() != MetarUtils.PNO_PRESENT) {
                     /*
                      * The 6xxx precip group containing the 6 hour rain amount
                      * was present.
@@ -1456,7 +1461,8 @@ public final class DailyClimateCreator {
                             dailyClimateData.getInformId(),
                             MetarUtils.METAR_3HR_PRECIP, nominalTimeCal);
 
-                    if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
+                    if (!result.isMissing()
+                            && result.getValue() != MetarUtils.PNO_PRESENT) {
                         /*
                          * The 6xxx precip group containing the 3 hourly rain
                          * amount was present. We need to individually process
@@ -1537,7 +1543,8 @@ public final class DailyClimateCreator {
                         nominalMilliTicks = beginBaseMilliTicks
                                 - ClimateUtilities.MILLISECONDS_IN_THREE_HOURS;
                         nominalTimeCal.setTimeInMillis(nominalMilliTicks);
-                        String nominalTimeString = ClimateDate.getFullDateTimeFormat()
+                        String nominalTimeString = ClimateDate
+                                .getFullDateTimeFormat()
                                 .format(nominalTimeCal.getTime());
 
                         boolean threeHourMissingOrError = false;
@@ -3170,8 +3177,7 @@ public final class DailyClimateCreator {
              * or not the data is legitimate.
              */
             List<FSSReportResult> results = climateCreatorDAO.getMetarConreal(
-                    stationID, MetarUtils.METAR_DEWPOINT_2_TENTHS, cal,
-                    true);
+                    stationID, MetarUtils.METAR_DEWPOINT_2_TENTHS, cal, true);
             for (FSSReportResult result : results) {
                 if (result.isMissing()) {
                     dewpoint.add((double) ParameterFormatClimate.MISSING);
@@ -3290,8 +3296,8 @@ public final class DailyClimateCreator {
              */
             try {
                 List<FSSReportResult> results = climateCreatorDAO
-                        .getMetarConreal(stationID, MetarUtils.METAR_TEMP,
-                                cal, true);
+                        .getMetarConreal(stationID, MetarUtils.METAR_TEMP, cal,
+                                true);
                 for (FSSReportResult result : results) {
                     if (result.isMissing()) {
                         temperature
@@ -3607,8 +3613,8 @@ public final class DailyClimateCreator {
                         .format(nominalTimeCal.getTime());
 
                 try {
-                    String correction = climateCreatorDAO.getCorrection(
-                            data.getInformId(), nominalTimeCal);
+                    String correction = climateCreatorDAO
+                            .getCorrection(data.getInformId(), nominalTimeCal);
                     if (correction == null) {
                         logger.warn(
                                 "No METAR observation found for station ID: ["
@@ -3714,10 +3720,10 @@ public final class DailyClimateCreator {
                         .format(nominalTimeCal.getTime());
 
                 FSSReportResult result = climateCreatorDAO.getMetarConreal(
-                        informId, MetarUtils.METAR_1HR_PRECIP,
-                        nominalTimeCal);
+                        informId, MetarUtils.METAR_1HR_PRECIP, nominalTimeCal);
 
-                if (!result.isMissing() && result.getValue() != MetarUtils.PNO_PRESENT) {
+                if (!result.isMissing()
+                        && result.getValue() != MetarUtils.PNO_PRESENT) {
                     precip = tallyRainAmount(precip, result.getValue());
                 } else {
                     logger.warn("The [" + nominalTimeString
@@ -3760,8 +3766,7 @@ public final class DailyClimateCreator {
             try {
                 FSSReportResult tenthsResult = climateCreatorDAO
                         .getMetarConreal(informId,
-                                MetarUtils.METAR_TEMP_2_TENTHS,
-                                beginCal);
+                                MetarUtils.METAR_TEMP_2_TENTHS, beginCal);
 
                 if (!tenthsResult.isMissing()) {
                     return new ClimateCreatorDAO.ExtremeTempPeriodResult(
@@ -3904,13 +3909,14 @@ public final class DailyClimateCreator {
          * trace value of -1, so cannot just return a potentially bad value.
          * Clear out potentially bad trace indicators.
          *
-         * Also explicitly handle the special value of -2, indicating a trace
-         * of precipitation, here.  Legacy climate converts the -2 to
-         * CLIMATE_TRACE (-1) at the end of compute_daily_precip.
+         * Also explicitly handle the special value of -2, indicating a trace of
+         * precipitation, here. Legacy climate converts the -2 to CLIMATE_TRACE
+         * (-1) at the end of compute_daily_precip.
          */
         precip = precip < 0 ? ParameterFormatClimate.TRACE : precip;
-        elementValue = elementValue == MetarUtils.FSS_CONTIN_TRACE || elementValue < 0
-                ? ParameterFormatClimate.TRACE : elementValue;
+        elementValue = elementValue == MetarUtils.FSS_CONTIN_TRACE
+                || elementValue < 0 ? ParameterFormatClimate.TRACE
+                        : elementValue;
 
         /*
          * Check what case we are in. Want to sum the 2 values, but should not
@@ -3996,8 +4002,7 @@ public final class DailyClimateCreator {
             try {
                 FSSReportResult tenthsResult = climateCreatorDAO
                         .getMetarConreal(informId,
-                                MetarUtils.METAR_TEMP_2_TENTHS,
-                                beginCal);
+                                MetarUtils.METAR_TEMP_2_TENTHS, beginCal);
 
                 if (tenthsResult.isMissing()) {
                     tenthsFailure = true;

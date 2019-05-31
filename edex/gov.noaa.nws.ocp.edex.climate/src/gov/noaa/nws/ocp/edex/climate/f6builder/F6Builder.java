@@ -26,6 +26,7 @@ import com.raytheon.edex.site.SiteUtil;
 import com.raytheon.uf.common.auth.resp.SuccessfulExecution;
 import com.raytheon.uf.common.auth.user.User;
 import com.raytheon.uf.common.dataplugin.text.db.AfosToAwips;
+import com.raytheon.uf.common.dataplugin.text.db.StdTextProduct;
 import com.raytheon.uf.common.dissemination.OUPRequest;
 import com.raytheon.uf.common.dissemination.OUPResponse;
 import com.raytheon.uf.common.dissemination.OfficialUserProduct;
@@ -115,6 +116,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 12 OCT 2018  DR 20897   dfriedman   Support stationDesignatorOverrides field.
  * 19 NOV 2018  DR 21013   wpaintsil   Correct column alignment.
  * 08 MAR 2019  DR 21160   wpaintsil   WX columns should be blank instead of 'M.'
+ * 22 MAY 2019  DR 21287   dfriedman   Improve error and duplicate storage reporting.
  * </pre>
  * 
  * @author amoore
@@ -229,6 +231,13 @@ public class F6Builder {
 
         boolean hasException = false;
         StringBuilder messages = new StringBuilder();
+        ArrayList<String> transmissionSuccessMessages = new ArrayList<>();
+        ArrayList<String> transmissionFailureMessages = new ArrayList<>();
+        ArrayList<String> storageSuccessMessages = new ArrayList<>();
+        ArrayList<String> storageFailureMessages = new ArrayList<>();
+        ArrayList<String> duplicateStorageMessages = new ArrayList<>();
+        boolean transmissionAttempted = false;
+        boolean storageAttempted = false;
         Map<String, String> fileMap = new HashMap<>();
         Map<String, List<String>> pilMap = new HashMap<>();
 
@@ -253,7 +262,8 @@ public class F6Builder {
                 .getStationDesignatorOverrides();
 
         if (transmit && !disseminate) {
-            messages.append("Dissemination over MHS is disabled!\n");
+            messages.append(
+                    "Note: Transmission was requested, but is disabled by configuration.\n");
         }
 
         for (Station station : stations) {
@@ -271,9 +281,13 @@ public class F6Builder {
                             F6_OUTPUT_LOCATION, fileName);
                 }
 
-                StringBuilder totalContents = new StringBuilder();
-                for (String line : reportContent) {
-                    totalContents.append(line).append("\n");
+                String totalContents;
+                {
+                    StringBuilder builder = new StringBuilder();
+                    for (String line : reportContent) {
+                        builder.append(line).append("\n");
+                    }
+                    totalContents = builder.toString();
                 }
 
                 // PIL names to be used later for text DB.
@@ -303,6 +317,8 @@ public class F6Builder {
                 pils[1] = f6Pil;
                 for (String pil : pils) {
                     boolean ok;
+                    boolean dup = false;
+                    String failureDetail = null;
                     long insertTime;
                     boolean transmitThisProduct = false;
                     String awipsWanPil = null;
@@ -313,10 +329,13 @@ public class F6Builder {
                         if (awipsWanPil != null) {
                             transmitThisProduct = true;
                         } else {
-                            logger.warn(String.format(
-                                    "F6 report with pil %s will not be transmitted because"
-                                            + "it is not in afos2awips.txt or not from site %s",
-                                    pil, site4c));
+                            hasException = true;
+                            String message = String.format(
+                                    "F6 report with PIL %s will not be transmitted because "
+                                            + "it is not in afos2awips.txt or not from site %s.",
+                                    pil, site4c);
+                            messages.append(message).append('\n');
+                            logger.warn(message);
                         }
                     }
                     if (transmitThisProduct) {
@@ -324,22 +343,41 @@ public class F6Builder {
                          * Transmit the product. This will also store the
                          * product in the text database.
                          */
-                        ok = transmitProduct(pil, awipsWanPil,
-                                totalContents.toString());
+                        transmissionAttempted = true;
+                        failureDetail = transmitProduct(pil, awipsWanPil, totalContents);
+                        ok = failureDetail == null;
                         insertTime = ok ? TimeUtil.newDate().getTime()
                                 : Long.MIN_VALUE;
                     } else {
-                        insertTime = textdb.writeProduct(pil,
-                                totalContents.toString(), operational, null);
+                        storageAttempted = true;
+                        insertTime = textdb.writeProduct(pil, totalContents, operational,
+                                null);
                         ok = insertTime != Long.MIN_VALUE;
+                        if (! ok) {
+                            List<StdTextProduct> storedProducts = textdb
+                                    .readAwips(null, null, 0,
+                                            pil.substring(3), null, null, null,
+                                            null, false, operational);
+                            for (StdTextProduct prod : storedProducts) {
+                                if (totalContents.equals(prod.getProduct())) {
+                                    dup = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
 
+                    String ident = String.format("Station %s, PIL %s",
+                            station.getIcaoId(), pil);
                     if (ok) {
                         String action = transmitThisProduct
                                 ? "transmitted F6 report"
                                 : "stored F6 report to the text database";
-                        String shortAction = transmitThisProduct ? "transmitted"
-                                : "stored";
+                        if (transmitThisProduct) {
+                            transmissionSuccessMessages.add(ident);
+                        } else {
+                            storageSuccessMessages.add(ident);
+                        }
                         logger.debug("Successfully " + action + " for station ["
                                 + station.getIcaoId() + "] with PIL [" + pil
                                 + "]");
@@ -349,7 +387,7 @@ public class F6Builder {
                             ClimateProdSendRecord record = new ClimateProdSendRecord();
                             record.setProd_id(pil);
                             record.setProd_type("F6");
-                            record.setProd_text(totalContents.toString());
+                            record.setProd_text(totalContents);
                             record.setFile_name(fileName);
                             record.setSend_time(new Timestamp(insertTime));
                             record.setUser_id("auto");
@@ -391,23 +429,26 @@ public class F6Builder {
                                     "Could not send message to ClimateView", e);
                         }
                         pilMap.put(pil, reportContent);
-
-                        messages.append("Successfully created and "
-                                + shortAction + " report for Station "
-                                + station.getStationName() + " with PIL " + pil
-                                + ".\n");
+                    } else if (dup) {
+                        duplicateStorageMessages.add(ident);
+                        hasException = true;
                     } else {
                         String action = transmitThisProduct
-                                ? "transmitting F6 report"
-                                : "storing F6 report to the text database";
-                        String hint = transmitThisProduct ? ""
-                                : " Ensure connection to text DB and that this would "
-                                        + "not be an exact duplicate of an existing report.";
-                        String message = "Something went wrong " + action
+                                ? "transmit F6 report"
+                                : "store F6 report to the text database";
+                        String message = "Failed to " + action
                                 + " for station " + station.getIcaoId()
-                                + " with PIL " + pil + "." + hint + "\n";
+                                + " with PIL " + pil;
+                        if (failureDetail != null) {
+                            message += ": " + failureDetail;
+                        }
+                        message += ".";
+                        if (transmitThisProduct) {
+                            transmissionFailureMessages.add(message);
+                        } else {
+                            storageFailureMessages.add(message);
+                        }
                         logger.error(message);
-                        messages.append(message);
                         hasException = true;
                     }
                 }
@@ -422,6 +463,27 @@ public class F6Builder {
                                 + station.getStationName()
                                 + ". Check EDEX log for details.\n");
             }
+        }
+
+        if (!hasException && transmissionAttempted) {
+            messages.append("Successfully transmitted all F6 products.\n");
+        } else if (transmissionSuccessMessages.size() > 0) {
+            messages.append("Transmitted: " + String.join("; ", transmissionSuccessMessages) + ".\n\n");
+        }
+        if (!hasException && storageAttempted) {
+            messages.append("Succcessfully stored all F6 products.\n");
+        } else if (storageSuccessMessages.size() > 0) {
+            messages.append("Stored: " + String.join("; ", storageSuccessMessages) + ".\n\n");
+        }
+        if (duplicateStorageMessages.size() > 0) {
+            messages.append("Duplicates not stored: " + String.join("; ", duplicateStorageMessages) + ".\n\n");
+        }
+        if (transmissionFailureMessages.size() > 0) {
+            transmissionFailureMessages.add(""); // add extra blank line
+            messages.append(String.join("\n\n", transmissionFailureMessages));
+        }
+        if (storageFailureMessages.size() > 0) {
+            messages.append(String.join("\n\n", storageFailureMessages));
         }
 
         if (print) {
@@ -1558,8 +1620,9 @@ public class F6Builder {
      * @param productText
      * @return true if the product was succesfully transmitted, false otherwise
      */
-    private boolean transmitProduct(String pil, String awipsWanPil,
+    private String transmitProduct(String pil, String awipsWanPil,
             String productText) {
+        String errorMessage;
         OfficialUserProduct oup = new OfficialUserProduct();
         oup.setFilename(String.format("%s_%s", pil,
                 TimeUtil.getUnixTime(TimeUtil.newDate())));
@@ -1575,9 +1638,8 @@ public class F6Builder {
         try {
             Object object = RequestRouter.route(req);
             if (!(object instanceof SuccessfulExecution)) {
-                String msg = "Error transmitting NWWS climate products. Unexpected response class: "
+                errorMessage = "Error transmitting climate products. Unexpected response class: "
                         + object.getClass().getName();
-                logger.error(msg);
             } else {
                 OUPResponse resp = (OUPResponse) ((SuccessfulExecution) object)
                         .getResponse();
@@ -1607,16 +1669,21 @@ public class F6Builder {
                         // needed
                         additionalInfo = "ERROR no acknowledgment received";
                     }
-                    logger.error(resp.getMessage()
-                            + " -- Additional Information: " + additionalInfo);
+                    errorMessage = resp.getMessage()
+                            + " -- Additional Information: " + additionalInfo;
                 } else {
-                    return true;
+                    return null;
                 }
             }
         } catch (Exception e) {
-            logger.error("Transmit to NWWS failed.", e);
+            /*
+             * Error messages will be logged by the caller, but for unexpected
+             * errors, also log a backtrace here.
+             */
+            errorMessage = e.toString();
+            logger.error("HandleOUP request failed with unexpected error.", e);
         }
-        return false;
+        return errorMessage;
     }
 
     /**

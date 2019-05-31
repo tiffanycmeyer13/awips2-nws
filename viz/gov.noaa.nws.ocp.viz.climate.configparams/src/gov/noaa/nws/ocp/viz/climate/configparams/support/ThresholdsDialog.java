@@ -52,6 +52,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
  * 09 FEB 2017  20640    jwu         Write out preference & set return value to indicate changes.
  * 22 FEB 2017  28609    amoore      Address TODOs.
  * 12 MAY 2017  33104    amoore      Address FindBugs.
+ * 21 MAY 2019  DR21196  dfriedman   Use correct CaveSWTDialog life cycle functions.
  * </pre>
  * 
  * @author wkwock
@@ -504,23 +505,18 @@ public class ThresholdsDialog extends ClimateCaveChangeTrackDialog {
         cancelBtn.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                closeThresholdsDlg();
+                close();
             }
         });
     }
 
-    /**
-     * close this dialog
-     */
-    protected void closeThresholdsDlg() {
+    @Override
+    public boolean shouldClose() {
         if (this.changeListener.isChangesUnsaved()) {
-            boolean close = MessageDialog.openQuestion(shell, "Unsaved Changes",
+            return MessageDialog.openQuestion(shell, "Unsaved Changes",
                     "Close this window? Unsaved changes will be lost.");
-            if (close) {
-                close();
-            }
         } else {
-            close();
+            return true;
         }
     }
 

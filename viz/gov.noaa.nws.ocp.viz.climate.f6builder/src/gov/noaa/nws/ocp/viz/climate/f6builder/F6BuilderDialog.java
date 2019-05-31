@@ -86,6 +86,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 19 SEP 2017  38124     amoore       Use GC for text control sizes.
  * 17 OCT 2017  39614     amoore       Address review comments.
  * 28 AUG 2018  DR 20861  dfriedman    Add option to enable transmission of products.
+ * 22 MAY 2019  DR 21287  dfriedman    Show response over F6 dialog before closing.
  * </pre>
  * 
  * @author xzhang
@@ -390,14 +391,11 @@ public class F6BuilderDialog extends ClimateCaveDialog {
         viewCheckButton.setToolTipText(
                 "View copies of generated F6 reports stored on the EDEX server.");
 
-        // "View selected F6s" button
         transmitCheckButton = new Button(printOpenComp, SWT.CHECK);
         GridData gd_transmitCheckButton = new GridData(SWT.LEFT, SWT.CENTER, false,
                 false, 2, 1);
         transmitCheckButton.setLayoutData(gd_transmitCheckButton);
         transmitCheckButton.setText("Transmit F6 reports for dissemination");
-        transmitCheckButton.setToolTipText(
-                "Transmit F6 generated reports for dissemination.");
         transmitCheckButton.setSelection(isTransmissionEnabled());
 
         new Label(shell, SWT.NONE);
@@ -525,8 +523,6 @@ public class F6BuilderDialog extends ClimateCaveDialog {
                         // Open F6 product files in browser.
                         viewFilesInBrowser(filesToView);
                     }
-
-                    close();
                 } catch (VizException e) {
                     logger.error("Error generating F6 report", e);
                 } finally {
@@ -537,6 +533,7 @@ public class F6BuilderDialog extends ClimateCaveDialog {
                     if (!shell.isDisposed()) {
                         ClimateGUIUtils.resetCursor(shell);
                     }
+                    close();
                 }
             }
         });
@@ -619,7 +616,7 @@ public class F6BuilderDialog extends ClimateCaveDialog {
     /**
      * Determine if dissemination is allowed as indicated by the global Climate
      * preferences. Used to determine if the "Transmit" checkbox should be
-     * enabled by default.
+     * selected by default.
      *
      * @return true if transmission option should be enabled by default
      */

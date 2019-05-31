@@ -58,6 +58,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  *                                     calculations. Handle trace better in hourly precip count.
  * 03 APR 2019  DR21211    wpaintsil   Correct mistake in daysPastThresh() query string.
  * 08 APR 2019  DR 21226   dfriedman   Exclude trace precip values for averages in buildElement.
+ * 23 APR 2019  DR21252    wpaintsil   Faulty logic in determining whether the monthly precip total 
+ *                                     is trace.
  * </pre>
  * 
  * @author amoore
@@ -538,6 +540,7 @@ public class ClimateDAO {
         Number oResult;
 
         StringBuilder query = new StringBuilder("SELECT ");
+        StringBuilder queryNoTrace = new StringBuilder();
         String element, idCol, startCol, endCol;
         // select by period from period table, or no period from daily table.
         if (!PeriodType.OTHER.equals(iType)) {
@@ -561,18 +564,38 @@ public class ClimateDAO {
             endCol = "date";
             startCol = "date";
 
-            query.append(buildType.toString()).append("(").append(
-                    (buildType == BuildElementType.COUNT ? "*" : element))
-                    .append(")");
-            query.append(" FROM ");
+            query.append(buildType.toString()).append("(");
+            queryNoTrace.append(query.toString());
+            if (BuildElementType.COUNT.equals(buildType)) {
+                query.append("*");
+                queryNoTrace.append("*");
+            } else if (ClimateDAO.BuildElementType.AVG.equals(buildType)
+                    && precipOrSnow) {
+                queryNoTrace.append("CASE WHEN ").append(element).append("=")
+                        .append(ParameterFormatClimate.TRACE)
+                        .append(" THEN 0 ELSE ").append(element).append(" END");
+                query.append(element);
+            } else {
+                query.append(element);
+                queryNoTrace.append(element);
+            }
+            query.append(") FROM ");
             query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
             query.append(" WHERE ");
+            queryNoTrace.append(") FROM ");
+            queryNoTrace.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
+            queryNoTrace.append(" WHERE ");
         }
 
         query.append(idCol).append(" = :stationID");
         query.append(" AND ").append(startCol).append(" >= :beginDate");
         query.append(" AND ").append(endCol).append(" <= :endDate");
         query.append(" AND ").append(element).append(" != ")
+                .append(missingValue);
+        queryNoTrace.append(idCol).append(" = :stationID");
+        queryNoTrace.append(" AND ").append(startCol).append(" >= :beginDate");
+        queryNoTrace.append(" AND ").append(endCol).append(" <= :endDate");
+        queryNoTrace.append(" AND ").append(element).append(" != ")
                 .append(missingValue);
 
         Map<String, Object> paramMap = new HashMap<>();
@@ -597,17 +620,25 @@ public class ClimateDAO {
                         missingValue.doubleValue()))) {
 
             // if precip or snow, do not allow trace
-            query.append(" AND " + element + " != ");
-            query.append(ParameterFormatClimate.TRACE);
+            if (ClimateDAO.BuildElementType.SUM.equals(buildType)) {
+                queryNoTrace.append(" AND " + element + " != ");
+                queryNoTrace.append(ParameterFormatClimate.TRACE);
+            }
 
-            Object noTraceResult = queryForOneValue(query.toString(), paramMap,
-                    missingValue);
+            Object noTraceResult = queryForOneValue(queryNoTrace.toString(),
+                    paramMap, missingValue);
 
             Number noTraceResultNumber = (Number) noTraceResult;
 
-            if (ClimateUtilities.floatingEquals(
-                    noTraceResultNumber.doubleValue(),
-                    missingValue.doubleValue())) {
+            // If the base result including trace values sums to a negative
+            // number but the result excluding trace is 0 or missing that means
+            // the only values for the month are trace or 0. So trace should be
+            // returned. 'baseResultNumber < 0' also covers the case in which
+            // the result is missing (9999).
+            if ((noTraceResultNumber.doubleValue() == 0 || ClimateUtilities
+                    .floatingEquals(noTraceResultNumber.doubleValue(),
+                            missingValue.doubleValue()))
+                    && baseResultNumber.doubleValue() < 0) {
                 /*
                  * allowing trace gave a result while not allowing trace did
                  * not, so there are only trace values. Return trace.

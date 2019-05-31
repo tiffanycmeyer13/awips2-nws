@@ -66,6 +66,7 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
  * 03 MAY 2017 33104    amoore      Address FindBugs. Better variable naming.
  * 15 MAY 2017 33104    amoore      FindBugs and logic issues.
  * 19 SEP 2017 38124    amoore      Use GC for text control sizes.
+ * 21 MAY 2019 DR 21196 dfriedman   Use correct CaveSWTDialog life cycle functions.
  * </pre>
  * 
  * @author wkwock
@@ -760,7 +761,7 @@ public class ImportClimateDialog extends ClimateCaveDialog {
         cancelBtn.setText("Cancel");
         cancelBtn.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected(SelectionEvent event) {
-                closeWindow();
+                close();
             };
         });
 
@@ -1226,18 +1227,13 @@ public class ImportClimateDialog extends ClimateCaveDialog {
         climateInitDialog.refreshSelection();
     }
 
-    /**
-     * close the import data window
-     */
-    protected void closeWindow() {
-        boolean yesToClose = true;
-
+    @Override
+    public boolean shouldClose() {
         if (!fileDataMap.isEmpty()) {
-            yesToClose = MessageDialog.openQuestion(shell, "Close Window",
+            return MessageDialog.openQuestion(shell, "Close Window",
                     "Closing the window will abandon the table list.\nContinue to close?");
-        }
-        if (yesToClose) {
-            close();
+        } else {
+            return true;
         }
     }
 
