@@ -1595,8 +1595,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMinTempMean(),
-                dailyPeriodData.getMinTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
+                ClimateUtilities.nint(dailyPeriodData.getMinTempMean(), 1))) {
             // check daily DB (could be null) second
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
