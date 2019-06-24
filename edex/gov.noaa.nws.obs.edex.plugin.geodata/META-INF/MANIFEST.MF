@@ -15,4 +15,4 @@ Require-Bundle: com.raytheon.uf.edex.database,
  com.raytheon.uf.common.serialization;bundle-version="1.15.1",
  gov.noaa.nws.obs.common.dataplugin.geodata;bundle-version="1.0.0",
  javax.xml.bind
-Import-Package: com.vividsolutions.jts.geom
+Import-Package: org.locationtech.jts.geom

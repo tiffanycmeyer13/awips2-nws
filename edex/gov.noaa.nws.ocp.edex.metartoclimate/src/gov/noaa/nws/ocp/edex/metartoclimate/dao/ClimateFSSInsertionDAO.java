@@ -15,7 +15,6 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
-import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDAOValues;
@@ -98,6 +97,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  * 31 OCT 2017  38077      amoore      Fix missing weather issues.
  * 02 NOV 2017  37755      amoore      Peak wind speed was missing from final storage, post-decoding,
  *                                     when checking for different hydromet IDs.
+ * 26 APR 2019  DR 21195   dfriedman   Handle both special case precipitation values.
  * </pre>
  * 
  * @author amoore
@@ -530,8 +530,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                          * better representation in the verification database.
                          */
                         if (surfaceObs.getPrecip1hr() == 0) {
-                            surfaceObs
-                                    .setPrecip1hr(ParameterFormatClimate.TRACE);
+                            surfaceObs.setPrecip1hr(MetarUtils.FSS_CONTIN_TRACE);
                         }
                         writeFSSContinuousReal(fssReportInstance, hydrometID,
                                 surfaceObs.getPrecip1hr(),
@@ -540,11 +539,10 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                         /*
                          * If the rain amount is missing and the PNO indicator
                          * is present in the METAR report, then write out a
-                         * value of PNO_PRESENT (-1, trace) to the database to
-                         * indicate that the precipitation sensor was not
-                         * working.
+                         * value of PNO_PRESENT to the database to indicate that
+                         * the precipitation sensor was not working.
                          */
-                        surfaceObs.setPrecip1hr(ParameterFormatClimate.TRACE);
+                        surfaceObs.setPrecip1hr(MetarUtils.PNO_PRESENT);
                         writeFSSContinuousReal(fssReportInstance, hydrometID,
                                 surfaceObs.getPrecip1hr(),
                                 qcMetar.getPrecip1hrDqd());
@@ -567,8 +565,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                              * verification database.
                              */
                             if (surfaceObs.getPrecip6hr() == 0) {
-                                surfaceObs.setPrecip6hr(
-                                        ParameterFormatClimate.TRACE);
+                                surfaceObs.setPrecip6hr(MetarUtils.FSS_CONTIN_TRACE);
                             }
 
                             writeFSSContinuousReal(fssReportInstance,
@@ -578,13 +575,11 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                             /*
                              * If the rain amount is missing and the PNO
                              * indicator is present in the METAR report, then
-                             * write out a value of PNO_PRESENT (-1, trace) to
-                             * the database to indicate that the precipitation
-                             * sensor was not working at the time of this
-                             * observation.
+                             * write out a value of PNO_PRESENT to the database
+                             * to indicate that the precipitation sensor was not
+                             * working at the time of this observation.
                              */
-                            surfaceObs
-                                    .setPrecip6hr(ParameterFormatClimate.TRACE);
+                            surfaceObs.setPrecip6hr(MetarUtils.PNO_PRESENT);
                             writeFSSContinuousReal(fssReportInstance,
                                     hydrometID, surfaceObs.getPrecip6hr(),
                                     qcMetar.getPrecip3hrDqd());
@@ -606,8 +601,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                              * verification database.
                              */
                             if (surfaceObs.getPrecip6hr() == 0) {
-                                surfaceObs.setPrecip6hr(
-                                        ParameterFormatClimate.TRACE);
+                                surfaceObs.setPrecip6hr(MetarUtils.FSS_CONTIN_TRACE);
                             }
 
                             writeFSSContinuousReal(fssReportInstance,
@@ -618,13 +612,11 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                             /*
                              * If the rain amount is missing and the PNO
                              * indicator is present in the METAR report, then
-                             * write out a value of PNO_PRESENT (-1, trace) to
-                             * the database to indicate that the precipitation
-                             * sensor was not working at the time of this
-                             * observation.
+                             * write out a value of PNO_PRESENT to the database
+                             * to indicate that the precipitation sensor was not
+                             * working at the time of this observation.
                              */
-                            surfaceObs
-                                    .setPrecip6hr(ParameterFormatClimate.TRACE);
+                            surfaceObs.setPrecip6hr(MetarUtils.PNO_PRESENT);
                             writeFSSContinuousReal(fssReportInstance,
                                     hydrometID, surfaceObs.getPrecip6hr(),
                                     qcMetar.getPrecip6hrDqd());
@@ -640,8 +632,7 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                          * better representation in the verification database.
                          */
                         if (surfaceObs.getPrecip24hr() == 0) {
-                            surfaceObs.setPrecip24hr(
-                                    ParameterFormatClimate.TRACE);
+                            surfaceObs.setPrecip24hr(MetarUtils.FSS_CONTIN_TRACE);
                         }
 
                         writeFSSContinuousReal(fssReportInstance, hydrometID,
@@ -652,11 +643,11 @@ public class ClimateFSSInsertionDAO extends ClimateDAO {
                         /*
                          * If the rain amount is missing and the PNO indicator
                          * is present in the METAR report, then write out a
-                         * value of PNO_PRESENT (-1, trace) to the database to
-                         * indicate that the precipitation sensor was not
-                         * working at the time of this observation.
+                         * value of PNO_PRESENT to the database to indicate that
+                         * the precipitation sensor was not working at the time
+                         * of this observation.
                          */
-                        surfaceObs.setPrecip24hr(ParameterFormatClimate.TRACE);
+                        surfaceObs.setPrecip24hr(MetarUtils.PNO_PRESENT);
                         writeFSSContinuousReal(fssReportInstance, hydrometID,
                                 surfaceObs.getPrecip24hr(),
                                 qcMetar.getPrecip24hrDqd());

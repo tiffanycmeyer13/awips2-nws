@@ -53,6 +53,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  *                                     Ensure 24hr format for valid time.
  * 15 NOV 2017  40760      wpaintsil   Prevent validTime returned from getDailyValidTime
  *                                     from having missing minutes.
+ * 26 MAR 2019  DR21158    wpaintsil   Revise HH:mm formatting
  * </pre>
  * 
  * @author xzhang
@@ -403,11 +404,8 @@ public class ClimateTime {
      *         {@link ClimateTime#TIME_SEPARATOR}.
      */
     public String toHourMinString() {
-        if (min >= 10) {
-            return hour + TIME_SEPARATOR + min;
-        } else {
-            return hour + TIME_SEPARATOR + "0" + min;
-        }
+        return String.format("%02d", hour) + TIME_SEPARATOR
+                + String.format("%02d", min);
     }
 
     /**

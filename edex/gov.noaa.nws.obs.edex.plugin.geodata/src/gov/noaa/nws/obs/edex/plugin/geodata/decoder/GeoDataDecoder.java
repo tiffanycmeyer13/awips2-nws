@@ -29,10 +29,10 @@ import com.raytheon.uf.edex.netcdf.description.field.date.EpochOffsetDateValue;
 import com.raytheon.uf.edex.netcdf.description.field.date.FormattedDateValue;
 import com.raytheon.uf.edex.netcdf.description.field.direct.VariableDescription;
 import com.raytheon.uf.edex.netcdf.description.field.indirect.DelegateFieldDescription;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LinearRing;
 
 import gov.noaa.nws.obs.common.dataplugin.geodata.FloatAttribute;
 import gov.noaa.nws.obs.common.dataplugin.geodata.GeoDataRecord;

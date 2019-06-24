@@ -43,6 +43,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  *                                     to send a flag instead of the OTHER
  *                                     period type. Incorrect values appear
  *                                     otherwise.
+ * 30 APR 2019  DR21261    wpaintsil   Revise logic for CLM.
  * </pre>
  * 
  * @author amoore
@@ -262,10 +263,10 @@ public final class PeriodClimateCreator {
             /*
              * End special monthly logic
              */
-
-            climatePeriodDAO.buildPeriodSumClimo(beginDate, endDate,
-                    currPeriodData, periodType);
-
+            if (!monthly) {
+                climatePeriodDAO.buildPeriodSumClimo(beginDate, endDate,
+                        currPeriodData, periodType);
+            }
             dailyClimateDao.buildPResultantWind(beginDate, endDate,
                     currPeriodData, PeriodType.OTHER);
 

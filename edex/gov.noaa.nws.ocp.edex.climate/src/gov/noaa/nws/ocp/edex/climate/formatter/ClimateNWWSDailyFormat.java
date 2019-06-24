@@ -63,6 +63,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 20 APR 2018  DR17116    wpaintsil   Accommodate more than one alternate snow/precip season.
  * 07 MAY 2018  20714      amoore      RER temperature values should be ints, while precip/
  *                                     snow remain as float.
+ * 20 MAR 2019  DR21197    wpaintsil   Adjust Snow Depth alignment.
  * </pre>
  *
  * @author wpaintsil
@@ -2811,7 +2812,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             nwwsSnowDepthLine.replace(iPosition - 1, jPosition, snowString);
 
         } else if (yesterday.getSnowGround() == ParameterFormatClimate.TRACE) {
-            int jPositon = tabs.getPosActual() - 6;
+            int jPositon = tabs.getPosActual() - 5;
             int iPositon = jPositon + 1;
             nwwsSnowDepthLine.replace(jPositon - 1, iPositon,
                     ParameterFormatClimate.TRACE_SYMBOL);

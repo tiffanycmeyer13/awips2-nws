@@ -28,11 +28,12 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
  * 08/12/2016  21198    wkwock      Initial creation
  * 10/25/2016  20639    wkwock      Change background color on invalid input.
  * 27 DEC 2016 22450    amoore      Make integer regex public.
+ * 20 MAR 2019 DR21197  wpaintsil   Add a new class for the snow depth field (TextIntWithListener).
  * </pre>
  * 
  * @author amoore
  */
-public final class TextIntListener extends AbstractTextNumberListener {
+public class TextIntListener extends AbstractTextNumberListener {
 
     /**
      * integer regex

@@ -40,6 +40,11 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
+ * 28 MAR 2019  DR21159    wpaintsil   Caution tooltip indicating unequal values
+ *                                     Appears for temperature fields though those
+ *                                     Values are close enough. E.g. "The MSM 
+ *                                     value 17.3 does not match the Daily DB value 17.321428"
+ * 30 APR 2019  DR21261    wpaintsil    Some temperature fields need to be rounded.
  * </pre>
  * 
  * @author amoore
@@ -755,7 +760,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myAvgMinTempTF.setTextAndTip(
-                                String.valueOf(iData.getMinTempMean()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMinTempMean(), 1)),
                                 iData.getDataMethods().getAvgMinTempQc());
                     }
 
@@ -1152,7 +1158,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myAvgMaxTempTF.setTextAndTip(
-                                String.valueOf(iData.getMaxTempMean()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMaxTempMean(), 1)),
                                 iData.getDataMethods().getAvgMaxTempQc());
                     }
 
@@ -1198,7 +1205,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myMeanTempTF.setTextAndTip(
-                                String.valueOf(iData.getMeanTemp()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMeanTemp(), 1)),
                                 iData.getDataMethods().getMeanTempQc());
                     }
 
@@ -1354,13 +1362,13 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         // average max temp
         // check MSM first
         if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMaxTempMean(),
-                msmPeriodData.getMaxTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMaxTempMean(), 1),
+                ClimateUtilities.nint(msmPeriodData.getMaxTempMean(), 1))) {
             DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMaxTempMean(),
-                dailyPeriodData.getMaxTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMaxTempMean(), 1),
+                ClimateUtilities.nint(dailyPeriodData.getMaxTempMean(), 1))) {
             // check daily DB (could be null) second
             DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
@@ -1378,8 +1386,10 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         msmPeriodData.getMaxTempMean(),
                         ParameterFormatClimate.MISSING))
                 && (!ClimateUtilities.floatingEquals(
-                        msmPeriodData.getMaxTempMean(),
-                        dailyPeriodData.getMaxTempMean()))) {
+                        ClimateUtilities.nint(msmPeriodData.getMaxTempMean(),
+                                1),
+                        ClimateUtilities.nint(dailyPeriodData.getMaxTempMean(),
+                                1)))) {
             // neither monthly nor daily data is missing, and they are
             // different, so flag the text box
             myAvgMaxTempLbl.setNotMatched(msmPeriodData.getMaxTempMean(),
@@ -1396,8 +1406,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMeanTemp(),
-                dailyPeriodData.getMeanTemp())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMeanTemp(), 1),
+                ClimateUtilities.nint(dailyPeriodData.getMeanTemp(), 1))) {
             // check daily DB (could be null) second
             DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
@@ -1415,8 +1425,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         msmPeriodData.getMeanTemp(),
                         ParameterFormatClimate.MISSING))
                 && (!ClimateUtilities.floatingEquals(
-                        msmPeriodData.getMeanTemp(),
-                        dailyPeriodData.getMeanTemp()))) {
+                        ClimateUtilities.nint(msmPeriodData.getMeanTemp(), 1),
+                        ClimateUtilities.nint(dailyPeriodData.getMeanTemp(),
+                                1)))) {
             // neither monthly nor daily data is missing, and they are
             // different, so flag the text box
             myMeanTempLbl.setNotMatched(msmPeriodData.getMeanTemp(),
@@ -1579,13 +1590,13 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         // average min temp
         // check MSM first
         if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMinTempMean(),
-                msmPeriodData.getMinTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
+                ClimateUtilities.nint(msmPeriodData.getMinTempMean(), 1))) {
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMinTempMean(),
-                dailyPeriodData.getMinTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
+                ClimateUtilities.nint(dailyPeriodData.getMinTempMean(), 1))) {
             // check daily DB (could be null) second
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
@@ -1603,8 +1614,10 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         msmPeriodData.getMinTempMean(),
                         ParameterFormatClimate.MISSING))
                 && (!ClimateUtilities.floatingEquals(
-                        msmPeriodData.getMinTempMean(),
-                        dailyPeriodData.getMinTempMean()))) {
+                        ClimateUtilities.nint(msmPeriodData.getMinTempMean(),
+                                1),
+                        ClimateUtilities.nint(dailyPeriodData.getMinTempMean(),
+                                1)))) {
             // neither monthly nor daily data is missing, and they are
             // different, so flag the text box
             myAvgMinTempLbl.setNotMatched(msmPeriodData.getMinTempMean(),
@@ -1839,8 +1852,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         DataValueOrigin.DAILY_DATABASE);
                 myAvgMaxTempLbl.setMatched();
             } else if (!ClimateUtilities.floatingEquals(
-                    iMonthlyAsosData.getMaxTempMean(),
-                    iDailyBuildData.getMaxTempMean())) {
+                    ClimateUtilities.nint(iMonthlyAsosData.getMaxTempMean(), 1),
+                    ClimateUtilities.nint(iDailyBuildData.getMaxTempMean(),
+                            1))) {
                 // neither monthly nor daily data is missing, and they are
                 // different, so flag the text box
                 myAvgMaxTempLbl.setNotMatched(iMonthlyAsosData.getMaxTempMean(),
@@ -1861,8 +1875,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         DataValueOrigin.DAILY_DATABASE);
                 myMeanTempLbl.setMatched();
             } else if (!ClimateUtilities.floatingEquals(
-                    iMonthlyAsosData.getMeanTemp(),
-                    iDailyBuildData.getMeanTemp())) {
+                    ClimateUtilities.nint(iMonthlyAsosData.getMeanTemp(), 1),
+                    ClimateUtilities.nint(iDailyBuildData.getMeanTemp(), 1))) {
                 // neither monthly nor daily data is missing, and they are
                 // different, so flag the text box
                 myMeanTempLbl.setNotMatched(iMonthlyAsosData.getMeanTemp(),
@@ -1990,8 +2004,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         DataValueOrigin.DAILY_DATABASE);
                 myAvgMinTempLbl.setMatched();
             } else if (!ClimateUtilities.floatingEquals(
-                    iMonthlyAsosData.getMinTempMean(),
-                    iDailyBuildData.getMinTempMean())) {
+                    ClimateUtilities.nint(iMonthlyAsosData.getMinTempMean(), 1),
+                    ClimateUtilities.nint(iDailyBuildData.getMinTempMean(),
+                            1))) {
                 // neither monthly nor daily data is missing, and they are
                 // different, so flag the text box
                 myAvgMinTempLbl.setNotMatched(iMonthlyAsosData.getMinTempMean(),

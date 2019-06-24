@@ -5,6 +5,7 @@ package gov.noaa.nws.ocp.common.dataplugin.climate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
@@ -25,6 +26,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * Jul 22, 2016 20712	   wpaintsil  Serialization
  * 20 SEP 2016  21378      amoore     Added method to get missing value instance.
  * 01 MAY 2018  DR17116    wpaintsil  Accommodate multiple alternate snow/precip seasons.
+ * 09 APR 2019  DR21228    wpaintsil  Unsorted record years results in 'MM' value 
+ *                                    appearing under year column.
  * 
  * </pre>
  * 
@@ -360,6 +363,7 @@ public class ClimateRecordDay {
      *            the maxTempYear to set
      */
     public void setMaxTempYear(int[] maxTempYear) {
+        Arrays.sort(maxTempYear);
         this.maxTempYear = maxTempYear;
     }
 
@@ -375,6 +379,7 @@ public class ClimateRecordDay {
      *            the minTempYear to set
      */
     public void setMinTempYear(int[] minTempYear) {
+        Arrays.sort(minTempYear);
         this.minTempYear = minTempYear;
     }
 
@@ -525,6 +530,7 @@ public class ClimateRecordDay {
      *            the precipDayRecordYear to set
      */
     public void setPrecipDayRecordYear(int[] precipDayRecordYear) {
+        Arrays.sort(precipDayRecordYear);
         this.precipDayRecordYear = precipDayRecordYear;
     }
 
@@ -540,6 +546,7 @@ public class ClimateRecordDay {
      *            the precipMonthRecordYear to set
      */
     public void setPrecipMonthRecordYear(int[] precipMonthRecordYear) {
+        Arrays.sort(precipMonthRecordYear);
         this.precipMonthRecordYear = precipMonthRecordYear;
     }
 
@@ -555,6 +562,7 @@ public class ClimateRecordDay {
      *            the precipSeasonRecordYear to set
      */
     public void setPrecipSeasonRecordYear(int[] precipSeasonRecordYear) {
+        Arrays.sort(precipSeasonRecordYear);
         this.precipSeasonRecordYear = precipSeasonRecordYear;
     }
 
@@ -570,6 +578,7 @@ public class ClimateRecordDay {
      *            the precipYearRecordYear to set
      */
     public void setPrecipYearRecordYear(int[] precipYearRecordYear) {
+        Arrays.sort(precipYearRecordYear);
         this.precipYearRecordYear = precipYearRecordYear;
     }
 
@@ -705,6 +714,7 @@ public class ClimateRecordDay {
      *            the snowDayRecordYear to set
      */
     public void setSnowDayRecordYear(int[] snowDayRecordYear) {
+        Arrays.sort(snowDayRecordYear);
         this.snowDayRecordYear = snowDayRecordYear;
     }
 
@@ -720,6 +730,7 @@ public class ClimateRecordDay {
      *            the snowMonthRecordYear to set
      */
     public void setSnowMonthRecordYear(int[] snowMonthRecordYear) {
+        Arrays.sort(snowMonthRecordYear);
         this.snowMonthRecordYear = snowMonthRecordYear;
     }
 
@@ -735,6 +746,7 @@ public class ClimateRecordDay {
      *            the snowSeasonRecordYear to set
      */
     public void setSnowSeasonRecordYear(int[] snowSeasonRecordYear) {
+        Arrays.sort(snowSeasonRecordYear);
         this.snowSeasonRecordYear = snowSeasonRecordYear;
     }
 
@@ -750,6 +762,7 @@ public class ClimateRecordDay {
      *            the snowYearRecordYear to set
      */
     public void setSnowYearRecordYear(int[] snowYearRecordYear) {
+        Arrays.sort(snowYearRecordYear);
         this.snowYearRecordYear = snowYearRecordYear;
     }
 
