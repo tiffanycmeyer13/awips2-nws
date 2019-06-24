@@ -46,6 +46,7 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
  * 23 FEB 2017  22162      astrakovsky Initial Creation.
  * 16 MAY 2017  33104      amoore      FindBugs and rename.
  * 02 OCT 2017  38582      amoore      Correct use of Font/FontData.
+ * 21 MAY 2019  DR21196    dfriedman   Call ancestor disposed method.
  * </pre>
  * 
  * @author astrakovsky
@@ -92,6 +93,7 @@ public abstract class ClimateReviewDialog extends TextEditorSetupDlg {
 
     @Override
     protected void disposed() {
+        super.disposed();
         if (textFont != null) {
             textFont.dispose();
         }

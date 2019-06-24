@@ -5,6 +5,9 @@ package gov.noaa.nws.ocp.common.dataplugin.climate;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -58,6 +61,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 18 SEP 2017  38078      amoore     Fixed bad formatting for First of month format.
  * 24 AUG 2018  DR20863    wpaintsil  With getLocalDate(), create a distinction between machine/GMT
  *                                    time and local time.
+ * 04 APR 2019  DR21220    wpaintsil  Add a conversion method for ZonedDateTime.
+ * 10 APR 2019  DR21159    wpaintsil  Revise date-time formatting and comparisons.
  * </pre>
  * 
  * @author xzhang
@@ -96,6 +101,24 @@ public class ClimateDate {
     public static final String MISSING_FULL_DATE_STRING = ParameterFormatClimate.MISSING
             + DATE_SEPARATOR + MISSING_DATE_NUM_STRING + DATE_SEPARATOR
             + MISSING_DATE_NUM_STRING;
+
+    /**
+     * YYYY-MM-DD date string format
+     */
+    public static final String FULL_DATE_STRING_FORMAT = "%d" + DATE_SEPARATOR
+            + "%02d" + DATE_SEPARATOR + "%02d";
+
+    /**
+     * MM-DD date string formt
+     */
+    public static final String MONTH_DAY_STRING_FORMAT = "%02d" + DATE_SEPARATOR
+            + "%02d";
+
+    /**
+     * First day of month format
+     */
+    public static final String FIRST_DAY_MONTH_STRING_FORMAT = "%02d"
+            + DATE_SEPARATOR + "01";
 
     @DynamicSerializeElement
     @XmlAttribute(name = "Day")
@@ -335,19 +358,17 @@ public class ClimateDate {
                 || (mon == ParameterFormatClimate.MISSING_DATE)) {
             return MISSING_MONTH_DAY_DATE_STRING;
         }
-        return createMonthDayDateString(mon, day);
+        return createMonthDayDateString();
     }
 
     /**
      * @return format of "MM-dd"
      */
-    public static String createMonthDayDateString(int imon, int iday) {
-        Calendar calendar = TimeUtil.newCalendar();
-        // offset month due to DateTime using 0-11
-        calendar.set(Calendar.MONTH, imon - 1);
-        calendar.set(Calendar.DATE, iday);
+    public String createMonthDayDateString() {
+        LocalDate date = LocalDate.of(year, mon, day);
 
-        return getMonthDayDateFormat().format(calendar.getTime());
+        return String.format(MONTH_DAY_STRING_FORMAT, date.getMonthValue(),
+                date.getDayOfMonth());
     }
 
     /**
@@ -373,21 +394,7 @@ public class ClimateDate {
         if (isPartialMissing()) {
             return MISSING_FULL_DATE_STRING;
         }
-        return createFullDateString(year, mon, day);
-    }
-
-    /**
-     * @param iyear
-     * @param imon
-     * @param iday
-     * @return "YYYY-MM-DD"
-     */
-    public static String createFullDateString(int iyear, int imon, int iday) {
-        Calendar calendar = TimeUtil.newCalendar();
-        // offset month due to DateTime using 0-11
-        calendar.set(iyear, imon - 1, iday);
-
-        return getFullDateFormat().format(calendar.getTime());
+        return String.format(FULL_DATE_STRING_FORMAT, year, mon, day);
     }
 
     /**
@@ -430,11 +437,7 @@ public class ClimateDate {
      * @return format of "MM-01"
      */
     public String toFirstDayOfMonthDateString() {
-        Calendar calendar = TimeUtil.newCalendar();
-        // offset month due to DateTime using 0-11
-        calendar.set(Calendar.MONTH, mon - 1);
-
-        return getFirstDayOfMonthDateFormat().format(calendar.getTime());
+        return String.format(FIRST_DAY_MONTH_STRING_FORMAT, mon);
     }
 
     /**
@@ -511,6 +514,17 @@ public class ClimateDate {
     }
 
     /**
+     * Get a {@link ZonedDateTime} object using date from this instance.
+     * 
+     * @param timeZone
+     * @return {@link ZonedDateTime} object.
+     */
+    public ZonedDateTime getZonedDateTimeFromClimateDate(String timeZone) {
+        return ZonedDateTime.now().withDayOfMonth(day).withMonth(mon)
+                .withYear(year).withZoneSameInstant(ZoneId.of(timeZone));
+    }
+
+    /**
      * @return a new object filled with missing values.
      */
     public static ClimateDate getMissingClimateDate() {
@@ -561,13 +575,12 @@ public class ClimateDate {
             return false;
         }
 
-        Calendar thisDate = TimeUtil.newCalendar();
-        thisDate.set(year, mon, day);
+        LocalDate thisDate = LocalDate.of(year, mon, day);
 
-        Calendar otherDate = TimeUtil.newCalendar();
-        otherDate.set(iDate.getYear(), iDate.getMon(), iDate.getDay());
+        LocalDate otherDate = LocalDate.of(iDate.getYear(), iDate.getMon(),
+                iDate.getDay());
 
-        return thisDate.after(otherDate);
+        return thisDate.isAfter(otherDate);
     }
 
     /**
@@ -581,13 +594,12 @@ public class ClimateDate {
             return false;
         }
 
-        Calendar thisDate = TimeUtil.newCalendar();
-        thisDate.set(year, mon, day);
+        LocalDate thisDate = LocalDate.of(year, mon, day);
 
-        Calendar otherDate = TimeUtil.newCalendar();
-        otherDate.set(iDate.getYear(), iDate.getMon(), iDate.getDay());
+        LocalDate otherDate = LocalDate.of(iDate.getYear(), iDate.getMon(),
+                iDate.getDay());
 
-        return thisDate.before(otherDate);
+        return thisDate.isBefore(otherDate);
     }
 
     @Override
@@ -708,13 +720,6 @@ public class ClimateDate {
      */
     private static SimpleDateFormat getMonthDayDateFormat() {
         return new SimpleDateFormat("MM" + DATE_SEPARATOR + "dd");
-    }
-
-    /**
-     * @return First-day-of-month date format: MM-01
-     */
-    private static SimpleDateFormat getFirstDayOfMonthDateFormat() {
-        return new SimpleDateFormat("MM" + DATE_SEPARATOR + "01");
     }
 
     /**
