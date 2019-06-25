@@ -47,12 +47,13 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTy
  * ------------ --------  ----------- --------------------------
  * Mar 27, 2017 29748     jwu         Initial creation
  * Mar 31, 2017 29748     jwu         Check for null ending char.
- * MAY 12, 2017 33104     amoore      Use abstract map.
+ * May 12, 2017 33104     amoore      Use abstract map.
  * May 12, 2017 29748     jwu         Skip "control_???_NWR" and "control_???_NWWS".
  * May 17, 2017 33104     amoore      FindBugs. Package reorg.
  * May 23, 2017 29748     jwu         Correct daily/period control files.
- * AUG 30, 2017 37472     jwu         Adjust between daily/period types.
- * NOV 15, 2017 38036     dmanzella   Fix discrepancies in snow flags
+ * Aug 30, 2017 37472     jwu         Adjust between daily/period types.
+ * Nov 15, 2017 38036     dmanzella   Fix discrepancies in snow flags
+ * Sep 19, 2018 55210     jwu         Fixed index issue for weather elements (DR-20891).
  * </pre>
  * 
  * @author jwu
@@ -1483,123 +1484,126 @@ public class ClimateProductConverter {
 
         /*
          * Sky/Weather - 21 elements
+         * 
+         * Note: Line 61 "SKY" is only a section indicator and should be
+         * skipped. The elements start from number 62.
          */
         // avg_rh
-        if (ctrl.size() > 61) {
-            boolean[] flg = parseControlFlags(ctrl.get(61), 1);
+        if (ctrl.size() > 62) {
+            boolean[] flg = parseControlFlags(ctrl.get(62), 1);
             cpt.getRelHumidityControl().getAverageRH().setMeasured(flg[0]);
         }
 
         // sky_cover: poss_sun
-        if (ctrl.size() > 62) {
-            boolean[] flg = parseControlFlags(ctrl.get(62), 1);
+        if (ctrl.size() > 63) {
+            boolean[] flg = parseControlFlags(ctrl.get(63), 1);
             cpt.getSkycoverControl().setPossSunshine(flg[0]);
         }
 
         // sky_cover
-        if (ctrl.size() > 63) {
-            boolean[] flg = parseControlFlags(ctrl.get(63), 1);
+        if (ctrl.size() > 64) {
+            boolean[] flg = parseControlFlags(ctrl.get(64), 1);
             cpt.getSkycoverControl().setAvgSkycover(flg[0]);
         }
 
         // sky_cover: num_fair
-        if (ctrl.size() > 64) {
-            boolean[] flg = parseControlFlags(ctrl.get(64), 1);
+        if (ctrl.size() > 65) {
+            boolean[] flg = parseControlFlags(ctrl.get(65), 1);
             cpt.getSkycoverControl().setFairDays(flg[0]);
         }
 
         // sky_cover: num_pc
-        if (ctrl.size() > 65) {
-            boolean[] flg = parseControlFlags(ctrl.get(65), 1);
+        if (ctrl.size() > 66) {
+            boolean[] flg = parseControlFlags(ctrl.get(66), 1);
             cpt.getSkycoverControl().setPartlyCloudyDays(flg[0]);
         }
 
         // sky_cover: num_cloudy
-        if (ctrl.size() > 66) {
-            boolean[] flg = parseControlFlags(ctrl.get(66), 1);
+        if (ctrl.size() > 67) {
+            boolean[] flg = parseControlFlags(ctrl.get(67), 1);
             cpt.getSkycoverControl().setCloudyDays(flg[0]);
         }
 
         // num_TS: thunderstorm
-        if (ctrl.size() > 67) {
-            boolean[] flg = parseControlFlags(ctrl.get(67), 1);
+        if (ctrl.size() > 68) {
+            boolean[] flg = parseControlFlags(ctrl.get(68), 1);
             cpt.getWeatherControl().setThunderStorm(flg[0]);
         }
 
         // num_RASN: mixed precipitation
-        if (ctrl.size() > 68) {
-            boolean[] flg = parseControlFlags(ctrl.get(68), 1);
+        if (ctrl.size() > 69) {
+            boolean[] flg = parseControlFlags(ctrl.get(69), 1);
             cpt.getWeatherControl().setMixedPrecip(flg[0]);
         }
 
         // num_RRR: heavy rain
-        if (ctrl.size() > 69) {
-            boolean[] flg = parseControlFlags(ctrl.get(69), 1);
+        if (ctrl.size() > 70) {
+            boolean[] flg = parseControlFlags(ctrl.get(70), 1);
             cpt.getWeatherControl().setHeavyRain(flg[0]);
         }
 
         // num_RR: rain
-        if (ctrl.size() > 70) {
-            boolean[] flg = parseControlFlags(ctrl.get(70), 1);
+        if (ctrl.size() > 71) {
+            boolean[] flg = parseControlFlags(ctrl.get(71), 1);
             cpt.getWeatherControl().setRain(flg[0]);
         }
 
         // num_R: light rain
-        if (ctrl.size() > 71) {
-            boolean[] flg = parseControlFlags(ctrl.get(71), 1);
+        if (ctrl.size() > 72) {
+            boolean[] flg = parseControlFlags(ctrl.get(72), 1);
             cpt.getWeatherControl().setLightRain(flg[0]);
         }
 
         // num_ZRR: freezing rain
-        if (ctrl.size() > 72) {
-            boolean[] flg = parseControlFlags(ctrl.get(72), 1);
+        if (ctrl.size() > 73) {
+            boolean[] flg = parseControlFlags(ctrl.get(73), 1);
             cpt.getWeatherControl().setFreezingRain(flg[0]);
         }
 
         // num_ZR: light freezing rain
-        if (ctrl.size() > 73) {
-            boolean[] flg = parseControlFlags(ctrl.get(73), 1);
+        if (ctrl.size() > 74) {
+            boolean[] flg = parseControlFlags(ctrl.get(74), 1);
             cpt.getWeatherControl().setLightFreezingRain(flg[0]);
         }
 
         // num_A: hail
-        if (ctrl.size() > 74) {
-            boolean[] flg = parseControlFlags(ctrl.get(74), 1);
+        if (ctrl.size() > 75) {
+            boolean[] flg = parseControlFlags(ctrl.get(75), 1);
             cpt.getWeatherControl().setHail(flg[0]);
         }
         // num_SSS: heavy snow
-        if (ctrl.size() > 75) {
-            boolean[] flg = parseControlFlags(ctrl.get(75), 1);
+        if (ctrl.size() > 76) {
+            boolean[] flg = parseControlFlags(ctrl.get(76), 1);
             cpt.getWeatherControl().setHeavySnow(flg[0]);
         }
 
         // num_SS: snow
-        if (ctrl.size() > 76) {
-            boolean[] flg = parseControlFlags(ctrl.get(76), 1);
+        if (ctrl.size() > 77) {
+            boolean[] flg = parseControlFlags(ctrl.get(77), 1);
             cpt.getWeatherControl().setSnow(flg[0]);
         }
 
         // num_S: light snow
-        if (ctrl.size() > 77) {
-            boolean[] flg = parseControlFlags(ctrl.get(77), 1);
+        if (ctrl.size() > 78) {
+            boolean[] flg = parseControlFlags(ctrl.get(78), 1);
             cpt.getWeatherControl().setLightSnow(flg[0]);
         }
 
         // num_IP: ice pellet
-        if (ctrl.size() > 78) {
-            boolean[] flg = parseControlFlags(ctrl.get(78), 1);
+        if (ctrl.size() > 79) {
+            boolean[] flg = parseControlFlags(ctrl.get(79), 1);
             cpt.getWeatherControl().setIcePellet(flg[0]);
         }
 
         // num_F: fog
-        if (ctrl.size() > 79) {
-            boolean[] flg = parseControlFlags(ctrl.get(79), 1);
+        if (ctrl.size() > 80) {
+            boolean[] flg = parseControlFlags(ctrl.get(80), 1);
             cpt.getWeatherControl().setFog(flg[0]);
         }
 
         // num_Fquarter: heavy fog (vis<1/4 mi)
-        if (ctrl.size() > 80) {
-            boolean[] flg = parseControlFlags(ctrl.get(80), 1);
+        if (ctrl.size() > 81) {
+            boolean[] flg = parseControlFlags(ctrl.get(81), 1);
             cpt.getWeatherControl().setHeavyFog(flg[0]);
         }
 

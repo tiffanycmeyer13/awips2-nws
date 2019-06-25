@@ -36,6 +36,9 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTy
  *                                     creation time is current.
  * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting. Use globalDay
  *                                     timezone, not system FXA timezone.
+ * 16 AUG 2018  DR20837    wpaintsil   Corrected updateNWRHeader() to shift the local 
+ *                                     date/time (including date) to the UTC date/time. 
+ *                                     It was only shifting the hour.
  * </pre>
  *
  * @author wpaintsil
@@ -460,7 +463,7 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
 
         Calendar effectiveGMT = TimeUtil.newGmtCalendar();
         effectiveGMT.setTimeInMillis(effectiveLocal.getTimeInMillis());
-        header.setEffectiveDate(utcDate);
+        header.setEffectiveDate(new ClimateDate(effectiveGMT));
         header.setEffectiveTime(new ClimateTime(effectiveGMT));
 
         // Convert expiration date and time to UTC
@@ -473,7 +476,7 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
 
         Calendar expirationGMT = TimeUtil.newGmtCalendar();
         expirationGMT.setTimeInMillis(expirationLocal.getTimeInMillis());
-        header.setExpirationDate(utcDate);
+        header.setExpirationDate(new ClimateDate(expirationGMT));
         header.setExpirationTime(new ClimateTime(expirationGMT));
 
         currentSettings.setHeader(header);

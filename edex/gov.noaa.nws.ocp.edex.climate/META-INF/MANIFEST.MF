@@ -17,8 +17,10 @@ Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
  gov.noaa.nws.ocp.common.localization.climate,
  com.raytheon.uf.common.message,
  com.raytheon.uf.common.site,
- org.apache.commons.lang
-Bundle-Vendor: NWS
+ org.apache.commons.lang,
+ com.raytheon.uf.common.auth,
+ com.raytheon.uf.common.dissemination
+Bundle-Vendor: ERT
 Export-Package: gov.noaa.nws.ocp.edex.climate.creator,
  gov.noaa.nws.ocp.edex.climate.f6builder,
  gov.noaa.nws.ocp.edex.climate.formatter

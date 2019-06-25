@@ -7,10 +7,17 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
 import com.raytheon.uf.common.serialization.SerializationException;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
+import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
+import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
 
 /**
  * Display Station Daily Evening dialog action.
@@ -23,6 +30,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
  * ------------ ---------- ----------- --------------------------
  * 16 AUG 2016  20414      amoore      Initial creation
  * 21 MAR 2017  30166      amoore      Integration with CPG.
+ * 24 AUG 2018  DR20863    wpaintsil   Account for the local timeZone
+ *                                     when passing in the date parameter.
  * </pre>
  * 
  * @author amoore
@@ -30,8 +39,31 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateException;
 
 public class DisplayStationDailyEveningAction extends DisplayDailyAction {
 
+    /**
+     * Logger.
+     */
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(DisplayDailyAction.class);
+
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
+        // get global preferences
+        ClimateRequest globalsRequest = new ClimateRequest();
+        globalsRequest.setRequestType(RequestType.GET_GLOBAL);
+        ClimateGlobal climateGlobals;
+        try {
+            climateGlobals = (ClimateGlobal) ThriftClient
+                    .sendRequest(globalsRequest);
+            // the service can return nulls
+            if (climateGlobals == null) {
+                climateGlobals = ClimateGlobal.getMissingClimateGlobal();
+            }
+
+        } catch (VizException e) {
+            climateGlobals = ClimateGlobal.getMissingClimateGlobal();
+            logger.error("Failed to read preferences.", e);
+        }
+
         /*
          * From CONOPS:
          * 
@@ -42,7 +74,8 @@ public class DisplayStationDailyEveningAction extends DisplayDailyAction {
          * user-defined valid time.
          */
         try {
-            openDailyDialog(PeriodType.EVEN_RAD, ClimateDate.getLocalDate(),
+            openDailyDialog(PeriodType.EVEN_RAD,
+                    ClimateDate.getLocalDate(climateGlobals.getTimezone()),
                     true);
         } catch (ClimateException e) {
             throw new ExecutionException(

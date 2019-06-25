@@ -68,13 +68,13 @@ import gov.noaa.nws.obs.viz.geodata.style.GeometryPreferences;
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * 07/25/2016     19064      jburks    Initial checkin (DCS 19064)
- * 08/04/2016     19064     mcomerford Adding styleRules handling.
+ * 07/25/2016   19064      jburks      Initial checkin (DCS 19064)
+ * 08/04/2016   19064      mcomerford  Adding styleRules handling.
+ * Dec 01, 2017 5863       mapeters    Change dataTimes to a NavigableSet
  *
  * </pre>
  *
  * @author jason.burks
- * @version 1.0
  */
 
 public class GeoDataResource
@@ -90,6 +90,7 @@ public class GeoDataResource
      * only apply to PointDrawables.
      */
     private float minPointSize;
+
     private float maxPointSize;
 
     /*
@@ -97,6 +98,7 @@ public class GeoDataResource
      * scaling)
      */
     private float minMagSize;
+
     private float maxMagSize;
 
     /*
@@ -148,8 +150,7 @@ public class GeoDataResource
      */
     protected GeoDataResource(GeoDataResourceData resourceData,
             LoadProperties loadProperties) {
-        super(resourceData, loadProperties);
-        this.dataTimes = new ArrayList<>();
+        super(resourceData, loadProperties, false);
     }
 
     @Override
@@ -304,7 +305,7 @@ public class GeoDataResource
 
     /**
      * Convert the Color instance to an RGB value (straight across).
-     * 
+     *
      * @param color
      *            The Color to convert to an RGB
      * @return The RGB converted from the Color.
@@ -369,7 +370,7 @@ public class GeoDataResource
     /**
      * Generate the CAVE Sampling String to display/format the Attribute(s)
      * stored in the GeoDataRecord.
-     * 
+     *
      * @param closestRecord
      *            The GeoDataRecord that is closest to the mouse pointer.
      * @param closestRecordPrefs
@@ -408,7 +409,7 @@ public class GeoDataResource
     /**
      * Generate the StyleRules-corrected sampling string given the values and
      * GeometryPreferences.
-     * 
+     *
      * @param sampleVal
      *            The unit-corrected value of the Attribute.
      * @param name
@@ -486,7 +487,8 @@ public class GeoDataResource
                  * immediately.
                  */
                 if (geometry instanceof Polygon) {
-                    Point point = new GeometryFactory().createPoint(coord.asLatLon());
+                    Point point = new GeometryFactory()
+                            .createPoint(coord.asLatLon());
                     if (geometry.contains(point)) {
                         return record;
                     }
@@ -584,19 +586,7 @@ public class GeoDataResource
                             TimeRange tr = resourceData.getBinOffset()
                                     .getTimeRange(record.getDataTime());
                             DataTime newDTime = new DataTime(tr.getStart());
-                            /*
-                             * Check for duplicates, and insert newDTime into
-                             * dataTimes in order.
-                             */
-                            if (!this.dataTimes.contains(newDTime)) {
-                                for (int i = 0; i < this.dataTimes
-                                        .size(); i++) {
-                                    if (!newDTime.greaterThan(
-                                            this.dataTimes.get(i))) {
-                                        this.dataTimes.add(i, newDTime);
-                                    }
-                                }
-                            }
+                            this.dataTimes.add(newDTime);
                             frames.put(tr, frame);
                         }
                         frame.addRecord(record);
@@ -653,17 +643,10 @@ public class GeoDataResource
         }
     }
 
-    /**
-     * @return the rscStyleRule
-     */
     public StyleRule getDefStyleRule() {
         return defStyleRule;
     }
 
-    /**
-     * @param rscStyleRule
-     *            the rscStyleRule to set
-     */
     public void setDefStyleRule(StyleRule defStyleRule) {
         this.defStyleRule = defStyleRule;
     }
