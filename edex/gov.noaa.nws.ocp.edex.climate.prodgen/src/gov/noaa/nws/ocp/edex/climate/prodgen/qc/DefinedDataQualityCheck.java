@@ -83,8 +83,7 @@ public class DefinedDataQualityCheck {
      * Localization levels to try to load, in order
      */
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
-            LocalizationLevel.SITE, LocalizationLevel.REGION,
-            LocalizationLevel.BASE };
+            LocalizationLevel.SITE, LocalizationLevel.BASE };
 
     private boolean check = false;
 
