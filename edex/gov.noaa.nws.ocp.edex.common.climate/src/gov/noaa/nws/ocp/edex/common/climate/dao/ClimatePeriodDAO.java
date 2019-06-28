@@ -93,6 +93,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  * 13 JUN 2019  DR21099    wpaintsil   Snow values should default to missing value if the station
  *                                     does not report snow.
  * 15 JUL 2019  DR21432    wpaintsil   Psql round function returns no results.
+ * 19 JUL 2019  DR21423    wpaintsil   24hr snowfall with a legitimate value of 0 was set to missing 
+ *                                     if there were no trace records.
  * </pre>
  * 
  * @author amoore
@@ -548,12 +550,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     int traceReports = getNumTotalSnowTrace(beginDate, endDate,
                             stationID, PeriodType.OTHER);
 
-                    if ((traceReports == 0)
-                            || (traceReports == ParameterFormatClimate.MISSING)) {
-                        // no trace snow reports
-                        periodData.setSnowMax24H(
-                                ParameterFormatClimate.MISSING_SNOW);
-                    } else {
+                    if (traceReports != 0
+                            && traceReports != ParameterFormatClimate.MISSING) {
                         periodData.setSnowMax24H(ParameterFormatClimate.TRACE);
                     }
                 }
@@ -561,7 +559,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 if ((periodData
                         .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW)
                         && (periodData
-                                .getSnowMax24H() != ParameterFormatClimate.TRACE)) {
+                                .getSnowMax24H() != ParameterFormatClimate.TRACE)
+                        && (periodData.getSnowMax24H() != 0)) {
                     periodData.setSnow24HDates(getMaxTotalSnowOccurrences(
                             beginDate, endDate, stationID,
                             periodData.getSnowMax24H(), PeriodType.OTHER));
@@ -574,7 +573,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
                 // dates with max 24H snow
                 if (periodData
-                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW) {
+                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW
+                        && periodData.getSnowMax24H() != 0) {
                     periodData.setSnow24HDates(getMax24HSnowOccurrences(
                             beginDate, endDate, stationID,
                             periodData.getSnowMax24H(), itype));
