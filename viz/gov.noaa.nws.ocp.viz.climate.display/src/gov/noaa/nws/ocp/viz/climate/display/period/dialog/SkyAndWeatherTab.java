@@ -38,6 +38,8 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
+ * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
+ *                                     mismatch symbols appearing inappropriately.
  * </pre>
  * 
  * @author amoore
@@ -944,6 +946,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumMostlyCloudyDays(),
                         iDailyBuildData.getNumMostlyCloudyDays());
                 skyAndWeatherMismatch = true;
+            } else {
+                myMostlyCloudyLabel.setMatched();
             }
         } else {
             myMostlyCloudyLabel.setMatched();
@@ -967,6 +971,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumPartlyCloudyDays(),
                         iDailyBuildData.getNumPartlyCloudyDays());
                 skyAndWeatherMismatch = true;
+            } else {
+                myPartlyCloudyLabel.setMatched();
             }
         } else {
             myPartlyCloudyLabel.setMatched();
@@ -988,6 +994,8 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 myFairLabel.setNotMatched(iMonthlyAsosData.getNumFairDays(),
                         iDailyBuildData.getNumFairDays());
                 skyAndWeatherMismatch = true;
+            } else {
+                myFairLabel.setMatched();
             }
         } else {
             myFairLabel.setMatched();
