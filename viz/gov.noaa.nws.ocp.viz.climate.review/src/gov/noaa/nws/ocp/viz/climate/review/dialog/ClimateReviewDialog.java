@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import com.raytheon.viz.avnconfig.FindReplaceDlg;
-import com.raytheon.viz.avnconfig.TextEditorSetupDlg;
+import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 
@@ -47,12 +47,14 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
  * 16 MAY 2017  33104      amoore      FindBugs and rename.
  * 02 OCT 2017  38582      amoore      Correct use of Font/FontData.
  * 21 MAY 2019  DR21196    dfriedman   Call ancestor disposed method.
+ * 25 JUN 2019  DR21407    wpaintsil   The parent disposed() method attempts 
+ *                                     to dispose a null Color object.
  * </pre>
  * 
  * @author astrakovsky
  */
 
-public abstract class ClimateReviewDialog extends TextEditorSetupDlg {
+public abstract class ClimateReviewDialog extends CaveSWTDialog {
 
     /**
      * Font for the styled text control.
@@ -80,6 +82,8 @@ public abstract class ClimateReviewDialog extends TextEditorSetupDlg {
 
     private static final int UNDO_STACK_SIZE = 10;
 
+    private boolean modifyFlag = true;
+
     protected FindReplaceDlg findDlg;
 
     public ClimateReviewDialog(Shell parentShell) {
@@ -93,7 +97,6 @@ public abstract class ClimateReviewDialog extends TextEditorSetupDlg {
 
     @Override
     protected void disposed() {
-        super.disposed();
         if (textFont != null) {
             textFont.dispose();
         }
