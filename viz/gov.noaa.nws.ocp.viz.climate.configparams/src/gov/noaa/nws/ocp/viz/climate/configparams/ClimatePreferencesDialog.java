@@ -30,6 +30,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest;
 import gov.noaa.nws.ocp.common.dataplugin.climate.request.ClimateRequest.RequestType;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.AnnualDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.F6ProductIDsDialog;
+import gov.noaa.nws.ocp.viz.climate.configparams.support.SnowReportingDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.StationEditDialog;
 import gov.noaa.nws.ocp.viz.climate.configparams.support.ThresholdsDialog;
 import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
@@ -58,6 +59,7 @@ import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
  * 27 JUL 2017  33104     amoore      Do not use effectively final functionality, for 1.7 build.
  * 03 AUG 2017  36715     amoore      Adjust sizing to fit text.
  * 12 OCT 2018  DR 20897  dfriedman   Add button to open F6 product ID overrides dialog.
+ * 29 MAY 2019  DR 21099  wpaintsil   Add Snow-Reportings stations preference button.
  * </pre>
  * 
  * @author xzhang
@@ -466,8 +468,8 @@ public class ClimatePreferencesDialog extends ClimateCaveChangeTrackDialog {
         });
 
         Button prodIdBtn = new Button(shell, SWT.PUSH);
-        GridData prodIdGd = new GridData(SWT.CENTER, SWT.CENTER, false,
-                false, 2, 1);
+        GridData prodIdGd = new GridData(SWT.CENTER, SWT.CENTER, false, false,
+                2, 1);
         prodIdGd.widthHint = 320;
         prodIdBtn.setLayoutData(prodIdGd);
         prodIdBtn.setText("Edit F6 Product ID Overrides");
@@ -483,9 +485,35 @@ public class ClimatePreferencesDialog extends ClimateCaveChangeTrackDialog {
                 // location.
                 int width = f6ProductIDsDialog.getShell().getSize().x;
                 int height = f6ProductIDsDialog.getShell().getSize().y;
-                f6ProductIDsDialog.getShell().setLocation(new Point(
-                        caveLocation.x + (caveWidth - width) / 2,
-                        caveLocation.y + (caveHeight - height) / 2));
+                f6ProductIDsDialog.getShell()
+                        .setLocation(new Point(
+                                caveLocation.x + (caveWidth - width) / 2,
+                                caveLocation.y + (caveHeight - height) / 2));
+            }
+        });
+
+        Button snowReportBtn = new Button(shell, SWT.PUSH);
+        GridData snowReportGd = new GridData(SWT.CENTER, SWT.CENTER, false,
+                false, 2, 1);
+        snowReportGd.widthHint = 320;
+        snowReportBtn.setLayoutData(snowReportGd);
+        snowReportBtn.setText("Edit Snow-Reporting Stations");
+        snowReportBtn.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                SnowReportingDialog snowReportDialog = new SnowReportingDialog(
+                        shell, preferenceValues);
+
+                snowReportDialog.open();
+
+                // center this dialog based on cave window dimensions and
+                // location.
+                int width = snowReportDialog.getShell().getSize().x;
+                int height = snowReportDialog.getShell().getSize().y;
+                snowReportDialog.getShell()
+                        .setLocation(new Point(
+                                caveLocation.x + (caveWidth - width) / 2,
+                                caveLocation.y + (caveHeight - height) / 2));
             }
         });
     }
