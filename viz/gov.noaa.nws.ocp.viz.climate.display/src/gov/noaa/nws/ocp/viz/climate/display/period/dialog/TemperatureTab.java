@@ -44,6 +44,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  *                                     Appears for temperature fields though those
  *                                     Values are close enough. E.g. "The MSM 
  *                                     value 17.3 does not match the Daily DB value 17.321428"
+ * 30 APR 2019  DR21261    wpaintsil    Some temperature fields need to be rounded.
  * </pre>
  * 
  * @author amoore
@@ -759,7 +760,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myAvgMinTempTF.setTextAndTip(
-                                String.valueOf(iData.getMinTempMean()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMinTempMean(), 1)),
                                 iData.getDataMethods().getAvgMinTempQc());
                     }
 
@@ -1156,7 +1158,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myAvgMaxTempTF.setTextAndTip(
-                                String.valueOf(iData.getMaxTempMean()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMaxTempMean(), 1)),
                                 iData.getDataMethods().getAvgMaxTempQc());
                     }
 
@@ -1202,7 +1205,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                     @Override
                     protected void loadFieldData(PeriodData iData) {
                         myMeanTempTF.setTextAndTip(
-                                String.valueOf(iData.getMeanTemp()),
+                                String.valueOf(ClimateUtilities
+                                        .nint(iData.getMeanTemp(), 1)),
                                 iData.getDataMethods().getMeanTempQc());
                     }
 
@@ -1591,8 +1595,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMinTempMean(),
-                dailyPeriodData.getMinTempMean())) {
+                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
+                ClimateUtilities.nint(dailyPeriodData.getMinTempMean(), 1))) {
             // check daily DB (could be null) second
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
