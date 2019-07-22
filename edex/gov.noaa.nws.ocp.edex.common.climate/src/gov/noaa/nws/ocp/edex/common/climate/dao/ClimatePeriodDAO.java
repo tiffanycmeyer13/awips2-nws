@@ -92,6 +92,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  * 30 APR 2019  DR21261    wpaintsil   Several fields missing due to incorrect queries.
  * 13 JUN 2019  DR21099    wpaintsil   Snow values should default to missing value if the station
  *                                     does not report snow.
+ * 15 JUL 2019  DR21432    wpaintsil   Psql round function returns no results.
  * </pre>
  * 
  * @author amoore
@@ -2236,7 +2237,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" WHERE period_start >= ");
         query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
-        query.append(" AND ROUND(snow_max_storm::numeric, 2) >= :maxSnowStorm");
+        query.append(" AND snow_max_storm >= :maxSnowStorm");
         query.append(" AND snow_max_storm != :missing");
         Map<String, Object> queryParams = new HashMap<>();
 
@@ -2459,7 +2460,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" WHERE date >= ");
             query.append(" :beginDate AND date <= ");
             query.append(" :endDate AND station_id = :stationID");
-            query.append(" AND ROUND(snow::numeric, 2) >= :snowTotal");
+            query.append(" AND snow >= :snowTotal");
             query.append(" AND snow != :missing");
             query.append(" ORDER BY snow DESC");
         }
@@ -2474,6 +2475,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         try {
             Object[] results = getDao().executeSQLQuery(query.toString(),
                     queryParams);
+
             if ((results != null) && (results.length >= 1)) {
                 for (Object result : results) {
                     if (result instanceof Object[]) {
@@ -2648,7 +2650,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" WHERE period_start >= ");
         query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
-        query.append(" AND ROUND(precip_storm_max::numeric, 2) = ");
+        query.append(" AND precip_storm_max = ");
         query.append(":precipMaxStorm AND precip_storm_max != :missing");
         Map<String, Object> queryParams = new HashMap<>();
 
@@ -2869,7 +2871,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" :endDate AND station_id = :stationID");
         if (maxTotalPrecip != ParameterFormatClimate.TRACE) {
             // non-trace precip
-            query.append(" AND ROUND(precip::numeric, 2) >= :totalPrecip");
+            query.append(" AND precip >= :totalPrecip");
         } else {
             // trace precip only
             query.append(" AND precip <= :totalPrecip");

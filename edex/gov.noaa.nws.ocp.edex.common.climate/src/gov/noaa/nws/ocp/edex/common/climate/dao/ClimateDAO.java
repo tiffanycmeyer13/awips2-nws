@@ -60,6 +60,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 08 APR 2019  DR 21226   dfriedman   Exclude trace precip values for averages in buildElement.
  * 23 APR 2019  DR21252    wpaintsil   Faulty logic in determining whether the monthly precip total 
  *                                     is trace.
+ * 15 JUL 2019  DR21432    wpaintsil   Correct mistake in precip/snow query.
  * </pre>
  * 
  * @author amoore
@@ -558,6 +559,8 @@ public class ClimateDAO {
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
             query.append(" WHERE ");
             query.append(" period_type = 5 AND ");
+
+            queryNoTrace.append(query.toString());
         } else {
             element = dailyColumn;
             idCol = "station_id";
