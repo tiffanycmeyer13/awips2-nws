@@ -14,6 +14,7 @@ import com.raytheon.uf.common.time.util.TimeUtil;
 
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateRecordDay;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateSeason;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
@@ -36,6 +37,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateCreatorDAO.FSSReportResul
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateDailyNormDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodNormDAO;
 import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
+import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
 import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
 import gov.noaa.nws.ocp.edex.common.climate.util.MetarUtils;
 import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
@@ -86,6 +88,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  * 26 APR 2019  DR 21195   dfriedman   Handle both special case precipitation values.
  * 30 APR 2019  DR21261    wpaintsil   numWindObs field was not set, causing missing resultant wind.
  *                                     Also wrong values set in resultX and resultY fields.
+ * 29 MAY 2019  DR 21099   wpaintsil   Display snowfall based on a ClimateGlobal field.
  * </pre>
  * 
  * @author amoore
@@ -135,6 +138,8 @@ public final class DailyClimateCreator {
     private final DailyClimateDAO dailyClimateDao = new DailyClimateDAO();
 
     private final ClimateCreatorDAO climateCreatorDAO = new ClimateCreatorDAO();
+
+    private ClimateGlobal globalConfig = ClimateGlobalConfiguration.getGlobal();
 
     /**
      * Constructor.
@@ -2595,9 +2600,13 @@ public final class DailyClimateCreator {
             // Snow will be assumed to be 0 if the precip total is 0
             // or the minimum temp did not fall below 50 degrees
             if (yesterday.getSnowDay() == ParameterFormatClimate.MISSING_SNOW) {
-                if ((yesterday.getPrecip() == 0)
-                        || ((yesterday.getMinTemp() > 50) && (yesterday
-                                .getMinTemp() != ParameterFormatClimate.MISSING))) {
+                // Default to MISSING_SNOW if the current station does not
+                // report snow, according to globalDay.properties.
+                if (globalConfig.getSnowReportingStations()
+                        .contains(currStation.getIcaoId())
+                        && ((yesterday.getPrecip() == 0)
+                                || ((yesterday.getMinTemp() > 50) && (yesterday
+                                        .getMinTemp() != ParameterFormatClimate.MISSING)))) {
                     yesterday.setSnowDay(0);
                     yesterdayQC.setSnowQc(QCValues.SNOW_ASSUMED);
                 }

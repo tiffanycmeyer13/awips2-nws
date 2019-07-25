@@ -44,7 +44,8 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  *                                     Appears for temperature fields though those
  *                                     Values are close enough. E.g. "The MSM 
  *                                     value 17.3 does not match the Daily DB value 17.321428"
- * 30 APR 2019  DR21261    wpaintsil    Some temperature fields need to be rounded.
+ * 30 APR 2019  DR21261    wpaintsil   Some temperature fields need to be rounded.
+ * 13 JUN 2019  DR21417    wpaintsil   Float entry required for temperature averages.
  * </pre>
  * 
  * @author amoore
@@ -789,9 +790,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myAvgMinTempTF.useGridData();
         myAvgMinTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMinTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMinTempTF.addKeyListener(new DataFieldListener(
                 myAvgMinTempComboBox, myPeriodDialog.getChangeListener()));
 
@@ -1187,9 +1188,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myAvgMaxTempTF.useGridData();
         myAvgMaxTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMaxTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMaxTempTF.addKeyListener(new DataFieldListener(
                 myAvgMaxTempComboBox, myPeriodDialog.getChangeListener()));
 
@@ -1234,9 +1235,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myMeanTempTF.useGridData();
         myMeanTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myMeanTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myMeanTempTF.addKeyListener(new DataFieldListener(myMeanTempComboBox,
                 myPeriodDialog.getChangeListener()));
     }

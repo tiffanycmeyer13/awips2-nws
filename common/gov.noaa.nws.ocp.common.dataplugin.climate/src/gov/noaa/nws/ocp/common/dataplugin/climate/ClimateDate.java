@@ -3,9 +3,12 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
@@ -63,6 +66,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  *                                    time and local time.
  * 04 APR 2019  DR21220    wpaintsil  Add a conversion method for ZonedDateTime.
  * 10 APR 2019  DR21159    wpaintsil  Revise date-time formatting and comparisons.
+ * 04 JUN 2019  DR21430    wpaintsil  Revise month-day formatting.
  * </pre>
  * 
  * @author xzhang
@@ -354,18 +358,14 @@ public class ClimateDate {
      * @return format of "MM-dd"
      */
     public String toMonthDayDateString() {
-        if ((day == ParameterFormatClimate.MISSING_DATE)
-                || (mon == ParameterFormatClimate.MISSING_DATE)) {
+        if (day == ParameterFormatClimate.MISSING_DATE
+                || day == ParameterFormatClimate.MISSING
+                || mon == ParameterFormatClimate.MISSING_DATE
+                || mon == ParameterFormatClimate.MISSING) {
             return MISSING_MONTH_DAY_DATE_STRING;
         }
-        return createMonthDayDateString();
-    }
 
-    /**
-     * @return format of "MM-dd"
-     */
-    public String createMonthDayDateString() {
-        LocalDate date = LocalDate.of(year, mon, day);
+        LocalDate date = validDate(mon, day, year);
 
         return String.format(MONTH_DAY_STRING_FORMAT, date.getMonthValue(),
                 date.getDayOfMonth());
@@ -520,8 +520,47 @@ public class ClimateDate {
      * @return {@link ZonedDateTime} object.
      */
     public ZonedDateTime getZonedDateTimeFromClimateDate(String timeZone) {
-        return ZonedDateTime.now().withDayOfMonth(day).withMonth(mon)
-                .withYear(year).withZoneSameInstant(ZoneId.of(timeZone));
+        return ZonedDateTime.of(validDate(mon, day, year), LocalTime.now(),
+                ZoneId.of(timeZone));
+
+    }
+
+    /**
+     * 
+     * @param month
+     * @param day
+     * @param year
+     * @return a LocalDate object with a day within the bounds appropriate for
+     *         that specific month and year.
+     */
+    private static LocalDate validDate(int month, int day, int year) {
+        int validDay = day;
+        boolean outOfBounds = false;
+
+        // Return the first day of the month if the day parameter is somehow
+        // less than 1.
+        if (day < 1) {
+            validDay = 1;
+            outOfBounds = true;
+        }
+
+        // Return the last day of the month if the day parameter is greater than
+        // the last day of the given month and year.
+        int lastDayOfMonth = YearMonth.of(year, month).lengthOfMonth();
+        if (day > lastDayOfMonth) {
+            validDay = lastDayOfMonth;
+            outOfBounds = true;
+        }
+
+        if (outOfBounds) {
+            String monthString = DateFormatSymbols.getInstance()
+                    .getMonths()[month - 1];
+            logger.warn("Invalid Date: " + monthString + " " + day + ", " + year
+                    + ". Defaulted to " + monthString + " " + validDay + ", "
+                    + year + ".");
+        }
+
+        return LocalDate.of(year, month, validDay);
     }
 
     /**
@@ -575,10 +614,10 @@ public class ClimateDate {
             return false;
         }
 
-        LocalDate thisDate = LocalDate.of(year, mon, day);
+        LocalDate thisDate = validDate(mon, day, year);
 
-        LocalDate otherDate = LocalDate.of(iDate.getYear(), iDate.getMon(),
-                iDate.getDay());
+        LocalDate otherDate = validDate(iDate.getMon(), iDate.getDay(),
+                iDate.getYear());
 
         return thisDate.isAfter(otherDate);
     }
@@ -594,10 +633,10 @@ public class ClimateDate {
             return false;
         }
 
-        LocalDate thisDate = LocalDate.of(year, mon, day);
+        LocalDate thisDate = validDate(mon, day, year);
 
-        LocalDate otherDate = LocalDate.of(iDate.getYear(), iDate.getMon(),
-                iDate.getDay());
+        LocalDate otherDate = validDate(iDate.getMon(), iDate.getDay(),
+                iDate.getYear());
 
         return thisDate.isBefore(otherDate);
     }

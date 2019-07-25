@@ -44,6 +44,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  *                                     period type. Incorrect values appear
  *                                     otherwise.
  * 30 APR 2019  DR21261    wpaintsil   Revise logic for CLM.
+ * 13 JUN 2019  DR20199    wpaintsil   Default to missing snow values for
+ *                                     stations that don't report snow.
  * </pre>
  * 
  * @author amoore
@@ -263,10 +265,14 @@ public final class PeriodClimateCreator {
             /*
              * End special monthly logic
              */
+
             if (!monthly) {
                 climatePeriodDAO.buildPeriodSumClimo(beginDate, endDate,
-                        currPeriodData, periodType);
+                        currPeriodData, periodType,
+                        globalValues.getSnowReportingStations()
+                                .contains(climateStations.get(i).getIcaoId()));
             }
+
             dailyClimateDao.buildPResultantWind(beginDate, endDate,
                     currPeriodData, PeriodType.OTHER);
 
