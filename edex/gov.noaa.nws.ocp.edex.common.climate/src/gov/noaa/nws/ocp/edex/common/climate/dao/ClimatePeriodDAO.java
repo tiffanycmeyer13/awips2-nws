@@ -93,6 +93,10 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  * 13 JUN 2019  DR21099    wpaintsil   Snow values should default to missing value if the station
  *                                     does not report snow.
  * 15 JUL 2019  DR21432    wpaintsil   Psql round function returns no results.
+ * 18 JUL 2019  DR21454    wpaintsil   Logic from legacy was not properly migrated for 
+ *                                     24 hr precip date calculations.
+ * 19 JUL 2019  DR21423    wpaintsil   24hr snowfall with a legitimate value of 0 was set to missing 
+ *                                     if there were no trace records.
  * </pre>
  * 
  * @author amoore
@@ -548,12 +552,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     int traceReports = getNumTotalSnowTrace(beginDate, endDate,
                             stationID, PeriodType.OTHER);
 
-                    if ((traceReports == 0)
-                            || (traceReports == ParameterFormatClimate.MISSING)) {
-                        // no trace snow reports
-                        periodData.setSnowMax24H(
-                                ParameterFormatClimate.MISSING_SNOW);
-                    } else {
+                    if (traceReports != 0
+                            && traceReports != ParameterFormatClimate.MISSING) {
                         periodData.setSnowMax24H(ParameterFormatClimate.TRACE);
                     }
                 }
@@ -561,7 +561,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 if ((periodData
                         .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW)
                         && (periodData
-                                .getSnowMax24H() != ParameterFormatClimate.TRACE)) {
+                                .getSnowMax24H() != ParameterFormatClimate.TRACE)
+                        && (periodData.getSnowMax24H() != 0)) {
                     periodData.setSnow24HDates(getMaxTotalSnowOccurrences(
                             beginDate, endDate, stationID,
                             periodData.getSnowMax24H(), PeriodType.OTHER));
@@ -574,7 +575,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
 
                 // dates with max 24H snow
                 if (periodData
-                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW) {
+                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW
+                        && periodData.getSnowMax24H() != 0) {
                     periodData.setSnow24HDates(getMax24HSnowOccurrences(
                             beginDate, endDate, stationID,
                             periodData.getSnowMax24H(), itype));
@@ -995,7 +997,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                              * reset the period data's max 24 hour dates list
                              */
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i);
+                                    beginDate, i, k);
 
                             // assign start of new dates collection
                             List<ClimateDates> precipDates = new ArrayList<>();
@@ -1012,9 +1014,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                             // Legacy would limit dates to 3 sets; this
                             // is unnecessary here and potentially
                             // limiting to future expansion
-
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i);
+                                    beginDate, i, k);
 
                             /*
                              * check if this 24 hour period is a
@@ -2803,32 +2804,37 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * 
      * @param iStartDate
      * @param iStartHour
+     * @param startDay
      * @return
      */
     private static ClimateDates getPrecipDatesFromDateAndHour(
-            ClimateDate iStartDate, int iStartHour) {
+            ClimateDate iStartDate, int iStartHour, int startDay) {
         ClimateDates newPrecipDates;
+
+        int start, end;
+
         if (iStartHour == 0) {
             /*
              * max found between hours 0 and 23 on first day
              */
-            newPrecipDates = new ClimateDates(new ClimateDate(iStartDate),
-                    new ClimateDate(iStartDate));
+            start = startDay;
+            end = startDay;
         } else if (iStartHour < TimeUtil.HOURS_PER_DAY) {
             /* date spanned */
-            Calendar endCal = iStartDate.getCalendarFromClimateDate();
-            endCal.add(Calendar.DATE, 1);
-            newPrecipDates = new ClimateDates(new ClimateDate(iStartDate),
-                    new ClimateDate(endCal));
+            start = startDay;
+            end = startDay + 1;
         } else {
             /*
              * max found between hours 0 and 23 on second day
              */
-            Calendar cal = iStartDate.getCalendarFromClimateDate();
-            cal.add(Calendar.DATE, 1);
-            newPrecipDates = new ClimateDates(new ClimateDate(cal),
-                    new ClimateDate(cal));
+            start = startDay + 1;
+            end = startDay + 1;
         }
+        newPrecipDates = new ClimateDates(
+                new ClimateDate(start, iStartDate.getMon(),
+                        iStartDate.getYear()),
+                new ClimateDate(end, iStartDate.getMon(),
+                        iStartDate.getYear()));
 
         /*
          * determine beginning and ending hours of the 24 hour period

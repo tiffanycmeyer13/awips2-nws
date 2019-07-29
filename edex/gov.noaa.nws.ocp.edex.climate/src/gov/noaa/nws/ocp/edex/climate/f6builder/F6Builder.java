@@ -117,6 +117,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 19 NOV 2018  DR 21013   wpaintsil   Correct column alignment.
  * 08 MAR 2019  DR 21160   wpaintsil   WX columns should be blank instead of 'M.'
  * 22 MAY 2019  DR 21287   dfriedman   Improve error and duplicate storage reporting.
+ * 16 JUL 2019  DR 21453   wpaintsil   Round up for mean temp departure from normal
+ *                                     and average sky cover.
  * </pre>
  * 
  * @author amoore
@@ -344,20 +346,21 @@ public class F6Builder {
                          * product in the text database.
                          */
                         transmissionAttempted = true;
-                        failureDetail = transmitProduct(pil, awipsWanPil, totalContents);
+                        failureDetail = transmitProduct(pil, awipsWanPil,
+                                totalContents);
                         ok = failureDetail == null;
                         insertTime = ok ? TimeUtil.newDate().getTime()
                                 : Long.MIN_VALUE;
                     } else {
                         storageAttempted = true;
-                        insertTime = textdb.writeProduct(pil, totalContents, operational,
-                                null);
+                        insertTime = textdb.writeProduct(pil, totalContents,
+                                operational, null);
                         ok = insertTime != Long.MIN_VALUE;
-                        if (! ok) {
+                        if (!ok) {
                             List<StdTextProduct> storedProducts = textdb
-                                    .readAwips(null, null, 0,
-                                            pil.substring(3), null, null, null,
-                                            null, false, operational);
+                                    .readAwips(null, null, 0, pil.substring(3),
+                                            null, null, null, null, false,
+                                            operational);
                             for (StdTextProduct prod : storedProducts) {
                                 if (totalContents.equals(prod.getProduct())) {
                                     dup = true;
@@ -436,9 +439,8 @@ public class F6Builder {
                         String action = transmitThisProduct
                                 ? "transmit F6 report"
                                 : "store F6 report to the text database";
-                        String message = "Failed to " + action
-                                + " for station " + station.getIcaoId()
-                                + " with PIL " + pil;
+                        String message = "Failed to " + action + " for station "
+                                + station.getIcaoId() + " with PIL " + pil;
                         if (failureDetail != null) {
                             message += ": " + failureDetail;
                         }
@@ -468,15 +470,18 @@ public class F6Builder {
         if (!hasException && transmissionAttempted) {
             messages.append("Successfully transmitted all F6 products.\n");
         } else if (transmissionSuccessMessages.size() > 0) {
-            messages.append("Transmitted: " + String.join("; ", transmissionSuccessMessages) + ".\n\n");
+            messages.append("Transmitted: "
+                    + String.join("; ", transmissionSuccessMessages) + ".\n\n");
         }
         if (!hasException && storageAttempted) {
             messages.append("Succcessfully stored all F6 products.\n");
         } else if (storageSuccessMessages.size() > 0) {
-            messages.append("Stored: " + String.join("; ", storageSuccessMessages) + ".\n\n");
+            messages.append("Stored: "
+                    + String.join("; ", storageSuccessMessages) + ".\n\n");
         }
         if (duplicateStorageMessages.size() > 0) {
-            messages.append("Duplicates not stored: " + String.join("; ", duplicateStorageMessages) + ".\n\n");
+            messages.append("Duplicates not stored: "
+                    + String.join("; ", duplicateStorageMessages) + ".\n\n");
         }
         if (transmissionFailureMessages.size() > 0) {
             transmissionFailureMessages.add(""); // add extra blank line
@@ -587,7 +592,7 @@ public class F6Builder {
         int sumMin = 0;
         int sumHdd = 0;
         int sumCdd = 0;
-        int sumSS = 0;
+        float sumSS = 0;
         int sumPsbl = 0;
         float sumWtr = 0;
         float sumSnw = 0;
@@ -856,11 +861,11 @@ public class F6Builder {
                  * 
                  * Correction: "okta"
                  */
-                int avgSky = ClimateUtilities
-                        .nint(dailyData.getSkyCover() * 10);
+                float avgSky = dailyData.getSkyCover() * 10;
                 sumSS += avgSky;
                 numSS++;
-                dailyValueMap.put("ss", String.format("%4s", avgSky));
+                dailyValueMap.put("ss",
+                        String.format("%4s", ClimateUtilities.nint(avgSky)));
             } else {
                 dailyValueMap.put("ss", String.format("%4s", "M"));
             }
@@ -1020,7 +1025,8 @@ public class F6Builder {
         }
 
         if (numSS > 0) {
-            context.put("sumSS", String.format("%4s", sumSS));
+            context.put("sumSS",
+                    String.format("%4s", ClimateUtilities.nint(sumSS)));
         } else {
             context.put("sumSS", String.format("%4s", "M"));
         }
@@ -1078,7 +1084,8 @@ public class F6Builder {
         }
 
         if (numSS > 0) {
-            context.put("avgss", String.format("%4s", sumSS / numSS));
+            context.put("avgss",
+                    String.format("%4s", ClimateUtilities.nint(sumSS / numSS)));
         } else {
             context.put("avgss", String.format("%4s", "M"));
         }
@@ -1152,8 +1159,9 @@ public class F6Builder {
         /* place temperature departure from normal */
         if (pClimo.getNormMeanTemp() != ParameterFormatClimate.MISSING
                 && periodData.getMeanTemp() != ParameterFormatClimate.MISSING) {
-            context.put("dptrtemp", String.format("%5.1f",
-                    (avgTempf - pClimo.getNormMeanTemp())));
+            context.put("dptrtemp", String.format("%5.1f", ClimateUtilities
+                    .nint(avgTempf - pClimo.getNormMeanTemp(), 1)));
+
         } else {
             context.put("dptrtemp", String.format("%5s", "M"));
         }

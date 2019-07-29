@@ -89,6 +89,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  * 30 APR 2019  DR21261    wpaintsil   numWindObs field was not set, causing missing resultant wind.
  *                                     Also wrong values set in resultX and resultY fields.
  * 29 MAY 2019  DR 21099   wpaintsil   Display snowfall based on a ClimateGlobal field.
+ * 02 JUL 2019  DR21423    wpaintsil   Snowfall values for IM, PM should be missing.
  * </pre>
  * 
  * @author amoore
@@ -2599,7 +2600,9 @@ public final class DailyClimateCreator {
             // 12/12/00 - One final quality check on snow total
             // Snow will be assumed to be 0 if the precip total is 0
             // or the minimum temp did not fall below 50 degrees
-            if (yesterday.getSnowDay() == ParameterFormatClimate.MISSING_SNOW) {
+            if (yesterday.getSnowDay() == ParameterFormatClimate.MISSING_SNOW
+                    && (itype.equals(PeriodType.MORN_RAD)
+                            || itype.equals(PeriodType.MORN_NWWS))) {
                 // Default to MISSING_SNOW if the current station does not
                 // report snow, according to globalDay.properties.
                 if (globalConfig.getSnowReportingStations()

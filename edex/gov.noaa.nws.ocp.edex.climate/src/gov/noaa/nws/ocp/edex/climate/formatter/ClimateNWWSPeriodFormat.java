@@ -57,6 +57,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * 09 APR 2019  DR21217    wpaintsil   Wrong precision on temp departure from normals.
  * 30 MAY 2017  DR21432    wpaintsil   Correct last year values for threshold line. Correct 
  *                                     error in date formatting.
+ * 02 JUL 2019  DR21423    wpaintsil   Snow depth avg. line fails to appear.
  *
  * </pre>
  *
@@ -1951,7 +1952,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 snowPrecip.append(floatLine.toString());
             }
 
-            if (snowFlag.getSnowDepthAvg().isRecord()) {
+            if (snowFlag.getSnowDepthAvg().isMeasured()) {
                 int snowGround = ClimateUtilities
                         .nint(actualData.getSnowGroundMean());
                 int snowNorm = ClimateUtilities
