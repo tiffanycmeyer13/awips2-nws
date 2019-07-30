@@ -62,6 +62,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  *                                     is trace.
  * 02 JUL 2019  DR21423    wpaintsil   Trace not included in "number of days with snow."
  * 15 JUL 2019  DR21432    wpaintsil   Correct mistake in precip/snow query.
+ * 30 JUL 2019  DR21339    dfriedman   Do not log a warning on failed station code lookup.
  * </pre>
  * 
  * @author amoore
@@ -157,22 +158,24 @@ public class ClimateDAO {
      * @param keyQuery
      * @param keyParamMap
      * @param missingValue
+     * @param warnNull log a warning if query result is empty or value is null
      * @return resulting value, or the missing value provided on any error.
      */
     public final Object queryForOneValue(String keyQuery,
-            Map<String, Object> keyParamMap, Object missingValue) {
+            Map<String, Object> keyParamMap, Object missingValue,
+            boolean warnNull) {
         try {
             Object[] res = dao.executeSQLQuery(keyQuery, keyParamMap);
             if ((res != null) && (res.length >= 1)) {
                 if (res[0] != null) {
                     return res[0];
-                } else {
+                } else if (warnNull) {
                     logger.warn(
                             "Null result querying the climate database with query: ["
                                     + keyQuery + "] and map [" + keyParamMap
                                     + "]");
                 }
-            } else {
+            } else if (warnNull) {
                 logger.warn(
                         "Null or empty result set querying the climate database with query: ["
                                 + keyQuery + "] and map [" + keyParamMap + "]");
@@ -190,6 +193,22 @@ public class ClimateDAO {
      * what type is expected on valid returns versus how the result of this
      * method is cast/handled on returning.
      * 
+     * @param keyQuery
+     * @param keyParamMap
+     * @param missingValue
+     * @return resulting value, or the missing value provided on any error.
+     */
+    public final Object queryForOneValue(String keyQuery,
+            Map<String, Object> keyParamMap, Object missingValue) {
+        return queryForOneValue(keyQuery, keyParamMap, missingValue, true);
+    }
+
+    /**
+     * Query for a single value using the given parameters. Users of this method
+     * must be certain to be careful with typing of the missing value versus
+     * what type is expected on valid returns versus how the result of this
+     * method is cast/handled on returning.
+     *
      * @param keyQuery
      * @param missingValue
      * @return resulting value, or the missing value provided on any error.
@@ -252,11 +271,9 @@ public class ClimateDAO {
     /**
      * @param stationCode
      * @return the station ID (inform ID) associated with the given station
-     *         code.
-     * @throws ClimateQueryException
+     *         code or null if not found.
      */
-    public final int getStationIDByCode(String stationCode)
-            throws ClimateQueryException {
+    public final Integer getStationIDByCode(String stationCode) {
         String query = "SELECT station_id FROM "
                 + ClimateDAOValues.CLIMATE_STATION_SETUP_TABLE_NAME
                 + " WHERE station_code =" + ":stationCode";
@@ -264,15 +281,9 @@ public class ClimateDAO {
         queryParams.put("stationCode", stationCode);
 
         int stationID = (int) queryForOneValue(query, queryParams,
-                Integer.MIN_VALUE);
+                Integer.MIN_VALUE, false);
         if (stationID == Integer.MIN_VALUE) {
-            /*
-             * It is a critical issue if a station cannot be found.
-             */
-            throw new ClimateQueryException(
-                    "Could not find a station ID for code: [" + stationCode
-                            + "] using query: [" + query + "] and map: ["
-                            + queryParams.toString() + "].");
+            return null;
         }
 
         return stationID;
