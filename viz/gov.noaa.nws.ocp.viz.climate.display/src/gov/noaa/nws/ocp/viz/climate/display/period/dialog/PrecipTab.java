@@ -41,6 +41,11 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 13 JUN 2019  DR21432    wpaintsil   Greatest Storm Total data population not
+ *                                     implemented. Results in missing values 
+ *                                     in the text product.
+ * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
+ *                                     mismatch symbols appearing inappropriately.
  * </pre>
  * 
  * @author amoore
@@ -1273,6 +1278,10 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
             myMaxPrecip24HourLbl.setMatched();
         }
 
+        // Greatest Storm Total
+        myGreatestPrecipStormTF
+                .setText(String.valueOf(iSavedPeriodData.getPrecipStormMax()));
+
         if (precipTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);
         } else {
@@ -1310,14 +1319,16 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getPrecipTotal(),
                         iDailyBuildData.getPrecipTotal());
                 precipTabMismatch = true;
+            } else {
+                myTotalPrecipLbl.setMatched();
             }
         } else {
             myTotalPrecipLbl.setMatched();
         }
 
         // avg precip
-        myAvgDailyPrecipTF
-                .setText(String.valueOf(iDailyBuildData.getPrecipMeanDay()));
+        myAvgDailyPrecipTF.setText(String.valueOf(
+                ClimateUtilities.nint(iDailyBuildData.getPrecipMeanDay(), 2)));
 
         // precip >= 0.01
         if (iMonthlyAsosData == null || iDailyBuildData
@@ -1338,6 +1349,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumPrcpGreaterThan01(),
                         iDailyBuildData.getNumPrcpGreaterThan01());
                 precipTabMismatch = true;
+            } else {
+                myPrecipInchesGreater01Lbl.setMatched();
             }
         } else {
             myPrecipInchesGreater01Lbl.setMatched();
@@ -1362,6 +1375,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumPrcpGreaterThan10(),
                         iDailyBuildData.getNumPrcpGreaterThan10());
                 precipTabMismatch = true;
+            } else {
+                myPrecipInchesGreater10Lbl.setMatched();
             }
         } else {
             myPrecipInchesGreater10Lbl.setMatched();
@@ -1386,6 +1401,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumPrcpGreaterThan50(),
                         iDailyBuildData.getNumPrcpGreaterThan50());
                 precipTabMismatch = true;
+            } else {
+                myPrecipInchesGreater50Lbl.setMatched();
             }
         } else {
             myPrecipInchesGreater50Lbl.setMatched();
@@ -1410,6 +1427,8 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumPrcpGreaterThan100(),
                         iDailyBuildData.getNumPrcpGreaterThan100());
                 precipTabMismatch = true;
+            } else {
+                myPrecipInchesGreater100Lbl.setMatched();
             }
         } else {
             myPrecipInchesGreater100Lbl.setMatched();
@@ -1472,6 +1491,10 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         } else {
             myMaxPrecip24HourLbl.setMatched();
         }
+
+        // Greatest Storm Total
+        myGreatestPrecipStormTF
+                .setText(String.valueOf(iDailyBuildData.getPrecipStormMax()));
 
         if (precipTabMismatch) {
             myTabItem.setImage(MismatchLabel.VALUE_MISMATCH_ICON);

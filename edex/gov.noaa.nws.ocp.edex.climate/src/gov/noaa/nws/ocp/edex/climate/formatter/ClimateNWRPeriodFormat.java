@@ -25,8 +25,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParame
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimatePeriodReportData;
-import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunPeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
@@ -48,6 +48,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * Mar 07, 2017 21099      wpaintsil   Initial creation
  * May 10, 2017 30162      wpaintsil   Address FindBugs issues with String.format 
  *                                     and exceptions caused by empty lists.
+ * Jul 18, 2019 DR21453    wpaintsil   The wrong parameter was passed resulting 
+ *                                     in the wrong precip departure from normal.
  *
  * </pre>
  *
@@ -103,14 +105,12 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     *
     *   Purpose:  This routine is the driver responsible for building the
     *             NWR monthly, seasonal, and annual climate summary.
-    *
+     *
      * </pre>
      */
     @Override
-    public Map<String, ClimateProduct> buildText(
-            ClimateRunData reportData)
-                    throws ClimateInvalidParameterException,
-                    ClimateQueryException {
+    public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
+            throws ClimateInvalidParameterException, ClimateQueryException {
         Map<String, ClimateProduct> prod = new HashMap<>();
 
         Map<Integer, ClimatePeriodReportData> reportMap = ((ClimateRunPeriodData) reportData)
@@ -195,23 +195,23 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_wind.f.
-    * 
-    * <pre>
-    *   October  1999     David Zipper       PRC/TDL
-    *   November 1999     Bonnie Reed        PRC/TDL
-    *
-    *   Purpose: The purpose of this program is to create the wind portion
-    *            of the NOAA weather radio. Sentence structure output is 
-    *            documented in the climate design notebook.
-    *            
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    * @throws ClimateInvalidParameterException
-    */
-  
+     * Migrated from build_NWR_period_wind.f.
+     * 
+     * <pre>
+     *   October  1999     David Zipper       PRC/TDL
+     *   November 1999     Bonnie Reed        PRC/TDL
+     *
+     *   Purpose: The purpose of this program is to create the wind portion
+     *            of the NOAA weather radio. Sentence structure output is 
+     *            documented in the climate design notebook.
+     * 
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     * @throws ClimateInvalidParameterException
+     */
+
     private String buildNWRPeriodWind(ClimatePeriodReportData reportData)
             throws ClimateInvalidParameterException {
         StringBuilder windPhrase = new StringBuilder();
@@ -344,29 +344,29 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_heat_and_cool.f
-    * 
-    * <pre>
-    *    November 1999  Bonnie Reed            PRC/TDL
-    *
-    *
-    *   Purpose: 
-    *
-    *        The purpose of this routine is to build the heating degree days
-    *        and cooling degree days part of the climatology. The heating and
-    *        cooling degree have the exact same sentence structure. Both are 
-    *        included in this subroutine with different output phrases so that it
-    *        is possible to use just one part of the routine when the flags
-    *        are set such...i.e only use the heating degree days sentences when
-    *        only heating degree days sentences are turned on (TRUE).
-    * 
-    *
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
-  
+     * Migrated from build_NWR_period_heat_and_cool.f
+     * 
+     * <pre>
+     *    November 1999  Bonnie Reed            PRC/TDL
+     *
+     *
+     *   Purpose: 
+     *
+     *        The purpose of this routine is to build the heating degree days
+     *        and cooling degree days part of the climatology. The heating and
+     *        cooling degree have the exact same sentence structure. Both are 
+     *        included in this subroutine with different output phrases so that it
+     *        is possible to use just one part of the routine when the flags
+     *        are set such...i.e only use the heating degree days sentences when
+     *        only heating degree days sentences are turned on (TRUE).
+     * 
+     *
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRPeriodHeatAndCool(ClimatePeriodReportData reportData,
             ClimateDate beginDate) {
         StringBuilder heatCoolPhrase = new StringBuilder();
@@ -546,23 +546,23 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_precip.f.
-    * 
-    * <pre>
-    *   October  1999     Dan Zipper TDL/PRC
-    *   November 1999     Bonnie Reed TDL/PRC
-    *
-    *   Purpose:  This routine is the main driver for building the period
-    *             precipitation sentences for the NOAA Weather Radio (NWR).
-    *             There are three basic types of precipitation sentences:
-    *             liquid precip (i.e., rainfall) sentences, snowfall
-    *             sentences, and depth of snow on the ground sentences.
-    * </pre>
-    * 
-    * @param reportData
-    * @param report
-    * @return
-    */
+     * Migrated from build_NWR_period_precip.f.
+     * 
+     * <pre>
+     *   October  1999     Dan Zipper TDL/PRC
+     *   November 1999     Bonnie Reed TDL/PRC
+     *
+     *   Purpose:  This routine is the main driver for building the period
+     *             precipitation sentences for the NOAA Weather Radio (NWR).
+     *             There are three basic types of precipitation sentences:
+     *             liquid precip (i.e., rainfall) sentences, snowfall
+     *             sentences, and depth of snow on the ground sentences.
+     * </pre>
+     * 
+     * @param reportData
+     * @param report
+     * @return
+     */
 
     private String buildNWRPeriodPrecip(ClimatePeriodReportData reportData,
             ClimateDate beginDate) {
@@ -590,32 +590,32 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_p_snow_water_ground.f.
-    * 
-    * <pre>
-    *    November 1999    Bonnie Reed    PRC/TDL
-    *
-    *   Purpose:  This routine controls building the period rainfall sentences in 
-    *             the NOAA Weather Radio (NWR) portion of the climate
-    *             program.  Sentence formats are documented in the CLIMATE
-    *             Design Notebook.
-    *
-    *             Why do we test on half_snow?
-    *               Generally, it is bad coding practice to test on whether
-    *               two REAL numbers equal each other.  This is because there
-    *               may be small differences between the the numbers which
-    *               aren't immediately apparent.  The precision to which we
-    *               we measure snowfall is 0.01 inches.  We will test 
-    *               to see if two snowfall measurements are within 0.005,
-    *               or half_snow of one another.  We will consider such values
-    *               as being equal if they are within this.
-    * 
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
-  
+     * Migrated from build_NWR_p_snow_water_ground.f.
+     * 
+     * <pre>
+     *    November 1999    Bonnie Reed    PRC/TDL
+     *
+     *   Purpose:  This routine controls building the period rainfall sentences in 
+     *             the NOAA Weather Radio (NWR) portion of the climate
+     *             program.  Sentence formats are documented in the CLIMATE
+     *             Design Notebook.
+     *
+     *             Why do we test on half_snow?
+     *               Generally, it is bad coding practice to test on whether
+     *               two REAL numbers equal each other.  This is because there
+     *               may be small differences between the the numbers which
+     *               aren't immediately apparent.  The precision to which we
+     *               we measure snowfall is 0.01 inches.  We will test 
+     *               to see if two snowfall measurements are within 0.005,
+     *               or half_snow of one another.  We will consider such values
+     *               as being equal if they are within this.
+     * 
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRSnowWaterGround(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -826,31 +826,31 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_snow_totals.f
-    * 
-    * <pre>
-    *    November 1999    Bonnie Reed    PRC/TDL
-    *
-    *   Purpose:  This routine controls building the period rainfall sentences in 
-    *             the NOAA Weather Radio (NWR) portion of the climate
-    *             program.  Sentence formats are documented in the CLIMATE
-    *             Design Notebook.
-    *
-    *             Why do we test on half_snow?
-    *               Generally, it is bad coding practice to test on whether
-    *               two REAL numbers equal each other.  This is because there
-    *               may be small differences between the the numbers which
-    *               aren't immediately apparent.  The precision to which we
-    *               we measure snowfall is 0.01 inches.  We will test 
-    *               to see if two snowfall measurements are within 0.005,
-    *               or half_snow of one another.  We will consider such values
-    *               as being equal if they are within this.
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
-  
+     * Migrated from build_NWR_period_snow_totals.f
+     * 
+     * <pre>
+     *    November 1999    Bonnie Reed    PRC/TDL
+     *
+     *   Purpose:  This routine controls building the period rainfall sentences in 
+     *             the NOAA Weather Radio (NWR) portion of the climate
+     *             program.  Sentence formats are documented in the CLIMATE
+     *             Design Notebook.
+     *
+     *             Why do we test on half_snow?
+     *               Generally, it is bad coding practice to test on whether
+     *               two REAL numbers equal each other.  This is because there
+     *               may be small differences between the the numbers which
+     *               aren't immediately apparent.  The precision to which we
+     *               we measure snowfall is 0.01 inches.  We will test 
+     *               to see if two snowfall measurements are within 0.005,
+     *               or half_snow of one another.  We will consider such values
+     *               as being equal if they are within this.
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRSnowTotals(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1072,32 +1072,32 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated build_NWR_period_snow_precip.f.
-    * 
-    * <pre>
-    *    October  1999    Dan Zipper     PRC/TDL
-    *    November 1999    Bonnie Reed    PRC/TDL
-    *
-    *   Purpose:  This routine controls building the period rainfall sentences in 
-    *             the NOAA Weather Radio (NWR) portion of the climate
-    *             program.  Sentence formats are documented in the CLIMATE
-    *             Design Notebook.
-    *
-    *             Why do we test on half_snow?
-    *               Generally, it is bad coding practice to test on whether
-    *               two REAL numbers equal each other.  This is because there
-    *               may be small differences between the the numbers which
-    *               aren't immediately apparent.  The precision to which we
-    *               we measure snowfall is 0.01 inches.  We will test 
-    *               to see if two snowfall measurements are within 0.005,
-    *               or half_snow of one another.  We will consider such values
-    *               as being equal if they are within this.
-    * 
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
+     * Migrated build_NWR_period_snow_precip.f.
+     * 
+     * <pre>
+     *    October  1999    Dan Zipper     PRC/TDL
+     *    November 1999    Bonnie Reed    PRC/TDL
+     *
+     *   Purpose:  This routine controls building the period rainfall sentences in 
+     *             the NOAA Weather Radio (NWR) portion of the climate
+     *             program.  Sentence formats are documented in the CLIMATE
+     *             Design Notebook.
+     *
+     *             Why do we test on half_snow?
+     *               Generally, it is bad coding practice to test on whether
+     *               two REAL numbers equal each other.  This is because there
+     *               may be small differences between the the numbers which
+     *               aren't immediately apparent.  The precision to which we
+     *               we measure snowfall is 0.01 inches.  We will test 
+     *               to see if two snowfall measurements are within 0.005,
+     *               or half_snow of one another.  We will consider such values
+     *               as being equal if they are within this.
+     * 
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
 
     private String buildNWRSnowPrecip(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
@@ -1439,7 +1439,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
         precipPhrase.append(liquidFractionHelper(precipFlag.getPrecipGE10(),
                 periodData.getNumPrcpGreaterThan10(),
-                hClimo.getNumPrcpGE01Norm(), THRESHOLD_010));
+                hClimo.getNumPrcpGE10Norm(), THRESHOLD_010));
 
         precipPhrase.append(liquidFractionHelper(precipFlag.getPrecipGE50(),
                 periodData.getNumPrcpGreaterThan50(),
@@ -1501,7 +1501,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append(" and a trace or more of ")
                                 .append(PRECIPITATION).append(" fell on ")
                                 .append(periodData.getNumPrcpGreaterThanP2())
-                                .append(dayDays(periodData
+                                .append(SPACE).append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     } else {
                         precipPhrase.append(" and ")
@@ -1510,7 +1510,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 .append(" inches of ").append(PRECIPITATION)
                                 .append(" or greater fell on ")
                                 .append(periodData.getNumPrcpGreaterThanP2())
-                                .append(dayDays(periodData
+                                .append(SPACE).append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     }
                 }
@@ -1529,7 +1529,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append("A trace or more of ")
                                 .append(PRECIPITATION).append(" fell on ")
                                 .append(periodData.getNumPrcpGreaterThanP2())
-                                .append(dayDays(periodData
+                                .append(SPACE).append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     } else {
                         precipPhrase
@@ -1538,7 +1538,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 .append(" inches of ").append(PRECIPITATION)
                                 .append(" or greater fell on ")
                                 .append(periodData.getNumPrcpGreaterThanP2())
-                                .append(dayDays(periodData
+                                .append(SPACE).append(dayDays(periodData
                                         .getNumPrcpGreaterThanP2() != 1));
                     }
                 }
@@ -1625,7 +1625,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append(" of ")
                                 .append(String.format(FLOAT_ONE_DECIMAL,
                                         normValue))
-                                .append(dayDays(normValue != 1));
+                                .append(SPACE).append(dayDays(normValue != 1));
                     } else {
                         precipPhrase
                                 .append(". The normal amount is ").append(String
@@ -1642,31 +1642,31 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_p_liquid_hr_storm_avg.f.
-    * 
-    * <pre>
-    *   November 1999      Bonnie Reed   PRC/TDL
-    *
-    *   Purpose:  This routine controls building the period rainfall sentences in 
-    *             the NOAA Weather Radio (NWR) portion of the climate
-    *             program.  Sentence formats are documented in the CLIMATE
-    *             Design Notebook.
-    *
-    *             Why do we test on half_precip?
-    *               Generally, it is bad coding practice to test on whether
-    *               two REAL numbers equal each other.  This is because there
-    *               may be small differences between the the numbers which
-    *               aren't immediately apparent.  The precision to which we
-    *               we measure precipitation is 0.01 inches.  We will test 
-    *               to see if two precipitation measurements are within 0.005,
-    *               or half_precip of one another.  We will consider such values
-    *               as being equal if they are within this.
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
- 
+     * Migrated from build_NWR_p_liquid_hr_storm_avg.f.
+     * 
+     * <pre>
+     *   November 1999      Bonnie Reed   PRC/TDL
+     *
+     *   Purpose:  This routine controls building the period rainfall sentences in 
+     *             the NOAA Weather Radio (NWR) portion of the climate
+     *             program.  Sentence formats are documented in the CLIMATE
+     *             Design Notebook.
+     *
+     *             Why do we test on half_precip?
+     *               Generally, it is bad coding practice to test on whether
+     *               two REAL numbers equal each other.  This is because there
+     *               may be small differences between the the numbers which
+     *               aren't immediately apparent.  The precision to which we
+     *               we measure precipitation is 0.01 inches.  We will test 
+     *               to see if two precipitation measurements are within 0.005,
+     *               or half_precip of one another.  We will consider such values
+     *               as being equal if they are within this.
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRLiquidStormAvg(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1828,32 +1828,32 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_liquid_precip.f.
-    * 
-    * <pre>
-    *    October  1999    Dan Zipper     PRC/TDL
-    *    November 1999    Bonnie Reed    PRC/TDL
-    *
-    *   Purpose:  This routine controls building the period rainfall sentences in 
-    *             the NOAA Weather Radio (NWR) portion of the climate
-    *             program.  Sentence formats are documented in the CLIMATE
-    *             Design Notebook.
-    *
-    *             Why do we test on half_precip?
-    *               Generally, it is bad coding practice to test on whether
-    *               two REAL numbers equal each other.  This is because there
-    *               may be small differences between the the numbers which
-    *               aren't immediately apparent.  The precision to which we
-    *               we measure precipitation is 0.01 inches.  We will test 
-    *               to see if two precipitation measurements are within 0.005,
-    *               or half_precip of one another.  We will consider such values
-    *               as being equal if they are within this.
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
-  
+     * Migrated from build_NWR_period_liquid_precip.f.
+     * 
+     * <pre>
+     *    October  1999    Dan Zipper     PRC/TDL
+     *    November 1999    Bonnie Reed    PRC/TDL
+     *
+     *   Purpose:  This routine controls building the period rainfall sentences in 
+     *             the NOAA Weather Radio (NWR) portion of the climate
+     *             program.  Sentence formats are documented in the CLIMATE
+     *             Design Notebook.
+     *
+     *             Why do we test on half_precip?
+     *               Generally, it is bad coding practice to test on whether
+     *               two REAL numbers equal each other.  This is because there
+     *               may be small differences between the the numbers which
+     *               aren't immediately apparent.  The precision to which we
+     *               we measure precipitation is 0.01 inches.  We will test 
+     *               to see if two precipitation measurements are within 0.005,
+     *               or half_precip of one another.  We will consider such values
+     *               as being equal if they are within this.
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRLiquidPrecip(ClimatePeriodReportData reportData) {
         StringBuilder precipPhrase = new StringBuilder();
 
@@ -1954,8 +1954,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                 .getPrecipDayNorm() != ParameterFormatClimate.TRACE) {
                             precipPhrase.append(" of ")
                                     .append(String.format(
-                                            FLOAT_COMMAS_TWO_DECIMALS,
-                                            hClimo.getPrecipPeriodNorm()));
+                                            FLOAT_COMMAS_TWO_DECIMALS, hClimo
+                                                    .getPrecipPeriodNorm()));
                         } else {
                             precipPhrase.append(" of ").append(A_TRACE);
                         }
@@ -2071,22 +2071,22 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_temp.f.
-    * 
-    * <pre>
-    *   October 1999      Dan Zipper    PRC/TDL
-    *   October 1999      Bonnie Reed   PRC/TDL
-    *
-    *   Purpose:  
-    *        This subroutine will create the temperature related sentences for the
-    *        NWR product.
-    *
-    * </pre>
-    * 
-    * @param climateDailyReportData
-    * @return
-    */
-   
+     * Migrated from build_NWR_period_temp.f.
+     * 
+     * <pre>
+     *   October 1999      Dan Zipper    PRC/TDL
+     *   October 1999      Bonnie Reed   PRC/TDL
+     *
+     *   Purpose:  
+     *        This subroutine will create the temperature related sentences for the
+     *        NWR product.
+     *
+     * </pre>
+     * 
+     * @param climateDailyReportData
+     * @return
+     */
+
     private String buildNWRPeriodTemp(ClimatePeriodReportData reportData) {
         StringBuilder tempPhrase = new StringBuilder();
 
@@ -2197,8 +2197,8 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
      * @param compareNum
      * @param maxMinString
      * @param greaterThan
-     *            true if the comparison for the global value is
-     *            "greater than or equal"; false if it's "less than or equal."
+     *            true if the comparison for the global value is "greater than
+     *            or equal"; false if it's "less than or equal."
      * @return
      */
     private String userValuePhraseHelper(ClimateProductFlags tempFlag,
@@ -2433,22 +2433,22 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from build_NWR_period_mean_temp.f
-    * 
-    * <pre>
-    *   October 1999      Dan Zipper    PRC/TDL
-    *   October 1999      Bonnie Reed   PRC/TDL
-    *
-    *   Purpose:  
-    *        This subroutine will create the temperature related sentences for the
-    *        NWR product.
-    *
-    * </pre>
-    * 
-    * @param reportData
-    * @return
-    */
-   
+     * Migrated from build_NWR_period_mean_temp.f
+     * 
+     * <pre>
+     *   October 1999      Dan Zipper    PRC/TDL
+     *   October 1999      Bonnie Reed   PRC/TDL
+     *
+     *   Purpose:  
+     *        This subroutine will create the temperature related sentences for the
+     *        NWR product.
+     *
+     * </pre>
+     * 
+     * @param reportData
+     * @return
+     */
+
     private String buildNWRPeriodMeanTemp(ClimatePeriodReportData reportData) {
         StringBuilder tempPhrase = new StringBuilder();
 
@@ -2733,21 +2733,21 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from date_sentence.f.
-    * 
-    * <pre>
-    *    April 2001       Doug Murphy    PRC/MDL
-    *
-    *   Purpose:  This routine creates the dates of occurrence phrases for a
-    *             period climate report. 
-    *
-    *
-    * </pre>
-    * 
-    * @param dates
-    * @return
-    */
-  
+     * Migrated from date_sentence.f.
+     * 
+     * <pre>
+     *    April 2001       Doug Murphy    PRC/MDL
+     *
+     *   Purpose:  This routine creates the dates of occurrence phrases for a
+     *             period climate report.
+     *
+     *
+     * </pre>
+     * 
+     * @param dates
+     * @return
+     */
+
     private String dateSentence(List<ClimateDate> dates) {
         StringBuilder datePhrase = new StringBuilder();
 
@@ -2784,21 +2784,21 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-    * Migrated from another subroutine, dates_sentence, in date_sentence.f.
-    * 
-    * <pre>
-    *    April 2001       Doug Murphy    PRC/MDL
-    *
-    *   Purpose:  This routine creates the dates of occurrence phrases for
-    *             variables with a begin and end date for a period climate 
-    *             report. 
-    *
-    * </pre>
-    * 
-    * @param dates
-    * @return
-    */
-  
+     * Migrated from another subroutine, dates_sentence, in date_sentence.f.
+     * 
+     * <pre>
+     *    April 2001       Doug Murphy    PRC/MDL
+     *
+     *   Purpose:  This routine creates the dates of occurrence phrases for
+     *             variables with a begin and end date for a period climate 
+     *             report.
+     *
+     * </pre>
+     * 
+     * @param dates
+     * @return
+     */
+
     private String datesSentence(List<ClimateDates> dates) {
         StringBuilder datePhrase = new StringBuilder();
 
