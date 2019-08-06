@@ -119,6 +119,9 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 22 MAY 2019  DR 21287   dfriedman   Improve error and duplicate storage reporting.
  * 16 JUL 2019  DR 21453   wpaintsil   Round up for mean temp departure from normal
  *                                     and average sky cover.
+ * 06 AUG 2019  DR 21508   wpaintsil   Faulty conditional logic results in ignored trace precip.
+ *                                     Sum of sky cover should be the sum of the rounded values,
+ *                                     whereas the average should be an average of the raw values.
  * </pre>
  * 
  * @author amoore
@@ -593,6 +596,7 @@ public class F6Builder {
         int sumHdd = 0;
         int sumCdd = 0;
         float sumSS = 0;
+        float sumSSRounded = 0;
         int sumPsbl = 0;
         float sumWtr = 0;
         float sumSnw = 0;
@@ -863,6 +867,8 @@ public class F6Builder {
                  */
                 float avgSky = dailyData.getSkyCover() * 10;
                 sumSS += avgSky;
+                sumSSRounded += ClimateUtilities.nint(avgSky);
+
                 numSS++;
                 dailyValueMap.put("ss",
                         String.format("%4s", ClimateUtilities.nint(avgSky)));
@@ -988,10 +994,10 @@ public class F6Builder {
         }
 
         /* sum of precipitation totals */
-        if (numWtr > 0) {
-            context.put("sumWtr", String.format("%6.2f", sumWtr));
-        } else if (numWtrT > 0) {
+        if (numWtrT > 0 && sumWtr <= 0) {
             context.put("sumWtr", String.format("%6s", "T"));
+        } else if (numWtr > 0) {
+            context.put("sumWtr", String.format("%6.2f", sumWtr));
         } else {
             context.put("sumWtr", String.format("%6s", "M"));
         }
@@ -1026,7 +1032,7 @@ public class F6Builder {
 
         if (numSS > 0) {
             context.put("sumSS",
-                    String.format("%4s", ClimateUtilities.nint(sumSS)));
+                    String.format("%4s", ClimateUtilities.nint(sumSSRounded)));
         } else {
             context.put("sumSS", String.format("%4s", "M"));
         }
