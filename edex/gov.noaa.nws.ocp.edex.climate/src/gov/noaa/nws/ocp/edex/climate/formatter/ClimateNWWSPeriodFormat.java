@@ -58,6 +58,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * 30 MAY 2017  DR21432    wpaintsil   Correct last year values for threshold line. Correct 
  *                                     error in date formatting.
  * 02 JUL 2019  DR21423    wpaintsil   Snow depth avg. line fails to appear.
+ * 25 JUL 2019  DR21490    wpaintsil   Wrong precision on snowfall values. 
+ *                                     Should be 10ths not 100ths.
  *
  * </pre>
  *
@@ -83,7 +85,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * @author wpaintsil
      *
      */
-    private enum DecimalPlaces {
+    private enum DecimalType {
         SNOW, TEMP, PRECIP;
     }
 
@@ -1196,7 +1198,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         (float) ParameterFormatClimate.DUMMY_FLOAT, null, null,
                         climatePeriodReportData.getLastYearData()
                                 .getMaxTempMean(),
-                        null, null, false, DecimalPlaces.TEMP));
+                        null, null, false, DecimalType.TEMP));
 
                 floatLine.replace(0, "Avg. Maximum".length(), "Avg. Maximum");
                 periodTemp.append(floatLine.toString());
@@ -1214,7 +1216,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         (float) ParameterFormatClimate.DUMMY_FLOAT, null, null,
                         climatePeriodReportData.getLastYearData()
                                 .getMinTempMean(),
-                        null, null, false, DecimalPlaces.TEMP));
+                        null, null, false, DecimalType.TEMP));
 
                 floatLine.replace(0, "Avg. Minimum".length(), "Avg. Minimum");
                 periodTemp.append(floatLine.toString());
@@ -1231,7 +1233,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         climatePeriodReportData.getClimo().getNormMeanTemp(),
                         (float) ParameterFormatClimate.DUMMY_FLOAT, null, null,
                         climatePeriodReportData.getLastYearData().getMeanTemp(),
-                        null, null, false, DecimalPlaces.TEMP));
+                        null, null, false, DecimalType.TEMP));
 
                 floatLine.replace(0, "Mean".length(), "Mean");
                 periodTemp.append(floatLine.toString());
@@ -1527,7 +1529,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getPrecipPeriodMaxYearList(),
                                         null, ParameterFormatClimate.DUMMY,
                                         null, null, false,
-                                        DecimalPlaces.PRECIP));
+                                        DecimalType.PRECIP));
                         floatLine.replace(1, 1 + MAXIMUM.length(),
                                 WordUtils.capitalize(MAXIMUM));
                         liquidPrecip.append(floatLine.toString());
@@ -1542,7 +1544,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getPrecipPeriodMinYearList(),
                                         null, ParameterFormatClimate.DUMMY,
                                         null, null, false,
-                                        DecimalPlaces.PRECIP));
+                                        DecimalType.PRECIP));
                         floatLine.replace(1, 1 + MINIMUM.length(),
                                 WordUtils.capitalize(MINIMUM));
                         liquidPrecip.append(floatLine.toString());
@@ -1573,7 +1575,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 recordData.getPrecipPeriodNorm(),
                                 ParameterFormatClimate.DUMMY, null, null,
                                 lastYearData.getPrecipTotal(), null, null,
-                                newRecord, DecimalPlaces.PRECIP));
+                                newRecord, DecimalType.PRECIP));
 
                 floatLine.replace(0, TOTALS.length(),
                         WordUtils.capitalize(TOTALS));
@@ -1588,7 +1590,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 recordData.getPrecipDayNorm(),
                                 ParameterFormatClimate.DUMMY, null, null,
                                 lastYearData.getPrecipMeanDay(), null, null,
-                                false, DecimalPlaces.PRECIP));
+                                false, DecimalType.PRECIP));
 
                 floatLine.replace(0, "Daily Avg.".length(), "Daily Avg.");
                 liquidPrecip.append(floatLine.toString());
@@ -1729,7 +1731,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY, null, null,
                                     lastYearData.getPrecipMax24H(), null,
                                     dummyLast24HDates, false,
-                                    DecimalPlaces.PRECIP));
+                                    DecimalType.PRECIP));
 
                     floatLine.replace(1, 1 + "24 Hr. Total".length(),
                             "24 Hr. Total");
@@ -1744,7 +1746,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY,
                                     ParameterFormatClimate.DUMMY, null, null,
                                     lastYearData.getPrecipStormMax(), null,
-                                    null, false, DecimalPlaces.PRECIP));
+                                    null, false, DecimalType.PRECIP));
                     floatLine1.replace(1, 1 + "Storm Total".length(),
                             "Storm Total");
                     liquidPrecip.append(floatLine1.toString());
@@ -1758,7 +1760,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY, null, null,
                                     ParameterFormatClimate.DUMMY, null,
                                     lastYearData.getPrecipStormList(), false,
-                                    DecimalPlaces.PRECIP));
+                                    DecimalType.PRECIP));
                     floatLine2.replace(1, 1 + "(mm/dd(hh))".length(),
                             "(mm/dd(hh))");
                     liquidPrecip.append(floatLine2.toString());
@@ -1846,7 +1848,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getSnowPeriodRecord(),
                                         recordData.getSnowPeriodMaxYearList(),
                                         null, ParameterFormatClimate.DUMMY,
-                                        null, null, false, DecimalPlaces.SNOW));
+                                        null, null, false, DecimalType.SNOW));
 
                         floatLine.replace(1, 1 + TOTAL.length(), TOTAL);
                         snowPrecip.append(floatLine.toString());
@@ -1860,7 +1862,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getSnowMax24HRecord(), null,
                                         recordData.getSnow24HList(),
                                         ParameterFormatClimate.DUMMY, null,
-                                        null, false, DecimalPlaces.SNOW));
+                                        null, false, DecimalType.SNOW));
 
                         floatLine.replace(1, 1 + "24 Hr Total".length(),
                                 "24 Hr Total");
@@ -1905,7 +1907,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         null, null, recordData.getSnowPeriodNorm(),
                         ParameterFormatClimate.DUMMY, null, null,
                         lastYearData.getSnowTotal(), null, null, newRecord,
-                        DecimalPlaces.SNOW));
+                        DecimalType.SNOW));
 
                 floatLine.replace(0, TOTALS.length(), TOTALS);
                 snowPrecip.append(floatLine.toString());
@@ -1918,7 +1920,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         null, null, recordData.getSnowWaterPeriodNorm(),
                         ParameterFormatClimate.DUMMY, null, null,
                         lastYearData.getSnowWater(), null, null, false,
-                        DecimalPlaces.PRECIP));
+                        DecimalType.PRECIP));
 
                 floatLine.replace(1, 1 + "Liquid Equiv".length(),
                         "Liquid Equiv");
@@ -1932,7 +1934,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                         null, null, recordData.getSnowJuly1Norm(),
                         ParameterFormatClimate.DUMMY, null, null,
                         lastYearData.getSnowJuly1(), null, null, false,
-                        DecimalPlaces.SNOW));
+                        DecimalType.SNOW));
 
                 floatLine.replace(0, "Since 7/1".length(), "Since 7/1");
                 snowPrecip.append(floatLine.toString());
@@ -1946,7 +1948,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                 recordData.getSnowWaterJuly1Norm(),
                                 ParameterFormatClimate.DUMMY, null, null,
                                 lastYearData.getSnowWaterJuly1(), null, null,
-                                false, DecimalPlaces.PRECIP));
+                                false, DecimalType.PRECIP));
 
                 floatLine.replace(1, 1 + "Liquid 7/1".length(), "Liquid 7/1");
                 snowPrecip.append(floatLine.toString());
@@ -2112,7 +2114,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY, null, null,
                                     lastYearData.getSnowMax24H(), null,
                                     dummyLast24HDates, newRecord,
-                                    DecimalPlaces.SNOW));
+                                    DecimalType.SNOW));
 
                     floatLine.replace(1, 1 + "24 Hr Total".length(),
                             "24 Hr Total");
@@ -2127,7 +2129,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY,
                                     ParameterFormatClimate.DUMMY, null, null,
                                     lastYearData.getSnowMaxStorm(), null, null,
-                                    false, DecimalPlaces.SNOW));
+                                    false, DecimalType.SNOW));
                     floatLine1.replace(1, 1 + "Storm Total".length(),
                             "Storm Total");
                     snowPrecip.append(floatLine1.toString());
@@ -2142,7 +2144,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     ParameterFormatClimate.DUMMY, null, null,
                                     ParameterFormatClimate.DUMMY, null,
                                     lastYearData.getSnowStormList(), false,
-                                    DecimalPlaces.SNOW));
+                                    DecimalType.SNOW));
                     floatLine2.replace(1, 1 + "(mm/dd(hh))".length(),
                             "(mm/dd(hh))");
                     snowPrecip.append(floatLine2.toString());
@@ -2912,7 +2914,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
      * @param lastYearValue
      * @param lastYearList
      * @param newRecord
-     * @param snow
+     * @param decimalPlaces
      * @return
      */
     private String buildNWWSFloatLine(ClimateProductFlags valueFlag,
@@ -2921,7 +2923,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             float recordValue, List<ClimateDate> dayRecordList,
             List<ClimateDates> recordDates, float lastYearValue,
             ClimateDate lastYearDate1, List<ClimateDates> lastYearDates,
-            boolean newRecord, DecimalPlaces snow) {
+            boolean newRecord, DecimalType decimalPlaces) {
 
         StringBuilder dateLines = new StringBuilder();
 
@@ -2939,7 +2941,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 // Do nothing; this cell is blank.
                 break;
             case (int) ParameterFormatClimate.TRACE:
-                if (snow == DecimalPlaces.TEMP) {
+                if (decimalPlaces == DecimalType.TEMP) {
                     String value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                             recordValue);
                     floatLine1.replace(periodTabs.getPosValue() - 1,
@@ -2954,7 +2956,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             default:
                 String value;
-                if (snow == DecimalPlaces.SNOW || snow == DecimalPlaces.TEMP) {
+                if (decimalPlaces == DecimalType.SNOW || decimalPlaces == DecimalType.TEMP) {
                     value = String.format(FLOAT_ONE_DECIMAL_SEVEN, recordValue);
 
                 } else {
@@ -3056,7 +3058,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 // Do nothing; this cell is blank.
                 break;
             case (int) ParameterFormatClimate.TRACE:
-                if (snow == DecimalPlaces.TEMP) {
+                if (decimalPlaces == DecimalType.TEMP) {
                     String value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                             actualValue);
                     floatLine1.replace(periodTabs.getPosValue() - 1,
@@ -3071,7 +3073,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             default:
                 String value;
-                if (snow == DecimalPlaces.SNOW || snow == DecimalPlaces.TEMP) {
+                if (decimalPlaces == DecimalType.SNOW || decimalPlaces == DecimalType.TEMP) {
                     value = String.format(FLOAT_ONE_DECIMAL_SEVEN, actualValue);
 
                 } else {
@@ -3200,7 +3202,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                     // Do nothing; this cell is blank.
                     break;
                 case (int) ParameterFormatClimate.TRACE:
-                    if (snow == DecimalPlaces.TEMP) {
+                    if (decimalPlaces == DecimalType.TEMP) {
                         String value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                 normalValue);
                         floatLine1.replace(periodTabs.getPosNorm(),
@@ -3215,8 +3217,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                 default:
                     String value;
-                    if (snow == DecimalPlaces.SNOW
-                            || snow == DecimalPlaces.TEMP) {
+                    if (decimalPlaces == DecimalType.SNOW
+                            || decimalPlaces == DecimalType.TEMP) {
                         value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                 normalValue);
 
@@ -3248,7 +3250,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                         float departValue = av - nv;
                         String valueString;
-                        if (snow == DecimalPlaces.TEMP) {
+                        if (decimalPlaces == DecimalType.SNOW
+                                || decimalPlaces == DecimalType.TEMP) {
                             valueString = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                     departValue);
 
@@ -3277,7 +3280,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                     // Do nothing; this cell is blank.
                     break;
                 case (int) ParameterFormatClimate.TRACE:
-                    if (snow == DecimalPlaces.TEMP) {
+                    if (decimalPlaces == DecimalType.TEMP) {
                         String value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                 lastYearValue);
                         floatLine1.replace(periodTabs.getPosLastYr(),
@@ -3292,8 +3295,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
                 default:
                     String value;
-                    if (snow == DecimalPlaces.SNOW
-                            || snow == DecimalPlaces.TEMP) {
+                    if (decimalPlaces == DecimalType.SNOW
+                            || decimalPlaces == DecimalType.TEMP) {
                         value = String.format(FLOAT_ONE_DECIMAL_SEVEN,
                                 lastYearValue);
 
