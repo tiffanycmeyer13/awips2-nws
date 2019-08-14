@@ -27,6 +27,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 21 OCT 2016  22135      wpaintsil   Add PeriodDataMethod field.
  * 14 DEC 2016  27015      amoore      Added copy constructor.
  * 17 APR 2017  33104      amoore      Address comments from review.
+ * 18 JUL 2019  DR21454    wpaintsil   More than 4 minimum temp dates results in first 3 
+ *                                     being displayed when the last 3 are expected. 
+ *                                     Limit the list size to 3.
  * </pre>
  * 
  * @author xzhang
@@ -665,7 +668,9 @@ public class PeriodData {
      *            the dayMaxTempList to set
      */
     public void setDayMaxTempList(List<ClimateDate> dayMaxTempList) {
-        this.dayMaxTempList = dayMaxTempList;
+        int size = dayMaxTempList.size();
+        this.dayMaxTempList = size > 3 ? dayMaxTempList.subList(size - 3, size)
+                : dayMaxTempList;
     }
 
     /**
@@ -725,7 +730,9 @@ public class PeriodData {
      *            the dayMinTempList to set
      */
     public void setDayMinTempList(List<ClimateDate> dayMinTempList) {
-        this.dayMinTempList = dayMinTempList;
+        int size = dayMinTempList.size();
+        this.dayMinTempList = size > 3 ? dayMinTempList.subList(size - 3, size)
+                : dayMinTempList;
     }
 
     /**
@@ -959,7 +966,9 @@ public class PeriodData {
      *            the precip24HDates to set
      */
     public void setPrecip24HDates(List<ClimateDates> precip24HDates) {
-        this.precip24HDates = precip24HDates;
+        int size = precip24HDates.size();
+        this.precip24HDates = size > 3 ? precip24HDates.subList(size - 3, size)
+                : precip24HDates;
     }
 
     /**
@@ -989,7 +998,9 @@ public class PeriodData {
      *            the precipStormList to set
      */
     public void setPrecipStormList(List<ClimateDates> precipStormList) {
-        this.precipStormList = precipStormList;
+        int size = precipStormList.size();
+        this.precipStormList = size > 3
+                ? precipStormList.subList(size - 3, size) : precipStormList;
     }
 
     /**
@@ -1155,7 +1166,9 @@ public class PeriodData {
      *            the snow24HDates to set
      */
     public void setSnow24HDates(List<ClimateDates> snow24hDates) {
-        snow24HDates = snow24hDates;
+        int size = snow24hDates.size();
+        snow24HDates = size > 3 ? snow24hDates.subList(size - 3, size)
+                : snow24hDates;
     }
 
     /**
@@ -1185,7 +1198,9 @@ public class PeriodData {
      *            the snowStormList to set
      */
     public void setSnowStormList(List<ClimateDates> snowStormList) {
-        this.snowStormList = snowStormList;
+        int size = snowStormList.size();
+        this.snowStormList = size > 3 ? snowStormList.subList(size - 3, size)
+                : snowStormList;
     }
 
     /**
@@ -1276,7 +1291,10 @@ public class PeriodData {
      */
     public void setSnowGroundMaxDateList(
             List<ClimateDate> iSnowGroundMaxDateList) {
-        this.snowGroundMaxDateList = iSnowGroundMaxDateList;
+        int size = iSnowGroundMaxDateList.size();
+        this.snowGroundMaxDateList = size > 3
+                ? iSnowGroundMaxDateList.subList(size - 3, size)
+                : iSnowGroundMaxDateList;
     }
 
     /**
@@ -1434,7 +1452,9 @@ public class PeriodData {
      *            the maxWindList to set
      */
     public void setMaxWindList(List<ClimateWind> maxWindList) {
-        this.maxWindList = maxWindList;
+        int size = maxWindList.size();
+        this.maxWindList = size > 3 ? maxWindList.subList(size - 3, size)
+                : maxWindList;
     }
 
     /**
@@ -1449,7 +1469,9 @@ public class PeriodData {
      *            the maxWindDayList to set
      */
     public void setMaxWindDayList(List<ClimateDate> maxWindDayList) {
-        this.maxWindDayList = maxWindDayList;
+        int size = maxWindDayList.size();
+        this.maxWindDayList = size > 3 ? maxWindDayList.subList(size - 3, size)
+                : maxWindDayList;
     }
 
     /**
@@ -1464,7 +1486,9 @@ public class PeriodData {
      *            the maxGustList to set
      */
     public void setMaxGustList(List<ClimateWind> maxGustList) {
-        this.maxGustList = maxGustList;
+        int size = maxGustList.size();
+        this.maxGustList = size > 3 ? maxGustList.subList(size - 3, size)
+                : maxGustList;
     }
 
     /**
@@ -1479,7 +1503,9 @@ public class PeriodData {
      *            the maxGustDayList to set
      */
     public void setMaxGustDayList(List<ClimateDate> maxGustDayList) {
-        this.maxGustDayList = maxGustDayList;
+        int size = maxGustDayList.size();
+        this.maxGustDayList = size > 3 ? maxGustDayList.subList(size - 3, size)
+                : maxGustDayList;
     }
 
     /**
@@ -2110,4 +2136,5 @@ public class PeriodData {
         periodData.setDataToMissing();
         return periodData;
     }
+
 }

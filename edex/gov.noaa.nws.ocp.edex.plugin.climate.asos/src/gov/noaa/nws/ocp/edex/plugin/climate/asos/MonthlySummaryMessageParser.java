@@ -47,6 +47,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  *                                     logging. Get rid of serialization tags.
  * 03 NOV 2017  36736      amoore      Make several parts and logic static.
  * 07 MAR 2019  DR20939    pwang       Fix the unit of max 24 snow
+ * 17 JUL 2019  DR 21457   dfriedman   Handle trace snow values.
  * 
  * </pre>
  *
@@ -153,12 +154,12 @@ public class MonthlySummaryMessageParser extends ASOSMessageParser {
             // missing (with any number of M or N), or 1-4 digit sunshine hours,
             // followed by either 100 or a 2 digit sunshine percent
             + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<sunshineHours>\\d{1,4}(?=\\d{2}|100))(?<sunshinePercent>100|\\d{2})))?"
-            // missing (with any number of M or N), or 1-3 digit max 24 hour
+            // missing (with any number of M or N), or 1-3 digit (or T) max 24 hour
             // snow, 2 digit start date, 2 digit end date, and optional +
-            + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<max24HourSnow>\\d{1,3})(?:(?<!/0)(?<max24HourSnowStartDate>\\d{2})(?<max24HourSnowEndDate>\\d{2})(?<multiMax24HourSnow>\\+)?)?))?"
-            // missing (with any number of M or N), or 1-4 digit max snow depth,
+            + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<max24HourSnow>\\d{1,3}|T)(?:(?<!/0)(?<max24HourSnowStartDate>\\d{2})(?<max24HourSnowEndDate>\\d{2})(?<multiMax24HourSnow>\\+)?)?))?"
+            // missing (with any number of M or N), or 1-4 digit (or T) max snow depth,
             // 2 digit date, and optional +
-            + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<maxSnowDepth>\\d{1,4}?)(?:(?<!/0)(?<maxSnowDepthDate>\\d{2})(?<multiMaxSnowDepth>\\+)?)?))?"
+            + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<maxSnowDepth>\\d{1,4}?|T)(?:(?<!/0)(?<maxSnowDepthDate>\\d{2})(?<multiMaxSnowDepth>\\+)?)?))?"
             // missing (with any number of M or N), or 2 digits each of
             // clear/partly cloudy/cloudy days
             + "(?:/\\s?(?:M{1,}|N{1,}|-|(?<clearDays>\\d{2})(?<partlyCloudyDays>\\d{2})(?<cloudyDays>\\d{2})))?"
@@ -484,7 +485,12 @@ public class MonthlySummaryMessageParser extends ASOSMessageParser {
                     /*
                      * Convert from tenth of inch (reported in MSM) to inch
                      */
-                    float val = Float.parseFloat(value) / 10;
+                    float val;
+                    if (value.equals(ParameterFormatClimate.TRACE_SYMBOL)) {
+                        val = -1;
+                    } else {
+                        val = Float.parseFloat(value) / 10;
+                    }
                     msm.setMax24HourSnow(val);
                 } else if (groupName
                         .equalsIgnoreCase("max24HourSnowStartDate")) {
@@ -494,7 +500,13 @@ public class MonthlySummaryMessageParser extends ASOSMessageParser {
                 } else if (groupName.equalsIgnoreCase("multiMax24HourSnow")) {
                     msm.setMultiMax24HourSnow(true);
                 } else if (groupName.equalsIgnoreCase("maxSnowDepth")) {
-                    msm.setMaxSnowDepth(Short.parseShort(value));
+                    short val;
+                    if (value.equals(ParameterFormatClimate.TRACE_SYMBOL)) {
+                        val = -1;
+                    } else {
+                        val = Short.parseShort(value);
+                    }
+                    msm.setMaxSnowDepth(val);
                 } else if (groupName.equalsIgnoreCase("maxSnowDepthDate")) {
                     msm.setMaxSnowDepthDate(Short.parseShort(value));
                 } else if (groupName.equalsIgnoreCase("multiMaxSnowDepth")) {
