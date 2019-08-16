@@ -159,17 +159,11 @@ public class MetarToClimateDBServer {
              * So save time and do the station check first.
              */
             // get station ID
-            int stationID;
-            try {
-                stationID = reportDAO.getStationIDByCode(rpt.getIcao_loc_id());
-            } catch (ClimateQueryException e) {
-                logger.warn(
-                        "Error getting Climate Station ID from surface observation location ID (station code): ["
-                                + rpt.getIcao_loc_id()
-                                + "]. Ensure that all applicable stations are in the Climate stations table. This report will be ignored: ["
-                                + rpt.getReport() + "]. " + e.getMessage());
+            Integer stationIDResult = reportDAO.getStationIDByCode(rpt.getIcao_loc_id());
+            if (stationIDResult == null) {
                 return;
             }
+            int stationID = stationIDResult;
 
             /*
              * In Legacy, get_METARs.c would call db_report.ecpp to get a list

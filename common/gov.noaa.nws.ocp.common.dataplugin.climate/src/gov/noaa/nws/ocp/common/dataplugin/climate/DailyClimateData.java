@@ -31,7 +31,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 27 OCT 2016  22135      wpaintsil   Add DailyDataMethod field.
  * 25 JAN 2017  22786      amoore      Remove action to split WX array into separate fields.
  *                                     Rename constant to more clear meaning.
- * 13 APR 2018  DR17116      wpaintsil   Change precipSeason and snowSeason to account 
+ * 13 APR 2018  DR17116    wpaintsil   Change precipSeason and snowSeason to account 
  *                                     for multiple alternate seasons.
  * </pre>
  * 
