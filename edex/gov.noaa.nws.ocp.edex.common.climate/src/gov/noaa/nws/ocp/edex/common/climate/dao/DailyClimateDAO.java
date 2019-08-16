@@ -98,6 +98,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 14 MAR 2018  DR21137    wpaintsil   The snowfall column was being cast to an integer when it should 
  *                                     be cast to a float (retrieveDailySummary()).
  * 30 APR 2019  DR21261    wpaintsil   num_wind_obs column missing from queries.
+ * 10 MAY 2019  DR21285    wpaintsil   Last Year MTD/STD Precip and Snowfall listed as missing.
  * </pre>
  * 
  * @author amoore
@@ -735,6 +736,8 @@ public class DailyClimateDAO extends ClimateDAO {
 
         if (sumPrecip <= 0
                 || sumPrecip == ParameterFormatClimate.MISSING_PRECIP) {
+            float originalSum = sumPrecip;
+
             // look for trace values
             query = new StringBuilder("SELECT precip FROM ");
             query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
@@ -746,6 +749,14 @@ public class DailyClimateDAO extends ClimateDAO {
 
             sumPrecip = ((Number) queryForOneValue(query.toString(), paramMap,
                     ParameterFormatClimate.MISSING_PRECIP)).floatValue();
+
+            // If there was legitimately 0 precipitation for the month with no
+            // trace, the above would set sumPrecip to MISSING_PRECIP. Then the
+            // missing value would be returned, ignoring the 0 value.
+            if (sumPrecip == ParameterFormatClimate.MISSING_PRECIP
+                    && originalSum == 0) {
+                sumPrecip = originalSum;
+            }
         }
 
         return sumPrecip;
@@ -801,6 +812,8 @@ public class DailyClimateDAO extends ClimateDAO {
                 ParameterFormatClimate.MISSING_PRECIP)).floatValue();
 
         if (sumSnow <= 0 || sumSnow == ParameterFormatClimate.MISSING_PRECIP) {
+            float originalSum = sumSnow;
+
             // look for trace values
             query = new StringBuilder("SELECT snow FROM ");
             query.append(ClimateDAOValues.DAILY_CLIMATE_TABLE_NAME);
@@ -812,6 +825,14 @@ public class DailyClimateDAO extends ClimateDAO {
 
             sumSnow = ((Number) queryForOneValue(query.toString(), paramMap,
                     ParameterFormatClimate.MISSING_PRECIP)).floatValue();
+
+            // If there was legitimately 0 snow for the month with no
+            // trace, the above would set sumSnow to MISSING_PRECIP. Then the
+            // missing value would be returned, ignoring the 0 value.
+            if (sumSnow == ParameterFormatClimate.MISSING_PRECIP
+                    && originalSum == 0) {
+                sumSnow = originalSum;
+            }
         }
 
         return sumSnow;
