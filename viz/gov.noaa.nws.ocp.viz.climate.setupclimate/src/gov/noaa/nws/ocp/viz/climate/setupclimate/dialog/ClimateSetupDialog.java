@@ -119,6 +119,8 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 06 NOV 2018   55583    jwu         Fix some layout & alignment issues (DR20915).
  * 30 APR 2019   DR20915  wpaintsil   Further adjustments to alignment.
  * 21 MAY 2019   DR21196  dfriedman   Use correct CaveSWTDialog life cycle functions.
+ * 19 JUL 2019   DR21426  wpaintsil   Allow for multiple Listen Area Codes so that the NWR product can
+ *                                    go to more than one transmitter.
  * </pre>
  * 
  * @author jwu
@@ -1027,9 +1029,8 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
 
             RowData lacTxtRD = new RowData(25 * fontWidth, fontHeight);
             lacTxt.setLayoutData(lacTxtRD);
-            lacTxt.setTextLimit(7);
             lacTxt.setToolTipText(
-                    "A seven letter code ending with a lowercase c, such as VAC999c");
+                    "Seven letter codes ending with a lowercase c, such as VAC999c. Multiple LACs can be entered in the following formats: 'AZC009cAZC099c,' 'NMZ518-519c,' 'TXC999-TXC998-c,' or 'INC993-INC997c' for example.");
 
             // Composite for NWWS, only have address.
             Composite addressComp = new Composite(reportConfigInfoNWWSComp,
@@ -1969,7 +1970,7 @@ public class ClimateSetupDialog extends ClimateCaveDialog {
         // Check listening area code (NWR only)
         if (PeriodType.isNWR(reportSource) && readyToSave) {
             String lacStr = lacTxt.getText();
-            if (lacStr.trim().length() != 7 || !lacStr.trim().endsWith("c")) {
+            if (!lacStr.trim().endsWith("c")) {
 
                 readyToSave = false;
 

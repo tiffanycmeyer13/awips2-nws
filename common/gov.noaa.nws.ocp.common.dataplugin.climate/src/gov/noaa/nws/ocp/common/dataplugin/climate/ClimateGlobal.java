@@ -5,7 +5,9 @@ package gov.noaa.nws.ocp.common.dataplugin.climate;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
@@ -44,6 +46,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 18 AUG 2017  37104      amoore      Add IFPS office name and timezone.
  * 06 NOV 2017  35731      pwang       Added properties for controlling if an product can be auto generated
  * 12 OCT 2018  DR 20897   dfriedman   Add stationDesignatorOverrides field.
+ * 22 MAY 2019  DR 21099   wpaintsil   Add nonSnowReportingStations field.
  * </pre>
  * 
  * @author xzhang
@@ -254,10 +257,16 @@ public class ClimateGlobal {
     /**
      * Maps station IDs to product IDs. Used for cases in which the site part of
      * the product ID cannot be determined by taking the last three characters
-     * of the station ID.  Currently only used for F6 products.
+     * of the station ID. Currently only used for F6 products.
      */
     @DynamicSerializeElement
     private Map<String, String> stationDesignatorOverrides;
+
+    /**
+     * The set station IDs of the stations that do not report report snow.
+     */
+    @DynamicSerializeElement
+    private Set<String> snowReportingStations;
 
     /**
      * Empty constructor.
@@ -532,14 +541,37 @@ public class ClimateGlobal {
     }
 
     /**
+     * @return an unmodifiable set of stations not reporting snow.
+     */
+    public Set<String> getSnowReportingStations() {
+        if (snowReportingStations == null) {
+            snowReportingStations = Collections.emptySet();
+        }
+        return snowReportingStations;
+
+    }
+
+    /**
      * Set a new value for the designator overrides. A deep copy is made of the
      * argument so it may be modified without affecting this instance.
      *
      * @param stationDesignatorOverrides
      */
-    public void setStationDesignatorOverrides(Map<String, String> stationDesignatorOverrides) {
+    public void setStationDesignatorOverrides(
+            Map<String, String> stationDesignatorOverrides) {
         this.stationDesignatorOverrides = Collections
                 .unmodifiableMap(new HashMap<>(stationDesignatorOverrides));
+    }
+
+    /**
+     * Set the snow-reporting stations. A deep copy is made of the argument so
+     * it may be modified without affecting this instance.
+     *
+     * @param nonSnowReportingStations
+     */
+    public void setSnowReportingStations(Set<String> nonSnowReportingStations) {
+        this.snowReportingStations = Collections
+                .unmodifiableSet(new HashSet<String>(nonSnowReportingStations));
     }
 
     public void setDataToMissing() {
@@ -600,6 +632,7 @@ public class ClimateGlobal {
         globals.setS1(ParameterFormatClimate.MISSING_SNOW);
 
         globals.setStationDesignatorOverrides(new HashMap());
+        globals.setSnowReportingStations(new HashSet<String>());
 
         return globals;
     }
