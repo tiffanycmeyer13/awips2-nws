@@ -73,7 +73,8 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.TimeSelectorFocusListen
  *                                      data after updating daily data.
  * Nov 28, 2016  20636      wpaintsil   Update Freeze Dates/Records
  * Dec 02, 2016  20636      wpaintsil   Refactor some repetitive text creation
- * 
+ * Aug 08, 2019  DR21517    wpaintsil   The field holding the number of WX observations was
+ *                                      not updated.
  * </pre>
  * 
  * @author wpaintsil
@@ -1070,6 +1071,14 @@ public class DailySection extends QCDataComposite {
                 checkboxPL.getSelection() ? 1 : 0);
         data.setWxType(DailyClimateData.WX_FUNNEL_CLOUD_INDEX,
                 checkboxPlusFC.getSelection() ? 1 : 0);
+
+        int numWx = 0;
+        for (int ii = 0; ii < data.getWxType().length; ii++) {
+            if (data.getWxType()[ii] == 1) {
+                numWx++;
+            }
+        }
+        data.setNumWx(numWx);
 
         // If any of the checkboxes were changed set the data method for
         // weather to manual entry, and add changed flag.

@@ -100,6 +100,8 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
  * 20 MAR 2019  DR21197    wpaintsil   Snow Depth field should only allow integers.
+ * 08 AUG 2019  DR21517    wpaintsil   The field holding the number of WX observations was
+ *                                     not updated.
  * </pre>
  * 
  * @author amoore
@@ -1843,6 +1845,14 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
                 .getSelection() ? 1 : 0;
         myData.getWxType()[DailyClimateData.WX_FUNNEL_CLOUD_INDEX] = myFCCheckbox
                 .getSelection() ? 1 : 0;
+
+        int numWx = 0;
+        for (int ii = 0; ii < myData.getWxType().length; ii++) {
+            if (myData.getWxType()[ii] == 1) {
+                numWx++;
+            }
+        }
+        myData.setNumWx(numWx);
 
         if (!Arrays.equals(myData.getWxType(), oldWxType)) {
             myData.getDataMethods().setWeatherQc(QCValues.MANUAL_ENTRY);
