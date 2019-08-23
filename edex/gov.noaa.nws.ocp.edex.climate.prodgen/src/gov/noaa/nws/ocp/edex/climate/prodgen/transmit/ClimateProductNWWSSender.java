@@ -49,6 +49,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
  * May 4,  2018 20705      amoore      Fix issue where NWWS non-local products would keep
  *                                     the temporary code line for header info after header
  *                                     parsing. Issue was in OUP logic incompatibility.
+ * Aug 16, 2019 DR21231    wpaintsil   Correct the format of the header.
  * </pre>
  *
  * @author pwang
@@ -103,10 +104,10 @@ public class ClimateProductNWWSSender {
 
         String[] lines = prod.getProdText().split("\\r?\\n");
 
-        this.commsHeader = lines[0];
+        this.commsHeader = lines[0] + "\n" + lines[1] + "\n" + lines[2];
 
         // Skip communication header line
-        for (int i = 1; i < lines.length; i++) {
+        for (int i = 3; i < lines.length; i++) {
             sb.append(lines[i] + "\n");
         }
 
@@ -127,7 +128,7 @@ public class ClimateProductNWWSSender {
     public boolean extractAfosInfo(ClimateProduct prod) {
         boolean noError = true;
         String[] afosElements = commsHeader.split("\\s+");
-        if (afosElements.length < 3) {
+        if (afosElements.length < 5) {
             String expMsg = "Communication header in the NWWS prod has a wrong format: ["
                     + prod.getPil() + "]";
             prod.setStatus(ProductStatus.ERROR);
@@ -142,43 +143,14 @@ public class ClimateProductNWWSSender {
         }
 
         // extract afosInfo ttaaii, cccc
-        String afosInfo = commsHeader.substring(0, 12).toUpperCase();
-        if (afosElements[0].length() > 12) {
-            afosInfo = afosElements[0].substring(0, 12).toUpperCase();
-            this.wmoTtaaii = afosElements[0].substring(12, 18);
-            this.wmoCccc = afosElements[1];
-        } else if (afosElements[1].length() == 6) {
-            afosInfo = afosElements[0];
-            this.wmoTtaaii = afosElements[1];
-            this.wmoCccc = afosElements[2];
-        }
+        this.wmoTtaaii = afosElements[1];
+        this.wmoCccc = afosElements[2];
 
         // extract ddhhmm
-        this.ddhhmm = afosElements[afosElements.length - 1];
+        this.ddhhmm = afosElements[3];
 
-        // Further extract aforsId, afosNone
-        String[] idAndNode = afosInfo.split("\\s+");
-        if (idAndNode.length == 0) {
-            String expMsg = "Communication header in the NWWS prod has a wrong format: ["
-                    + prod.getPil() + "]";
-            prod.setStatus(ProductStatus.ERROR);
-            prod.setLastAction(ActionOnProduct.SEND, expMsg);
-
-            // Notify users
-            ClimateProdGenerateSession.sendAlertVizMessage(Priority.PROBLEM,
-                    expMsg, prod.getProdText());
-            noError = false;
-            logger.error(expMsg);
-        } else if (idAndNode.length == 2) {
-            // Normal case: one space in the afosinfo
-            this.afosId = idAndNode[0];
-            this.afosNode = idAndNode[1];
-        } else if (idAndNode[0].length() > 9
-                || idAndNode[0].equalsIgnoreCase(afosInfo)) {
-            // The case without space before AfosNode
-            this.afosId = afosInfo.substring(0, 9);
-            this.afosNode = afosInfo.substring(9);
-        }
+        this.afosId = afosElements[2].substring(1) + afosElements[4];
+        this.afosNode = afosElements[0];
 
         if (this.afosNode == null || this.afosNode.isEmpty()) {
             this.afosNode = "DEF";
