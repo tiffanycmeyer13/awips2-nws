@@ -63,6 +63,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 02 JUL 2019  DR21423    wpaintsil   Trace not included in "number of days with snow."
  * 15 JUL 2019  DR21432    wpaintsil   Correct mistake in precip/snow query.
  * 30 JUL 2019  DR21339    dfriedman   Do not log a warning on failed station code lookup.
+ * 20 AUG 2019  DR21211    wpaintsil   Precipitation threshold query returns inaccurate results if 
+ *                                     numeric type is not specified.
  * </pre>
  * 
  * @author amoore
@@ -158,7 +160,8 @@ public class ClimateDAO {
      * @param keyQuery
      * @param keyParamMap
      * @param missingValue
-     * @param warnNull log a warning if query result is empty or value is null
+     * @param warnNull
+     *            log a warning if query result is empty or value is null
      * @return resulting value, or the missing value provided on any error.
      */
     public final Object queryForOneValue(String keyQuery,
@@ -270,8 +273,8 @@ public class ClimateDAO {
 
     /**
      * @param stationCode
-     * @return the station ID (inform ID) associated with the given station
-     *         code or null if not found.
+     * @return the station ID (inform ID) associated with the given station code
+     *         or null if not found.
      */
     public final Integer getStationIDByCode(String stationCode) {
         String query = "SELECT station_id FROM "
@@ -433,7 +436,7 @@ public class ClimateDAO {
         query.append(" AND ").append(startCol).append(" >= :beginDate ");
         query.append(" AND ").append(endCol).append(" <= :endDate ");
         query.append(" AND ").append(element).append(" != :missing ");
-        query.append(" AND ").append(element);
+        query.append(" AND ").append(element).append("::decimal");
         if (greaterOrLess) {
             query.append(" >= ");
         } else {

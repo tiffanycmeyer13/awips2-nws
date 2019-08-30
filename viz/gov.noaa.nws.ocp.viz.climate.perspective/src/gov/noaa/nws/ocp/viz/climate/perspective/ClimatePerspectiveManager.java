@@ -27,6 +27,7 @@ import gov.noaa.nws.ocp.viz.climate.perspective.views.ClimateView;
  * May 04, 2017 33534      jwu         Implement ClimateView to show sent products.
  * May 03, 2018 20711      amoore      Close listener should only apply to Climate
  *                                     perspective.
+ * Aug 05, 2019 DR 21509   dfriedman   Hide the editor area.
  * </pre>
  * 
  * @author wpaintsil
@@ -39,6 +40,12 @@ public class ClimatePerspectiveManager extends AbstractVizPerspectiveManager {
 
     @Override
     protected void open() {
+        /*
+         * This is specified on the layout in
+         * ClimatePerspective.createInitialLayout(), but it is apparently
+         * necessary to set it here.
+         */
+        page.setEditorAreaVisible(false);
 
         /*
          * Keyboard shortcuts are inactive until focus is on a control within a
