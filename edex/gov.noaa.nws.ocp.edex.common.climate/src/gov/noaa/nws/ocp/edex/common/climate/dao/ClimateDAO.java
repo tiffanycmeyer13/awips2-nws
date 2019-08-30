@@ -60,6 +60,11 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 08 APR 2019  DR 21226   dfriedman   Exclude trace precip values for averages in buildElement.
  * 23 APR 2019  DR21252    wpaintsil   Faulty logic in determining whether the monthly precip total 
  *                                     is trace.
+ * 02 JUL 2019  DR21423    wpaintsil   Trace not included in "number of days with snow."
+ * 15 JUL 2019  DR21432    wpaintsil   Correct mistake in precip/snow query.
+ * 30 JUL 2019  DR21339    dfriedman   Do not log a warning on failed station code lookup.
+ * 20 AUG 2019  DR21211    wpaintsil   Precipitation threshold query returns inaccurate results if 
+ *                                     numeric type is not specified.
  * </pre>
  * 
  * @author amoore
@@ -155,22 +160,25 @@ public class ClimateDAO {
      * @param keyQuery
      * @param keyParamMap
      * @param missingValue
+     * @param warnNull
+     *            log a warning if query result is empty or value is null
      * @return resulting value, or the missing value provided on any error.
      */
     public final Object queryForOneValue(String keyQuery,
-            Map<String, Object> keyParamMap, Object missingValue) {
+            Map<String, Object> keyParamMap, Object missingValue,
+            boolean warnNull) {
         try {
             Object[] res = dao.executeSQLQuery(keyQuery, keyParamMap);
             if ((res != null) && (res.length >= 1)) {
                 if (res[0] != null) {
                     return res[0];
-                } else {
+                } else if (warnNull) {
                     logger.warn(
                             "Null result querying the climate database with query: ["
                                     + keyQuery + "] and map [" + keyParamMap
                                     + "]");
                 }
-            } else {
+            } else if (warnNull) {
                 logger.warn(
                         "Null or empty result set querying the climate database with query: ["
                                 + keyQuery + "] and map [" + keyParamMap + "]");
@@ -188,6 +196,22 @@ public class ClimateDAO {
      * what type is expected on valid returns versus how the result of this
      * method is cast/handled on returning.
      * 
+     * @param keyQuery
+     * @param keyParamMap
+     * @param missingValue
+     * @return resulting value, or the missing value provided on any error.
+     */
+    public final Object queryForOneValue(String keyQuery,
+            Map<String, Object> keyParamMap, Object missingValue) {
+        return queryForOneValue(keyQuery, keyParamMap, missingValue, true);
+    }
+
+    /**
+     * Query for a single value using the given parameters. Users of this method
+     * must be certain to be careful with typing of the missing value versus
+     * what type is expected on valid returns versus how the result of this
+     * method is cast/handled on returning.
+     *
      * @param keyQuery
      * @param missingValue
      * @return resulting value, or the missing value provided on any error.
@@ -249,12 +273,10 @@ public class ClimateDAO {
 
     /**
      * @param stationCode
-     * @return the station ID (inform ID) associated with the given station
-     *         code.
-     * @throws ClimateQueryException
+     * @return the station ID (inform ID) associated with the given station code
+     *         or null if not found.
      */
-    public final int getStationIDByCode(String stationCode)
-            throws ClimateQueryException {
+    public final Integer getStationIDByCode(String stationCode) {
         String query = "SELECT station_id FROM "
                 + ClimateDAOValues.CLIMATE_STATION_SETUP_TABLE_NAME
                 + " WHERE station_code =" + ":stationCode";
@@ -262,15 +284,9 @@ public class ClimateDAO {
         queryParams.put("stationCode", stationCode);
 
         int stationID = (int) queryForOneValue(query, queryParams,
-                Integer.MIN_VALUE);
+                Integer.MIN_VALUE, false);
         if (stationID == Integer.MIN_VALUE) {
-            /*
-             * It is a critical issue if a station cannot be found.
-             */
-            throw new ClimateQueryException(
-                    "Could not find a station ID for code: [" + stationCode
-                            + "] using query: [" + query + "] and map: ["
-                            + queryParams.toString() + "].");
+            return null;
         }
 
         return stationID;
@@ -420,7 +436,7 @@ public class ClimateDAO {
         query.append(" AND ").append(startCol).append(" >= :beginDate ");
         query.append(" AND ").append(endCol).append(" <= :endDate ");
         query.append(" AND ").append(element).append(" != :missing ");
-        query.append(" AND ").append(element);
+        query.append(" AND ").append(element).append("::decimal");
         if (greaterOrLess) {
             query.append(" >= ");
         } else {
@@ -428,7 +444,7 @@ public class ClimateDAO {
         }
         query.append(" :value ");
 
-        if (precipOrSnow) {
+        if (precipOrSnow && !threshold.equals(ParameterFormatClimate.TRACE)) {
             query.append(" AND ").append(element).append(" != ");
             query.append(ParameterFormatClimate.TRACE);
         }
@@ -558,6 +574,8 @@ public class ClimateDAO {
                     ClimateDAOValues.CLIMATE_MONTHLY_SEASON_ANNUAL_TABLE_NAME);
             query.append(" WHERE ");
             query.append(" period_type = 5 AND ");
+
+            queryNoTrace.append(query.toString());
         } else {
             element = dailyColumn;
             idCol = "station_id";

@@ -44,7 +44,10 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  *                                     Appears for temperature fields though those
  *                                     Values are close enough. E.g. "The MSM 
  *                                     value 17.3 does not match the Daily DB value 17.321428"
- * 30 APR 2019  DR21261    wpaintsil    Some temperature fields need to be rounded.
+ * 30 APR 2019  DR21261    wpaintsil   Some temperature fields need to be rounded.
+ * 13 JUN 2019  DR21417    wpaintsil   Float entry required for temperature averages.
+ * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
+ *                                     mismatch symbols appearing inappropriately.
  * </pre>
  * 
  * @author amoore
@@ -789,9 +792,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myAvgMinTempTF.useGridData();
         myAvgMinTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMinTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMinTempTF.addKeyListener(new DataFieldListener(
                 myAvgMinTempComboBox, myPeriodDialog.getChangeListener()));
 
@@ -1187,9 +1190,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myAvgMaxTempTF.useGridData();
         myAvgMaxTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMaxTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myAvgMaxTempTF.addKeyListener(new DataFieldListener(
                 myAvgMaxTempComboBox, myPeriodDialog.getChangeListener()));
 
@@ -1234,9 +1237,9 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myPeriodDialog.myIsMonthly);
         myMeanTempTF.useGridData();
         myMeanTempTF.addListener(SWT.Verify,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myMeanTempTF.addListener(SWT.FocusOut,
-                myDisplayListeners.getTempIntListener());
+                myDisplayListeners.getTempPeriodAverageListener());
         myMeanTempTF.addKeyListener(new DataFieldListener(myMeanTempComboBox,
                 myPeriodDialog.getChangeListener()));
     }
@@ -1860,6 +1863,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myAvgMaxTempLbl.setNotMatched(iMonthlyAsosData.getMaxTempMean(),
                         iDailyBuildData.getMaxTempMean());
                 tempTabMismatch = true;
+            } else {
+                myAvgMaxTempLbl.setMatched();
             }
         } else {
             myAvgMaxTempLbl.setMatched();
@@ -1882,6 +1887,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myMeanTempLbl.setNotMatched(iMonthlyAsosData.getMeanTemp(),
                         iDailyBuildData.getMeanTemp());
                 tempTabMismatch = true;
+            } else {
+                myMeanTempLbl.setMatched();
             }
         } else {
             myMeanTempLbl.setMatched();
@@ -1906,6 +1913,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumMaxGreaterThan90F(),
                         iDailyBuildData.getNumMaxGreaterThan90F());
                 tempTabMismatch = true;
+            } else {
+                myMaxTempGreater90DegLabel.setMatched();
             }
         } else {
             myMaxTempGreater90DegLabel.setMatched();
@@ -1930,6 +1939,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumMaxLessThan32F(),
                         iDailyBuildData.getNumMaxLessThan32F());
                 tempTabMismatch = true;
+            } else {
+                myMaxTempLess32DegLabel.setMatched();
             }
         } else {
             myMaxTempLess32DegLabel.setMatched();
@@ -2012,6 +2023,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                 myAvgMinTempLbl.setNotMatched(iMonthlyAsosData.getMinTempMean(),
                         iDailyBuildData.getMinTempMean());
                 tempTabMismatch = true;
+            } else {
+                myAvgMinTempLbl.setMatched();
             }
         } else {
             myAvgMinTempLbl.setMatched();
@@ -2039,6 +2052,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumMinLessThan32F(),
                         iDailyBuildData.getNumMinLessThan32F());
                 tempTabMismatch = true;
+            } else {
+                myMinTempLess32DegLabel.setMatched();
             }
         } else {
             myMinTempLess32DegLabel.setMatched();
@@ -2062,6 +2077,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumMinLessThan0F(),
                         iDailyBuildData.getNumMinLessThan0F());
                 tempTabMismatch = true;
+            } else {
+                myMinTempLess0DegLabel.setMatched();
             }
         } else {
             myMinTempLess0DegLabel.setMatched();
@@ -2102,6 +2119,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumHeatTotal(),
                         iDailyBuildData.getNumHeatTotal());
                 tempTabMismatch = true;
+            } else {
+                myHeatingDaysLabel.setMatched();
             }
         } else {
             myHeatingDaysLabel.setMatched();
@@ -2124,6 +2143,8 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
                         iMonthlyAsosData.getNumCoolTotal(),
                         iDailyBuildData.getNumCoolTotal());
                 tempTabMismatch = true;
+            } else {
+                myCoolingDaysLabel.setMatched();
             }
         } else {
             myCoolingDaysLabel.setMatched();

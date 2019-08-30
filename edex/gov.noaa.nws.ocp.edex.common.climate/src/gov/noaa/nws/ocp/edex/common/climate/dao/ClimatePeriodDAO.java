@@ -24,6 +24,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodDataMethod;
 import gov.noaa.nws.ocp.common.dataplugin.climate.PeriodType;
 import gov.noaa.nws.ocp.common.dataplugin.climate.QueryData;
+import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateSessionException;
@@ -89,6 +90,13 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  *                                     rather than an array.
  *                                     Revise monthly period logic in buildPeriodObsClimo.
  * 30 APR 2019  DR21261    wpaintsil   Several fields missing due to incorrect queries.
+ * 13 JUN 2019  DR21099    wpaintsil   Snow values should default to missing value if the station
+ *                                     does not report snow.
+ * 15 JUL 2019  DR21432    wpaintsil   Psql round function returns no results.
+ * 18 JUL 2019  DR21454    wpaintsil   Logic from legacy was not properly migrated for 
+ *                                     24 hr precip date calculations.
+ * 19 JUL 2019  DR21423    wpaintsil   24hr snowfall with a legitimate value of 0 was set to missing 
+ *                                     if there were no trace records.
  * </pre>
  * 
  * @author amoore
@@ -156,6 +164,14 @@ public class ClimatePeriodDAO extends ClimateDAO {
         // PeriodType.OTHER is passed to the helper methods to indicate that the
         // daily_climate table should be queried for CLM.
         PeriodType currentType = monthly ? PeriodType.OTHER : itype;
+
+        String icaoId = new String();
+        for (Station station : new ClimateStationsSetupDAO()
+                .getMasterStations()) {
+            if (station.getInformId() == stationID) {
+                icaoId = station.getIcaoId();
+            }
+        }
 
         // temperature section
 
@@ -421,34 +437,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     getAvgMeanPrecip(beginDate, endDate, stationID, itype));
         }
 
-        // cumulative snowfall
-        periodData.setSnowTotal(
-                getSumTotalSnow(beginDate, endDate, stationID, currentType));
-
-        /*
-         * snow - water equivalent
-         * 
-         * Legacy description:
-         * 
-         * DAI 30, Task 23211: okay, use 1:10 ratio here? First we'll do that
-         * but should look into using the DSM as well
-         * 
-         * Discrepancy #64: In Legacy Climate, it was possible for reports to
-         * have -0.1 total water equivalent values, since it is calculated from
-         * dividing the snow total by 10, and snow total could be trace (-1.0).
-         * In Migrated Climate, if snow total is trace, then total water
-         * equivalent will also be trace.
-         */
-        if (ClimateUtilities.floatingEquals(periodData.getSnowTotal(),
-                ParameterFormatClimate.TRACE)) {
-            periodData.setSnowWater(ParameterFormatClimate.TRACE);
-        } else if (periodData
-                .getSnowTotal() != ParameterFormatClimate.MISSING_SNOW) {
-            periodData.setSnowWater(periodData.getSnowTotal() / 10);
-        } else {
-            periodData.setSnowWater(ParameterFormatClimate.MISSING_SNOW);
-        }
-
         /*
          * snow since July 1 - need to find out which month it is and then
          * decrease the year by 1 if necessary
@@ -467,8 +455,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
             break;
         case SEASONAL_NWWS:
         case SEASONAL_RAD:
-            // seasonal and begin month is before June and end month is before
-            // July
+            // seasonal and begin month is before June and end month is
+            // before July
             if ((beginDate.getMon() < 6) && (endDate.getMon() < 7)) {
                 july1Date.setYear(july1Date.getYear() - 1);
             }
@@ -485,110 +473,148 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     "Unhandled period type [" + itype + "]");
         }
 
-        periodData.setSnowJuly1(
-                getSumTotalSnow(july1Date, endDate, stationID, currentType));
+        // Snow values should remain missing if the station doesn't report snow.
+        if (globalValues.getSnowReportingStations().contains(icaoId)) {
 
-        /*
-         * Legacy documentation:
-         * 
-         * DAI 30, Task 23211: again, 1:10 ratio for water equivalent
-         */
-        if (periodData.getSnowJuly1() != ParameterFormatClimate.MISSING_SNOW) {
-            periodData.setSnowWaterJuly1(periodData.getSnowJuly1() / 10);
-        } else {
-            periodData.setSnowWaterJuly1(ParameterFormatClimate.MISSING_SNOW);
-        }
+            // cumulative snowfall
+            periodData.setSnowTotal(getSumTotalSnow(beginDate, endDate,
+                    stationID, currentType));
 
-        // get days of different snow amounts
-        if (monthly) {
-            periodData.setNumSnowGreaterThanTR(sumReportSnowGreaterTR(beginDate,
-                    endDate, PeriodType.OTHER, stationID));
+            /*
+             * snow - water equivalent
+             * 
+             * Legacy description:
+             * 
+             * DAI 30, Task 23211: okay, use 1:10 ratio here? First we'll do
+             * that but should look into using the DSM as well
+             * 
+             * Discrepancy #64: In Legacy Climate, it was possible for reports
+             * to have -0.1 total water equivalent values, since it is
+             * calculated from dividing the snow total by 10, and snow total
+             * could be trace (-1.0). In Migrated Climate, if snow total is
+             * trace, then total water equivalent will also be trace.
+             */
+            if (ClimateUtilities.floatingEquals(periodData.getSnowTotal(),
+                    ParameterFormatClimate.TRACE)) {
+                periodData.setSnowWater(ParameterFormatClimate.TRACE);
+            } else if (periodData
+                    .getSnowTotal() != ParameterFormatClimate.MISSING_SNOW) {
+                periodData.setSnowWater(periodData.getSnowTotal() / 10);
+            } else {
+                periodData.setSnowWater(ParameterFormatClimate.MISSING_SNOW);
+            }
 
-            periodData.setNumSnowGreaterThan1(sumReportSnowGreater1(beginDate,
-                    endDate, PeriodType.OTHER, stationID));
+            periodData.setSnowJuly1(getSumTotalSnow(july1Date, endDate,
+                    stationID, currentType));
 
-            periodData.setNumSnowGreaterThanS1(sumReportSnowGreaterS1(beginDate,
-                    endDate, PeriodType.OTHER, stationID, globalValues));
-        }
-
-        // 24 hour snow
-        if (monthly) {
             /*
              * Legacy documentation:
              * 
-             * Find max 24-hr snowfall from stored daily data using total snow
-             * column.
+             * DAI 30, Task 23211: again, 1:10 ratio for water equivalent
              */
             periodData.setSnowMax24H(getMax24HSnow(beginDate, endDate,
                     stationID, PeriodType.OTHER));
 
-            if (periodData.getSnowMax24H() == 0) {
-                /* check for trace amounts */
-                int traceReports = getNumTotalSnowTrace(beginDate, endDate,
-                        stationID, PeriodType.OTHER);
+            if (periodData
+                    .getSnowJuly1() != ParameterFormatClimate.MISSING_SNOW) {
+                periodData.setSnowWaterJuly1(periodData.getSnowJuly1() / 10);
+            } else {
+                periodData
+                        .setSnowWaterJuly1(ParameterFormatClimate.MISSING_SNOW);
+            }
 
-                if ((traceReports == 0)
-                        || (traceReports == ParameterFormatClimate.MISSING)) {
-                    // no trace snow reports
-                    periodData
-                            .setSnowMax24H(ParameterFormatClimate.MISSING_SNOW);
-                } else {
-                    periodData.setSnowMax24H(ParameterFormatClimate.TRACE);
+            // get days of different snow amounts
+            if (monthly) {
+                periodData.setNumSnowGreaterThanTR(sumReportSnowGreaterTR(
+                        beginDate, endDate, PeriodType.OTHER, stationID));
+
+                periodData.setNumSnowGreaterThan1(sumReportSnowGreater1(
+                        beginDate, endDate, PeriodType.OTHER, stationID));
+
+                periodData.setNumSnowGreaterThanS1(
+                        sumReportSnowGreaterS1(beginDate, endDate,
+                                PeriodType.OTHER, stationID, globalValues));
+            }
+
+            // 24 hour snow
+            if (monthly) {
+                /*
+                 * Legacy documentation:
+                 * 
+                 * Find max 24-hr snowfall from stored daily data using total
+                 * snow column.
+                 */
+                periodData.setSnowMax24H(
+                        getMaxTotalSnow(beginDate, endDate, stationID));
+
+                if (periodData.getSnowMax24H() == 0) {
+                    /* check for trace amounts */
+                    int traceReports = getNumTotalSnowTrace(beginDate, endDate,
+                            stationID, PeriodType.OTHER);
+
+                    if (traceReports != 0
+                            && traceReports != ParameterFormatClimate.MISSING) {
+                        periodData.setSnowMax24H(ParameterFormatClimate.TRACE);
+                    }
+                }
+                // dates with max 24H snow
+                if ((periodData
+                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW)
+                        && (periodData
+                                .getSnowMax24H() != ParameterFormatClimate.TRACE)
+                        && (periodData.getSnowMax24H() != 0)) {
+                    periodData.setSnow24HDates(getMaxTotalSnowOccurrences(
+                            beginDate, endDate, stationID,
+                            periodData.getSnowMax24H(), PeriodType.OTHER));
+                }
+
+            } else {
+                // Find max 24-hour snowfall using the 24H snow column
+                periodData.setSnowMax24H(
+                        getMax24HSnow(beginDate, endDate, stationID, itype));
+
+                // dates with max 24H snow
+                if (periodData
+                        .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW
+                        && periodData.getSnowMax24H() != 0) {
+                    periodData.setSnow24HDates(getMax24HSnowOccurrences(
+                            beginDate, endDate, stationID,
+                            periodData.getSnowMax24H(), itype));
                 }
             }
-            // dates with max 24H snow
-            if ((periodData
-                    .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW)
-                    && (periodData
-                            .getSnowMax24H() != ParameterFormatClimate.TRACE)) {
-                periodData.setSnow24HDates(getMaxTotalSnowOccurrences(beginDate,
-                        endDate, stationID, periodData.getSnowMax24H(),
-                        PeriodType.OTHER));
-            }
 
-        } else {
-            // Find max 24-hour snowfall using the 24H snow column
-            periodData.setSnowMax24H(
-                    getMax24HSnow(beginDate, endDate, stationID, itype));
+            // snow storm totals
+            // find max snow storm using the column
+            periodData.setSnowMaxStorm(getMaxSnowStorm(beginDate, endDate,
+                    stationID, currentType));
 
-            // dates with max 24H snow
             if (periodData
-                    .getSnowMax24H() != ParameterFormatClimate.MISSING_SNOW) {
-                periodData.setSnow24HDates(getMax24HSnowOccurrences(beginDate,
-                        endDate, stationID, periodData.getSnowMax24H(), itype));
+                    .getSnowMaxStorm() != ParameterFormatClimate.MISSING_SNOW) {
+                // get start and end dates of max snow storm
+                periodData.setSnowStormList(getMaxSnowStormOccurrences(
+                        beginDate, endDate, stationID,
+                        periodData.getSnowMaxStorm(), currentType));
             }
-        }
 
-        // snow storm totals
-        // find max snow storm using the column
-        periodData.setSnowMaxStorm(
-                getMaxSnowStorm(beginDate, endDate, stationID, currentType));
+            // snow depth information
+            periodData.setSnowGroundMean(getAvgMeanSnowOnGround(beginDate,
+                    endDate, stationID, currentType));
 
-        if (periodData
-                .getSnowMaxStorm() != ParameterFormatClimate.MISSING_SNOW) {
-            // get start and end dates of max snow storm
-            periodData.setSnowStormList(
-                    getMaxSnowStormOccurrences(beginDate, endDate, stationID,
-                            periodData.getSnowMaxStorm(), currentType));
-        }
+            // max snow on ground
+            periodData.setSnowGroundMax(getMaxSnowGround(beginDate, endDate,
+                    stationID, currentType));
 
-        // snow depth information
-        periodData.setSnowGroundMean(getAvgMeanSnowOnGround(beginDate, endDate,
-                stationID, currentType));
-
-        // max snow on ground
-        periodData.setSnowGroundMax(
-                getMaxSnowGround(beginDate, endDate, stationID, currentType));
-
-        if ((periodData
-                .getSnowGroundMax() != ParameterFormatClimate.MISSING_SNOW_VALUE)
-                && ((periodData.getSnowGroundMax() > 0) || (periodData
-                        .getSnowGroundMax() == ParameterFormatClimate.TRACE))) {
-            // get dates of max snow on ground, if the value is not missing and
-            // is either greater than 0 or the trace amount
-            periodData.setSnowGroundMaxDateList(
-                    getMaxSnowGroundOccurrences(beginDate, endDate, stationID,
-                            periodData.getSnowGroundMax(), currentType));
+            if ((periodData
+                    .getSnowGroundMax() != ParameterFormatClimate.MISSING_SNOW_VALUE)
+                    && ((periodData.getSnowGroundMax() > 0) || (periodData
+                            .getSnowGroundMax() == ParameterFormatClimate.TRACE))) {
+                // get dates of max snow on ground, if the value is not missing
+                // and
+                // is either greater than 0 or the trace amount
+                periodData.setSnowGroundMaxDateList(getMaxSnowGroundOccurrences(
+                        beginDate, endDate, stationID,
+                        periodData.getSnowGroundMax(), currentType));
+            }
         }
 
         // heating degree days
@@ -971,7 +997,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                              * reset the period data's max 24 hour dates list
                              */
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i);
+                                    beginDate, i, k);
 
                             // assign start of new dates collection
                             List<ClimateDates> precipDates = new ArrayList<>();
@@ -988,9 +1014,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                             // Legacy would limit dates to 3 sets; this
                             // is unnecessary here and potentially
                             // limiting to future expansion
-
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i);
+                                    beginDate, i, k);
 
                             /*
                              * check if this 24 hour period is a
@@ -2213,7 +2238,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" WHERE period_start >= ");
         query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
-        query.append(" AND ROUND(snow_max_storm::numeric, 2) >= :maxSnowStorm");
+        query.append(" AND snow_max_storm >= :maxSnowStorm");
         query.append(" AND snow_max_storm != :missing");
         Map<String, Object> queryParams = new HashMap<>();
 
@@ -2436,7 +2461,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
             query.append(" WHERE date >= ");
             query.append(" :beginDate AND date <= ");
             query.append(" :endDate AND station_id = :stationID");
-            query.append(" AND ROUND(snow::numeric, 2) >= :snowTotal");
+            query.append(" AND snow >= :snowTotal");
             query.append(" AND snow != :missing");
             query.append(" ORDER BY snow DESC");
         }
@@ -2451,6 +2476,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         try {
             Object[] results = getDao().executeSQLQuery(query.toString(),
                     queryParams);
+
             if ((results != null) && (results.length >= 1)) {
                 for (Object result : results) {
                     if (result instanceof Object[]) {
@@ -2625,7 +2651,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" WHERE period_start >= ");
         query.append(" :beginDate AND period_end <= ");
         query.append(" :endDate AND inform_id = :stationID");
-        query.append(" AND ROUND(precip_storm_max::numeric, 2) = ");
+        query.append(" AND precip_storm_max = ");
         query.append(":precipMaxStorm AND precip_storm_max != :missing");
         Map<String, Object> queryParams = new HashMap<>();
 
@@ -2778,32 +2804,37 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * 
      * @param iStartDate
      * @param iStartHour
+     * @param startDay
      * @return
      */
     private static ClimateDates getPrecipDatesFromDateAndHour(
-            ClimateDate iStartDate, int iStartHour) {
+            ClimateDate iStartDate, int iStartHour, int startDay) {
         ClimateDates newPrecipDates;
+
+        int start, end;
+
         if (iStartHour == 0) {
             /*
              * max found between hours 0 and 23 on first day
              */
-            newPrecipDates = new ClimateDates(new ClimateDate(iStartDate),
-                    new ClimateDate(iStartDate));
+            start = startDay;
+            end = startDay;
         } else if (iStartHour < TimeUtil.HOURS_PER_DAY) {
             /* date spanned */
-            Calendar endCal = iStartDate.getCalendarFromClimateDate();
-            endCal.add(Calendar.DATE, 1);
-            newPrecipDates = new ClimateDates(new ClimateDate(iStartDate),
-                    new ClimateDate(endCal));
+            start = startDay;
+            end = startDay + 1;
         } else {
             /*
              * max found between hours 0 and 23 on second day
              */
-            Calendar cal = iStartDate.getCalendarFromClimateDate();
-            cal.add(Calendar.DATE, 1);
-            newPrecipDates = new ClimateDates(new ClimateDate(cal),
-                    new ClimateDate(cal));
+            start = startDay + 1;
+            end = startDay + 1;
         }
+        newPrecipDates = new ClimateDates(
+                new ClimateDate(start, iStartDate.getMon(),
+                        iStartDate.getYear()),
+                new ClimateDate(end, iStartDate.getMon(),
+                        iStartDate.getYear()));
 
         /*
          * determine beginning and ending hours of the 24 hour period
@@ -2846,7 +2877,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
         query.append(" :endDate AND station_id = :stationID");
         if (maxTotalPrecip != ParameterFormatClimate.TRACE) {
             // non-trace precip
-            query.append(" AND ROUND(precip::numeric, 2) >= :totalPrecip");
+            query.append(" AND precip >= :totalPrecip");
         } else {
             // trace precip only
             query.append(" AND precip <= :totalPrecip");
@@ -3355,7 +3386,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
      *            period type to look for.
      */
     public void buildPeriodSumClimo(ClimateDate beginDate, ClimateDate endDate,
-            PeriodData periodData, PeriodType iPeriodType) {
+            PeriodData periodData, PeriodType iPeriodType, boolean reportSnow) {
         int informID = periodData.getInformId();
 
         periodData.setNumMaxGreaterThan90F(
@@ -3406,14 +3437,16 @@ public class ClimatePeriodDAO extends ClimateDAO {
         periodData.setNumPrcpGreaterThanP2(
                 sumNumPrecipGreaterP2(beginDate, endDate, informID));
 
-        periodData.setNumSnowGreaterThanTR(
-                sumNumSnowGreaterTR(beginDate, endDate, informID));
+        if (reportSnow) {
+            periodData.setNumSnowGreaterThanTR(
+                    sumNumSnowGreaterTR(beginDate, endDate, informID));
 
-        periodData.setNumSnowGreaterThan1(
-                sumNumSnowGreater1(beginDate, endDate, informID));
+            periodData.setNumSnowGreaterThan1(
+                    sumNumSnowGreater1(beginDate, endDate, informID));
 
-        periodData.setNumSnowGreaterThanS1(
-                sumNumSnowGreaterS1(beginDate, endDate, informID));
+            periodData.setNumSnowGreaterThanS1(
+                    sumNumSnowGreaterS1(beginDate, endDate, informID));
+        }
 
         periodData.setNumFairDays(sumNumFairDays(beginDate, endDate, informID));
 
