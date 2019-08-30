@@ -41,6 +41,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodDAO;
  * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting.
  * 11 OCT 2017  39238      amoore      Shortened and correct DST-dependent timezones in
  *                                     Formatted and RER headers.
+ * 16 AUG 2019  DR21231    wpaintsil   Correct the format of the header.
  * </pre>
  *
  * @author wpaintsil
@@ -202,19 +203,20 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
      */
     public String buildNWWSHeader(ClimateDate beginDate) {
         StringBuilder nwwsHeader = new StringBuilder();
-        // First part of the header phrase
-        // Example: "ALYCLIDCA000TTAA00 KALY 310802"
-        nwwsHeader.append(currentSettings.getHeader().getNodeOrigSite())
-                .append(currentSettings.getHeader().getProductCategory())
-                .append(currentSettings.getHeader().getStationId())
-                .append(currentSettings.getHeader().getAddress())
-                .append(currentSettings.getHeader().getCDE1()).append(SPACE)
-                .append(currentSettings.getHeader().getCDE2())
-                .append(currentSettings.getHeader().getCDE3()).append(SPACE);
 
         // Creation date and time (UTC) for the header
         updateNWWSHeader();
-        nwwsHeader
+
+        // First part of the header phrase
+        // Example:
+        // 000
+        // TTAA00 KHUN 110701
+        // CLIHSV
+        nwwsHeader.append(currentSettings.getHeader().getAddress()).append("\n")
+                .append(currentSettings.getHeader().getCDE1()).append(SPACE)
+                .append(currentSettings.getHeader().getCDE2())
+                .append(currentSettings.getHeader().getNodeOrigSite())
+                .append(SPACE)
                 .append(String.format(TWO_DIGIT_INT,
                         currentSettings.getHeader().getCDE4_Date().getDay()))
                 .append(String.format(TWO_DIGIT_INT,
@@ -222,7 +224,9 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
                                 .to24HourTime().getHour()))
                 .append(String.format(TWO_DIGIT_INT,
                         currentSettings.getHeader().getCDE4_Time().getMin()))
-                .append("\n");
+                .append("\n")
+                .append(currentSettings.getHeader().getProductCategory())
+                .append(currentSettings.getHeader().getStationId());
 
         nwwsHeader.append("\n\nClimate Report").append(SPACE)
                 .append("\nNational Weather Service");

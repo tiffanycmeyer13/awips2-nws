@@ -74,6 +74,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.MetarUtils;
  * 20 MAR 2019  DR 21189   dfriedman   Change queries to compare timestamps
  *                                     instead of formatted strings.
  * 24 APR 2019  DR 21258   dfriedman   Correct valid time ordering in getMetarCategSingle.
+ * 08 AUG 2019  DR 21516   wpaintsil   'SPECI' query in buildDailyObsClimo includes an extra hour.
  * </pre>
  * 
  * @author amoore
@@ -246,10 +247,13 @@ public class ClimateCreatorDAO extends ClimateDAO {
 
         // start looping through hours, increment time at end of loop
         for (int i = 0; i <= numHours; i++) {
-            Calendar nominalTime = (new ClimateDate(baseTime)).getCalendarFromClimateDate();
-            nominalTime.add(Calendar.HOUR_OF_DAY, baseTime.get(Calendar.HOUR_OF_DAY));
-            String nominalTimeString = (new ClimateDate(nominalTime)).toFullDateString()
-                    + " " + nominalTime.get(Calendar.HOUR_OF_DAY) + ":00:00";
+            Calendar nominalTime = (new ClimateDate(baseTime))
+                    .getCalendarFromClimateDate();
+            nominalTime.add(Calendar.HOUR_OF_DAY,
+                    baseTime.get(Calendar.HOUR_OF_DAY));
+            String nominalTimeString = (new ClimateDate(nominalTime))
+                    .toFullDateString() + " "
+                    + nominalTime.get(Calendar.HOUR_OF_DAY) + ":00:00";
             Calendar nominalHourIncrement = TimeUtil.newCalendar(nominalTime);
             nominalHourIncrement.add(Calendar.HOUR_OF_DAY, 1);
             StringBuilder wxQuery = new StringBuilder(
@@ -298,8 +302,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 StringBuilder noWeatherQuery = new StringBuilder(
                         "SELECT count(*) FROM ");
                 noWeatherQuery.append(ClimateDAOValues.FSS_REPORT_TABLE_NAME);
-                noWeatherQuery.append(
-                        " WHERE nominal_dtime = :nominalTime");
+                noWeatherQuery.append(" WHERE nominal_dtime = :nominalTime");
                 noWeatherQuery.append(" AND station_id = :stationID");
                 noWeatherQuery.append(" AND report_subtype= 'MTR'");
 
@@ -351,7 +354,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
                     "SELECT distinct valid_dtime FROM ");
             sp1Query.append(ClimateDAOValues.FSS_REPORT_TABLE_NAME);
             sp1Query.append(
-                    " WHERE nominal_dtime between :nominalTime and :nominalHourIncrement");
+                    " WHERE nominal_dtime >= :nominalTime and nominal_dtime < :nominalHourIncrement");
             sp1Query.append(" AND station_id = :stationID");
             sp1Query.append(" AND report_subtype= 'SPECI'");
             StringBuilder sp2Query = new StringBuilder(
@@ -363,7 +366,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
             sp2Query.append(ClimateDAOValues.FSS_CATEGORY_MULTI_TABLE_NAME);
             sp2Query.append(" as cat");
             sp2Query.append(
-                    " WHERE nominal_dtime between :nominalTime and :nominalHourIncrement");
+                    " WHERE nominal_dtime >= :nominalTime and nominal_dtime < :nominalHourIncrement");
             sp2Query.append(" AND station_id = :stationID");
             sp2Query.append(" AND report_subtype = 'SPECI' ");
             sp2Query.append(" AND cat.element_id = ")
@@ -392,7 +395,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                     for (Object result : results) {
                         if (result instanceof Date) {
                             try {
-                                Calendar validDTime = TimeUtil.newCalendar((Date) result);
+                                Calendar validDTime = TimeUtil
+                                        .newCalendar((Date) result);
 
                                 /*
                                  * Legacy documentation:
@@ -1311,7 +1315,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
      * @throws ClimateQueryException
      */
     public FSSReportResult getMetarCategSingle(int informId, int elementID,
-            Calendar dateTime, String dateTimeString) throws ClimateQueryException {
+            Calendar dateTime, String dateTimeString)
+            throws ClimateQueryException {
         /*
          * Legacy documentation:
          * 
@@ -1393,7 +1398,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 }
 
             } else {
-                logger.warn("Couldn't find a report for report time " + dateTimeString
+                logger.warn("Couldn't find a report for report time "
+                        + dateTimeString
                         + "Z. Missing value will be returned for query: ["
                         + query.toString() + "] and map: [" + paramMap + "]");
             }
@@ -1562,7 +1568,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 }
 
             } else {
-                logger.warn("Couldn't find a report for report time " + dateTimeString
+                logger.warn("Couldn't find a report for report time "
+                        + dateTimeString
                         + "Z. Missing value will be returned for query: ["
                         + query.toString() + "] and map: [" + paramMap + "]");
             }
@@ -1722,7 +1729,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 }
 
             } else {
-                logger.warn("Couldn't find a report for report time " + dateTimeString
+                logger.warn("Couldn't find a report for report time "
+                        + dateTimeString
                         + "Z. Missing value will be returned for query: ["
                         + query + "] and map: [" + paramMap + "]");
             }
@@ -1905,7 +1913,8 @@ public class ClimateCreatorDAO extends ClimateDAO {
                 }
                 return resultList;
             } else {
-                logger.warn("Couldn't find a report for report time " + dateTimeString
+                logger.warn("Couldn't find a report for report time "
+                        + dateTimeString
                         + "Z. Missing value will be returned for query: ["
                         + query + "] and map: [" + paramMap + "]");
             }
@@ -2536,8 +2545,7 @@ public class ClimateCreatorDAO extends ClimateDAO {
          */
         try {
             float windSpeed = (float) getMetarConreal(informId,
-                    MetarUtils.METAR_PEAK_WIND_SPEED, dateTime)
-                            .getValue();
+                    MetarUtils.METAR_PEAK_WIND_SPEED, dateTime).getValue();
 
             /*
              * If the retrieved peak wind speed is bad, set it and the direction
@@ -3601,9 +3609,10 @@ public class ClimateCreatorDAO extends ClimateDAO {
                                 logger.warn(
                                         "Missing tenths and whole temp values for station ID ["
                                                 + informId + "] at time "
-                                                + validTimeString + "Z. Query: ["
-                                                + query + "] and map: ["
-                                                + paramMap + "].");
+                                                + validTimeString
+                                                + "Z. Query: [" + query
+                                                + "] and map: [" + paramMap
+                                                + "].");
                             }
                         }
                     } else {
