@@ -65,6 +65,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 30 JUL 2019  DR21339    dfriedman   Do not log a warning on failed station code lookup.
  * 20 AUG 2019  DR21211    wpaintsil   Precipitation threshold query returns inaccurate results if 
  *                                     numeric type is not specified.
+ * 30 AUG 2019  DR21540    wpaintsil   Faulty logic in determining max 24hr precip dates.
  * </pre>
  * 
  * @author amoore
@@ -821,6 +822,7 @@ public class ClimateDAO {
                 // get sum of precip
                 float currSum = 0.0f;
                 boolean foundTrace = false;
+                boolean twoDays = false;
 
                 // count for up to 24-hour spans
                 for (int j = 0; j < TimeUtil.HOURS_PER_DAY; j++) {
@@ -835,7 +837,7 @@ public class ClimateDAO {
                             break;
                         } else {
                             // non-missing, sum non-trace or found a trace
-                            if (hourlyPrecip > 0) {
+                            if (hourlyPrecip >= 0) {
                                 currSum += hourlyPrecip;
                             } else {
                                 foundTrace = true;
@@ -843,6 +845,10 @@ public class ClimateDAO {
                         }
 
                     } else {
+                        if ((i + j) == TimeUtil.HOURS_PER_DAY
+                                && (currSum > 0 || foundTrace)) {
+                            twoDays = true;
+                        }
                         // start counting into current day
                         float hourlyPrecip = todayPrecipValues[(i + j)
                                 - TimeUtil.HOURS_PER_DAY];
@@ -852,7 +858,7 @@ public class ClimateDAO {
                             break;
                         } else {
                             // non-missing, sum non-trace or found a trace
-                            if (hourlyPrecip > 0) {
+                            if (hourlyPrecip >= 0) {
                                 currSum += hourlyPrecip;
                             } else {
                                 foundTrace = true;
@@ -880,11 +886,11 @@ public class ClimateDAO {
                             currentMaxPrecipValue = ParameterFormatClimate.TRACE;
                         }
 
-                        if (i == TimeUtil.HOURS_PER_DAY - 1) {
-                            maxPrecipValueDays[0] = day;
+                        if (twoDays) {
+                            maxPrecipValueDays[0] = day - 1;
                             maxPrecipValueDays[1] = day;
                         } else {
-                            maxPrecipValueDays[0] = day - 1;
+                            maxPrecipValueDays[0] = day;
                             maxPrecipValueDays[1] = day;
                         }
                     }
