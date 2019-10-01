@@ -97,6 +97,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.QCValues;
  *                                     24 hr precip date calculations.
  * 19 JUL 2019  DR21423    wpaintsil   24hr snowfall with a legitimate value of 0 was set to missing 
  *                                     if there were no trace records.
+ * 24 SEP 2019  DR21562    wpaintsil   Revise the logic for determining the days in which 24hr max 
+ *                                     precipitation occured.
  * </pre>
  * 
  * @author amoore
@@ -827,7 +829,6 @@ public class ClimatePeriodDAO extends ClimateDAO {
             throws ClimateQueryException {
         // flag to see if have precipitation data
         boolean maxPrecipFound = false;
-
         /* loop through number of days */
         for (int k = 0; k < searchRangeDays - 1; k++) {
             float[] precip48HourData = new float[48];
@@ -937,6 +938,8 @@ public class ClimatePeriodDAO extends ClimateDAO {
                 for (int i = 1; i < TimeUtil.HOURS_PER_DAY + 1; i++) {
                     /* initialize the precipitation total */
                     float currSum = 0;
+                    boolean dayOne = false;
+                    boolean dayTwo = false;
 
                     /* loop through 24 hours */
                     for (int j = 0; j < TimeUtil.HOURS_PER_DAY; j++) {
@@ -955,9 +958,17 @@ public class ClimatePeriodDAO extends ClimateDAO {
                             break;
                         } else if ((precip48HourData[j
                                 + i] < ParameterFormatClimate.MISSING_PRECIP)
-                                && (precip48HourData[j + i] >= 0)) {
+                                && (precip48HourData[j + i] > 0)) {
                             /* sum the precip for the 24 hour block */
                             currSum += precip48HourData[j + i];
+
+                            /* flag the days that the sum occurred over. */
+                            if (j + i < 24) {
+                                dayOne = true;
+                            }
+                            if (j + i >= 24) {
+                                dayTwo = true;
+                            }
                         }
                     }
 
@@ -965,9 +976,18 @@ public class ClimatePeriodDAO extends ClimateDAO {
                     if (currSum == 0) {
                         /* loop through 24 hours */
                         for (int j = 0; j < TimeUtil.HOURS_PER_DAY; j++) {
-                            if (precip48HourData[j + i] <= 0) {
+                            if (precip48HourData[j
+                                    + i] == ParameterFormatClimate.TRACE) {
                                 /* set to trace for 24 hours */
                                 currSum = ParameterFormatClimate.TRACE;
+
+                                /* flag the days that the sum occurred over. */
+                                if (j + i < 24) {
+                                    dayOne = true;
+                                }
+                                if (j + i >= 24) {
+                                    dayTwo = true;
+                                }
                                 break;
                             }
                         }
@@ -997,7 +1017,7 @@ public class ClimatePeriodDAO extends ClimateDAO {
                              * reset the period data's max 24 hour dates list
                              */
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i, k);
+                                    beginDate, i, k, dayOne, dayTwo);
 
                             // assign start of new dates collection
                             List<ClimateDates> precipDates = new ArrayList<>();
@@ -1014,8 +1034,9 @@ public class ClimatePeriodDAO extends ClimateDAO {
                             // Legacy would limit dates to 3 sets; this
                             // is unnecessary here and potentially
                             // limiting to future expansion
+
                             ClimateDates newPrecipDates = getPrecipDatesFromDateAndHour(
-                                    beginDate, i, k);
+                                    beginDate, i, k, dayOne, dayTwo);
 
                             /*
                              * check if this 24 hour period is a
@@ -2805,30 +2826,36 @@ public class ClimatePeriodDAO extends ClimateDAO {
      * @param iStartDate
      * @param iStartHour
      * @param startDay
+     * @param dayOne
+     * @param dayTwo
      * @return
      */
     private static ClimateDates getPrecipDatesFromDateAndHour(
-            ClimateDate iStartDate, int iStartHour, int startDay) {
+            ClimateDate iStartDate, int iStartHour, int startDay,
+            boolean dayOne, boolean dayTwo) {
         ClimateDates newPrecipDates;
 
         int start, end;
 
-        if (iStartHour == 0) {
+        if (dayOne && !dayTwo) {
             /*
              * max found between hours 0 and 23 on first day
              */
             start = startDay;
             end = startDay;
-        } else if (iStartHour < TimeUtil.HOURS_PER_DAY) {
+        } else if (dayOne && dayTwo) {
             /* date spanned */
             start = startDay;
             end = startDay + 1;
-        } else {
+        } else if (dayTwo && !dayOne) {
             /*
              * max found between hours 0 and 23 on second day
              */
             start = startDay + 1;
             end = startDay + 1;
+        } else {
+            start = startDay;
+            end = startDay;
         }
         newPrecipDates = new ClimateDates(
                 new ClimateDate(start, iStartDate.getMon(),
