@@ -58,6 +58,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  *                                     and Sunrise sentences.
  * Nov 20, 2018 DR20942    wpaintsil   "Snowfall for the year" wording is misleading. 
  *                                     Should be "since July 1."
+ * Sep 15, 2019 DR21591    wpaintsil   Corrected a mistake in setting total snow since Jan 1.
  * </pre>
  *
  * @author wpaintsil
@@ -1904,7 +1905,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         && (yesterday
                                 .getSnowDay() == ParameterFormatClimate.TRACE
                                 || yesterday.getSnowDay() == 0)) {
-                    yesterday.setPrecipYear(ParameterFormatClimate.TRACE);
+                    yesterday.setSnowYear(ParameterFormatClimate.TRACE);
                 }
 
                 if (snowFlag.getSnowTotal().isTotalSeason()
