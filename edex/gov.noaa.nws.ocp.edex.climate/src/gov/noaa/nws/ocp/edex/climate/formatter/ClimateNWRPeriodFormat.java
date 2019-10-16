@@ -54,6 +54,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  *                                     conditional and snow trace record sentences. 
  *                                     Round number of days for normals to the 
  *                                     nearest whole number.
+ * Oct 31, 2019 DR21661    wpaintsil   Neglected to output avg snow depth value,
+ *                                     missing spaces
  *
  * </pre>
  *
@@ -760,8 +762,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             int intNorm = ClimateUtilities.nint(hClimo.getSnowGroundNorm());
             int intObs = ClimateUtilities.nint(periodData.getSnowGroundMean());
 
-            String amount = intObs == ParameterFormatClimate.TRACE ? A_TRACE
-                    : SPACE + inchInches(intObs + intObs != 1);
+            String amount = (intObs == ParameterFormatClimate.TRACE ? A_TRACE
+                    : (SPACE + intObs + SPACE
+                            + inchInches(intObs + intObs != 1)));
             precipPhrase
                     .append("The average snow depth observed for the period was ")
                     .append(amount);
@@ -1402,14 +1405,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append(" of ")
                                 .append(String.format(FLOAT_ONE_DECIMAL,
                                         hClimo.getNumSnowGETRNorm()))
-                                .append(dayDays(
+                                .append(SPACE).append(dayDays(
                                         hClimo.getNumSnowGETRNorm() != 1));
                     } else {
                         precipPhrase
                                 .append(".  The normal number of days with measurable snowfall is ")
                                 .append(String.format(FLOAT_ONE_DECIMAL,
                                         hClimo.getNumSnowGETRNorm()))
-                                .append(dayDays(
+                                .append(SPACE).append(dayDays(
                                         hClimo.getNumSnowGETRNorm() != 1));
                     }
                 }
@@ -2334,7 +2337,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (valDelta != 0) {
 
-                    tempPhrase.append(" which is ").append(Math.abs(valDelta))
+                    tempPhrase.append(" which is ")
+                            .append(String.format(FLOAT_ONE_DECIMAL,
+                                    Math.abs(valDelta)))
                             .append(SPACE).append(aboveBelow(valDelta > 0))
                             .append(" the normal ");
                 } else {
