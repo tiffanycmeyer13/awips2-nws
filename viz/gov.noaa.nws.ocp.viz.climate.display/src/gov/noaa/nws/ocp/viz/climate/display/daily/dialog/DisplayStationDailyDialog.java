@@ -102,6 +102,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 20 MAR 2019  DR21197    wpaintsil   Snow Depth field should only allow integers.
  * 08 AUG 2019  DR21517    wpaintsil   The field holding the number of WX observations was
  *                                     not updated.
+ * 21 OCT 2019  DR21671    wpaintsil   Fetch an ordered list of stations.
  * </pre>
  * 
  * @author amoore
@@ -499,14 +500,8 @@ public class DisplayStationDailyDialog extends ClimateCaveChangeTrackDialog {
 
         myDataMap = dailyCreatorData.getReportMap();
 
-        /*
-         * Get the all the climate stations from the master station table (via
-         * the previous data request). The master station table is configured by
-         * the set-up program.
-         */
-        for (ClimateDailyReportData dailyReportData : myDataMap.values()) {
-            myStations.add(dailyReportData.getStation());
-        }
+        // get stations
+        myStations = ClimateGUIUtils.getOrderedStationList();
 
         // get if Display should be read-only
         GetClimateProdGenerateSessionRequest sessionRequest = new GetClimateProdGenerateSessionRequest(

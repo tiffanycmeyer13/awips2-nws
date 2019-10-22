@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+        This is an absolute override file, indicating that a higher priority
+        version of the file will completely replace a lower priority version
+        of the file. Currently only BASE and SITE are read by AWIPS.
+-->
+<!-- Example of the site level climate_station_order.xml for OAX.
+     If the list is empty or incomplete, the unlisted stations will follow the order in the database table cli_sta_setup.
+     The complete list will start with the stations listed here if they are in the climate database. -->
+<ClimateStationOrder>
+    <!-- Allowed ICAO (station-code) list. Empty by default.
+    <station>KOMA</station>
+    <station>KOAX</station>
+    <station>KLNK</station>
+    <station>KOFK</station>
+    <station>KFNB</station>
+    <station>KTOE</station>
+    -->
+</ClimateStationOrder>

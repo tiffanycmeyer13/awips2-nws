@@ -57,6 +57,7 @@ import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * Dialog for Quality Control Climate Database
@@ -100,6 +101,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 04 AUG 2017   33104      amoore      Make header cleaner.
  * 19 SEP 2017   38124      amoore      Use GC for text control sizes.
  * 12 OCT 2017   39149      wpaintsil   Allow for the editing/saving of dates/periods with empty data.
+ * 21 OCT 2019   DR21671    wpaintsil   Fetch an ordered list of stations.
  * </pre>
  * 
  * @author wpaintsil
@@ -239,17 +241,7 @@ public class QCDialog extends ClimateCaveChangeTrackDialog {
         setText("Edit Climatological Data");
 
         // get stations
-        ClimateRequest request = new ClimateRequest();
-        request.setRequestType(RequestType.GET_STATIONS);
-
-        try {
-            stations = (java.util.List<Station>) ThriftClient
-                    .sendRequest(request);
-        } catch (VizException e) {
-            logger.error(
-                    "Could not retrieve stations for Climate Daily Display dialog",
-                    e);
-        }
+        stations = ClimateGUIUtils.getOrderedStationList();
 
         // get global preferences
         ClimateRequest globalsRequest = new ClimateRequest();

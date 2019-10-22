@@ -10,4 +10,5 @@ Require-Bundle: gov.noaa.nws.ocp.viz.common.climate,
  com.raytheon.uf.viz.core,
  gov.noaa.nws.ocp.common.dataplugin.climate,
  com.raytheon.uf.common.dataplugin;bundle-version="1.14.0"
-Import-Package: org.eclipse.core.expressions
+Import-Package: gov.noaa.nws.ocp.common.localization.climate.stationorder,
+ org.eclipse.core.expressions

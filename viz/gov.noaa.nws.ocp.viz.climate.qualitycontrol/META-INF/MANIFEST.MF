@@ -8,4 +8,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.viz.ui,
  gov.noaa.nws.ocp.viz.common.climate
 Import-Package: com.raytheon.uf.viz.core.exception,
- com.raytheon.uf.viz.core.requests
+ com.raytheon.uf.viz.core.requests,
+ gov.noaa.nws.ocp.common.localization.climate.stationorder
