@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Text;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
 import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
 
@@ -38,6 +39,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
  * 04 JAN 2016 22134    amoore      Add getter for precision.
  * 16 JUN 2017 35181    amoore      Fix auto-rounding logic when value equal
  *                                  to default value (too relaxed before).
+ * 23 OCT 2019 DR21622  wpaintsil   Ensure invalid text is replaced in focusLost().
  * </pre>
  *
  * @author wkwock
@@ -282,11 +284,7 @@ public class TextDoubleListener extends AbstractTextNumberListener {
     protected final void checkDoubleBounds(Event event, Text textField,
             String newText) {
         if (newText.matches(DOUBLE_REGEX)) {
-            double newVal = Double.parseDouble(newText);
-            if ((newVal < getMin().doubleValue()
-                    || newVal > getMax().doubleValue())
-                    && !ClimateUtilities.floatingEquals(newVal,
-                            getDefault().doubleValue())) {
+            if (outOfBounds(newText)) {
                 // outside of valid range
                 setBackground(textField, false);
             } else {
@@ -298,22 +296,38 @@ public class TextDoubleListener extends AbstractTextNumberListener {
         }
     }
 
-    @Override
-    public void focusLost(Event e) {
-        Text textField = (Text) e.widget;
-
-        setBackground(textField, true);
-
-        if ((myNumDecimal > 0 && !textField.getText().matches(DOUBLE_REGEX))
-                || (myNumDecimal <= 0 && !textField.getText()
-                        .matches(TextIntListener.INT_REGEX))) {
-            /*
-             * Either we expect high precision and the text is not any kind of
-             * double, or we expect low precision and the text is not any kind
-             * of integer; so set text to default value.
-             */
-            setToDefaultText(textField);
+    /**
+     * @param text
+     * @return false if the number taken from a text field is out of bounds
+     */
+    protected boolean outOfBounds(String text) {
+        try {
+            double newVal = Double.parseDouble(text);
+            if ((newVal < getMin().doubleValue()
+                    || newVal > getMax().doubleValue())
+                    && !ClimateUtilities.floatingEquals(newVal,
+                            getDefault().doubleValue())) {
+                return true;
+            }
+            return false;
+        } catch (NumberFormatException e) {
+            if (text.equals(ParameterFormatClimate.TRACE_SYMBOL)) {
+                return false;
+            }
+            return true;
         }
+    }
+
+    @Override
+    protected boolean isValid(String text) {
+        if (outOfBounds(text)
+                || (myNumDecimal > 0 && !text.matches(DOUBLE_REGEX))
+                || (myNumDecimal <= 0
+                        && !text.matches(TextIntListener.INT_REGEX))) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -337,4 +351,5 @@ public class TextDoubleListener extends AbstractTextNumberListener {
     public final int getNumDecimal() {
         return myNumDecimal;
     }
+
 }
