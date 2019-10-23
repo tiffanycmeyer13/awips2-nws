@@ -75,6 +75,8 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.ClimateLayoutValues;
  * 27 JUL 2017   33104     amoore      Do not use effectively final functionality, for 1.7 build.
  * 19 SEP 2017   38124     amoore      Use GC for text control sizes.
  * 02 OCT 2017   38582     amoore      Correct use of Font/FontData.
+ * 23 OCT 2019   DR21683   wpaintsil   Refresh product map and table after "Send All" 
+ *                                     procedure, so that warning pop-up doesn't appear.
  * </pre>
  * 
  * @author astrakovsky
@@ -96,8 +98,11 @@ public class NWWSClimateReviewDialog extends ClimateReviewDialog {
      * Buttons to clear, delete, save, and send.
      */
     private Button clearButton;
+
     private Button deleteButton;
+
     private Button saveButton;
+
     private Button sendButton;
 
     /**
@@ -377,10 +382,9 @@ public class NWWSClimateReviewDialog extends ClimateReviewDialog {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 // check if user wants to abandon changes to current product
-                if (tableIndex >= 0
-                        && !getEditorStTxt().getText()
-                                .equals(productMap.get(fileTable
-                                        .getItem(tableIndex).getText(0))
+                if (tableIndex >= 0 && !getEditorStTxt().getText()
+                        .equals(productMap
+                                .get(fileTable.getItem(tableIndex).getText(0))
                                 .getProdText())) {
                     MessageDialog dialog = new MessageDialog(shell,
                             "Switch Product?", null,
@@ -684,6 +688,9 @@ public class NWWSClimateReviewDialog extends ClimateReviewDialog {
                     }
                     throw new VizException();
                 }
+                // Refresh product map and table to reflect newly sent products.
+                importClimateProducts();
+                populateTable();
                 // close window after sending if no error
                 close();
             } catch (VizException e) {
