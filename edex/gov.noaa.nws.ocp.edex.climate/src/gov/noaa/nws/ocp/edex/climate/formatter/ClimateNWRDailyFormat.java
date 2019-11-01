@@ -29,7 +29,6 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.report.ClimateDailyReportData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunDailyData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.response.ClimateRunData;
 import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
-import gov.noaa.nws.ocp.common.localization.climate.climodates.ClimoDatesManager;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductType;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.DegreeDaysControlFlags;
@@ -40,6 +39,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.SunriseNsetContr
 import gov.noaa.nws.ocp.common.localization.climate.producttype.TempRecordControlFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.TemperatureControlFlags;
 import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags;
+import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
 
 /**
  * Class containing logic for building NWR daily products.
@@ -59,6 +59,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * Nov 20, 2018 DR20942    wpaintsil   "Snowfall for the year" wording is misleading. 
  *                                     Should be "since July 1."
  * Sep 15, 2019 DR21591    wpaintsil   Corrected a mistake in setting total snow since Jan 1.
+ * Oct 16, 2019 DR21661    wpaintsil   Remove leading zeros in time strings.
+ * Oct 31, 2019 DR21661    wpaintsil   Snow/Precip seasons were fetched from the wrong place.
  * </pre>
  *
  * @author wpaintsil
@@ -101,10 +103,11 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
      * @param dailyData
      * @return
      * @throws ClimateInvalidParameterException
+     * @throws ClimateQueryException
      */
     @Override
     public Map<String, ClimateProduct> buildText(ClimateRunData reportData)
-            throws ClimateInvalidParameterException {
+            throws ClimateInvalidParameterException, ClimateQueryException {
         Map<String, ClimateProduct> prod = new HashMap<>();
 
         Map<Integer, ClimateDailyReportData> reportMap = ((ClimateRunDailyData) reportData)
@@ -309,8 +312,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     risePhrase = new StringBuilder(
                             WordUtils.capitalize(SUNRISE)).append(SPACE)
                                     .append(TODAY).append(" is at ")
-                                    .append(convRise.toHourMinString())
-                                    .append(SPACE).append(convRise.getAmpm());
+                                    .append(toHourMinString(convRise));
                 } else {
                     risePhrase = new StringBuilder("The sun does not rise");
                 }
@@ -319,8 +321,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     risePhrase = new StringBuilder(
                             WordUtils.capitalize(SUNRISE)).append(SPACE)
                                     .append(TOMORROW).append(" is at ")
-                                    .append(convRise.toHourMinString())
-                                    .append(SPACE).append(convRise.getAmpm());
+                                    .append(toHourMinString(convRise));
                 } else {
                     if (noSunset == 0) {
                         risePhrase = new StringBuilder("and there is no ")
@@ -343,14 +344,11 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         setPhrase = new StringBuilder(
                                 WordUtils.capitalize(SUNSET)).append(SPACE)
                                         .append(TODAY).append(" is at ")
-                                        .append(convSet.toHourMinString())
-                                        .append(SPACE)
-                                        .append(convSet.getAmpm());
+                                        .append(toHourMinString(convSet));
                     } else {
                         setPhrase = new StringBuilder("and ").append(SUNSET)
                                 .append(" is at ")
-                                .append(convSet.toHourMinString()).append(SPACE)
-                                .append(convSet.getAmpm());
+                                .append(toHourMinString(convSet));
                     }
                 } else {
                     if (noSunrise == 0) {
@@ -367,8 +365,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                 if (noSunset == 0) {
                     setPhrase = new StringBuilder(WordUtils.capitalize(SUNSET))
                             .append(" tonight is at ")
-                            .append(convSet.toHourMinString()).append(SPACE)
-                            .append(convSet.getAmpm());
+                            .append(toHourMinString(convSet));
                 } else {
                     setPhrase = new StringBuilder(
                             "The sun does not set tonight");
@@ -830,8 +827,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         && mTime.getHour() != ParameterFormatClimate.MISSING_HOUR
                         && mTime.getMin() != ParameterFormatClimate.MISSING_MINUTE) {
                     nwrWind.append(" which occurred at ")
-                            .append(mTime.toHourMinString()).append(SPACE)
-                            .append(mTime.getAmpm());
+                            .append(toHourMinString(mTime));
                 }
 
                 nwrWind.append(". ");
@@ -861,8 +857,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     && gTime.getHour() != ParameterFormatClimate.MISSING_HOUR
                     && gTime.getMin() != ParameterFormatClimate.MISSING_MINUTE) {
                 nwrWind.append(" which occurred at ")
-                        .append(gTime.toHourMinString()).append(SPACE)
-                        .append(gTime.getAmpm());
+                        .append(toHourMinString(gTime));
             }
 
             nwrWind.append(PERIOD).append(SPACE).append(SPACE);
@@ -1368,9 +1363,10 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
      * @param reportData
      * @param report
      * @return
+     * @throws ClimateQueryException
      */
     private String buildNWRPrecip(ClimateDailyReportData reportData,
-            ClimateRunData report) {
+            ClimateRunData report) throws ClimateQueryException {
         StringBuilder nwrPrecip = new StringBuilder();
 
         if (currentSettings.getControl().getPrecipControl().getPrecipTotal()
@@ -1476,9 +1472,10 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
      * @param reportData
      * @param report
      * @return
+     * @throws ClimateQueryException
      */
     private String buildNWRSnowPrecip(ClimateDailyReportData reportData,
-            ClimateRunData report) {
+            ClimateRunData report) throws ClimateQueryException {
         StringBuilder snowPhrase = new StringBuilder();
 
         boolean snowReport = reportWindow(
@@ -1487,8 +1484,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
         DailyClimateData yesterday = reportData.getData();
         ClimateRecordDay yClimate = reportData.getyClimate();
-        List<ClimateDate> snowSeasons = ClimoDatesManager.getInstance()
-                .getClimoDates().getSnowSeasons();
+        List<ClimateDate> snowSeasons = ClimateDAOUtils
+                .getSeason(report.getBeginDate()).getSnowSeasons();
 
         ClimateDate beginDate = new ClimateDate(report.getBeginDate());
 
@@ -2021,9 +2018,10 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
      * @param reportData
      * 
      * @return
+     * @throws ClimateQueryException
      */
     private String buildNWRLiquidPrecip(ClimateDailyReportData reportData,
-            ClimateRunData report) {
+            ClimateRunData report) throws ClimateQueryException {
         StringBuilder liquidPhrase = new StringBuilder();
 
         DailyClimateData yesterday = reportData.getData();
@@ -2034,8 +2032,8 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
         PrecipitationControlFlags precipFlag = currentSettings.getControl()
                 .getPrecipControl();
 
-        List<ClimateDate> precipSeasons = ClimoDatesManager.getInstance()
-                .getClimoDates().getPrecipSeasons();
+        List<ClimateDate> precipSeasons = ClimateDAOUtils
+                .getSeason(report.getBeginDate()).getPrecipSeasons();
 
         boolean morning = currentSettings
                 .getReportType() == PeriodType.MORN_RAD;
@@ -2744,8 +2742,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     nwrTempPhrase.append(" occurred at ");
                 }
 
-                nwrTempPhrase.append(tempTime.toHourMinString() + SPACE
-                        + tempTime.getAmpm());
+                nwrTempPhrase.append(toHourMinString(tempTime));
             }
 
             if (tempFlag.isNorm()

@@ -45,6 +45,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.ClimateProductTy
  * 08 NOV 2018  DR20943    wpaintsil   Apply the current local date to the expiration/effective 
  *                                     times rather than the dates stored in the product settings.
  * 15 MAR 2019  DR21191    wpaintsil   Use ZonedDateTime instead of Calendar.
+ * 16 OCT 2019  DR21661    wpaintsil   Remove leading zeros in time strings.
  * </pre>
  *
  * @author wpaintsil
@@ -262,8 +263,7 @@ public abstract class ClimateNWRFormat extends ClimateFormat {
             }
 
             ClimateTime tempTime12Hr = tempTime.to12HourTime();
-            nwrComment.append(tempTime12Hr.toHourMinString()).append(SPACE)
-                    .append(tempTime12Hr.getAmpm()).append(",");
+            nwrComment.append(toHourMinString(tempTime12Hr)).append(",");
         } else {
             nwrComment.append("for ")
                     .append(ClimateNWRFormat.timeFrame(morning, false))

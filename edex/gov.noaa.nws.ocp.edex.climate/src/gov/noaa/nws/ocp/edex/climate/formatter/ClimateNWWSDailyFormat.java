@@ -64,6 +64,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * 07 MAY 2018  20714      amoore      RER temperature values should be ints, while precip/
  *                                     snow remain as float.
  * 20 MAR 2019  DR21197    wpaintsil   Adjust Snow Depth alignment.
+ * 16 OCT 2019  DR21661    wpaintsil   Revise grammar/capitalization. 
  * </pre>
  *
  * @author wpaintsil
@@ -451,7 +452,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     ParameterFormatClimate.NUM_LINE1_NWWS);
 
             nwwsWeatherLine1.replace(0, WEATHER_CONDITIONS.length(),
-                    WEATHER_CONDITIONS);
+                    WordUtils.capitalize(WEATHER_CONDITIONS));
 
             String weatherPhrase1 = "The following weather was recorded "
                     + (morning ? YESTERDAY : TODAY) + ".";
@@ -480,7 +481,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                             ParameterFormatClimate.NUM_LINE1_NWWS);
 
                     if (yesterday.getWxType()[i] == 1) {
-                        String wx = WeatherStrings.getString(i);
+                        String wx = WordUtils
+                                .capitalize(WeatherStrings.getString(i));
 
                         nwwsWeatherLine3.replace(2, 2 + wx.length(), wx);
                         nwwsWeather.append(nwwsWeatherLine3.toString())
@@ -628,7 +630,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
 
             nwwsRelHumdLine1.replace(0, RELATIVE_HUMIDITY.length(),
                     WordUtils.capitalize(RELATIVE_HUMIDITY) + SPACE + "("
-                            + PERCENT + ")");
+                            + WordUtils.capitalize(PERCENT) + ")");
 
             nwwsRelHumd.append("\n").append(nwwsRelHumdLine1.toString())
                     .append("\n");
@@ -708,13 +710,14 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
 
         if (normFlags.isMaxTempNorm() || normFlags.isMinTempNorm()) {
             nwwsNormTable.append("The ").append(stationName)
-                    .append(" climate normals for ")
-                    .append((morning ? TODAY : TOMORROW));
+                    .append(" Climate Normals For ")
+                    .append(WordUtils.capitalize((morning ? TODAY : TOMORROW)));
 
             StringBuilder nwwsNormLine1 = emptyLine(
                     ParameterFormatClimate.NUM_LINE1_NWWS);
 
-            nwwsNormLine1.replace(25, 25 + NORMAL.length(), NORMAL);
+            nwwsNormLine1.replace(25, 25 + NORMAL.length(),
+                    WordUtils.capitalize(NORMAL));
 
             if (normFlags.isMaxTempRecord() || normFlags.isMinTempRecord()) {
                 nwwsNormLine1.replace(35, 35 + RECORD.length(),
@@ -1340,7 +1343,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                             ParameterFormatClimate.NUM_LINE1_NWWS);
 
                     nwwsHeatAndCoolLine3.replace(1, 1 + COOLING.length(),
-                            COOLING);
+                            WordUtils.capitalize(COOLING));
 
                     nwwsHeatAndCool.append(nwwsHeatAndCoolLine3.toString())
                             .append("\n");
@@ -1625,9 +1628,11 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     ParameterFormatClimate.NUM_LINE1_NWWS);
 
             if (isMax) {
-                nwwsAnyTempLine.replace(2, 2 + MAXIMUM.length(), MAXIMUM);
+                nwwsAnyTempLine.replace(2, 2 + MAXIMUM.length(),
+                        WordUtils.capitalize(MAXIMUM));
             } else {
-                nwwsAnyTempLine.replace(2, 2 + MINIMUM.length(), MINIMUM);
+                nwwsAnyTempLine.replace(2, 2 + MINIMUM.length(),
+                        WordUtils.capitalize(MINIMUM));
             }
 
             if (observedValue != ParameterFormatClimate.MISSING) {
@@ -1866,7 +1871,8 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
             float averageTemp = ParameterFormatClimate.MISSING;
             int roundedAvg = ParameterFormatClimate.MISSING;
 
-            nwwsAvgLine.replace(2, 2 + AVERAGE.length(), AVERAGE);
+            nwwsAvgLine.replace(2, 2 + AVERAGE.length(),
+                    WordUtils.capitalize(AVERAGE));
 
             if (yesterday.getMaxTemp() != ParameterFormatClimate.MISSING
                     && yesterday
