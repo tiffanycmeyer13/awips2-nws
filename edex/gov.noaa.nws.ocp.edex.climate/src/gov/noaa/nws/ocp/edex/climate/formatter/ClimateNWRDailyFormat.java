@@ -61,6 +61,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * Sep 15, 2019 DR21591    wpaintsil   Corrected a mistake in setting total snow since Jan 1.
  * Oct 16, 2019 DR21661    wpaintsil   Remove leading zeros in time strings.
  * Oct 31, 2019 DR21661    wpaintsil   Snow/Precip seasons were fetched from the wrong place.
+ * Nov 05, 2019 DR21591    wpaintsil   Corrected a mistake in setting total snow for the season.
  * </pre>
  *
  * @author wpaintsil
@@ -1748,8 +1749,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
                 String snowString = String.format(FLOAT_ONE_DECIMAL,
                         dySnowMonth);
-                if (yesterday
-                        .getPrecipMonth() == ParameterFormatClimate.TRACE) {
+                if (yesterday.getSnowMonth() == ParameterFormatClimate.TRACE) {
                     snowPhrase.append(
                             "The total snowfall for the month stands at a trace");
                 } else {
@@ -1806,7 +1806,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                             && (yesterday
                                     .getSnowDay() == ParameterFormatClimate.TRACE
                                     || yesterday.getSnowDay() == 0)) {
-                        yesterday.setPrecipSeasons(snowSeasonIndex,
+                        yesterday.setSnowSeasons(snowSeasonIndex,
                                 ParameterFormatClimate.TRACE);
                     }
 
