@@ -60,6 +60,7 @@ import gov.noaa.nws.ocp.viz.common.climate.comp.DateSelectionComp;
 import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
 import gov.noaa.nws.ocp.viz.common.climate.handbook.Handbook;
 import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
+import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
 
 /**
  * This class displays the Period Station Climate values.
@@ -121,6 +122,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  * 21 NOV 2017  41180      amoore      CLS and CLA should not deal with MSM values.
  * 03 MAY 2018  20702      amoore      Set a max height of station list.
  * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
+ * 21 OCT 2019  DR21671    wpaintsil   Fetch an ordered list of stations.
  * </pre>
  * 
  * @author amoore
@@ -143,6 +145,7 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
      * Type of summary report this is.
      */
     private Text myReportSummaryTypeTF;
+
     /**
      * End summary section fields.
      */
@@ -331,12 +334,8 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
 
         myOriginalDataMap = periodCreatorData.getReportMap();
 
-        for (ClimatePeriodReportData report : myOriginalDataMap.values()) {
-            /*
-             * Get the all the climate stations from report data.
-             */
-            myStations.add(report.getStation());
-        }
+        // get stations
+        myStations = ClimateGUIUtils.getOrderedStationList();
 
         /*
          * Set upper and lower bound dates for date selection components. Lower

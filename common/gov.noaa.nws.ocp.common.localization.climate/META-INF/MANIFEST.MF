@@ -14,4 +14,5 @@ Import-Package: com.raytheon.uf.common.localization,
  com.raytheon.uf.common.serialization.jaxb,
  com.raytheon.uf.common.status
 Export-Package: gov.noaa.nws.ocp.common.localization.climate.climodates,
- gov.noaa.nws.ocp.common.localization.climate.producttype
+ gov.noaa.nws.ocp.common.localization.climate.producttype,
+ gov.noaa.nws.ocp.common.localization.climate.stationorder
