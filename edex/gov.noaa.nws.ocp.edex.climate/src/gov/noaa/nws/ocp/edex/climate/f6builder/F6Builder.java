@@ -122,6 +122,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateFileUtils;
  * 06 AUG 2019  DR 21508   wpaintsil   Faulty conditional logic results in ignored trace precip.
  *                                     Sum of sky cover should be the sum of the rounded values,
  *                                     whereas the average should be an average of the raw values.
+ * 30 SEP 2019  DR 21618   wpaintsil   Revise avg sky cover calculation.
  * </pre>
  * 
  * @author amoore
@@ -867,6 +868,7 @@ public class F6Builder {
                  */
                 float avgSky = dailyData.getSkyCover() * 10;
                 sumSS += avgSky;
+
                 sumSSRounded += ClimateUtilities.nint(avgSky);
 
                 numSS++;
@@ -1090,8 +1092,8 @@ public class F6Builder {
         }
 
         if (numSS > 0) {
-            context.put("avgss",
-                    String.format("%4s", ClimateUtilities.nint(sumSS / numSS)));
+            context.put("avgss", String.format("%4s",
+                    ClimateUtilities.nint(sumSSRounded / numSS)));
         } else {
             context.put("avgss", String.format("%4s", "M"));
         }

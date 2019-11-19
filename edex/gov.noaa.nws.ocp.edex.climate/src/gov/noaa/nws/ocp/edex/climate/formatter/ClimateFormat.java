@@ -17,6 +17,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDates;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateProduct;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateTime;
 import gov.noaa.nws.ocp.common.dataplugin.climate.Station;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateInvalidParameterException;
 import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryException;
@@ -40,6 +41,9 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateStationsSetupDAO;
  * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting.
  * 20 NOV 2017  41088      amoore      Snow section was missing in CLM due to
  *                                     faulty checks of reportWindow
+ * 16 OCT 2019  DR21661    wpaintsil   ClimateTime.toHourMinString adds a leading
+ *                                     zero to the hour, so create an alternate 
+ *                                     method here.
  * </pre>
  *
  * @author wpaintsil
@@ -367,8 +371,8 @@ public abstract class ClimateFormat {
      * @throws ClimateQueryException
      */
     public abstract Map<String, ClimateProduct> buildText(
-            ClimateRunData reportData) throws ClimateInvalidParameterException,
-                    ClimateQueryException;
+            ClimateRunData reportData)
+            throws ClimateInvalidParameterException, ClimateQueryException;
 
     /**
      * Migrated from a subroutine, direction, in build_NWWS_wind.f and a portion
@@ -565,5 +569,16 @@ public abstract class ClimateFormat {
                     + localTimeZone.getID() + "].");
         }
         return localTimeZone;
+    }
+
+    /**
+     * Format ClimateTime without a leading zero for the hour.
+     * 
+     * @param time
+     * @return
+     */
+    protected String toHourMinString(ClimateTime time) {
+        return String.format("%d:%02d %s", time.getHour(), time.getMin(),
+                time.getAmpm());
     }
 }

@@ -63,6 +63,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  * 07 JUL 2017  33104      amoore      Split Daily and Period norms into different classes.
  * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
  * 12 OCT 2017  39364      amoore      Wrong inequality for min temp record breaking check.
+ * 30 OCT 2019  DR21700    wpaintsil   Prevent fetchClimateDayRecord() from returning null, which
+ *                                     causes Null Pointer Exceptions elsewhere.
  * </pre>
  * 
  * @author amoore
@@ -76,7 +78,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
         super();
     }
 
-     /**
+    /**
      * Converted from get_his_norms.ecpp
      * 
      * Original comments:
@@ -107,7 +109,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      * @return {@link ClimateRecordDay} instance, which may have missing data
      *         (except for station ID).
      */
-    
+
     public ClimateRecordDay getHistoricalNorms(ClimateDate iDate, int stationId)
             throws ClimateQueryException {
         ClimateRecordDay yClimate = ClimateRecordDay
@@ -286,7 +288,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      */
     public ClimateDayNorm fetchClimateDayRecord(int stationId, String dayOfYear)
             throws ClimateQueryException {
-        ClimateDayNorm climateRcd = null;
+        ClimateDayNorm climateRcd = ClimateDayNorm.getMissingClimateDayNorm();
 
         StringBuilder sql = new StringBuilder("SELECT ");
         sql.append(
@@ -761,7 +763,9 @@ public class ClimateDailyNormDAO extends ClimateDAO {
     public boolean updateClimateDayNormNoMissing(ClimateDayNorm record)
             throws ClimateQueryException {
         if (fetchClimateDayRecord((int) record.getStationId(),
-                record.getDayOfYear()) == null) {
+                record.getDayOfYear())
+                        .getStationId() == (-1
+                                * ParameterFormatClimate.MISSING)) {
             return insertClimateDayRecord(record);
         }
 
@@ -879,7 +883,7 @@ public class ClimateDailyNormDAO extends ClimateDAO {
         }
     }
 
-     /**
+    /**
      * Migrated from check_daily_records.ec
      * 
      * <pre>
@@ -912,10 +916,10 @@ public class ClimateDailyNormDAO extends ClimateDAO {
      * @return true if daily record(s) was updated; false otherwise.
      * @throws ClimateQueryException
      */
-    
+
     public boolean compareUpdateDailyRecords(ClimateDate date, int stationId,
             short maxTemp, short minTemp, float precip, float snow)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         boolean updated = false;
 
@@ -939,120 +943,107 @@ public class ClimateDailyNormDAO extends ClimateDAO {
         ClimateDayNorm dayRecord = fetchClimateDayRecord(stationId,
                 date.toMonthDayDateString());
 
-        if (dayRecord != null) {
-            /* Maximum Temperature Record Check */
-            if (maxTemp != ParameterFormatClimate.MISSING && dayRecord
-                    .getMaxTempRecord() != ParameterFormatClimate.MISSING) {
-                // set the year variables to be record years that were read from
-                // db
-                short[] year = Arrays.copyOf(dayRecord.getMaxTempYear(),
-                        dayRecord.getMaxTempYear().length);
+        /* Maximum Temperature Record Check */
+        if (maxTemp != ParameterFormatClimate.MISSING && dayRecord
+                .getMaxTempRecord() != ParameterFormatClimate.MISSING) {
+            // set the year variables to be record years that were read from
+            // db
+            short[] year = Arrays.copyOf(dayRecord.getMaxTempYear(),
+                    dayRecord.getMaxTempYear().length);
 
-                if (maxTemp > dayRecord.getMaxTempRecord()) {
-                    dayRecord.setMaxTempRecord(maxTemp);
-                    dayRecord.setMaxTempYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-                } else if (maxTemp == dayRecord.getMaxTempRecord()
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setMaxTempYear(new short[] { year[2], year[1],
-                            (short) date.getYear() });
-                }
+            if (maxTemp > dayRecord.getMaxTempRecord()) {
+                dayRecord.setMaxTempRecord(maxTemp);
+                dayRecord.setMaxTempYear(new short[] { (short) date.getYear(),
+                        ParameterFormatClimate.MISSING,
+                        ParameterFormatClimate.MISSING });
+            } else if (maxTemp == dayRecord.getMaxTempRecord()
+                    && date.getYear() != year[0] && date.getYear() != year[1]
+                    && date.getYear() != year[2]) {
+                year = yearShuffle(year);
+                dayRecord.setMaxTempYear(new short[] { year[2], year[1],
+                        (short) date.getYear() });
             }
-
-            /* Minimum Temperature Record Check */
-            if (minTemp != ParameterFormatClimate.MISSING && dayRecord
-                    .getMinTempRecord() != ParameterFormatClimate.MISSING) {
-                // set the year variables to be record years that were read from
-                // db
-                short[] year = Arrays.copyOf(dayRecord.getMinTempYear(),
-                        dayRecord.getMinTempYear().length);
-
-                if (minTemp < dayRecord.getMinTempRecord()) {
-                    dayRecord.setMinTempRecord(minTemp);
-                    dayRecord.setMinTempYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-                } else if (minTemp == dayRecord.getMinTempRecord()
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setMinTempYear(new short[] { year[2], year[1],
-                            (short) date.getYear() });
-                }
-            }
-
-            /* Precipitation Record Check */
-            if (precip != ParameterFormatClimate.MISSING_PRECIP
-                    && dayRecord
-                            .getPrecipDayRecord() != ParameterFormatClimate.MISSING_PRECIP
-                    && precip != 0.0) {
-                // set the year data
-                short[] year = Arrays.copyOf(dayRecord.getPrecipDayRecordYear(),
-                        dayRecord.getPrecipDayRecordYear().length);
-
-                if ((precip > dayRecord.getPrecipDayRecord() && dayRecord
-                        .getPrecipDayRecord() != ParameterFormatClimate.TRACE)
-                        || (precip == ParameterFormatClimate.TRACE
-                                && dayRecord.getPrecipDayRecord() == 0.0)) {
-                    dayRecord.setPrecipDayRecord(precip);
-
-                    dayRecord.setPrecipDayRecordYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-
-                } else if (ClimateUtilities.floatingEquals(precip,
-                        dayRecord.getPrecipDayRecord())
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setPrecipDayRecordYear(new short[] {
-                            (short) date.getYear(), year[1], year[2] });
-                }
-            }
-
-            /* Snow Record Check */
-            if (snow != ParameterFormatClimate.MISSING_PRECIP
-                    && dayRecord
-                            .getSnowDayRecord() != ParameterFormatClimate.MISSING_PRECIP
-                    && snow != 0.0) {
-                // set the year data
-                short[] year = Arrays.copyOf(dayRecord.getSnowDayRecordYear(),
-                        dayRecord.getSnowDayRecordYear().length);
-
-                if ((snow > dayRecord.getSnowDayRecord() && dayRecord
-                        .getSnowDayRecord() != ParameterFormatClimate.TRACE)
-                        || (snow == ParameterFormatClimate.TRACE
-                                && dayRecord.getSnowDayRecord() == 0.0)) {
-                    dayRecord.setSnowDayRecord(snow);
-
-                    dayRecord.setSnowDayRecordYear(
-                            new short[] { (short) date.getYear(),
-                                    ParameterFormatClimate.MISSING,
-                                    ParameterFormatClimate.MISSING });
-
-                } else if (ClimateUtilities.floatingEquals(snow,
-                        dayRecord.getSnowDayRecord())
-                        && date.getYear() != year[0]
-                        && date.getYear() != year[1]
-                        && date.getYear() != year[2]) {
-                    year = yearShuffle(year);
-                    dayRecord.setSnowDayRecordYear(new short[] {
-                            (short) date.getYear(), year[1], year[2] });
-                }
-            }
-
-            updated = updateClimateDayRecord(dayRecord);
-
         }
+
+        /* Minimum Temperature Record Check */
+        if (minTemp != ParameterFormatClimate.MISSING && dayRecord
+                .getMinTempRecord() != ParameterFormatClimate.MISSING) {
+            // set the year variables to be record years that were read from
+            // db
+            short[] year = Arrays.copyOf(dayRecord.getMinTempYear(),
+                    dayRecord.getMinTempYear().length);
+
+            if (minTemp < dayRecord.getMinTempRecord()) {
+                dayRecord.setMinTempRecord(minTemp);
+                dayRecord.setMinTempYear(new short[] { (short) date.getYear(),
+                        ParameterFormatClimate.MISSING,
+                        ParameterFormatClimate.MISSING });
+            } else if (minTemp == dayRecord.getMinTempRecord()
+                    && date.getYear() != year[0] && date.getYear() != year[1]
+                    && date.getYear() != year[2]) {
+                year = yearShuffle(year);
+                dayRecord.setMinTempYear(new short[] { year[2], year[1],
+                        (short) date.getYear() });
+            }
+        }
+
+        /* Precipitation Record Check */
+        if (precip != ParameterFormatClimate.MISSING_PRECIP
+                && dayRecord
+                        .getPrecipDayRecord() != ParameterFormatClimate.MISSING_PRECIP
+                && precip != 0.0) {
+            // set the year data
+            short[] year = Arrays.copyOf(dayRecord.getPrecipDayRecordYear(),
+                    dayRecord.getPrecipDayRecordYear().length);
+
+            if ((precip > dayRecord.getPrecipDayRecord() && dayRecord
+                    .getPrecipDayRecord() != ParameterFormatClimate.TRACE)
+                    || (precip == ParameterFormatClimate.TRACE
+                            && dayRecord.getPrecipDayRecord() == 0.0)) {
+                dayRecord.setPrecipDayRecord(precip);
+
+                dayRecord.setPrecipDayRecordYear(new short[] {
+                        (short) date.getYear(), ParameterFormatClimate.MISSING,
+                        ParameterFormatClimate.MISSING });
+
+            } else if (ClimateUtilities.floatingEquals(precip,
+                    dayRecord.getPrecipDayRecord()) && date.getYear() != year[0]
+                    && date.getYear() != year[1] && date.getYear() != year[2]) {
+                year = yearShuffle(year);
+                dayRecord.setPrecipDayRecordYear(new short[] {
+                        (short) date.getYear(), year[1], year[2] });
+            }
+        }
+
+        /* Snow Record Check */
+        if (snow != ParameterFormatClimate.MISSING_PRECIP
+                && dayRecord
+                        .getSnowDayRecord() != ParameterFormatClimate.MISSING_PRECIP
+                && snow != 0.0) {
+            // set the year data
+            short[] year = Arrays.copyOf(dayRecord.getSnowDayRecordYear(),
+                    dayRecord.getSnowDayRecordYear().length);
+
+            if ((snow > dayRecord.getSnowDayRecord() && dayRecord
+                    .getSnowDayRecord() != ParameterFormatClimate.TRACE)
+                    || (snow == ParameterFormatClimate.TRACE
+                            && dayRecord.getSnowDayRecord() == 0.0)) {
+                dayRecord.setSnowDayRecord(snow);
+
+                dayRecord.setSnowDayRecordYear(new short[] {
+                        (short) date.getYear(), ParameterFormatClimate.MISSING,
+                        ParameterFormatClimate.MISSING });
+
+            } else if (ClimateUtilities.floatingEquals(snow,
+                    dayRecord.getSnowDayRecord()) && date.getYear() != year[0]
+                    && date.getYear() != year[1] && date.getYear() != year[2]) {
+                year = yearShuffle(year);
+                dayRecord.setSnowDayRecordYear(new short[] {
+                        (short) date.getYear(), year[1], year[2] });
+            }
+        }
+
+        updated = updateClimateDayRecord(dayRecord);
 
         // Check against monthly, seasonal, and annual records
         for (int i = 0; i < 3; i++) {
@@ -1166,26 +1157,26 @@ public class ClimateDailyNormDAO extends ClimateDAO {
     }
 
     /**
-    * Migrated from check_daily_records.ec helper function year_shuffle.
-    * 
-    * <pre>
-    * 
-    *  void year_shuffle ( int *year)
-    *
-    *   Doug Murphy        PRC/TDL             HP 9000/7xx
-    *                                  December 1999
-    *
-    *   FUNCTION DESCRIPTION
-    *   ====================
-    *
-    *  This function updates the dates of occurence for a given element's
-    *  record.
-    *
-    * </pre>
-    * 
-    * @param year
-    */
-    
+     * Migrated from check_daily_records.ec helper function year_shuffle.
+     * 
+     * <pre>
+     * 
+     *  void year_shuffle ( int *year)
+     *
+     *   Doug Murphy        PRC/TDL             HP 9000/7xx
+     *                                  December 1999
+     *
+     *   FUNCTION DESCRIPTION
+     *   ====================
+     *
+     *  This function updates the dates of occurence for a given element's
+     *  record.
+     *
+     * </pre>
+     * 
+     * @param year
+     */
+
     private static short[] yearShuffle(short[] year) {
         if (year[2] != ParameterFormatClimate.MISSING) {
             if ((year[1] < year[2] && year[1] < year[0]

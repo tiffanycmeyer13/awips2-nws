@@ -42,6 +42,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimatePeriodDAO;
  * 11 OCT 2017  39238      amoore      Shortened and correct DST-dependent timezones in
  *                                     Formatted and RER headers.
  * 16 AUG 2019  DR21231    wpaintsil   Correct the format of the header.
+ * 16 OCT 2019  DR21661    wpaintsil   Revise grammar/capitalization.
  * </pre>
  *
  * @author wpaintsil
@@ -294,17 +295,16 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
 
         nwwsComment.append("\n...................................")
                 .append("\n\n").append("...The ").append(stationName)
-                .append(" climate summary for ");
+                .append(" Climate Summary for ");
 
         if (type == PeriodType.MONTHLY_NWWS) {
-            nwwsComment.append("the month of ")
+            nwwsComment.append("the Month of ")
                     .append(DateFormatSymbols.getInstance()
-                            .getMonths()[report.getBeginDate().getMon() - 1]
-                                    .toUpperCase())
+                            .getMonths()[report.getBeginDate().getMon() - 1])
                     .append(SPACE).append(report.getBeginDate().getYear());
 
         } else if (type == PeriodType.SEASONAL_NWWS) {
-            nwwsComment.append("the season, from\n")
+            nwwsComment.append("the Season, From\n")
                     .append(report.getBeginDate().getMon()).append("/")
                     .append(report.getBeginDate().getDay()).append("/")
                     .append(report.getBeginDate().getYear()).append(" to ")
@@ -316,13 +316,12 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
                     .append("/").append(((ClimateRunPeriodData) report)
                             .getEndDate().getYear());
         } else if (type == PeriodType.ANNUAL_NWWS) {
-            nwwsComment.append("the year of ")
+            nwwsComment.append("the Year of ")
                     .append(report.getBeginDate().getYear());
         } else {
             nwwsComment
                     .append(DateFormatSymbols.getInstance()
-                            .getMonths()[report.getBeginDate().getMon() - 1]
-                                    .toUpperCase())
+                            .getMonths()[report.getBeginDate().getMon() - 1])
                     .append(SPACE).append(report.getBeginDate().getDay())
                     .append(SPACE).append(report.getBeginDate().getYear());
         }
@@ -349,7 +348,7 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
         ClimatePeriodDAO climatePeriodDAO = new ClimatePeriodDAO();
         int[] climatePeriodYears = climatePeriodDAO
                 .fetchClimatePeriod(stationId);
-        nwwsComment.append("Climate normal period").append(COLON).append(SPACE)
+        nwwsComment.append("Climate Normal Period").append(COLON).append(SPACE)
                 .append(climatePeriodYears[0])
                 .append(" to " + climatePeriodYears[1]).append("\n");
 
@@ -361,7 +360,7 @@ public abstract class ClimateNWWSFormat extends ClimateFormat {
                 nwwsComment.append(" Snow/Heating Degree Days 1961-1990");
             }
         }
-        nwwsComment.append("Climate record period").append(COLON).append(SPACE)
+        nwwsComment.append("Climate Record Period").append(COLON).append(SPACE)
                 .append(climatePeriodYears[2]).append(" to ")
                 .append(climatePeriodYears[3]).append("\n");
 
