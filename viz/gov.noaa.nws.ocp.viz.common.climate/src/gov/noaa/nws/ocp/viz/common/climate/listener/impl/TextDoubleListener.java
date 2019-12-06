@@ -336,6 +336,7 @@ public class TextDoubleListener extends AbstractTextNumberListener {
      * 
      * @param textField
      */
+    @Override
     protected final void setToDefaultText(Text textField) {
         if (myNumDecimal > 0) {
             textField.setText(String.format("%1." + myNumDecimal + "f",

@@ -136,4 +136,9 @@ public class TextIntListener extends AbstractTextNumberListener {
 
         return true;
     }
+
+    @Override
+    protected void setToDefaultText(Text textField) {
+        textField.setText(String.valueOf(getDefault().intValue()));
+    }
 }

@@ -48,10 +48,6 @@ public abstract class AbstractTextNumberListener implements Listener {
      */
     private boolean isBGColorChanged = false;
 
-    // protected enum ValidType {
-    // VALID, NO_ENTRY, OUT_OF_BOUNDS
-    // }
-
     /**
      * Constructor.
      * 
@@ -137,11 +133,13 @@ public abstract class AbstractTextNumberListener implements Listener {
         Text textField = (Text) e.widget;
 
         if (!isValid(textField.getText())) {
-            textField.setText(String.valueOf(getDefault().intValue()));
+            setToDefaultText(textField);
         }
 
         setBackground(textField, true);
     }
 
     protected abstract boolean isValid(String text);
+
+    protected abstract void setToDefaultText(Text textField);
 }
