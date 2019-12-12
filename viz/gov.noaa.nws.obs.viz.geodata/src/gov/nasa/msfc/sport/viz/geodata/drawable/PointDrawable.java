@@ -8,7 +8,7 @@ import com.raytheon.uf.viz.core.drawables.IRenderable;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.map.MapDescriptor;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 /**
  * PointDrawable

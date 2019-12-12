@@ -2,10 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Climate
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.localization.climate
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
+ javax.xml.bind
 Import-Package: com.raytheon.uf.common.localization,
  com.raytheon.uf.common.localization.exception,
  com.raytheon.uf.common.monitor.events,

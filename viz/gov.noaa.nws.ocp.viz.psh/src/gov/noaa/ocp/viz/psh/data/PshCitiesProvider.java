@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ocp.common.localization.psh.PshCities;
 import gov.noaa.nws.ocp.common.localization.psh.PshCity;

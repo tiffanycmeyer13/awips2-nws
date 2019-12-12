@@ -6,7 +6,7 @@ package gov.noaa.ocp.viz.psh.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ocp.common.localization.psh.PshStation;
 import gov.noaa.nws.ocp.common.localization.psh.PshStations;
