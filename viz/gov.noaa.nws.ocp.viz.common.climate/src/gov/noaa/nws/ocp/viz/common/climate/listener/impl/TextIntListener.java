@@ -7,6 +7,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Text;
 
+import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClimate;
 import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
 
 /**
@@ -30,6 +31,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
  * 27 DEC 2016 22450    amoore      Make integer regex public.
  * 20 MAR 2019 DR21197  wpaintsil   Add a new class for the snow depth field (TextIntWithListener).
  * 23 OCT 2019 DR21622  wpaintsil   Ensure invalid text is replaced in focusLost().
+ * 20 DEC 2019 DR21762  wpaintsil   Parse trace symbols properly.
  * </pre>
  * 
  * @author amoore
@@ -123,6 +125,9 @@ public class TextIntListener extends AbstractTextNumberListener {
             }
             return false;
         } catch (NumberFormatException e) {
+            if (text.equals(ParameterFormatClimate.TRACE_SYMBOL)) {
+                return false;
+            }
             return true;
         }
     }
