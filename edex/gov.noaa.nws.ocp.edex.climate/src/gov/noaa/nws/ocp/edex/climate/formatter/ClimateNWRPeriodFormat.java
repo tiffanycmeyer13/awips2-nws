@@ -50,6 +50,12 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  *                                     and exceptions caused by empty lists.
  * Jul 18, 2019 DR21453    wpaintsil   The wrong parameter was passed resulting 
  *                                     in the wrong precip departure from normal.
+ * Oct 07, 2019 DR21625    wpaintsil   Mistake in precip departure from normal 
+ *                                     conditional and snow trace record sentences. 
+ *                                     Round number of days for normals to the 
+ *                                     nearest whole number.
+ * Oct 31, 2019 DR21661    wpaintsil   Neglected to output avg snow depth value,
+ *                                     missing spaces
  *
  * </pre>
  *
@@ -756,8 +762,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
             int intNorm = ClimateUtilities.nint(hClimo.getSnowGroundNorm());
             int intObs = ClimateUtilities.nint(periodData.getSnowGroundMean());
 
-            String amount = intObs == ParameterFormatClimate.TRACE ? A_TRACE
-                    : SPACE + inchInches(intObs + intObs != 1);
+            String amount = (intObs == ParameterFormatClimate.TRACE ? A_TRACE
+                    : (SPACE + intObs + SPACE
+                            + inchInches(intObs + intObs != 1)));
             precipPhrase
                     .append("The average snow depth observed for the period was ")
                     .append(amount);
@@ -1000,7 +1007,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         || (hClimo.getSnowMax24HRecord() == 0 && periodData
                                 .getSnowMax24H() == ParameterFormatClimate.TRACE)) {
 
-                    precipPhrase.append("This breaks the previoud record of ");
+                    precipPhrase.append("This breaks the previous record of ");
                 } else if (hClimo.getSnowMax24HRecord()
                         - periodData.getSnowMax24H() < 0.02f
                         && periodData.getSnowMax24H() != 0) {
@@ -1227,14 +1234,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     precipPhrase.append("This breaks the previous record of ");
                 } else if (hClimo.getSnowPeriodRecord()
                         - periodData.getSnowTotal() < 0.02f
-                        && periodData.getSnowTotal() == 0) {
+                        && periodData.getSnowTotal() != 0) {
                     precipPhrase.append("This ties the previous record of ");
                 } else {
                     precipPhrase.append("The record amount of snowfall is ");
                 }
 
                 precipPhrase.append(
-                        (hClimo.getSnowPeriodRecord() != ParameterFormatClimate.TRACE)
+                        (hClimo.getSnowPeriodRecord() == ParameterFormatClimate.TRACE)
                                 ? A_TRACE
                                 : (String.format(FLOAT_COMMAS_ONE_DECIMAL,
                                         hClimo.getSnowPeriodRecord())
@@ -1398,14 +1405,14 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                         precipPhrase.append(" of ")
                                 .append(String.format(FLOAT_ONE_DECIMAL,
                                         hClimo.getNumSnowGETRNorm()))
-                                .append(dayDays(
+                                .append(SPACE).append(dayDays(
                                         hClimo.getNumSnowGETRNorm() != 1));
                     } else {
                         precipPhrase
                                 .append(".  The normal number of days with measurable snowfall is ")
                                 .append(String.format(FLOAT_ONE_DECIMAL,
                                         hClimo.getNumSnowGETRNorm()))
-                                .append(dayDays(
+                                .append(SPACE).append(dayDays(
                                         hClimo.getNumSnowGETRNorm() != 1));
                     }
                 }
@@ -1418,7 +1425,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
     }
 
     /**
-     * Migrated from build_NWR_p_liquid_fraction_val.f. &&
+     * Migrated from build_NWR_p_liquid_fraction_val.f and
      * build_NWR_p_liquid_half_one.f.
      * 
      * @param reportData
@@ -1603,10 +1610,11 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 float valDelta = (float) precipValue - normValue;
 
                 if (valDelta != 0) {
-                    precipPhrase.append(" which is");
+                    precipPhrase.append(" which is ");
 
                     precipPhrase
-                            .append(String.format(FLOAT_ONE_DECIMAL, valDelta))
+                            .append(String.format(INT_COMMAS,
+                                    Math.abs(Math.round(valDelta))))
                             .append(SPACE).append(aboveBelow(valDelta > 0))
                             .append(" the normal amount");
                 } else {
@@ -1623,13 +1631,13 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                 if (valDelta != 0) {
                     if (precipFlag.isDeparture()) {
                         precipPhrase.append(" of ")
-                                .append(String.format(FLOAT_ONE_DECIMAL,
-                                        normValue))
+                                .append(String.format(INT_COMMAS,
+                                        Math.round(normValue)))
                                 .append(SPACE).append(dayDays(normValue != 1));
                     } else {
-                        precipPhrase
-                                .append(". The normal amount is ").append(String
-                                        .format(FLOAT_ONE_DECIMAL, normValue))
+                        precipPhrase.append(". The normal amount is ")
+                                .append(String.format(INT_COMMAS,
+                                        Math.round(normValue)))
                                 .append(" for the period");
                     }
                 }
@@ -1917,7 +1925,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                                     .getPrecipTotal() == ParameterFormatClimate.TRACE) {
                         deltaVal = -1 * hClimo.getPrecipPeriodNorm();
                     } else if (hClimo
-                            .getPrecipPeriodNorm() != ParameterFormatClimate.TRACE
+                            .getPrecipPeriodNorm() == ParameterFormatClimate.TRACE
                             && periodData
                                     .getPrecipTotal() != ParameterFormatClimate.TRACE) {
                         deltaVal = periodData.getPrecipTotal();
@@ -2329,7 +2337,9 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                 if (valDelta != 0) {
 
-                    tempPhrase.append(" which is ").append(Math.abs(valDelta))
+                    tempPhrase.append(" which is ")
+                            .append(String.format(FLOAT_ONE_DECIMAL,
+                                    Math.abs(valDelta)))
                             .append(SPACE).append(aboveBelow(valDelta > 0))
                             .append(" the normal ");
                 } else {

@@ -196,22 +196,16 @@ public final class TextDoubleWithTListener extends TextDoubleListener {
     }
 
     @Override
-    public void focusLost(Event e) {
-        Text textField = (Text) e.widget;
-
-        setBackground(textField, true);
-        if (((myNumDecimal > 0 && !textField.getText().matches(DOUBLE_REGEX))
-                || (myNumDecimal <= 0 && !textField.getText()
-                        .matches(TextIntListener.INT_REGEX)))
-                && !textField.getText().equalsIgnoreCase(
-                        ParameterFormatClimate.TRACE_SYMBOL)) {
-            /*
-             * Either we expect high precision and the text is not any kind of
-             * double, or we expect low precision and the text is not any kind
-             * of integer, and the text is not the trace character; so set text
-             * to default value.
-             */
-            setToDefaultText(textField);
+    protected boolean isValid(String text) {
+        if (outOfBounds(text)
+                || ((myNumDecimal > 0 && !text.matches(DOUBLE_REGEX))
+                        || (myNumDecimal <= 0
+                                && !text.matches(TextIntListener.INT_REGEX)))
+                        && !text.equalsIgnoreCase(
+                                ParameterFormatClimate.TRACE_SYMBOL)) {
+            return false;
         }
+        return true;
+
     }
 }

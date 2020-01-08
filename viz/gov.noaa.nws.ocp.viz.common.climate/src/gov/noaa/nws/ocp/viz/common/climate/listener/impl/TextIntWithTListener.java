@@ -27,6 +27,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 03/19/2019  DR21197   wpaintsil    Initial creation
+ * 10/23/2019  DR21622   wpaintsil    Ensure invalid text is replaced in focusLost().
  * </pre>
  *
  * @author wpaintsil
@@ -101,10 +102,7 @@ public final class TextIntWithTListener extends TextIntListener {
             } else if (!newText.isEmpty() && !newText.equals("-")) {
                 // only parse if text is non-empty, and not negative sign
                 if (newText.matches(INT_REGEX)) {
-                    int newInt = Integer.parseInt(newText);
-                    if ((newInt < getMin().intValue()
-                            || newInt > getMax().intValue())
-                            && newInt != getDefault().intValue()) {
+                    if (outOfBounds(newText)) {
                         // outside of valid range
                         setBackground(text, false);
                     } else {
@@ -123,15 +121,13 @@ public final class TextIntWithTListener extends TextIntListener {
     }
 
     @Override
-    public void focusLost(Event e) {
-        Text textField = (Text) e.widget;
-
-        setBackground(textField, true);
-
-        if (!textField.getText().matches(INT_REGEX) && !textField.getText()
-                .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)) {
-            textField.setText(String.valueOf(getDefault().intValue()));
+    protected boolean isValid(String text) {
+        if (outOfBounds(text) || (!text.matches(INT_REGEX) && !text
+                .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL))) {
+            return false;
         }
+        return true;
+
     }
 
 }

@@ -60,6 +60,7 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  * 02 JUL 2019  DR21423    wpaintsil   Snow depth avg. line fails to appear.
  * 25 JUL 2019  DR21490    wpaintsil   Wrong precision on snowfall values. 
  *                                     Should be 10ths not 100ths.
+ * 16 OCT 2019  DR21661    wpaintsil   Revise grammar/capitalization.
  *
  * </pre>
  *
@@ -515,8 +516,9 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                     // Shorten the FOG_14 string
                     String weatherString = WeatherStrings.getString(i)
                             .equals(WeatherStrings.FOG_14.getString())
-                                    ? "FOG W/VIS <= 1/4 MILE"
-                                    : WeatherStrings.getString(i);
+                                    ? "Fog w/Vis <= 1/4 Mile"
+                                    : WordUtils.capitalize(
+                                            WeatherStrings.getString(i));
 
                     if (output == 0) {
                         weatherLine.replace(0, weatherString.length(),
@@ -705,7 +707,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                             .getSnowDepthMax().isTimeOfMeasured()
                     || currentSettings.getControl().getSnowControl()
                             .getSnowStormMax().isTimeOfMeasured()) {
-                String valueDates = VALUE + "   " + DATES;
+                String valueDates = WordUtils.capitalize(VALUE + "   " + DATES);
                 separatorLength = periodTabs.getPosNorm();
                 tableHeadLine2.replace(periodTabs.getPosValue() + 2,
                         periodTabs.getPosValue() + 2 + valueDates.length(),
@@ -1512,7 +1514,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 || (globalConfig.getP2() != 0.
                         && precipFlag.getPrecipGEP2().isMeasured())) {
             liquidPrecip.append(WordUtils.capitalize(PRECIPITATION))
-                    .append(SPACE).append("(").append(INCHES).append(")\n");
+                    .append(SPACE).append("(")
+                    .append(WordUtils.capitalize(INCHES)).append(")\n");
 
             if (precipFlag.getPrecipTotal().isMeasured()) {
                 if (precipFlag.getPrecipTotal().isRecord()
@@ -1528,8 +1531,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getPrecipPeriodMax(),
                                         recordData.getPrecipPeriodMaxYearList(),
                                         null, ParameterFormatClimate.DUMMY,
-                                        null, null, false,
-                                        DecimalType.PRECIP));
+                                        null, null, false, DecimalType.PRECIP));
                         floatLine.replace(1, 1 + MAXIMUM.length(),
                                 WordUtils.capitalize(MAXIMUM));
                         liquidPrecip.append(floatLine.toString());
@@ -1543,8 +1545,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         recordData.getPrecipPeriodMin(),
                                         recordData.getPrecipPeriodMinYearList(),
                                         null, ParameterFormatClimate.DUMMY,
-                                        null, null, false,
-                                        DecimalType.PRECIP));
+                                        null, null, false, DecimalType.PRECIP));
                         floatLine.replace(1, 1 + MINIMUM.length(),
                                 WordUtils.capitalize(MINIMUM));
                         liquidPrecip.append(floatLine.toString());
@@ -1832,7 +1833,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
             if (snowFlag.getSnowTotal().isMeasured()) {
 
                 snowPrecip.append(WordUtils.capitalize(SNOWFALL)).append(SPACE)
-                        .append("(").append(INCHES).append(")\n");
+                        .append("(").append(WordUtils.capitalize(INCHES))
+                        .append(")\n");
 
                 if (snowFlag.getSnowTotal().isRecord()
                         || snowFlag.getSnow24hr().isRecord()
@@ -1850,7 +1852,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                         null, ParameterFormatClimate.DUMMY,
                                         null, null, false, DecimalType.SNOW));
 
-                        floatLine.replace(1, 1 + TOTAL.length(), TOTAL);
+                        floatLine.replace(1, 1 + TOTAL.length(),
+                                WordUtils.capitalize(TOTAL));
                         snowPrecip.append(floatLine.toString());
                     }
 
@@ -2049,7 +2052,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                                     lastYearData.getSnowGroundMaxDateList(),
                                     newRecord, true));
 
-                    integerLine.replace(1, 1 + SNOW_DEPTH.length(), SNOW_DEPTH);
+                    integerLine.replace(1, 1 + SNOW_DEPTH.length(),
+                            WordUtils.capitalize(SNOW_DEPTH));
                     snowPrecip.append(integerLine);
 
                 }
@@ -2201,7 +2205,7 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
                 || degreeFlag.getSeasonCDD().isMeasured()))
                 || (heatReport && (degreeFlag.getTotalHDD().isMeasured()
                         || degreeFlag.getSeasonHDD().isMeasured()))) {
-            degreeDays.append(DEGREE_DAYS).append("\n");
+            degreeDays.append(WordUtils.capitalize(DEGREE_DAYS)).append("\n");
         }
 
         if (heatReport && (degreeFlag.getTotalHDD().isMeasured()
@@ -2956,7 +2960,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             default:
                 String value;
-                if (decimalPlaces == DecimalType.SNOW || decimalPlaces == DecimalType.TEMP) {
+                if (decimalPlaces == DecimalType.SNOW
+                        || decimalPlaces == DecimalType.TEMP) {
                     value = String.format(FLOAT_ONE_DECIMAL_SEVEN, recordValue);
 
                 } else {
@@ -3073,7 +3078,8 @@ public class ClimateNWWSPeriodFormat extends ClimateNWWSFormat {
 
             default:
                 String value;
-                if (decimalPlaces == DecimalType.SNOW || decimalPlaces == DecimalType.TEMP) {
+                if (decimalPlaces == DecimalType.SNOW
+                        || decimalPlaces == DecimalType.TEMP) {
                     value = String.format(FLOAT_ONE_DECIMAL_SEVEN, actualValue);
 
                 } else {

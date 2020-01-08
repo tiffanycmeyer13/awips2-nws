@@ -36,6 +36,9 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.util.ClimateUtilities;
  *                                     reduce duplicate code.
  * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
  * 15 SEP 2017  38014      amoore      Address index out of bounds error.
+ * 01 AUG 2019  DR21538    wpaintsil   The text product shows the total month/season to date
+ *                                     for the month a day early when running IM/PM on the last day 
+ *                                     of the month.
  * </pre>
  * 
  * @author amoore
@@ -58,7 +61,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         super();
     }
 
-     /**
+    /**
      * Converted from get_period_hist_climo.ec
      * 
      * Original comments:
@@ -69,13 +72,13 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *   ecember 1999     David T. Miller        PRC/TDL
      *         Purpose:  retrieves the historical climatological data from the monthly,
      *           seasonal, and yearly database table
-     *           
+     * 
      * </pre>
      */
-    
+
     public void getPeriodHistClimo(ClimateDate beginDate, ClimateDate endDate,
             PeriodClimo periodClimo, PeriodType periodType)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
 
         ClimateDate begin = ClimateDate.getMissingClimateDate();
         boolean entirePeriod = false;
@@ -1155,7 +1158,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         }
     }
 
-     /**
+    /**
      * Converted from get_period_hist_climo.ec SUBROUTINE #1: monthly_sums This
      * routine sums a variable using the monthly normal entries for the passed
      * element.
@@ -1177,7 +1180,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param colName
      * @return
      */
-    
+
     public float monthlySums(int beginDate, int endDate, int numMos,
             int stationId, String colName) {
         StringBuilder ecStmt;
@@ -1257,7 +1260,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return returnVal;
     }
 
-     /**
+    /**
      * Converted from sum_his_cool.ecpp
      * 
      * Original comments:
@@ -1288,7 +1291,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *          Finally, during leap years, for a February monthly normal total ONLY, 
      *          the Feb 29th normal value is added into the sum. Note that this will
      *          only occur on the 29th of the month.
-     *    
+     * 
      * </pre>
      * 
      * @param beginDate
@@ -1296,7 +1299,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
-    
+
     public int sumHisCool(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         int tempSum = 0;
@@ -1783,7 +1786,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumCool;
     }
 
-     /**
+    /**
      * Converted from sum_his_heat.ecpp
      * 
      * Original comments:
@@ -1821,7 +1824,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
-    
+
     public int sumHisHeat(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         int tempSum = 0;
@@ -1929,13 +1932,13 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
             }
 
             /*
-             * If the end day is the end of the month, can use the monthly
+             * If the end day is past the end of the month, can use the monthly
              * norm... otherwise, use the daily norms for the last month of the
              * span
              */
             keyParamMap.clear();
             StringBuilder heatQuery;
-            if (endDate.getDay() >= MAX_DAYS_PER_MONTH[endDate.getMon() - 1]) {
+            if (endDate.getDay() > MAX_DAYS_PER_MONTH[endDate.getMon() - 1]) {
                 heatQuery = new StringBuilder("SELECT heat_pd_mean FROM ");
                 heatQuery
                         .append(ClimateDAOValues.MONTH_CLIMATE_NORM_TABLE_NAME);
@@ -2293,7 +2296,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumHeat;
     }
 
-     /**
+    /**
      * Converted from sum_his_snow.ecpp
      * 
      * Original comments:
@@ -2322,7 +2325,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      *            of normal snowfall are added for all the days in the period.
      *            In the monthly data cannot be read or the begin date is not the first
      *         day of a month, the function will use only daily normals for the snow sum.
-     *         
+     * 
      ****************************************************************************** 
      * </pre>
      * 
@@ -2331,7 +2334,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
-    
+
     public float sumHisSnow(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float tempSum = 0.f;
@@ -2888,7 +2891,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumSnow;
     }
 
-     /**
+    /**
      * Converted from sum_his_precip.ecpp
      * 
      * Original comments:
@@ -2933,7 +2936,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param stationId
      * @return
      */
-    
+
     public float sumHisPrecip(ClimateDate beginDate, ClimateDate endDate,
             int stationId) {
         float tempSum = 0.f;
@@ -3535,7 +3538,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
         return sumPrecip;
     }
 
-     /**
+    /**
      * Migrated from check_period_records.ec.
      * 
      * <pre>
@@ -3562,7 +3565,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @return true if period record(s) was updated; false otherwise.
      * @throws ClimateQueryException
      */
-     
+
     public boolean compareUpdatePeriodRecords(PeriodType type, ClimateDate end,
             PeriodData periodData) throws ClimateQueryException {
         boolean updated = false;
@@ -3940,7 +3943,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
 
     }
 
-     /**
+    /**
      * Migrated from check_period_records.ec helper function year_arrange.
      * 
      * <pre>
@@ -3960,7 +3963,7 @@ public class ClimatePeriodNormDAO extends ClimateDAO {
      * @param recDates
      * @param order
      */
-    
+
     private static void yearArrange(ClimateDate[] recDates, int[] order) {
 
         for (int i = 1; i < 6; i++) {

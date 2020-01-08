@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Text;
  * ----------- -------- ----------- --------------------------
  * 08/12/2016  21198    wkwock      Initial creation
  * 10/25/2016  20639    wkwock      Add setBackground
+ * 11/01/2016  DR21622  wpaintsil   Ensure invalid text is replaced.
  * 
  * </pre>
  * 
@@ -128,5 +129,17 @@ public abstract class AbstractTextNumberListener implements Listener {
 
     public abstract void verifyText(Event event);
 
-    public abstract void focusLost(Event event);
+    public void focusLost(Event e) {
+        Text textField = (Text) e.widget;
+
+        if (!isValid(textField.getText())) {
+            setToDefaultText(textField);
+        }
+
+        setBackground(textField, true);
+    }
+
+    protected abstract boolean isValid(String text);
+
+    protected abstract void setToDefaultText(Text textField);
 }

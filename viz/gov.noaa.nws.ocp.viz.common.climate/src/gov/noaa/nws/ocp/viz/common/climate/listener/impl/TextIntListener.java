@@ -29,6 +29,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.AbstractTextNumberListener;
  * 10/25/2016  20639    wkwock      Change background color on invalid input.
  * 27 DEC 2016 22450    amoore      Make integer regex public.
  * 20 MAR 2019 DR21197  wpaintsil   Add a new class for the snow depth field (TextIntWithListener).
+ * 23 OCT 2019 DR21622  wpaintsil   Ensure invalid text is replaced in focusLost().
  * </pre>
  * 
  * @author amoore
@@ -93,10 +94,7 @@ public class TextIntListener extends AbstractTextNumberListener {
         if (!newText.isEmpty() && !newText.equals("-")) {
             // only parse if text is non-empty, and not negative sign
             if (newText.matches(INT_REGEX)) {
-                int newInt = Integer.parseInt(newText);
-                if ((newInt < getMin().intValue()
-                        || newInt > getMax().intValue())
-                        && newInt != getDefault().intValue()) {
+                if (outOfBounds(newText)) {
                     // outside of valid range
                     setBackground(text, false);
                 } else {
@@ -111,14 +109,36 @@ public class TextIntListener extends AbstractTextNumberListener {
         }
     }
 
-    @Override
-    public void focusLost(Event e) {
-        Text textField = (Text) e.widget;
+    /**
+     * @param text
+     * @return false if the number taken from a text field is out of bounds
+     */
+    protected boolean outOfBounds(String text) {
+        try {
+            int newInt = Integer.parseInt(text);
 
-        setBackground(textField, true);
-
-        if (!textField.getText().matches(INT_REGEX)) {
-            textField.setText(String.valueOf(getDefault().intValue()));
+            if ((newInt < getMin().intValue() || newInt > getMax().intValue())
+                    && newInt != getDefault().intValue()) {
+                return true;
+            }
+            return false;
+        } catch (NumberFormatException e) {
+            return true;
         }
+    }
+
+    @Override
+    protected boolean isValid(String text) {
+
+        if (!text.matches(INT_REGEX) || outOfBounds(text)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    protected void setToDefaultText(Text textField) {
+        textField.setText(String.valueOf(getDefault().intValue()));
     }
 }

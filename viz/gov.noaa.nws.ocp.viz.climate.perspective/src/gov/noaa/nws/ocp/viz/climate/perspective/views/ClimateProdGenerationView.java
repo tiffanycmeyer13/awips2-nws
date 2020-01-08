@@ -100,6 +100,8 @@ import gov.noaa.nws.ocp.viz.climate.perspective.notify.IClimateMessageCallback;
  *                                     situations they may be squished vertically until CAVE is
  *                                     restarted/the perspective is re-initialized.
  * Nov 05, 2018 55588      jwu         Update NWR Send button title & climate view layout (DR 20917).
+ * Oct 10, 2019 DR21639    wpaintsil   Ensure product generation status labels are updated
+ *                                     when a new session is started.
  * </pre>
  *
  * @author jwu
@@ -1560,28 +1562,20 @@ public class ClimateProdGenerationView extends ViewPart
              * Reset and update basic session info for a different session.
              */
             String sid = cpgSess.getCpg_session_id();
-            if (!currentSession.equals(sid)) {
-
-                // Reset to defaults.
-                resetManageSectionHeader();
-
-                currentSession = sid;
-
-                String runType = getRunType(cpgSess);
-                currentType.setText(runType);
-
-                PeriodType prdTyp = cpgSess.getProd_type();
-                currentProductType.setText(prdTyp.getPeriodDescriptor());
-
-                String startTime = cpgSess.getStart_at().toLocalDateTime()
-                        .toString();
-                startedLbl.setText(
-                        startTime.substring(0, startTime.length() - 4));
-                manageSessionGrp.layout(true, true);
-
-            }
+            String runType = getRunType(cpgSess);
+            PeriodType prdTyp = cpgSess.getProd_type();
+            String startTime = cpgSess.getStart_at().toLocalDateTime()
+                    .toString();
+            startTime = startTime.substring(0, startTime.length() - 4);
 
             // Update status for current session.
+
+            currentSession = sid;
+            currentType.setText(runType);
+            currentProductType.setText(prdTyp.getPeriodDescriptor());
+            startedLbl.setText(startTime);
+            manageSessionGrp.layout(true, true);
+
             boolean updateProgressOnly = false;
 
             SessionState prdState = cpgSess.getState();
