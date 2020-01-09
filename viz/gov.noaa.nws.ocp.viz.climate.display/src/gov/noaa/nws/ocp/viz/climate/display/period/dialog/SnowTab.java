@@ -44,6 +44,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * 30 APR 2019  DR21261    wpaintsil   Data population missing for avg snow depth.
  * 13 JUN 2019  DR21417    wpaintsil   Trace entry required for snow depth.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -778,9 +779,10 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                                 iData.getDataMethods().getMaxDepthQc());
                         int i = 0;
                         for (i = 0; i < myMaxSnowDepthGroundDates.length
-                                && i < iData.getSnow24HDates().size(); i++) {
+                                && i < iData.getSnowGroundMaxDateList()
+                                        .size(); i++) {
                             myMaxSnowDepthGroundDates[i].setDate(
-                                    iData.getSnow24HDates().get(i).getStart());
+                                    iData.getSnowGroundMaxDateList().get(i));
                         }
                         // clear any remaining fields
                         for (int j = i; j < myMaxSnowDepthGroundDates.length; j++) {
@@ -936,23 +938,24 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 .setText(String.valueOf(iSavedPeriodData.getSnowWater()));
 
         // max snow 24H
-        // check MSM first
-        if (msmPeriodData != null && isPeriodDataEqualForFloat(
-                iSavedPeriodData.getSnowMax24H(), msmPeriodData.getSnowMax24H(),
-                iSavedPeriodData.getSnow24HDates(),
-                msmPeriodData.getSnow24HDates(),
-                myMaxSnow24HourBeginDates.length)) {
-            DataFieldListener.setComboViewerSelection(myMaxSnow24HourComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && isPeriodDataEqualForFloat(iSavedPeriodData.getSnowMax24H(),
                         dailyPeriodData.getSnowMax24H(),
                         iSavedPeriodData.getSnow24HDates(),
                         dailyPeriodData.getSnow24HDates(),
                         myMaxSnow24HourBeginDates.length)) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myMaxSnow24HourComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null && isPeriodDataEqualForFloat(
+                iSavedPeriodData.getSnowMax24H(), msmPeriodData.getSnowMax24H(),
+                iSavedPeriodData.getSnow24HDates(),
+                msmPeriodData.getSnow24HDates(),
+                myMaxSnow24HourBeginDates.length)) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myMaxSnow24HourComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMaxSnow24HourComboBox,
@@ -1018,26 +1021,27 @@ public class SnowTab extends DisplayStationPeriodTabItem {
                 .setText(String.valueOf(iSavedPeriodData.getSnowGroundMean()));
 
         // max snow depth on ground 24H
-        // check MSM first
-        if (msmPeriodData != null && isPeriodDataEqualForFloat(
+        if (dailyPeriodData != null
+                && isPeriodDataEqualForInt(iSavedPeriodData.getSnowGroundMax(),
+                        dailyPeriodData.getSnowGroundMax(),
+                        iSavedPeriodData.getSnowGroundMaxDateList(),
+                        dailyPeriodData.getSnowGroundMaxDateList(),
+                        myMaxSnowDepthGroundDates.length)) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(
+                    myMaxSnowDepthGroundComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null && isPeriodDataEqualForFloat(
                 iSavedPeriodData.getSnowGroundMax(),
                 msmPeriodData.getSnowGroundMax(),
                 iSavedPeriodData.getSnowGroundMaxDateList(),
                 msmPeriodData.getSnowGroundMaxDateList(),
                 myMaxSnowDepthGroundDates.length)) {
+            // check MSM second
             DataFieldListener.setComboViewerSelection(
                     myMaxSnowDepthGroundComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && isPeriodDataEqualForFloat(
-                iSavedPeriodData.getSnowGroundMax(),
-                dailyPeriodData.getSnowGroundMax(),
-                iSavedPeriodData.getSnowGroundMaxDateList(),
-                dailyPeriodData.getSnowGroundMaxDateList(),
-                myMaxSnowDepthGroundDates.length)) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(
-                    myMaxSnowDepthGroundComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1101,7 +1105,7 @@ public class SnowTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected boolean displayDailyBuildData(PeriodData iMonthlyAsosData,
+    protected boolean displayComparedData(PeriodData iMonthlyAsosData,
             PeriodData iDailyBuildData) {
         boolean snowTabMismatch = false;
 
@@ -1238,11 +1242,11 @@ public class SnowTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected void displayMonthlyASOSData() {
+    protected void displayDailyBuildData() {
         DataFieldListener.setComboViewerSelection(myMaxSnow24HourComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myMaxSnowDepthGroundComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
     }
 
     @Override
