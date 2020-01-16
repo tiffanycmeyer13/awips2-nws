@@ -66,6 +66,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateDataAccessConfigur
  * 20 AUG 2019  DR21211    wpaintsil   Precipitation threshold query returns inaccurate results if 
  *                                     numeric type is not specified.
  * 30 AUG 2019  DR21540    wpaintsil   Faulty logic in determining max 24hr precip dates.
+ * 16 JAN 2020  DR21775    ryu         Fix row count returned from db for daily precip >= 0.1.
+ *
  * </pre>
  * 
  * @author amoore
@@ -437,7 +439,10 @@ public class ClimateDAO {
         query.append(" AND ").append(startCol).append(" >= :beginDate ");
         query.append(" AND ").append(endCol).append(" <= :endDate ");
         query.append(" AND ").append(element).append(" != :missing ");
-        query.append(" AND ").append(element).append("::decimal");
+        query.append(" AND ").append(element);
+        if (threshold.equals(0.01)) {
+	    query.append("::decimal");
+        }
         if (greaterOrLess) {
             query.append(" >= ");
         } else {
