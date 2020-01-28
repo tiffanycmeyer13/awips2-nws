@@ -46,6 +46,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  *                                     in the text product.
  * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
  *                                     mismatch symbols appearing inappropriately.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -1007,18 +1008,18 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         boolean precipTabMismatch = false;
 
         // total precip
-        // check MSM first
-        if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getPrecipTotal(),
-                msmPeriodData.getPrecipTotal())) {
-            DataFieldListener.setComboViewerSelection(myTotalPrecipComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
+        if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
                 iSavedPeriodData.getPrecipTotal(),
                 dailyPeriodData.getPrecipTotal())) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myTotalPrecipComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && ClimateUtilities.floatingEquals(
+                iSavedPeriodData.getPrecipTotal(),
+                msmPeriodData.getPrecipTotal())) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myTotalPrecipComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myTotalPrecipComboBox,
@@ -1049,20 +1050,20 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
                 .setText(String.valueOf(iSavedPeriodData.getPrecipMeanDay()));
 
         // precip >= 0.01
-        // check MSM first
-        if (msmPeriodData != null
-                && iSavedPeriodData.getNumPrcpGreaterThan01() == msmPeriodData
-                        .getNumPrcpGreaterThan01()) {
-            DataFieldListener.setComboViewerSelection(
-                    myPrecipInchesGreater01ComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && iSavedPeriodData.getNumPrcpGreaterThan01() == dailyPeriodData
                         .getNumPrcpGreaterThan01()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(
                     myPrecipInchesGreater01ComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null
+                && iSavedPeriodData.getNumPrcpGreaterThan01() == msmPeriodData
+                        .getNumPrcpGreaterThan01()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(
+                    myPrecipInchesGreater01ComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1087,20 +1088,21 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         }
 
         // precip >= 0.1
-        // check MSM first
-        if (msmPeriodData != null
-                && iSavedPeriodData.getNumPrcpGreaterThan10() == msmPeriodData
-                        .getNumPrcpGreaterThan10()) {
-            DataFieldListener.setComboViewerSelection(
-                    myPrecipInchesGreater10ComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && iSavedPeriodData.getNumPrcpGreaterThan10() == dailyPeriodData
                         .getNumPrcpGreaterThan10()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(
                     myPrecipInchesGreater10ComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null
+                && iSavedPeriodData.getNumPrcpGreaterThan10() == msmPeriodData
+                        .getNumPrcpGreaterThan10()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(
+                    myPrecipInchesGreater10ComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1125,20 +1127,21 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         }
 
         // precip >= 0.5
-        // check MSM first
-        if (msmPeriodData != null
-                && iSavedPeriodData.getNumPrcpGreaterThan50() == msmPeriodData
-                        .getNumPrcpGreaterThan50()) {
-            DataFieldListener.setComboViewerSelection(
-                    myPrecipInchesGreater50ComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && iSavedPeriodData.getNumPrcpGreaterThan50() == dailyPeriodData
                         .getNumPrcpGreaterThan50()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(
                     myPrecipInchesGreater50ComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null
+                && iSavedPeriodData.getNumPrcpGreaterThan50() == msmPeriodData
+                        .getNumPrcpGreaterThan50()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(
+                    myPrecipInchesGreater50ComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1163,20 +1166,21 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         }
 
         // precip >= 1.0
-        // check MSM first
-        if (msmPeriodData != null
-                && iSavedPeriodData.getNumPrcpGreaterThan100() == msmPeriodData
-                        .getNumPrcpGreaterThan100()) {
-            DataFieldListener.setComboViewerSelection(
-                    myPrecipInchesGreater100ComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && iSavedPeriodData
+        if (dailyPeriodData != null && iSavedPeriodData
                 .getNumPrcpGreaterThan100() == dailyPeriodData
                         .getNumPrcpGreaterThan100()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(
                     myPrecipInchesGreater100ComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null
+                && iSavedPeriodData.getNumPrcpGreaterThan100() == msmPeriodData
+                        .getNumPrcpGreaterThan100()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(
+                    myPrecipInchesGreater100ComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1213,24 +1217,25 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
         }
 
         // max precip 24H
-        // check MSM first
-        if (msmPeriodData != null
-                && isPeriodDataEqualForFloat(iSavedPeriodData.getPrecipMax24H(),
-                        msmPeriodData.getPrecipMax24H(),
-                        iSavedPeriodData.getPrecip24HDates(),
-                        msmPeriodData.getPrecip24HDates(),
-                        myMaxPrecip24HourBeginDates.length)) {
-            DataFieldListener.setComboViewerSelection(myMaxPrecip24HourComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && isPeriodDataEqualForFloat(iSavedPeriodData.getPrecipMax24H(),
                         dailyPeriodData.getPrecipMax24H(),
                         iSavedPeriodData.getPrecip24HDates(),
                         dailyPeriodData.getPrecip24HDates(),
                         myMaxPrecip24HourBeginDates.length)) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myMaxPrecip24HourComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+
+        } else if (msmPeriodData != null
+                && isPeriodDataEqualForFloat(iSavedPeriodData.getPrecipMax24H(),
+                        msmPeriodData.getPrecipMax24H(),
+                        iSavedPeriodData.getPrecip24HDates(),
+                        msmPeriodData.getPrecip24HDates(),
+                        myMaxPrecip24HourBeginDates.length)) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myMaxPrecip24HourComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMaxPrecip24HourComboBox,
@@ -1295,7 +1300,7 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected boolean displayDailyBuildData(PeriodData iMonthlyAsosData,
+    protected boolean displayComparedData(PeriodData iMonthlyAsosData,
             PeriodData iDailyBuildData) {
         boolean precipTabMismatch = false;
 
@@ -1509,23 +1514,23 @@ public class PrecipTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected void displayMonthlyASOSData() {
+    protected void displayDailyBuildData() {
         DataFieldListener.setComboViewerSelection(myTotalPrecipComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(
                 myPrecipInchesGreater01ComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(
                 myPrecipInchesGreater10ComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(
                 myPrecipInchesGreater50ComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(
                 myPrecipInchesGreater100ComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myMaxPrecip24HourComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
     }
 
     @Override

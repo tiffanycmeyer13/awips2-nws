@@ -123,6 +123,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 03 MAY 2018  20702      amoore      Set a max height of station list.
  * 03 MAY 2018  20700      amoore      Accept Values and Continue should save current values.
  * 21 OCT 2019  DR21671    wpaintsil   Fetch an ordered list of stations.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -1082,9 +1083,10 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
             switch (myPeriodDesc.getPeriodType()) {
             case MONTHLY_RAD:
             case MONTHLY_NWWS:
-                // monthly request
-                loadMonthlyASOSData();
-
+                // monthly ASOS request
+                requestMonthlyASOSData();
+                // daily build data is displayed by default
+                displayDailyBuildData();
                 break;
             case SEASONAL_RAD:
             case SEASONAL_NWWS:
@@ -1193,36 +1195,24 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
         // also compare dates/times of values when available, not just values
 
         // set mismatch icon for tab items
-        boolean tempTabMismatch = myTempTab
-                .displayDailyBuildData(iMonthlyAsosData, iDailyBuildData);
+        boolean tempTabMismatch = myTempTab.displayComparedData(iMonthlyAsosData,
+                iDailyBuildData);
 
-        boolean precipTabMismatch = myPrecipTab
-                .displayDailyBuildData(iMonthlyAsosData, iDailyBuildData);
+        boolean precipTabMismatch = myPrecipTab.displayComparedData(iMonthlyAsosData,
+                iDailyBuildData);
 
-        boolean snowTabMismatch = mySnowTab
-                .displayDailyBuildData(iMonthlyAsosData, iDailyBuildData);
+        boolean snowTabMismatch = mySnowTab.displayComparedData(iMonthlyAsosData,
+                iDailyBuildData);
 
-        boolean windTabMismatch = myWindTab
-                .displayDailyBuildData(iMonthlyAsosData, iDailyBuildData);
+        boolean windTabMismatch = myWindTab.displayComparedData(iMonthlyAsosData,
+                iDailyBuildData);
 
         boolean skyAndWeatherMismatch = mySkyAndWeatherTab
-                .displayDailyBuildData(iMonthlyAsosData, iDailyBuildData);
+                .displayComparedData(iMonthlyAsosData, iDailyBuildData);
 
         // any mismatching at all?
         myMSMandDailyMismatched = tempTabMismatch || precipTabMismatch
                 || snowTabMismatch || windTabMismatch || skyAndWeatherMismatch;
-    }
-
-    /**
-     * Retrieve and save monthly ASOS data for a single month. Also display the
-     * data.
-     * 
-     * @throws VizException
-     */
-    private void loadMonthlyASOSData() throws VizException {
-        requestMonthlyASOSData();
-
-        displayMonthlyASOSData();
     }
 
     /**
@@ -1248,19 +1238,20 @@ public class DisplayStationPeriodDialog extends ClimateCaveChangeTrackDialog {
     }
 
     /**
-     * Display monthly ASOS data.
+     * Display daily build data.
      */
-    private void displayMonthlyASOSData() {
-        // set data value origins to MSM; listeners will automatically load data
-        myTempTab.displayMonthlyASOSData();
+    private void displayDailyBuildData() {
+        // set data value origins to daily database; listeners will
+        // automatically load data
+        myTempTab.displayDailyBuildData();
 
-        myPrecipTab.displayMonthlyASOSData();
+        myPrecipTab.displayDailyBuildData();
 
-        mySnowTab.displayMonthlyASOSData();
+        mySnowTab.displayDailyBuildData();
 
-        myWindTab.displayMonthlyASOSData();
+        myWindTab.displayDailyBuildData();
 
-        mySkyAndWeatherTab.displayMonthlyASOSData();
+        mySkyAndWeatherTab.displayDailyBuildData();
     }
 
     /**
