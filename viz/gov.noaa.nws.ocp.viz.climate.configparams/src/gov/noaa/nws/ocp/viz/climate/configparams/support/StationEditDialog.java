@@ -66,12 +66,19 @@ import gov.noaa.nws.ocp.viz.common.climate.dialog.ClimateCaveChangeTrackDialog;
  *                                    Found and fixed issue where one could not remove and add back in
  *                                    the same station and save successfully. Don't let users save
  *                                    incomplete rows.
+ * 08 JAN 2020  DR21753   wpaintsil   Truncate the station name before adding it to the database
+ *                                    if it is longer than 30 characters.
  * </pre>
  * 
  * @author xzhang
  * @version 1.0
  */
 public class StationEditDialog extends ClimateCaveChangeTrackDialog {
+    /**
+     * The maximum length for a station.
+     */
+    private static final int MAX_STATION_NAME_LENGTH = 30;
+
     /**
      * Stations retrieved from DB this dialog session, so as not to need
      * repeated DB calls based on codes.
@@ -471,6 +478,8 @@ public class StationEditDialog extends ClimateCaveChangeTrackDialog {
             throws ClimateInvalidParameterException {
         List<Station> stations = new ArrayList<>();
         // get stations in table order
+
+        StringBuilder warningMessage = new StringBuilder();
         for (TableItem item : stationTable.getItems()) {
             short stdAllYear = (short) (item.getChecked() ? 1 : 0);
 
@@ -482,10 +491,27 @@ public class StationEditDialog extends ClimateCaveChangeTrackDialog {
                                 + (stationTable.indexOf(item) + 1) + "]");
             }
 
+            if (station.getStationName().length() > MAX_STATION_NAME_LENGTH) {
+                String truncatedName = station.getStationName().substring(0,
+                        MAX_STATION_NAME_LENGTH);
+
+                warningMessage.append("'" + station.getStationName()
+                        + "' was truncated to '" + truncatedName + ".'\n\n");
+
+                station.setStationName(truncatedName);
+            }
+
             station.setStdAllYear(stdAllYear);
             stations.add(station);
         }
 
+        if (!warningMessage.toString().isEmpty()) {
+            MessageDialog.openWarning(shell,
+                    "One or More Station Names Were Truncated",
+                    "The following station names were longer than the maximum length of "
+                            + MAX_STATION_NAME_LENGTH + " characters:\n\n"
+                            + warningMessage.toString());
+        }
         return stations;
     }
 
