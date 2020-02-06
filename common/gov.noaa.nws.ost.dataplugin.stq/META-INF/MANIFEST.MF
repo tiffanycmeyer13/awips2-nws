@@ -2,14 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Stq
 Bundle-SymbolicName: gov.noaa.nws.ost.dataplugin.stq
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: gov.noaa.nws
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.common.geospatial,
  org.geotools,
  javax.persistence,
- javax.measure
+ javax.measure,
+ javax.xml.bind
 Export-Package: gov.noaa.nws.ost.dataplugin.stq

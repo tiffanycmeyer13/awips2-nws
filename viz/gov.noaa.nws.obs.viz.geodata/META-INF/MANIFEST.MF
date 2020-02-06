@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Geodata
 Bundle-SymbolicName: gov.noaa.nws.obs.viz.geodata;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.uf.viz.core.rsc,
  com.raytheon.uf.viz.core,
  com.raytheon.uf.common.dataplugin,
@@ -19,7 +19,8 @@ Require-Bundle: com.raytheon.uf.viz.core.rsc,
  com.raytheon.uf.viz.ui.menus,
  com.raytheon.uf.common.style,
  gov.noaa.nws.obs.common.dataplugin.geodata;bundle-version="1.0.0",
- com.raytheon.uf.viz.productbrowser.datalisting
+ com.raytheon.uf.viz.productbrowser.datalisting,
+ javax.xml.bind
 Export-Package: gov.noaa.nws.obs.viz.geodata.rsc,
  gov.noaa.nws.obs.viz.geodata.style
 Bundle-ClassPath: gov.noaa.nws.obs.viz.geodata.jar

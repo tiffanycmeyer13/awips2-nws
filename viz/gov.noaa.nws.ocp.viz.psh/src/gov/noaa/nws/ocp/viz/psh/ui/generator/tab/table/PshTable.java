@@ -38,7 +38,7 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.uf.viz.core.requests.ThriftClient;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ocp.common.dataplugin.psh.EffectDataEntry;
 import gov.noaa.nws.ocp.common.dataplugin.psh.FloodingDataEntry;
