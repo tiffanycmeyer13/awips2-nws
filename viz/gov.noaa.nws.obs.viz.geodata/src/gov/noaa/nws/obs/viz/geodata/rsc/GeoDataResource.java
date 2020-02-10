@@ -3,6 +3,7 @@ package gov.noaa.nws.obs.viz.geodata.rsc;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +72,7 @@ import gov.noaa.nws.obs.viz.geodata.style.GeometryPreferences;
  * 07/25/2016   19064      jburks      Initial checkin (DCS 19064)
  * 08/04/2016   19064      mcomerford  Adding styleRules handling.
  * Dec 01, 2017 5863       mapeters    Change dataTimes to a NavigableSet
+ * Jul 28, 2019 7892       mroos       Replace loops with iterators in remove(DataTime)
  *
  * </pre>
  *
@@ -629,15 +631,22 @@ public class GeoDataResource
     public void remove(DataTime dataTime) {
         super.remove(dataTime);
         DataFrame frame = null;
-        for (TimeRange tr : frames.keySet()) {
-            if (tr.contains(dataTime.getValidTimeAsDate())) {
-                frame = frames.remove(tr);
+        // Iterators are used in order to properly remove entries w/o error
+        Iterator<Map.Entry<TimeRange, DataFrame>> entries = frames.entrySet()
+                .iterator();
+        while (entries.hasNext()) {
+            Map.Entry<TimeRange, DataFrame> entry = entries.next();
+            if (entry.getKey().contains(dataTime.getValidTimeAsDate())) {
+                frame = entry.getValue();
+                entries.remove();
+                break;
             }
         }
         if (frame != null) {
-            for (GeoDataRecord record : frame.getRecords()) {
-                if (record.getDataTime().equals(dataTime)) {
-                    frame.remove(record);
+            Iterator<GeoDataRecord> rem = frame.getRecords().iterator();
+            while (rem.hasNext()) {
+                if (rem.next().getDataTime().equals(dataTime)) {
+                    rem.remove();
                 }
             }
         }
