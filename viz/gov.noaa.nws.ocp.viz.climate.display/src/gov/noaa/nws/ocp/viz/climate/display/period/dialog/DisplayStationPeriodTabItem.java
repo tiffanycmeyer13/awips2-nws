@@ -24,6 +24,7 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.ClimateTextListeners;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -94,13 +95,13 @@ public abstract class DisplayStationPeriodTabItem {
      * @param iDailyBuildData
      * @return true if there was a mismatch value detected
      */
-    protected abstract boolean displayDailyBuildData(
-            PeriodData iMonthlyAsosData, PeriodData iDailyBuildData);
+    protected abstract boolean displayComparedData(PeriodData iMonthlyAsosData,
+            PeriodData iDailyBuildData);
 
     /**
-     * Display monthly ASOS data.
+     * Display daily build data for monthly period.
      */
-    protected abstract void displayMonthlyASOSData();
+    protected abstract void displayDailyBuildData();
 
     /**
      * Clear all text fields to missing values.

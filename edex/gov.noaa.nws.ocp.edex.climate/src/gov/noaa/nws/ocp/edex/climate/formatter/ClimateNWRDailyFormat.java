@@ -62,6 +62,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  * Oct 16, 2019 DR21661    wpaintsil   Remove leading zeros in time strings.
  * Oct 31, 2019 DR21661    wpaintsil   Snow/Precip seasons were fetched from the wrong place.
  * Nov 05, 2019 DR21591    wpaintsil   Corrected a mistake in setting total snow for the season.
+ * Jan 08, 2020 DR21766    wpaintsil   Corrected a mistake in setting total snow for the month.
  * </pre>
  *
  * @author wpaintsil
@@ -1748,7 +1749,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                     && month) {
 
                 String snowString = String.format(FLOAT_ONE_DECIMAL,
-                        dySnowMonth);
+                        yesterday.getSnowMonth());
                 if (yesterday.getSnowMonth() == ParameterFormatClimate.TRACE) {
                     snowPhrase.append(
                             "The total snowfall for the month stands at a trace");
@@ -1763,7 +1764,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
 
                     if (Math.abs(
                             deltaSnow) < ParameterFormatClimate.HALF_SNOW) {
-                        snowPhrase.append(", which is normal ");
+                        snowPhrase.append(", which is normal");
                     } else {
                         if (deltaSnow < 0) {
                             which = false;
@@ -1778,7 +1779,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                         snowPhrase.append(", which is ").append(snowString)
                                 .append(" inches ")
                                 .append(ClimateNWRFormat.aboveBelow(which))
-                                .append(" normal ");
+                                .append(" normal");
                     }
 
                     snowPhrase.append(".");
@@ -1873,7 +1874,7 @@ public class ClimateNWRDailyFormat extends ClimateNWRFormat {
                             snowPhrase.append(", which is ").append(snowString)
                                     .append(" inches ")
                                     .append(ClimateNWRFormat.aboveBelow(which))
-                                    .append(" normal ");
+                                    .append(" normal");
                         }
                     }
 

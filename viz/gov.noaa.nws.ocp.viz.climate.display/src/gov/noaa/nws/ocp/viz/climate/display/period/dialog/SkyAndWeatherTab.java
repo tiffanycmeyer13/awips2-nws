@@ -40,6 +40,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 14 DEC 2018  DR21053    wpaintsil   Data population missing for some fields.
  * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
  *                                     mismatch symbols appearing inappropriately.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -744,18 +745,19 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
                 .setText(String.valueOf(iSavedPeriodData.getMeanSkyCover()));
 
         // percent possible sun
-        // check MSM first
+        if (dailyPeriodData != null && iSavedPeriodData
+                .getPossSun() == dailyPeriodData.getPossSun()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(
+                    myPercentPossSunshineComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+
+        } else // check MSM second
         if (msmPeriodData != null && iSavedPeriodData
                 .getPossSun() == msmPeriodData.getPossSun()) {
             DataFieldListener.setComboViewerSelection(
                     myPercentPossSunshineComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && iSavedPeriodData
-                .getPossSun() == dailyPeriodData.getPossSun()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(
-                    myPercentPossSunshineComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -779,18 +781,18 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         }
 
         // mostly cloudy days
-        // check MSM first
+        if (dailyPeriodData != null
+                && iSavedPeriodData.getNumMostlyCloudyDays() == dailyPeriodData
+                        .getNumMostlyCloudyDays()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(myMostlyCloudyComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+        } else // check MSM second
         if (msmPeriodData != null
                 && iSavedPeriodData.getNumMostlyCloudyDays() == msmPeriodData
                         .getNumMostlyCloudyDays()) {
             DataFieldListener.setComboViewerSelection(myMostlyCloudyComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
-                && iSavedPeriodData.getNumMostlyCloudyDays() == dailyPeriodData
-                        .getNumMostlyCloudyDays()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(myMostlyCloudyComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMostlyCloudyComboBox,
@@ -815,18 +817,18 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         }
 
         // partly cloudy days
-        // check MSM first
+        if (dailyPeriodData != null
+                && iSavedPeriodData.getNumPartlyCloudyDays() == dailyPeriodData
+                        .getNumPartlyCloudyDays()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(myPartlyCloudyComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+        } else // check MSM second
         if (msmPeriodData != null
                 && iSavedPeriodData.getNumPartlyCloudyDays() == msmPeriodData
                         .getNumPartlyCloudyDays()) {
             DataFieldListener.setComboViewerSelection(myPartlyCloudyComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
-                && iSavedPeriodData.getNumPartlyCloudyDays() == dailyPeriodData
-                        .getNumPartlyCloudyDays()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(myPartlyCloudyComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myPartlyCloudyComboBox,
@@ -851,16 +853,16 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
         }
 
         // fair days
-        // check MSM first
+        if (dailyPeriodData != null && iSavedPeriodData
+                .getNumFairDays() == dailyPeriodData.getNumFairDays()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(myFairComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+        } else // check MSM second
         if (msmPeriodData != null && iSavedPeriodData
                 .getNumFairDays() == msmPeriodData.getNumFairDays()) {
             DataFieldListener.setComboViewerSelection(myFairComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && iSavedPeriodData
-                .getNumFairDays() == dailyPeriodData.getNumFairDays()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(myFairComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myFairComboBox,
@@ -922,7 +924,7 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected boolean displayDailyBuildData(PeriodData iMonthlyAsosData,
+    protected boolean displayComparedData(PeriodData iMonthlyAsosData,
             PeriodData iDailyBuildData) {
         boolean skyAndWeatherMismatch = false;
 
@@ -1040,18 +1042,18 @@ public class SkyAndWeatherTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected void displayMonthlyASOSData() {
+    protected void displayDailyBuildData() {
         // percent sun
         DataFieldListener.setComboViewerSelection(myPercentPossSunshineComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // cloud days
         DataFieldListener.setComboViewerSelection(myFairComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myPartlyCloudyComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myMostlyCloudyComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
     }
 
     @Override

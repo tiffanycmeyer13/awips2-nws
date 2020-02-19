@@ -48,6 +48,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 13 JUN 2019  DR21417    wpaintsil   Float entry required for temperature averages.
  * 18 JUL 2019  DR21454    wpaintsil   Faulty conditional logic results in
  *                                     mismatch symbols appearing inappropriately.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -1306,20 +1307,20 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         boolean tempTabMismatch = false;
 
         // max temp
-        // check MSM first
-        if (msmPeriodData != null && isPeriodDataEqualForInt(
-                iSavedPeriodData.getMaxTemp(), msmPeriodData.getMaxTemp(),
-                iSavedPeriodData.getDayMaxTempList(),
-                msmPeriodData.getDayMaxTempList(), myMaxTempDates.length)) {
-            DataFieldListener.setComboViewerSelection(myMaxTempComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && isPeriodDataEqualForInt(
+        if (dailyPeriodData != null && isPeriodDataEqualForInt(
                 iSavedPeriodData.getMaxTemp(), dailyPeriodData.getMaxTemp(),
                 iSavedPeriodData.getDayMaxTempList(),
                 dailyPeriodData.getDayMaxTempList(), myMaxTempDates.length)) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myMaxTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && isPeriodDataEqualForInt(
+                iSavedPeriodData.getMaxTemp(), msmPeriodData.getMaxTemp(),
+                iSavedPeriodData.getDayMaxTempList(),
+                msmPeriodData.getDayMaxTempList(), myMaxTempDates.length)) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myMaxTempComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMaxTempComboBox,
@@ -1363,18 +1364,18 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // average max temp
-        // check MSM first
-        if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                ClimateUtilities.nint(iSavedPeriodData.getMaxTempMean(), 1),
-                ClimateUtilities.nint(msmPeriodData.getMaxTempMean(), 1))) {
-            DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
+        if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
                 ClimateUtilities.nint(iSavedPeriodData.getMaxTempMean(), 1),
                 ClimateUtilities.nint(dailyPeriodData.getMaxTempMean(), 1))) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && ClimateUtilities.floatingEquals(
+                ClimateUtilities.nint(iSavedPeriodData.getMaxTempMean(), 1),
+                ClimateUtilities.nint(msmPeriodData.getMaxTempMean(), 1))) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
@@ -1403,17 +1404,17 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // average temp
-        // check MSM first
-        if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                iSavedPeriodData.getMeanTemp(), msmPeriodData.getMeanTemp())) {
-            DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
+        if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
                 ClimateUtilities.nint(iSavedPeriodData.getMeanTemp(), 1),
                 ClimateUtilities.nint(dailyPeriodData.getMeanTemp(), 1))) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && ClimateUtilities.floatingEquals(
+                iSavedPeriodData.getMeanTemp(), msmPeriodData.getMeanTemp())) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
@@ -1441,20 +1442,20 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // max temp over 90
-        // check MSM first
-        if (msmPeriodData != null
-                && iSavedPeriodData.getNumMaxGreaterThan90F() == msmPeriodData
-                        .getNumMaxGreaterThan90F()) {
-            DataFieldListener.setComboViewerSelection(
-                    myMaxTempGreater90DegComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
+        if (dailyPeriodData != null
                 && iSavedPeriodData.getNumMaxGreaterThan90F() == dailyPeriodData
                         .getNumMaxGreaterThan90F()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(
                     myMaxTempGreater90DegComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null
+                && iSavedPeriodData.getNumMaxGreaterThan90F() == msmPeriodData
+                        .getNumMaxGreaterThan90F()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(
+                    myMaxTempGreater90DegComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1479,19 +1480,19 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // max temp under 32
-        // check MSM first
-        if (msmPeriodData != null
+        if (dailyPeriodData != null
+                && iSavedPeriodData.getNumMaxLessThan32F() == dailyPeriodData
+                        .getNumMaxLessThan32F()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(
+                    myMaxTempLess32DegComboBox, DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null
                 && iSavedPeriodData.getNumMaxLessThan32F() == msmPeriodData
                         .getNumMaxLessThan32F()) {
+            // check MSM second
             DataFieldListener.setComboViewerSelection(
                     myMaxTempLess32DegComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
-                && iSavedPeriodData.getNumMaxLessThan32F() == dailyPeriodData
-                        .getNumMaxLessThan32F()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(
-                    myMaxTempLess32DegComboBox, DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1534,20 +1535,20 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // min temp
-        // check MSM first
-        if (msmPeriodData != null && isPeriodDataEqualForInt(
-                iSavedPeriodData.getMinTemp(), msmPeriodData.getMinTemp(),
-                iSavedPeriodData.getDayMinTempList(),
-                msmPeriodData.getDayMinTempList(), myMinTempDates.length)) {
-            DataFieldListener.setComboViewerSelection(myMinTempComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && isPeriodDataEqualForInt(
+        if (dailyPeriodData != null && isPeriodDataEqualForInt(
                 iSavedPeriodData.getMinTemp(), dailyPeriodData.getMinTemp(),
                 iSavedPeriodData.getDayMinTempList(),
                 dailyPeriodData.getDayMinTempList(), myMinTempDates.length)) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myMinTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && isPeriodDataEqualForInt(
+                iSavedPeriodData.getMinTemp(), msmPeriodData.getMinTemp(),
+                iSavedPeriodData.getDayMinTempList(),
+                msmPeriodData.getDayMinTempList(), myMinTempDates.length)) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myMinTempComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMinTempComboBox,
@@ -1591,18 +1592,18 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // average min temp
-        // check MSM first
-        if (msmPeriodData != null && ClimateUtilities.floatingEquals(
-                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
-                ClimateUtilities.nint(msmPeriodData.getMinTempMean(), 1))) {
-            DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
+        if (dailyPeriodData != null && ClimateUtilities.floatingEquals(
                 ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
                 ClimateUtilities.nint(dailyPeriodData.getMinTempMean(), 1))) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && ClimateUtilities.floatingEquals(
+                ClimateUtilities.nint(iSavedPeriodData.getMinTempMean(), 1),
+                ClimateUtilities.nint(msmPeriodData.getMinTempMean(), 1))) {
+            // check MSM first
+            DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
@@ -1634,18 +1635,18 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         myMeanRelHumTF.setText(String.valueOf(iSavedPeriodData.getMeanRh()));
 
         // min temp under 32
-        if (msmPeriodData != null
+        if (dailyPeriodData != null
+                && iSavedPeriodData.getNumMinLessThan32F() == dailyPeriodData
+                        .getNumMinLessThan32F()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(
+                    myMinTempLess32DegComboBox, DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null
                 && iSavedPeriodData.getNumMinLessThan32F() == msmPeriodData
                         .getNumMinLessThan32F()) {
             DataFieldListener.setComboViewerSelection(
                     myMinTempLess32DegComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
-                && iSavedPeriodData.getNumMinLessThan32F() == dailyPeriodData
-                        .getNumMinLessThan32F()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(
-                    myMinTempLess32DegComboBox, DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(
@@ -1670,16 +1671,16 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // min temp under 0
-        if (msmPeriodData != null && iSavedPeriodData
+        if (dailyPeriodData != null
+                && iSavedPeriodData.getNumMinLessThan0F() == dailyPeriodData
+                        .getNumMinLessThan0F()) {
+            // check daily DB (could be null) first
+            DataFieldListener.setComboViewerSelection(myMinTempLess0DegComboBox,
+                    DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && iSavedPeriodData
                 .getNumMinLessThan0F() == msmPeriodData.getNumMinLessThan0F()) {
             DataFieldListener.setComboViewerSelection(myMinTempLess0DegComboBox,
                     DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null
-                && iSavedPeriodData.getNumMinLessThan0F() == dailyPeriodData
-                        .getNumMinLessThan0F()) {
-            // check daily DB (could be null) second
-            DataFieldListener.setComboViewerSelection(myMinTempLess0DegComboBox,
-                    DataValueOrigin.DAILY_DATABASE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myMinTempLess0DegComboBox,
@@ -1722,16 +1723,16 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // heating days
-        // check MSM first
-        if (msmPeriodData != null && iSavedPeriodData
-                .getNumHeatTotal() == msmPeriodData.getNumHeatTotal()) {
-            DataFieldListener.setComboViewerSelection(myHeatingDaysComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && iSavedPeriodData
+        if (dailyPeriodData != null && iSavedPeriodData
                 .getNumHeatTotal() == dailyPeriodData.getNumHeatTotal()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myHeatingDaysComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && iSavedPeriodData
+                .getNumHeatTotal() == msmPeriodData.getNumHeatTotal()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myHeatingDaysComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myHeatingDaysComboBox,
@@ -1755,16 +1756,16 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
         }
 
         // cooling days
-        // check MSM first
-        if (msmPeriodData != null && iSavedPeriodData
-                .getNumCoolTotal() == msmPeriodData.getNumCoolTotal()) {
-            DataFieldListener.setComboViewerSelection(myCoolingDaysComboBox,
-                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
-        } else if (dailyPeriodData != null && iSavedPeriodData
+        if (dailyPeriodData != null && iSavedPeriodData
                 .getNumCoolTotal() == dailyPeriodData.getNumCoolTotal()) {
-            // check daily DB (could be null) second
+            // check daily DB (could be null) first
             DataFieldListener.setComboViewerSelection(myCoolingDaysComboBox,
                     DataValueOrigin.DAILY_DATABASE);
+        } else if (msmPeriodData != null && iSavedPeriodData
+                .getNumCoolTotal() == msmPeriodData.getNumCoolTotal()) {
+            // check MSM second
+            DataFieldListener.setComboViewerSelection(myCoolingDaysComboBox,
+                    DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
         } else {
             // use Other (never null) last
             DataFieldListener.setComboViewerSelection(myCoolingDaysComboBox,
@@ -1800,7 +1801,7 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected boolean displayDailyBuildData(PeriodData iMonthlyAsosData,
+    protected boolean displayComparedData(PeriodData iMonthlyAsosData,
             PeriodData iDailyBuildData) {
         boolean tempTabMismatch = false;
 
@@ -2163,44 +2164,44 @@ public class TemperatureTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected void displayMonthlyASOSData() {
+    protected void displayDailyBuildData() {
         // max temp
         DataFieldListener.setComboViewerSelection(myMaxTempComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // min temp
         DataFieldListener.setComboViewerSelection(myMinTempComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // avg max temp
         DataFieldListener.setComboViewerSelection(myAvgMaxTempComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // avg min temp
         DataFieldListener.setComboViewerSelection(myAvgMinTempComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // avg temp
         DataFieldListener.setComboViewerSelection(myMeanTempComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // max temp measures
         DataFieldListener.setComboViewerSelection(myMaxTempLess32DegComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myMaxTempGreater90DegComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // min temp measures
         DataFieldListener.setComboViewerSelection(myMinTempLess32DegComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myMinTempLess0DegComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
 
         // heating/cooling days
         DataFieldListener.setComboViewerSelection(myHeatingDaysComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
         DataFieldListener.setComboViewerSelection(myCoolingDaysComboBox,
-                DataValueOrigin.MONTHLY_SUMMARY_MESSAGE);
+                DataValueOrigin.DAILY_DATABASE);
     }
 
     @Override

@@ -41,6 +41,8 @@ import gov.noaa.nws.ocp.viz.common.climate.listener.impl.UnsavedChangesListener;
  *                                  with all date info.
  * 03 JUL 2017 35694    amoore      Alter to take into account new {@link DateSelectionComp} API.
  * 21 SEP 2017 38124    amoore      Use better abstraction logic for valid months.
+ * 20 DEC 2019 DR21762  wpaintsil   Some trace values weren't properly parsed, causing 
+ *                                  NumberFormatExceptions.
  * </pre>
  * 
  * @author wkwock
@@ -428,7 +430,10 @@ public class SnowfallComp extends AbstractClimateInitComp {
                 .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
                         ? ParameterFormatClimate.TRACE
                         : Float.parseFloat(waterTxt.getText()));
-        periodRcd.setSnowGroundNorm(Float.parseFloat(snowDepthTxt.getText()));
+        periodRcd.setSnowGroundNorm(snowDepthTxt.getText()
+                .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
+                        ? ParameterFormatClimate.TRACE
+                        : Float.parseFloat(snowDepthTxt.getText()));
         periodRcd.setNumSnowGETRNorm(Float.parseFloat(anyTxt.getText()));
         periodRcd.setNumSnowGE1Norm(Float.parseFloat(days10Txt.getText()));
 
@@ -469,8 +474,10 @@ public class SnowfallComp extends AbstractClimateInitComp {
         cds.setEnd(date3EndDS.getDate());
         cds.getEnd().setYear(Integer.parseInt(date3YearTxt.getText()));
 
-        periodRcd.setSnowGroundMax(
-                Integer.parseInt(snowDepthRecordTxt.getText()));
+        periodRcd.setSnowGroundMax(snowDepthRecordTxt.getText()
+                .equalsIgnoreCase(ParameterFormatClimate.TRACE_SYMBOL)
+                        ? (int) ParameterFormatClimate.TRACE
+                        : Integer.parseInt(snowDepthRecordTxt.getText()));
 
         periodRcd.getDaySnowGroundMaxList().set(0, date1DepthDS.getDate());
         periodRcd.getDaySnowGroundMaxList().set(1, date2DepthDS.getDate());

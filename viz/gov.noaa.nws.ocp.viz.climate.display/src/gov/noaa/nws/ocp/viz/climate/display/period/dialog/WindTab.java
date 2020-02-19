@@ -37,6 +37,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * ------------ ---------- ----------- --------------------------
  * 20 NOV 2017  41128      amoore      Initial creation.
  * 14 NOV 2018  DR20977    wpaintsil   Add NumberFormatException handling.
+ * 09 JAN 2020  DR21783    wpaintsil   Display Daily DB instead of MSM by default.
  * </pre>
  * 
  * @author amoore
@@ -874,7 +875,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected boolean displayDailyBuildData(PeriodData iMonthlyAsosData,
+    protected boolean displayComparedData(PeriodData iMonthlyAsosData,
             PeriodData iDailyBuildData) {
         // max gust speed
         double maxGustSpeed;
@@ -996,7 +997,7 @@ public class WindTab extends DisplayStationPeriodTabItem {
     }
 
     @Override
-    protected void displayMonthlyASOSData() {
+    protected void displayDailyBuildData() {
         // MSM has no wind data for this display
     }
 

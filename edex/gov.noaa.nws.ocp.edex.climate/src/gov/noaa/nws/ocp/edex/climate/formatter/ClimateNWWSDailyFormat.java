@@ -4,6 +4,7 @@
 package gov.noaa.nws.ocp.edex.climate.formatter;
 
 import java.text.DateFormatSymbols;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,12 +66,16 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  *                                     snow remain as float.
  * 20 MAR 2019  DR21197    wpaintsil   Adjust Snow Depth alignment.
  * 16 OCT 2019  DR21661    wpaintsil   Revise grammar/capitalization. 
+ * 15 JAN 2020  DR21765    kshrestha   Fix Erroneous negative 0 value.
+ * 
  * </pre>
  *
  * @author wpaintsil
  * @version 1.0
  */
 public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
+
+    private final DecimalFormat df = new DecimalFormat("#.##");
 
     /**
      * List used to hold new daily records used to create RERs
@@ -2725,7 +2730,7 @@ public class ClimateNWWSDailyFormat extends ClimateNWWSFormat {
                     cMean = (cMean == ParameterFormatClimate.TRACE) ? 0 : cMean;
                     pMean = (pMean == ParameterFormatClimate.TRACE) ? 0 : pMean;
 
-                    float deltaDayPrecip = pMean - cMean;
+                    float deltaDayPrecip = Float.parseFloat(df.format(pMean)) - cMean;
 
                     String valueString = String
                             .format("%." + decimalPlaces + "f", deltaDayPrecip);
