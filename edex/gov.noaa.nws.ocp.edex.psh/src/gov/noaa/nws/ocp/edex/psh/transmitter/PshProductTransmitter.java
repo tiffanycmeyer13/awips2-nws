@@ -44,6 +44,8 @@ import gov.noaa.nws.ocp.edex.psh.util.PshEdexUtil;
  * 11 DEC, 2017 #41998     jwu         Move export to PshEdexUtil
  * 23 MAR, 2018 #48177     wpaintsil   IUser parameter should be 
  *                                     passed in from the viz side.
+ * 24 FEB, 2020 #74838     jwu         DCS 21312 - No PSH product
+ *                                     dissemination in Practice mode.
  * 
  * </pre>
  * 
@@ -98,12 +100,25 @@ public class PshProductTransmitter {
         PshEdexUtil.exportProduct(pshProdResp.getMessage(), pshData,
                 PshEdexUtil.PSH_TXT_FILE);
 
-        // Store local use only product into TextDB.
+        /*
+         * Store local use only product into TextDB without dissemination.
+         *
+         * DCS 21312 - No product dissemination in CAVE Practice mode.
+         */
         String afosNode = pshData.getRoute();
-        if (afosNode.equals("000") || afosNode.equals("LOC")) {
+        if (!operational || afosNode.equals("000") || afosNode.equals("LOC")) {
+
+            String msg;
+            if (!operational) {
+                msg = "CAVE is in practice mode ";
+            } else {
+                msg = "This is a local product ";
+            }
+
             logger.info(
-                    "This is a local product, AFOS originating site (CCC) = "
+                    msg + "and the product will NOT be disseminated. AFOS originating site (CCC) = "
                             + configHeader.getProductPil().substring(0, 3));
+
             hasError = storeProductInTextDB(pshProdResp.getMessage(),
                     configHeader.getProductPil(), operational);
 
@@ -231,6 +246,10 @@ public class PshProductTransmitter {
         req.setProduct(oup);
         OUPResponse resp = null;
         String additionalInfo = "";
+        
+        logger.info("Start transmitting PSH product [ "
+                + configHeader.getProductPil() + "] at "
+                + dt.format(formatter));
 
         try {
             Object object = RequestRouter.route(req);

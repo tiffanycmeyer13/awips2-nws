@@ -3,6 +3,7 @@
  **/
 package gov.noaa.nws.ocp.edex.common.climate.util;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,8 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.DailyClimateDAO;
  * 20 JUN 2017  35179      amoore      Fix issue with improper summing dates for season/year data.
  * 01 MAR 2018  44624      amoore      Clean up #setSeason with modern logic.
  * 02 MAY 2018  DR17116    wpaintsil   Accommodate multiple alternate precip/snow seasons.
+ * 16 MAR 2020  DR21806    wpaintsil   The last day of the year was not properly retrieved resulting
+ *                                     in the wrong values for Jan 1.
  * </pre>
  * 
  * @author xzhang
@@ -176,13 +179,15 @@ public final class ClimateDAOUtils {
             beginDate.setDay(coolSeason.getDay());
             beginDate.setMon(coolSeason.getMon());
             beginDate.setYear(coolSeason.getYear());
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            int iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
 
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             sumCool = dailyClimateDao.sumCoolDegreeDays(beginDate, endDate,
                     stationId);
@@ -225,13 +230,15 @@ public final class ClimateDAOUtils {
             beginDate.setDay(coolYear.getDay());
             beginDate.setMon(coolYear.getMon());
             beginDate.setYear(coolYear.getYear());
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            int iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
 
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             sumCool = dailyClimateDao.sumCoolDegreeDays(beginDate, endDate,
                     stationId);
@@ -360,13 +367,15 @@ public final class ClimateDAOUtils {
             beginDate.setDay(heatSeason.getDay());
             beginDate.setMon(heatSeason.getMon());
             beginDate.setYear(heatSeason.getYear());
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            int iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
 
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             sumHeat = dailyClimateDao.sumHeatDegreeDays(beginDate, endDate,
                     stationId);
@@ -409,13 +418,15 @@ public final class ClimateDAOUtils {
             beginDate.setDay(heatYear.getDay());
             beginDate.setMon(heatYear.getMon());
             beginDate.setYear(heatYear.getYear());
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            int iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
 
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             sumHeat = dailyClimateDao.sumHeatDegreeDays(beginDate, endDate,
                     stationId);
@@ -537,13 +548,15 @@ public final class ClimateDAOUtils {
                 // retrieval of the monthly accumulated precipitation
                 // for days other than the first of the month.
                 beginDate = new ClimateDate(precipSeason);
-                endDate.setYear(aDate.getYear());
 
                 // Get previous day of year
-                iday = aDate.julday() - 1;
+                LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                        aDate.getMon(), aDate.getDay());
+                endLocalDate = endLocalDate.minusDays(1);
 
                 // Set endDate to previous day of year
-                endDate.convertJulday(iday);
+                endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                        endLocalDate.getMonthValue(), endLocalDate.getYear());
 
                 precipSum = dailyClimateDao.sumPrecip(beginDate, endDate,
                         informId);
@@ -587,13 +600,15 @@ public final class ClimateDAOUtils {
             // retrieval of the monthly accumulated precipitation
             // for days other than the first of the month.
             beginDate = new ClimateDate(precipYear);
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
 
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             precipSum = dailyClimateDao.sumPrecip(beginDate, endDate, informId);
 
@@ -711,13 +726,15 @@ public final class ClimateDAOUtils {
                 // retrieval of the monthly accumulated snowfall
                 // for days other than the first of the month.
                 beginDate = new ClimateDate(snowSeason);
-                endDate.setYear(aDate.getYear());
 
                 // Get previous day of year
-                iday = aDate.julday() - 1;
+                LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                        aDate.getMon(), aDate.getDay());
+                endLocalDate = endLocalDate.minusDays(1);
 
                 // Set endDate to previous day of year
-                endDate.convertJulday(iday);
+                endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                        endLocalDate.getMonthValue(), endLocalDate.getYear());
 
                 snowSum = dailyClimateDao.sumSnow(beginDate, endDate, informId);
 
@@ -763,12 +780,15 @@ public final class ClimateDAOUtils {
             // retrieval of the monthly accumulated snowfall
             // for days other than the first of the month.
             beginDate = new ClimateDate(snowYear);
-            endDate.setYear(aDate.getYear());
 
             // Get previous day of year
-            iday = aDate.julday() - 1;
+            LocalDate endLocalDate = LocalDate.of(aDate.getYear(),
+                    aDate.getMon(), aDate.getDay());
+            endLocalDate = endLocalDate.minusDays(1);
+
             // Set endDate to previous day of year
-            endDate.convertJulday(iday);
+            endDate = new ClimateDate(endLocalDate.getDayOfMonth(),
+                    endLocalDate.getMonthValue(), endLocalDate.getYear());
 
             snowSum = dailyClimateDao.sumSnow(beginDate, endDate, informId);
             // Add today's snowfall to the total if it isn't
