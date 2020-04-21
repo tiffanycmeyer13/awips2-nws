@@ -99,11 +99,11 @@
                     </colorbarLabeling>
 
                     <!- SamplePreferences ->
-                    <samplePrefs>
-                        <minValue></minValue>             The minimum value to allow for data sampling
-                        <maxValue></maxValue>             The maximum value to allow for data sampling
-                        <formatString>%.3f</formatString> The number of decimal places to display for values during sampling
-                    </samplePrefs>
+                    <numericFormat>
+                        <minValue></minValue>     The minimum value to allow for data sampling
+                        <maxValue></maxValue>     The maximum value to allow for data sampling
+                        <pattern>0.000</pattern>  The number of decimal places to display for values during sampling
+                    </numericFormat>
 
                 </geometryStyle>
             </styleRule>  
@@ -168,9 +168,9 @@
             </colorbarLabeling>
 
             <!-- SamplePreferences -->
-            <samplePrefs>
-                <formatString>%.3f</formatString>
-            </samplePrefs>
+            <numericFormat>
+                <pattern>0.000</pattern>
+            </numericFormat>
             <displayLegend>VIIRS Active Fires - scale: (Power, MW), color: (Confidence)
             </displayLegend>
             <displayUnits label="%">%</displayUnits>
