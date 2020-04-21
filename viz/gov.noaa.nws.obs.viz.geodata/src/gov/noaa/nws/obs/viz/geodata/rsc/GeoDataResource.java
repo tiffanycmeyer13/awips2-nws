@@ -25,6 +25,7 @@ import com.raytheon.uf.common.style.StyleException;
 import com.raytheon.uf.common.style.StyleManager;
 import com.raytheon.uf.common.style.StyleRule;
 import com.raytheon.uf.common.style.image.ColorMapParameterFactory;
+import com.raytheon.uf.common.style.image.SampleFormat;
 import com.raytheon.uf.common.time.DataTime;
 import com.raytheon.uf.common.time.TimeRange;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
@@ -67,12 +68,15 @@ import gov.noaa.nws.obs.viz.geodata.style.GeometryPreferences;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * 07/25/2016   19064      jburks      Initial checkin (DCS 19064)
- * 08/04/2016   19064      mcomerford  Adding styleRules handling.
- * Dec 01, 2017 5863       mapeters    Change dataTimes to a NavigableSet
- * Jul 28, 2019 7892       mroos       Replace loops with iterators in remove(DataTime)
+ * Date          Ticket#  Engineer    Description
+ * ------------- -------- ----------- ------------------------------------------
+ * Jul 25, 2016  19064    jburks      Initial checkin (DCS 19064)
+ * Aug 04, 2016  19064    mcomerford  Adding styleRules handling.
+ * Dec 01, 2017  5863     mapeters    Change dataTimes to a NavigableSet
+ * Jul 28, 2019  7892     mroos       Replace loops with iterators in
+ *                                    remove(DataTime)
+ * Apr 21, 2020  8145     randerso    Replace SamplePreferences with
+ *                                    SampleFormat
  *
  * </pre>
  *
@@ -83,7 +87,7 @@ public class GeoDataResource
         extends AbstractVizResource<GeoDataResourceData, MapDescriptor> {
 
     /* Logging errors that arise to the console output. */
-    private static final transient IUFStatusHandler statusHandler = UFStatus
+    private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(GeoDataResource.class);
 
     /*
@@ -435,21 +439,14 @@ public class GeoDataResource
             }
         }
 
-        if (closestRecordPrefs.getSamplePrefs() == null) {
+        SampleFormat sampleFormat = closestRecordPrefs.getSampleFormat();
+        if (sampleFormat == null) {
             sb.append(name).append(": ")
                     .append(String.format("%.3f", sampleVal)).append(" ")
                     .append(units).append("\n");
         } else {
-            if (closestRecordPrefs.getSamplePrefs().getFormatString() == null) {
-                sb.append(name).append(": ")
-                        .append(String.format("%.3f", sampleVal)).append(" ")
-                        .append(units).append("\n");
-            } else {
-                sb.append(name).append(": ")
-                        .append(String.format(closestRecordPrefs
-                                .getSamplePrefs().getFormatString(), sampleVal))
-                        .append(" ").append(units).append("\n");
-            }
+            sb.append(name).append(": ")
+                    .append(sampleFormat.format(sampleVal, units)).append("\n");
         }
     }
 
