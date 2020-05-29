@@ -56,6 +56,8 @@ import gov.noaa.nws.ocp.common.localization.climate.producttype.WindControlFlags
  *                                     nearest whole number.
  * Oct 31, 2019 DR21661    wpaintsil   Neglected to output avg snow depth value,
  *                                     missing spaces
+ * May 20, 2019 DR21766    wpaintsil   Trace snow appeared when it should be a 
+ *                                     greater than trace.
  *
  * </pre>
  *
@@ -1194,7 +1196,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
 
                     if (deltaValue != 0) {
                         String amount = (hClimo
-                                .getSnowPeriodNorm() != ParameterFormatClimate.TRACE)
+                                .getSnowPeriodNorm() == ParameterFormatClimate.TRACE)
                                         ? A_TRACE
                                         : String.format(FLOAT_ONE_DECIMAL,
                                                 hClimo.getSnowPeriodNorm());
@@ -1202,7 +1204,7 @@ public class ClimateNWRPeriodFormat extends ClimateNWRFormat {
                     }
                 } else {
                     String amount = (hClimo
-                            .getSnowPeriodNorm() != ParameterFormatClimate.TRACE)
+                            .getSnowPeriodNorm() == ParameterFormatClimate.TRACE)
                                     ? A_TRACE
                                     : (String.format(FLOAT_ONE_DECIMAL,
                                             hClimo.getSnowPeriodNorm())
