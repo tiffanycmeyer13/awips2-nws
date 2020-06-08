@@ -6,6 +6,11 @@ import java.net.URLEncoder;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
@@ -33,6 +38,7 @@ import com.raytheon.viz.ui.cmenu.AbstractRightClickAction;
  * ------------- -------- ----------- --------------------------
  * Jul 01, 2016           jburks       Initial creation
  * Jul 09, 2016           jburks       Update error handing and refactor to awips reference
+ * Jun 01, 2020  DCS21907 jburks       Added url parameter for perspective
  * 
  * </pre>
  * 
@@ -100,6 +106,15 @@ public class AWIPSRefAction extends AbstractRightClickAction {
         }
         return "";
     }
+    
+    public String getPerspectiveName(){
+    	IWorkbench wb = PlatformUI.getWorkbench();
+    	IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
+    	IWorkbenchPage page = win.getActivePage();
+    	IPerspectiveDescriptor perspective = page.getPerspective();
+    	String label = replaceSpaceWithUnderscore(perspective.getLabel().trim());
+    	return label;
+    }
 
     @Override
     public void run() {
@@ -153,6 +168,13 @@ public class AWIPSRefAction extends AbstractRightClickAction {
         }
         sb.append("site=" + site);
         added = true;
+        
+        String perspectiveName = getPerspectiveName();
+        if (added) {
+            sb.append("&");
+        }
+        sb.append("perspective=").append(perspectiveName);
+        
         String endURL = sb.toString();
 
         try {
@@ -167,6 +189,10 @@ public class AWIPSRefAction extends AbstractRightClickAction {
 
     private String replaceSpaceWithComma(String input) {
         return input.replaceAll("\\s+", ",");
+    }
+    
+    private String replaceSpaceWithUnderscore(String input) {
+        return input.replaceAll("\\s+", "_");
     }
 
     private String getLocation() {
