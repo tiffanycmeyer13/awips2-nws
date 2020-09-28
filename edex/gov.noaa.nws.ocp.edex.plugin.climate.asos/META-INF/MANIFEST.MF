@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Asos Decoder
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.plugin.climate.asos
-Bundle-Version: 1.16.0.qualifier
+Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  javax.measure,
@@ -19,6 +19,7 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ocp.edex.common.climate,
  com.raytheon.uf.common.monitor,
  com.raytheon.uf.common.dataplugin.obs,
- com.raytheon.uf.common.wmo
+ com.raytheon.uf.common.wmo,
+ javax.xml.bind
 Export-Package: gov.noaa.nws.ocp.edex.plugin.climate.asos, 
  gov.noaa.nws.ocp.edex.plugin.climate.asos.dao

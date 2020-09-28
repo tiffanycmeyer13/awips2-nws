@@ -2,11 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Psh
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.localization.psh
-Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Version: 1.19.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: gov.noaa.nws.ocp.common.localization.psh
 Require-Bundle: com.raytheon.uf.common.time,
  com.raytheon.uf.common.localization;bundle-version="1.17.0",
  com.raytheon.uf.common.monitor;bundle-version="1.16.0",
  com.raytheon.uf.common.serialization;bundle-version="1.17.0",
- com.raytheon.uf.common.status;bundle-version="1.17.0"
+ com.raytheon.uf.common.status;bundle-version="1.17.0",
+ javax.xml.bind
