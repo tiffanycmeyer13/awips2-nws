@@ -37,6 +37,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 25 APR 2017  33104      amoore      Logging clean up.
  * 02 MAY 2017  33104      amoore      More query map replacements. Use abstract maps.
  * 08 SEP 2017  37809      amoore      For queries, cast to Number rather than specific number type.
+ * 28 APR 2020  21884      smoorthy    Fixed climate snow field update problems
  * </pre>
  * 
  * @author wkwock
@@ -531,6 +532,93 @@ public class MonthClimateNormDAO extends ClimateDAO {
         sql.append(", snow_pd_max=:snow_pd_max");
         queryParams.put("snow_pd_max", record.getSnowPeriodRecord());
 
+        dateRcds = record.getSnowPeriodMaxYearList();
+        
+        if (dateRcds.isEmpty() || dateRcds.get(0)
+                .getYear() == ParameterFormatClimate.MISSING) {
+            sql.append(", snow_pd_max_yr1=null");
+        } else {
+            sql.append(", snow_pd_max_yr1=:snow_pd_max_yr1");
+            queryParams.put("snow_pd_max_yr1", dateRcds.get(0).getYear());
+        }
+        if (dateRcds.size() < 2 || dateRcds.get(1)
+                .getYear() == ParameterFormatClimate.MISSING) {
+            sql.append(", snow_pd_max_yr2=null");
+        } else {
+            sql.append(", snow_pd_max_yr2=:snow_pd_max_yr2");
+            queryParams.put("snow_pd_max_yr2", dateRcds.get(1).getYear());
+        }
+        if (dateRcds.size() < 3 || dateRcds.get(2)
+                .getYear() == ParameterFormatClimate.MISSING) {
+            sql.append(", snow_pd_max_yr3=null");
+        } else {
+            sql.append(", snow_pd_max_yr3=:snow_pd_max_yr3");
+            queryParams.put("snow_pd_max_yr3", dateRcds.get(2).getYear());
+        }
+            
+        List<ClimateDates> datesRcd = record.getSnow24HList();
+        if (datesRcd.isEmpty() || datesRcd.get(0).getStart() == null
+                || datesRcd.get(0).getStart().isPartialMissing()) {
+            sql.append(", snow_24h_begin1=null");
+        } else {
+            sql.append(", snow_24h_begin1=:snow_24h_begin1");
+            queryParams.put("snow_24h_begin1",
+                    datesRcd.get(0).getStart().getCalendarFromClimateDate());
+        }
+        if (datesRcd.size() < 2 || datesRcd.get(1).getStart() == null
+                || datesRcd.get(1).getStart().isPartialMissing()) {
+            sql.append(", snow_24h_begin2=null");
+        } else {
+            sql.append(", snow_24h_begin2=:snow_24h_begin2");
+            queryParams.put("snow_24h_begin2",
+                    datesRcd.get(1).getStart().getCalendarFromClimateDate());
+        }
+        if (datesRcd.size() < 3 || datesRcd.get(2).getStart() == null
+                || datesRcd.get(2).getStart().isPartialMissing()) {
+            sql.append(", snow_24h_begin3=null");
+        } else {
+            sql.append(", snow_24h_begin3=:snow_24h_begin3");
+            queryParams.put("snow_24h_begin3",
+                    datesRcd.get(2).getStart().getCalendarFromClimateDate());
+        }
+
+        if (datesRcd.isEmpty() || datesRcd.get(0).getEnd() == null
+                || datesRcd.get(0).getEnd().isPartialMissing()) {
+            sql.append(", snow_24h_end1=null");
+        } else {
+            sql.append(", snow_24h_end1=:snow_24h_end1");
+            queryParams.put("snow_24h_end1",
+                    datesRcd.get(0).getEnd().getCalendarFromClimateDate());
+        }
+        if (datesRcd.size() < 2 || datesRcd.get(1).getEnd() == null
+                || datesRcd.get(1).getEnd().isPartialMissing()) {
+            sql.append(", snow_24h_end2=null");
+        } else {
+            sql.append(", snow_24h_end2=:snow_24h_end2");
+            queryParams.put("snow_24h_end2",
+                    datesRcd.get(1).getEnd().getCalendarFromClimateDate());
+        }
+        if (datesRcd.size() < 3 || datesRcd.get(2).getEnd() == null
+                || datesRcd.get(2).getEnd().isPartialMissing()) {
+            sql.append(", snow_24h_end3=null");
+        } else {
+            sql.append(", snow_24h_end3=:snow_24h_end3");
+            queryParams.put("snow_24h_end3",
+                    datesRcd.get(2).getEnd().getCalendarFromClimateDate());
+        }
+        
+        
+        sql.append(", snow_max_24h_rec=:snow_max_24h_rec");
+        queryParams.put("snow_max_24h_rec", record.getSnowMax24HRecord());
+        
+        sql.append(", snow_water_pd_norm=:snow_water_pd_norm");
+        queryParams.put("snow_water_pd_norm", record.getSnowWaterPeriodNorm());
+        sql.append(", snow_ground_norm=:snow_ground_norm");
+        queryParams.put("snow_ground_norm", record.getSnowGroundNorm());
+        sql.append(", snow_ground_max=:snow_ground_max");
+        queryParams.put("snow_ground_max", record.getSnowGroundMax());
+
+        
         dateRcds = record.getDaySnowGroundMaxList();
         if (dateRcds.isEmpty() || dateRcds.get(0).isPartialMissing()) {
             sql.append(", day_snow_grnd_max1=null");
