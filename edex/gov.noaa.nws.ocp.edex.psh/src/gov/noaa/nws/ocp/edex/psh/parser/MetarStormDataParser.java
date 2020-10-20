@@ -27,6 +27,7 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.MetarDataEntry;
  * Sep 14, 2017 #37917     wpaintsil   Tweaked METAR_EXP regex. 
  *                                     Added some logging for when products aren't matched.
  * Oct 05, 2017 #37917     wpaintsil   Revise time range algorithm.
+ * Oct 20, 2020 DR22159    dhaines     Changed sorting to use reftime
  *
  * </pre>
  *
@@ -93,7 +94,7 @@ public class MetarStormDataParser {
      * @return
      */
     public MetarDataEntry parse(List<StdTextProduct> metarProducts,
-            String station, float lat, float lon, int period) {
+            String station, float lat, float lon, int period) { 	
         MetarDataEntry osd = new MetarDataEntry();
         // osd.setCategory(PshDataCategory.METAR);
         osd.setSite(station);
@@ -107,10 +108,10 @@ public class MetarStormDataParser {
 
         int startTime = -1;
         int startDay = -1;
-
+        
         // each product
         for (StdTextProduct stp : metarProducts) {
-
+        	
             String[] lineArray = stp.getProduct().split(NEW_LINE);
 
             // each line of text product
@@ -118,7 +119,7 @@ public class MetarStormDataParser {
             for (int i = 0; i < lineArray.length; i++) {
 
                 if (METAR_SPECI_EXP.matcher(lineArray[i]).find()) {
-                    mline = new MetarTextLine(lineArray[i]);
+                    mline = new MetarTextLine(lineArray[i], stp.getRefTime());
 
                     // Get the start time. Assumes the latest entry has the
                     // latest date-time.
@@ -261,7 +262,7 @@ public class MetarStormDataParser {
         boolean peakWindFlag = false;
 
         int stopLine = 0;
-
+        
         // For each Wind line
         for (int i = 0; i < length; i++) {
 
