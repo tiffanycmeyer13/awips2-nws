@@ -20,7 +20,7 @@ import gov.noaa.nws.ocp.edex.common.climate.dao.ClimateProdSendRecordDAO;
 
 /**
  * Handle transmit the NWR climate products to BMH staging for broadcasting
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -43,7 +43,7 @@ public final class NWRProductTransmitter extends ClimateProductNWRSender {
             .getHandler(NWRProductTransmitter.class);
 
     // TODO: BMH_STAGING_DIR should be configurable
-    private static final String DEFAULT_BMH_STAGING_DIR = "px1f:/awips2/bmh/data/nwr/ready/";
+    private static final String DEFAULT_BMH_STAGING_DIR = "pv1:/awips2/bmh/data/nwr/ready/";
 
     private String bmhStagingDirectory = DEFAULT_BMH_STAGING_DIR;
 
@@ -56,7 +56,7 @@ public final class NWRProductTransmitter extends ClimateProductNWRSender {
 
     /**
      * Constructor
-     * 
+     *
      * @param bmhStagingDir
      */
     public NWRProductTransmitter(String bmhStagingDir) {
@@ -66,7 +66,7 @@ public final class NWRProductTransmitter extends ClimateProductNWRSender {
 
     /**
      * This static method will transmit one or more NWR product(s) to BMH
-     * 
+     *
      * @param nwrProds
      * @throws Exception
      */
