@@ -24,6 +24,7 @@ import gov.noaa.nws.ocp.viz.psh.PshUtil;
  * Aug 08, 2017 #35737     astrakovsky  Initial creation.
  * Aug 29, 2017 #37366     astrakovsky  Fixed error getting lat/lon.
  * Oct 27, 2017 #39988     astrakovsky  Improved city query to include counties and CWAs.
+ * Dec 21, 2020 #21179     J. Rohwein   update method signatures  AsBinary -> ST_AsBinary
  * 
  * </pre>
  * 
@@ -37,7 +38,7 @@ public class PshCitiesProvider {
     /**
      * SQL Queries
      */
-    private static final String CITIES_QUERY = "SELECT name, sfips, cfips, st, AsBinary(the_geom) FROM mapdata.city "
+    private static final String CITIES_QUERY = "SELECT name, sfips, cfips, st, ST_AsBinary(the_geom) FROM mapdata.city "
             + "WHERE name > ''";
 
     private static final String COUNTIES_QUERY = "SELECT fips, countyname, cwa FROM mapdata.county "

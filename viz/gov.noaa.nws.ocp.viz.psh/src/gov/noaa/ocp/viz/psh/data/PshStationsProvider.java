@@ -23,7 +23,7 @@ import gov.noaa.nws.ocp.viz.psh.PshUtil;
  * Aug 29, 2017 #37366     astrakovsky  Fixed error getting lat/lon and added method 
  *                                      for getting station codes only.
  * Nov 14, 2017 #40296     astrakovsky  Improved station queries and result parsing.
- * 
+ * Dec 21, 2020 #21179     J. Rohwein   update method signatures  AsBinary -> ST_AsBinary
  * </pre>
  * 
  * @author astrakovsky
@@ -37,15 +37,15 @@ public class PshStationsProvider {
      * SQL Queries
      */
     // Get US stations with ICAO and SAO identifiers (Metar)
-    private static String METAR_STATION_QUERY = "SELECT icao, name, state, AsBinary(the_geom) FROM awips.common_obs_spatial "
+    private static String METAR_STATION_QUERY = "SELECT icao, name, state, ST_AsBinary(the_geom) FROM awips.common_obs_spatial "
             + "WHERE country = 'US' AND (catalogtype = 1 OR catalogtype = 2)";
 
     // Get US Metar stations, plus stations with WFO, WMO, and Mesonet locations
-    private static String NON_METAR_STATION_QUERY = "SELECT icao, stationid, name, state, AsBinary(the_geom) FROM awips.common_obs_spatial "
+    private static String NON_METAR_STATION_QUERY = "SELECT icao, stationid, name, state, ST_AsBinary(the_geom) FROM awips.common_obs_spatial "
             + "WHERE country = 'US' AND (catalogtype = 1 OR catalogtype = 2 OR catalogtype = 10 OR catalogtype = 20 OR catalogtype = 1000 OR catalogtype = 1001)";
 
     // Get stations at drifting buoy, fixed buoy, and coastal marine locations
-    private static String MARINE_STATION_QUERY = "SELECT stationid, name, state, AsBinary(the_geom) FROM awips.common_obs_spatial "
+    private static String MARINE_STATION_QUERY = "SELECT stationid, name, state, ST_AsBinary(the_geom) FROM awips.common_obs_spatial "
             + "WHERE catalogtype = 31 OR catalogtype = 32 OR catalogtype = 33";
 
     // Get all US station codes for autocomplete in cities setup
