@@ -56,6 +56,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
  * 16 OCT 2017  39138      wpaintsil   Use same "National Weather Service" header 
  *                                     logic as Formatter.
  * 03 APR 2019  DR 21222   dfriedman   Use time zone in MND header time format.
+ * 09 FEB 2019  DCS 22156  wpaintsil   Add AlertViz alert to indicate a new Record.
  * </pre>
  * 
  * @author amoore
@@ -148,40 +149,51 @@ public final class RecordClimate {
                     record.setUser_id("auto");
 
                     sendRecordDAO.insertSentClimateProdRecord(record);
+
+                    // send product alarm alert
+                    try {
+                        StatusMessage sm = new StatusMessage();
+                        sm.setPriority(Priority.WARN);
+                        sm.setPlugin(ClimateMessageUtils.RER_PLUGIN_ID);
+                        sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
+                        sm.setMachineToCurrent();
+                        sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
+
+                        if (disseminate) {
+                            sm.setMessage("RER product [" + report.getAfosID()
+                                    + "] generated.");
+                        } else {
+                            sm.setMessage("RER product [" + report.getAfosID()
+                                    + "] generated but not stored. Dissemination is disabled.");
+                        }
+
+                        sm.setDetails("RER report with AFOS ID ["
+                                + report.getAfosID() + "] and text body ["
+                                + report.getReportText() + "]");
+
+                        sm.setEventTime(new Date(insertTime));
+
+                        EDEXUtil.getMessageProducer()
+                                .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
+
+                        EDEXUtil.sendMessageAlertViz(Priority.INFO,
+                                "Climate Record Event Report",
+                                ClimateAlertUtils.SOURCE_EDEX,
+                                ClimateAlertUtils.CATEGORY_CLIMATE,
+                                "New RER Product Generated", sm.getDetails(),
+                                null);
+
+                        logger.warn(sm.getDetails());
+                    } catch (Exception e) {
+                        logger.error("Could not send message to ClimateView",
+                                e);
+                    }
                 } catch (ClimateQueryException e) {
                     logger.error("Failed to track RER report with AFOS ID ["
                             + report.getAfosID() + "] and text body ["
                             + report.getReportText() + "].", e);
                 }
 
-                // send product alarm alert
-                try {
-                    StatusMessage sm = new StatusMessage();
-                    sm.setPriority(Priority.INFO);
-                    sm.setPlugin(ClimateMessageUtils.RER_PLUGIN_ID);
-                    sm.setCategory(ClimateAlertUtils.CATEGORY_CLIMATE);
-                    sm.setMachineToCurrent();
-                    sm.setSourceKey(ClimateAlertUtils.SOURCE_EDEX);
-
-                    if (disseminate) {
-                        sm.setMessage("RER product [" + report.getAfosID()
-                                + "] generated.");
-                    } else {
-                        sm.setMessage("RER product [" + report.getAfosID()
-                                + "] generated but not stored. Dissemination is disabled.");
-                    }
-
-                    sm.setDetails("RER report with AFOS ID ["
-                            + report.getAfosID() + "] and text body ["
-                            + report.getReportText() + "]");
-
-                    sm.setEventTime(new Date(insertTime));
-
-                    EDEXUtil.getMessageProducer()
-                            .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
-                } catch (Exception e) {
-                    logger.error("Could not send message to ClimateView", e);
-                }
             } else {
                 String details = "Error detected saving product to textdb. AFOS ID: ["
                         + report.getAfosID() + "], text body: ["
@@ -191,6 +203,7 @@ public final class RecordClimate {
                         ClimateAlertUtils.SOURCE_EDEX,
                         ClimateAlertUtils.CATEGORY_CLIMATE,
                         "Failed to save RER product.", details, null);
+
                 logger.error(details);
             }
 
@@ -467,7 +480,8 @@ public final class RecordClimate {
      * logic of DST included) being placed in between.
      */
     private static SimpleDateFormat[] getRERDateFormat(TimeZone tz) {
-        SimpleDateFormat[] formats = new SimpleDateFormat[] { new SimpleDateFormat("hhmm a"),
+        SimpleDateFormat[] formats = new SimpleDateFormat[] {
+                new SimpleDateFormat("hhmm a"),
                 new SimpleDateFormat("E MMM dd yyyy") };
         for (SimpleDateFormat sdf : formats) {
             sdf.setTimeZone(tz);
