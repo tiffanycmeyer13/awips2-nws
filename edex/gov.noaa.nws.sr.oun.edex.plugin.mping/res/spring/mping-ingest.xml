@@ -18,7 +18,7 @@
 
         <route id="mpingIngestRoute">
             <from uri="jms-durable:queue:Ingest.Mping" />
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>mping</constant>
             </setHeader>
             <pipeline>

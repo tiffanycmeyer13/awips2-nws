@@ -36,7 +36,7 @@ http://camel.apache.org/schema/spring/camel-spring.xsd">
 
         <route id="griddednucapsIngestRoute">
             <from uri="jms-durable:queue:Ingest.Griddednucaps" />
-                <setHeader headerName="pluginName">
+                <setHeader name="pluginName">
                     <constant>griddednucaps</constant>
                 </setHeader>
             <doTry>
