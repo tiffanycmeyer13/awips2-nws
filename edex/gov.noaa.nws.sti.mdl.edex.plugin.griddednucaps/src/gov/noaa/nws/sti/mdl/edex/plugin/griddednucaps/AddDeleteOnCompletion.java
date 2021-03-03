@@ -5,21 +5,23 @@ import java.io.File;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.spi.Synchronization;
+import org.apache.camel.support.DefaultExchange;
 import org.slf4j.LoggerFactory;
 
 /**
  * Adds the Add delete on completion to the exchange for the files
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
- * Date          Ticket#  Engineer  Description
- * ------------- -------- --------- -----------------
- * Oct 24, 2018   DCS-18691 jburks  Initial creation
- * 
+ *
+ * Date          Ticket#   Engineer  Description
+ * ------------- --------  --------- -----------------
+ * Oct 24, 2018  DCS-18691 jburks    Initial creation
+ * Mar  3, 2021  8326      tgurney   Camel 3 fixes
+ *
  * </pre>
- * 
+ *
  * .
  *
  * @author jburks
@@ -37,8 +39,16 @@ public class AddDeleteOnCompletion implements Processor {
             if (filesAsString != null) {
                 String[] filePathsAsString = filesAsString.split(",");
                 for (String fileString : filePathsAsString) {
-                    exchange.addOnCompletion(
-                            new DeleteFileOnCompletion(new File(fileString)));
+                    if (exchange instanceof DefaultExchange) {
+                        DefaultExchange defaultExchange = (DefaultExchange) exchange;
+                        defaultExchange
+                                .addOnCompletion(new DeleteFileOnCompletion(
+                                        new File(fileString)));
+                    } else {
+                        exchange.getUnitOfWork()
+                                .addSynchronization(new DeleteFileOnCompletion(
+                                        new File(fileString)));
+                    }
                 }
             }
         } else {
@@ -66,24 +76,11 @@ public class AddDeleteOnCompletion implements Processor {
             this.file = file;
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see
-         * org.apache.camel.spi.Synchronization#onComplete(org.apache.camel.
-         * Exchange)
-         */
         @Override
         public void onComplete(Exchange exchange) {
             delete();
         }
 
-        /*
-         * (non-Javadoc)
-         * 
-         * @see org.apache.camel.spi.Synchronization#onFailure(org.apache.camel.
-         * Exchange)
-         */
         @Override
         public void onFailure(Exchange exchange) {
             delete();
