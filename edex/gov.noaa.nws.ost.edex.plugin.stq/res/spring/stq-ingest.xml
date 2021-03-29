@@ -23,7 +23,7 @@
         <!-- Begin STQ routes -->
         <route id="stqIngestRoute">
             <from uri="jms-durable:queue:Ingest.Stq" />
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>stq</constant>
             </setHeader>
             <doTry>

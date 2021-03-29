@@ -30,7 +30,7 @@
         <!-- Begin regionalsat routes -->
         <route id="regionalSatIngestRoute">
             <from uri="jms-durable:queue:Ingest.regionalsat"/>
-            <setHeader headerName="pluginName">
+            <setHeader name="pluginName">
                 <constant>regionalsat</constant>
             </setHeader>
             <doTry>

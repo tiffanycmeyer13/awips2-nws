@@ -59,9 +59,9 @@
         <endpoint id="geodataDirectEndpoint" uri="direct-vm:geodata-decode" />
 
         <route id="geodataIngestRoute">
-            <from ref="geodataJmsEndpoint"/>
+            <from uri="geodataJmsEndpoint"/>
             <doTry>
-                <to ref="geodataDirectEndpoint" />
+                <to uri="geodataDirectEndpoint" />
                 <doCatch>
                     <exception>java.lang.Throwable</exception>
                     <to uri="log:geodata?level=ERROR" />
@@ -70,8 +70,8 @@
         </route>
 
         <route id="geodataIngestDecode">
-          <from ref="geodataDirectEndpoint" />
-            <setHeader headerName="pluginName">
+          <from uri="geodataDirectEndpoint" />
+            <setHeader name="pluginName">
                 <constant>geodata</constant>
             </setHeader>
             <pipeline>

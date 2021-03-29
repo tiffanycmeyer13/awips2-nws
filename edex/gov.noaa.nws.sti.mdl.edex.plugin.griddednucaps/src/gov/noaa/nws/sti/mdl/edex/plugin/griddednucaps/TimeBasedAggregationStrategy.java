@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.camel.AggregationStrategy;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -13,8 +14,7 @@ import org.apache.camel.ServiceStatus;
 import org.apache.camel.StatefulService;
 import org.apache.camel.builder.ExchangeBuilder;
 import org.apache.camel.processor.aggregate.AggregateProcessor;
-import org.apache.camel.processor.aggregate.AggregationStrategy;
-import org.apache.camel.util.ExchangeHelper;
+import org.apache.camel.support.ExchangeHelper;
 
 /**
 * Class to aggregate the incoming files by satellite and time. Also handles times when incomplete list of files arrives.
@@ -23,9 +23,10 @@ import org.apache.camel.util.ExchangeHelper;
 *
 * SOFTWARE HISTORY
 *
-* Date          Ticket#  Engineer  Description
-* ------------- -------- --------- -----------------
- * Oct 20, 2018   DCS-18691 jburks  Initial creation
+* Date          Ticket#   Engineer  Description
+* ------------- --------  --------- -----------------
+* Oct 20, 2018  DCS-18691 jburks    Initial creation
+* Mar  3, 2021  8326      tgurney   Camel 3 fixes
 *
 * </pre>
 *
@@ -63,12 +64,6 @@ public class TimeBasedAggregationStrategy
     /** The aggregate processor id. */
     private String aggregateProcessorId;
 
-    /**
-     * The delay to wait before considering forwarding on data that is not fully
-     * aggregated.
-     */
-    private long checkInterval = 30000;
-
     /** The last file max age. */
     private long lastFileMaxAge = 300000;
 
@@ -85,24 +80,18 @@ public class TimeBasedAggregationStrategy
     TimedChecker checker;
 
     /** The holders holding aggregated files. */
-    List<FileHolder> holders = new ArrayList<FileHolder>();
+    List<FileHolder> holders = new ArrayList<>();
 
     ServiceStatus serviceStatus;
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.apache.camel.processor.aggregate.AggregationStrategy#aggregate(org.
-     * apache.camel.Exchange, org.apache.camel.Exchange)
-     */
-    /*
      * Messages arrive to this method from the pipeline
-     * 
+     *
      * @see
      * org.apache.camel.processor.aggregate.AggregationStrategy#aggregate(org.
      * apache.camel.Exchange, org.apache.camel.Exchange)
      */
+    @Override
     public Exchange aggregate(Exchange oldExchange, Exchange newExchange) {
         aggregateExchange.getIn().getBody(String.class);
         appendMessage(aggregateExchange, newExchange.getIn());
@@ -165,8 +154,8 @@ public class TimeBasedAggregationStrategy
      */
     private void processFileBatch(FileHolder holder) {
 
-        List<String> filePaths = new ArrayList<String>();
-        List<Long> ingestTimes = new ArrayList<Long>();
+        List<String> filePaths = new ArrayList<>();
+        List<Long> ingestTimes = new ArrayList<>();
         for (FileToProcess file : holder.getFileToProcess()) {
             filePaths.add(file.getFilePath());
             ingestTimes.add(file.getIngestTime().getTime());
@@ -208,17 +197,10 @@ public class TimeBasedAggregationStrategy
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * gov.noaa.nws.sti.mdl.edex.plugin.griddednucaps.StagedListener#notifyEvent
-     * ()
-     */
-    /*
      * Timer event callback to have the aggregator check to see if FileHolders
      * have not received files within a time. If they have not then they are
      * forced to be processed.
-     * 
+     *
      * @see gov.noaa.nws.sti.mdl.dsb.container.StagedListener#notifyEvent()
      */
     @Override
@@ -226,7 +208,7 @@ public class TimeBasedAggregationStrategy
         // Check all holders and see if any contain anything that needs to be
         // processed.
         int size = holders.size();
-        List<FileHolder> toRemove = new ArrayList<FileHolder>();
+        List<FileHolder> toRemove = new ArrayList<>();
         for (int i = 0; i < size; ++i) {
             if (holders.get(i).getLastAddedFile().getTime() >= lastFileMaxAge) {
                 toRemove.add(holders.get(i));
@@ -278,7 +260,6 @@ public class TimeBasedAggregationStrategy
      *            the new check interval
      */
     public void setCheckInterval(long checkInterval) {
-        this.checkInterval = checkInterval;
         checker = new TimedChecker(this, checkInterval);
     }
 
@@ -335,53 +316,28 @@ public class TimeBasedAggregationStrategy
         this.lastFileMaxAge = lastFileMaxAge;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.SuspendableService#suspend()
-     */
     @Override
-    public void suspend() throws Exception {
+    public void suspend() {
         serviceStatus = ServiceStatus.Suspended;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.SuspendableService#resume()
-     */
     @Override
-    public void resume() throws Exception {
+    public void resume() {
         serviceStatus = ServiceStatus.Started;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.SuspendableService#isSuspended()
-     */
     @Override
     public boolean isSuspended() {
         return serviceStatus.equals(ServiceStatus.Suspended);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.Service#start()
-     */
     @Override
-    public void start() throws Exception {
+    public void start() {
         serviceStatus = ServiceStatus.Started;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.Service#stop()
-     */
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         serviceStatus = ServiceStatus.Stopped;
     }
 
@@ -390,92 +346,46 @@ public class TimeBasedAggregationStrategy
      * out.
      */
     @Override
-    public void shutdown() throws Exception {
+    public void shutdown() {
         serviceStatus = ServiceStatus.Stopping;
         flushAllHolders();
         serviceStatus = ServiceStatus.Stopped;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#getStatus()
-     */
     @Override
     public ServiceStatus getStatus() {
         return serviceStatus;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isStarted()
-     */
     @Override
     public boolean isStarted() {
         return serviceStatus.equals(ServiceStatus.Started);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isStarting()
-     */
     @Override
     public boolean isStarting() {
         return serviceStatus.equals(ServiceStatus.Starting);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isStopping()
-     */
     @Override
     public boolean isStopping() {
         return serviceStatus.equals(ServiceStatus.Stopping);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isStopped()
-     */
     @Override
     public boolean isStopped() {
         return serviceStatus.equals(ServiceStatus.Stopped);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isSuspending()
-     */
     @Override
     public boolean isSuspending() {
         return serviceStatus.equals(ServiceStatus.Suspending);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#isRunAllowed()
-     */
     @Override
     public boolean isRunAllowed() {
         // noop
         return true;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.camel.StatefulService#getVersion()
-     */
-    @Override
-    public String getVersion() {
-        // noop
-        return null;
     }
 
 }
