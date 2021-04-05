@@ -15,21 +15,22 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord;
 
 /**
  * PshDataDAO
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Aug 12, 2017            pwang     Initial creation
- * Jan 25, 2018 #45125     wpaintsil Use path keys xml file instead 
- *                                   of overriding persistToHDF5().
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Aug 12, 2017           pwang      Initial creation
+ * Jan 25, 2018  45125    wpaintsil  Use path keys xml file instead of
+ *                                   overriding persistToHDF5().
+ * Apr 05, 2021  8374     randerso   Renamed IDataRecord.get/setProperties to
+ *                                   get/setProps
  *
  * </pre>
  *
  * @author pwang
- * @version 1.0
  */
 public class PshDataDAO extends PluginDao {
 
@@ -49,7 +50,7 @@ public class PshDataDAO extends PluginDao {
 
         StorageProperties props = new StorageProperties();
 
-        storageRecord.setProperties(props);
+        storageRecord.setProps(props);
         storageRecord.setCorrelationObject(record);
         dataStore.addDataRecord(storageRecord);
 
