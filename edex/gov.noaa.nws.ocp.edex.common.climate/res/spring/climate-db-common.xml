@@ -43,6 +43,6 @@
 
     <bean id="admin_climateTxManager"
         class="org.springframework.orm.hibernate5.HibernateTransactionManager">
-        <property name="sessionFactory" ref="climateSessionFactory" />
+        <property name="sessionFactory" ref="admin_climateSessionFactory" />
     </bean>
 </beans>

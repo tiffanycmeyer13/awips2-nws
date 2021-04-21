@@ -6,8 +6,8 @@
     <bean id="climateBloatMonitor"
         class="com.raytheon.uf.edex.database.health.DatabaseBloatMonitor">
         <constructor-arg>
-            <bean
-                class="com.raytheon.uf.edex.database.health.PostgresBloatDao">
+            <bean class="com.raytheon.uf.edex.database.health.PostgresBloatDao">
+                <constructor-arg ref="daoConfigFactory" />
                 <constructor-arg value="climate" />
             </bean>
         </constructor-arg>
