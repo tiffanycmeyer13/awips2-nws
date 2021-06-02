@@ -47,6 +47,7 @@ import gov.noaa.ocp.viz.psh.data.PshStationsProvider;
  * Nov 14, 2017 #40296     astrakovsky  Removed save message following delete.
  * Dec 11, 2017 #41998     jwu          Use localization access control file in base/roles.
  * Feb 15, 2018 #46354     wpaintsil    Various refactorings.
+ * May 27, 2021 DCS22095   mporricelli  Add some qc checks
  *
  * </pre>
  *
@@ -72,6 +73,19 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
 
     private static final int COORDINATE_FIELD_WIDTH = 85;
 
+    /*
+     * Table column positions
+     */
+    private static final int CODE_COLUMN = 1;
+
+    private static final int STATION_COLUMN = 2;
+
+    private static final int STATE_COLUMN = 3;
+
+    private static final int LATITUDE_COLUMN = 4;
+
+    private static final int LONGITUDE_COLUMN = 5;
+
     /**
      * Example form dialog.
      */
@@ -80,15 +94,20 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
     /**
      * Tooltips for empty fields.
      */
-    private String codeFieldTooltip = "Please type a station code";
+    private static final String CODE_FIELD_TOOLTIP = "Please type a station code";
 
-    private String stationFieldTooltip = "Please type a station name";
+    private static final String STATION_FIELD_TOOLTIP = "Please type a station name";
 
-    private String stateFieldTooltip = "Please type a state abbreviation";
+    private static final String STATE_FIELD_TOOLTIP = "Please type a state abbreviation";
 
-    private String latitudeFieldTooltip = "Please type a latitude value";
+    private static final String LATITUDE_FIELD_TOOLTIP = "Please type a latitude value";
 
-    private String longitudeFieldTooltip = "Please type a longitude value";
+    private static final String LONGITUDE_FIELD_TOOLTIP = "Please type a longitude value";
+
+    /**
+     * Message dialog title
+     */
+    private static final String MESSAGE_TITLE = "Save Non-Metar Stations";
 
     /**
      * arrays created from sets for passing autocomplete suggestions
@@ -361,40 +380,63 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
         Table fTable = getFieldsTable();
         fTable.deselectAll();
 
+        double latitude = 0;
+        double longitude = 0;
+
+        StringBuilder errMsg = new StringBuilder();
+
         // Retrieve from GUI
         PshStations stations = new PshStations();
 
         for (int ii = 0; ii < fTable.getItemCount(); ii++) {
 
             // read station info
-            String code = fTable.getItem(ii).getText(1);
-            String station = fTable.getItem(ii).getText(2);
-            String state = fTable.getItem(ii).getText(3);
-            double latitude = 0;
-            double longitude = 0;
-            try {
-                latitude = Double.parseDouble(fTable.getItem(ii).getText(4));
-            } catch (NumberFormatException e) {
-                // default value if not parsed
-                latitude = PshStation.getDefaultStation().getLat();
-            }
-            try {
-                longitude = Double.parseDouble(fTable.getItem(ii).getText(5));
-            } catch (NumberFormatException e) {
-                // default value if not parsed
-                longitude = PshStation.getDefaultStation().getLon();
-            }
+            TableItem currItem = fTable.getItem(ii);
 
-            // check that at least code or name is filled in, ignore entry if
-            // both empty
-            if (!code.isEmpty() || !station.isEmpty()) {
+            int lineNum = ii + 1;
+
+            String code = currItem.getText(CODE_COLUMN);
+            String station = currItem.getText(STATION_COLUMN);
+            String state = currItem.getText(STATE_COLUMN);
+            String latText = currItem.getText(LATITUDE_COLUMN);
+            String lonText = currItem.getText(LONGITUDE_COLUMN);
+
+            // Verify lat/lon fields
+            if (PshUtil.verifyLatField(latText, currItem, LATITUDE_COLUMN)) {
+                latitude = Double.parseDouble(latText);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Invalid latitude entered: ").append(latText);
+            }
+            if (PshUtil.verifyLonField(lonText, currItem, LONGITUDE_COLUMN)) {
+                longitude = Double.parseDouble(lonText);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Invalid longitude entered: ")
+                        .append(lonText);
+            }
+            // check that at least code or name is filled in
+            if (!PshUtil.verifyFieldFilled(code, currItem, CODE_COLUMN) && !PshUtil
+                    .verifyFieldFilled(station, currItem, STATION_COLUMN)) {
+                errMsg.append("\nLine ").append(lineNum).append(
+                        ": Entry must have at least a station code or a station name.");
+
+            } else {
                 PshStation pshStation = new PshStation("", latitude, longitude,
                         code, station, state);
                 stations.getStations().add(pshStation);
+                PshUtil.setBackground(currItem, CODE_COLUMN, true);
+                PshUtil.setBackground(currItem, STATION_COLUMN, true);
             }
 
         }
-
+        // Inform user of any problems found
+        if (errMsg.length() > 0) {
+            MessageDialog.openWarning(getShell(), MESSAGE_TITLE,
+                    "Changes have not been saved.\nPlease correct the following issue(s) before saving:\n"
+                            + errMsg);
+            return;
+        }
         // Save to non_metar_stationinfo.xml in localization SITE level
         if (PshConfigurationManager.getInstance()
                 .saveNonMetarStations(stations)) {
@@ -404,14 +446,14 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
             fillStations(stations);
 
             // Inform the user
-            String message = "Forecasters have been saved into Localization store.";
+            String message = "Non-Metar stations have been saved into Localization store.";
             MessageDialog infoDlg = new MessageDialog(getShell(),
-                    "Save NON-METAR Stations", null, message,
+                    MESSAGE_TITLE, null, message,
                     MessageDialog.INFORMATION, new String[] { "Ok" }, 0);
 
             infoDlg.open();
         } else {
-            new MessageDialog(getShell(), "Save NON-METAR Stations", null,
+            new MessageDialog(getShell(), MESSAGE_TITLE, null,
                     "Couldn't save configuration file.", MessageDialog.ERROR,
                     new String[] { "Ok" }, 0).open();
         }
@@ -433,18 +475,18 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
         Table fTable = getFieldsTable();
 
         getRowEditorList().add(PshUtil.createAutoCompleteTableField(fTable,
-                item, 1, item.getText(1), codeFieldTooltip,
+                item, 1, item.getText(1), CODE_FIELD_TOOLTIP,
                 codeAutocompleteArray, this));
         getRowEditorList().add(PshUtil.createAutoCompleteTableField(fTable,
-                item, 2, item.getText(2), stationFieldTooltip,
+                item, 2, item.getText(2), STATION_FIELD_TOOLTIP,
                 stationAutocompleteArray, this));
         getRowEditorList().add(PshUtil.createAutoCompleteTableField(fTable,
-                item, 3, item.getText(3), stateFieldTooltip,
+                item, 3, item.getText(3), STATE_FIELD_TOOLTIP,
                 stateAutocompleteArray, this));
         getRowEditorList().add(PshUtil.createTableField(fTable, item, 4,
-                item.getText(4), latitudeFieldTooltip, this));
+                item.getText(4), LATITUDE_FIELD_TOOLTIP, this));
         getRowEditorList().add(PshUtil.createTableField(fTable, item, 5,
-                item.getText(5), longitudeFieldTooltip, this));
+                item.getText(5), LONGITUDE_FIELD_TOOLTIP, this));
 
         // add modify listener for multi-field autocomplete
         Text textField = (Text) getRowEditorList().get(0).getEditor();
@@ -453,7 +495,7 @@ public class PshNonMetarSetupDialog extends PshMultiFieldSetupDialog {
             @Override
             public void modifyText(ModifyEvent e) {
                 if (textField.getText().isEmpty()) {
-                    textField.setToolTipText(codeFieldTooltip);
+                    textField.setToolTipText(CODE_FIELD_TOOLTIP);
                 } else {
                     textField.setToolTipText("");
 
