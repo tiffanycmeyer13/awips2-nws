@@ -100,6 +100,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * 11/21/2016  17469    wkwock      Initial creation
  * 05/23/2018  17469    wkwock      Fix practice mode issue
  * 06/02/2020  75767    wkwock      Migrated from PGEN to NWS
+ * 06/27/2021  92561    wkwock      Fix the multiple panel resource clean up issue
  * 
  * </pre>
  * 
@@ -635,12 +636,11 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg
         if (editor != null) {
             try {
                 PgenResourceData rscData = new PgenResourceData();
-
+                drawingLayer = new CWAResource(rscData,
+                        new LoadProperties());
                 for (IDisplayPane pane : editor.getDisplayPanes()) {
                     IDescriptor idesc = pane.getDescriptor();
                     if (!idesc.getResourceList().isEmpty()) {
-                        drawingLayer = new CWAResource(rscData,
-                                new LoadProperties());
                         idesc.getResourceList().add(drawingLayer);
                         idesc.getResourceList()
                                 .addPreRemoveListener(drawingLayer);
@@ -730,6 +730,9 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg
                 + productId.substring(productId.length() - 1) + " CWA";
 
         String fromline = getFromLine();
+        if (fromline!=null) {
+            fromline= fromline.replaceAll("(\\r|\\n)", "");
+        }
 
         double tmpWidth = Double.parseDouble(width);
         String body = "LINE ..." + tmpWidth + " NM WIDE...";
@@ -840,7 +843,7 @@ public class CWAFormatterDlg extends SigmetCommAttrDlg
         }
         output.append("\n");
         output.append(cwaConfigs.getCwsuId()).append(" CWA ").append(seriesId)
-                .append(" VALID UNTIL ").append(endDateTime).append("Z\n");
+                .append(" VALID UNTIL ").append(endDateTime).append("\n");
         output.append(body);
 
         setProductText(output.toString());

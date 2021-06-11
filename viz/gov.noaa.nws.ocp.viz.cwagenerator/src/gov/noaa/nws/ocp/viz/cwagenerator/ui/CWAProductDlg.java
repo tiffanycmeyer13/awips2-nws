@@ -6,6 +6,8 @@ package gov.noaa.nws.ocp.viz.cwagenerator.ui;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Calendar;
+import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.bind.JAXBException;
 
@@ -61,6 +63,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
  * ------------ ---------   ----------- --------------------------
  * 12/19/2016   17469       wkwock      Initial Creation.
  * 06/02/2020   75767       wkwock      Migrated from PGEN to NWS
+ * 06/27/2021   92561       wkwock      Added local time zone validations
  * 
  * </pre>
  * 
@@ -700,6 +703,19 @@ public class CWAProductDlg extends CaveSWTDialog {
             if (buttonId == SWT.NO) {
                 close();
             }
+        }
+
+        if (cwaConfigs.getLocalTimeZone() == null
+                || !Set.of(TimeZone.getAvailableIDs())
+                        .contains(cwaConfigs.getLocalTimeZone().trim())) {
+            MessageBox messageBox = new MessageBox(getShell(), SWT.OK);
+            messageBox.setText(
+                    "Invalid localTimeZone: " + cwaConfigs.getLocalTimeZone());
+            String message = "Please update localTimeZone to a proper time zone ID in file\n"
+                    + CONFIG_FILE;
+            messageBox.setMessage(message);
+            messageBox.open();
+            cwaConfigs.setLocalTimeZone("CST");
         }
     }
 
