@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="ML (0-1km) Hail Growth CAPE" abbreviation="ML Hail Growth CAPE" xmlns:ns2="group">
+    <Method name="Average">
+        <Field level="-10C to -30C" abbreviation="NSEA_cCape_SFC"/>
+        <Field level="-10C to -30C" abbreviation="NSEA_cCape_0.5kmAGL"/>
+        <Field level="-10C to -30C" abbreviation="NSEA_cCape_1kmAGL"/>
+    </Method>
+</DerivedParameter>

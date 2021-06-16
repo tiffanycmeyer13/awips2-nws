@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="Height AGL" abbreviation="-20C Hgt AGL" xmlns:ns2="group">
+    <Method levels="-20C" name="Test">
+        <Field level="-20C" abbreviation="zAGL"/>
+        <ConstantField value="1.0"/>
+        <ConstantField value="-1.0E37"/>
+        <ConstantField value="0"/>
+        <ConstantField value="0"/>
+    </Method>
+</DerivedParameter>

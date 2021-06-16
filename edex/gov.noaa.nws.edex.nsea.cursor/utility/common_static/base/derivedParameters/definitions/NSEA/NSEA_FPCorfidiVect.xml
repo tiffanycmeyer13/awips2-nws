@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="Forward-Propagating Corfidi Vectors" abbreviation="Forward-Propagating Corfidi Vectors" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="CorfF"/>
+    </Method>
+</DerivedParameter>

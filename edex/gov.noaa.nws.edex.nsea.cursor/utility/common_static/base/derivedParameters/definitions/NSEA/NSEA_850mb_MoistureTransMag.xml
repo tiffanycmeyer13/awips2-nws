@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="g·m/(kg·s)" name="Moisture Trans Mag" abbreviation="850mb Moisture Trans Mag" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="850MB" abbreviation="Mmag"/>
+    </Method>
+</DerivedParameter>

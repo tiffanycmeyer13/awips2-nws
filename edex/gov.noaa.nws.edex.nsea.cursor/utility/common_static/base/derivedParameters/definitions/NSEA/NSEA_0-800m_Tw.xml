@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="Tw" abbreviation="Avg Cold Nose Wet Bulb Temp" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-800mAgl" abbreviation="TW"/>
+    </Method>
+</DerivedParameter>

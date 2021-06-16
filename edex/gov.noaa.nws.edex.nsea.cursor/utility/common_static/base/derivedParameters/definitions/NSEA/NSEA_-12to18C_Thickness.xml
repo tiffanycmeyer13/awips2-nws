@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="-12 to -18C Thickness" abbreviation="-12 to -18C Thickness" xmlns:ns2="group">
+    <Method levels="Layer" name="Difference">
+        <Field level="-18C" abbreviation="-18C Hgt"/>
+        <Field level="-12C" abbreviation="-12C Hgt"/>
+    </Method>
+</DerivedParameter>

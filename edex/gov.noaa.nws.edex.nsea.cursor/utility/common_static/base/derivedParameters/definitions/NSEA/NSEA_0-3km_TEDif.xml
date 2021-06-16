@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K" name="Max ThetaE Difference 0-3km" abbreviation="0-3km ThetaE Diff" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method levels="Layer" name="Difference">
+        <Field abbreviation="NSEA_minEPT13"/>
+        <Field abbreviation="NSEA_maxEPT01"/>
+    </Method>
+</DerivedParameter>

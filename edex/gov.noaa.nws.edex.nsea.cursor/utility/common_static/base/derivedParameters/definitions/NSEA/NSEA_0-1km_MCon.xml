@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter name="Moisture Flux Convergence" abbreviation="0-1km Moisture Convergence" unit="(g/kg)/s">
+    <Method name="Multiply">
+        <Field level="0-1kmAgl" abbreviation="MCon"/>
+        <ConstantField value="-1.0"/>
+    </Method>
+</DerivedParameter>

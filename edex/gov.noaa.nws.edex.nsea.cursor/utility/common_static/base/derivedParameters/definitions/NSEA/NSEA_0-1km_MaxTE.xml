@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K" name="Max ThetaE 0-1km" abbreviation="NSEA_maxEPT01" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method levels="0-1kmAgl" name="Union">
+        <Field abbreviation="EPT"/>
+    </Method>
+    <Method name="Max">
+        <Field level="0-1kmAgl" abbreviation="NSEA_maxEPT01"/>
+    </Method>
+</DerivedParameter>

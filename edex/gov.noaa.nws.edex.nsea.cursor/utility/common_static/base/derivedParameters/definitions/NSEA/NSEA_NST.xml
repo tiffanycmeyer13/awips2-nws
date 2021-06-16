@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter name="Non-Supercell Tornado Parm" abbreviation="Non-Supercell Tor Parm" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method name="Alias">
+        <Field abbreviation="NST"/>
+    </Method>
+</DerivedParameter>

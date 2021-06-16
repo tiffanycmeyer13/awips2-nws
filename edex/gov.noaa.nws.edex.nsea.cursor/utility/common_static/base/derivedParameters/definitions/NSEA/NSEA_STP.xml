@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter name="Sig. Tornado Parameter" abbreviation="Sig Tor Parm" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="STP"/>
+    </Method>
+</DerivedParameter>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="Pa/s" name="Omega" abbreviation="-12 to -18C Omega" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="-12 to -18C" abbreviation="PVV"/>
+    </Method>
+</DerivedParameter>
