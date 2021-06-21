@@ -9,14 +9,24 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataEntry;
 import gov.noaa.nws.ocp.common.dataplugin.psh.WaterLevelDataEntry;
 import gov.noaa.nws.ocp.common.localization.psh.PshCity;
+import gov.noaa.nws.ocp.common.localization.psh.PshConfigurationManager;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshWaterLevelTabComp;
+import gov.noaa.nws.ocp.viz.psh.ui.validation.PshAbstractControl;
+import gov.noaa.nws.ocp.viz.psh.ui.validation.PshCombo;
+import gov.noaa.nws.ocp.viz.psh.ui.validation.PshNumberText;
 
 /**
  * Sortable table for Water Level tabs
@@ -152,6 +162,57 @@ public class PshWaterLevelTable extends PshSortableTable {
         newItem.setText(10, String.valueOf(waterLevel.getIncomplete()));
 
         insertTableData(newItem, data, tableIndex);
+    }
+
+    /**
+     * When editing a row in the Storm Surge (Water Level) tab, populate the ID,
+     * county, state, lat/lon fields when a gauge station is selected.
+     * 
+     * @param currentEditorRow
+     */
+    @Override
+    public void autoPopulateGaugeStation(
+            List<TableEditor> currentEditorRow) {
+        PshCombo stationCombo = (PshCombo) currentEditorRow.get(0).getEditor();
+        Text idText = (Text) currentEditorRow.get(1).getEditor();
+        Text countyText = (Text) currentEditorRow.get(2).getEditor();
+        Text stateText = (Text) currentEditorRow.get(3).getEditor();
+        PshNumberText latText = (PshNumberText) currentEditorRow.get(4)
+                .getEditor();
+        PshNumberText lonText = (PshNumberText) currentEditorRow.get(5)
+                .getEditor();
+
+        int curSelection = stationCombo.getSelectionIndex();
+        stationCombo.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                // clear the fields if station changes.
+                if (curSelection != stationCombo.getSelectionIndex()) {
+                    for (int ii = 1; ii < currentEditorRow.size(); ii++) {
+                        Control editorField = currentEditorRow.get(ii)
+                                .getEditor();
+                        if (editorField instanceof Button) {
+                            ((Button) editorField).setSelection(false);
+                        } else if (editorField instanceof PshAbstractControl) {
+                            ((PshAbstractControl) editorField).setText("");
+                        } else if (editorField instanceof Text) {
+                            ((Text) editorField).setText("");
+                        }
+                    }
+                }
+
+                List<PshCity> gaugeStations = PshConfigurationManager
+                        .getInstance().getCities().getTideGaugeStations();
+
+                PshCity selectedStation = gaugeStations
+                        .get(stationCombo.getSelectionIndex());
+                idText.setText(selectedStation.getStationID());
+                countyText.setText(selectedStation.getCounty());
+                stateText.setText(selectedStation.getState());
+                latText.setText(String.valueOf(selectedStation.getLat()));
+                lonText.setText(String.valueOf(selectedStation.getLon()));
+            }
+        });
     }
 
 }

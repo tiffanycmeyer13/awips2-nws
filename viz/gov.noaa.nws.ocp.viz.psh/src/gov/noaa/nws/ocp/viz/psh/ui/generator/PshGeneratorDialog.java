@@ -56,6 +56,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshMarineTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshMetarTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshNonMetarTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshRainfallTabComp;
+import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTornadoesTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshWaterLevelTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.setup.PshCitiesSetupDialog;
@@ -91,6 +92,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.setup.PshSetupConfigDialog;
  * Dec 06, 2017 #41620      wpaintsil   Add import option to the File menu.
  * Dec 11, 2017 #41998      jwu         Use localization access control file in base/roles.
  * JUN 09, 2021  DCS21225   wkwock      Use storm names from StormNames.py
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -115,6 +118,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
      * A label that will display a marquee animation of selected counties
      */
     private Label countiesLabel;
+
+    private int curTab = 0;
+
+    private int basinIdx;
+
+    private int yearIdx;
+
+    private int stormIdx;
+
+    private int fcstrIdx;
 
     /**
      * The tab folder holding each tab
@@ -151,8 +164,6 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     private PshTornadoesTabComp tornadoesTab;
 
     private PshEffectsTabComp effectsTab;
-
-    private SelectionAdapter comboListener;
 
     private Composite stackComposite;
 
@@ -281,7 +292,9 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         viewSendMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                new PshViewSendDialog(getShell(), pshData).open();
+                if (checkEditStatusOk()) {
+                    new PshViewSendDialog(getShell(), pshData).open();
+                }
             }
         });
 
@@ -293,10 +306,12 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         printMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
+                if (checkEditStatusOk()) {
 
-                String pshReport = PshUtil.buildPshReport(pshData);
+                    String pshReport = PshUtil.buildPshReport(pshData);
 
-                PshPrintUtil.getPshPrinter().printInput(pshReport);
+                    PshPrintUtil.getPshPrinter().printInput(pshReport);
+                }
 
             }
         });
@@ -333,9 +348,9 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         closeMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-
-                PshGeneratorDialog.this.close();
-
+                if (checkEditStatusOk()) {
+                    PshGeneratorDialog.this.close();
+                }
             }
         });
 
@@ -481,9 +496,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         basinCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                updateYearList();
-                updateStormList();
-                pshData.setBasinName(basinCombo.getText());
+                if (checkEditStatusOk()) {
+                    updateYearList();
+                    updateStormList();
+                    pshData.setBasinName(basinCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected basin. Change
+                     * menu back to previously selected basin.
+                     */
+                    basinCombo.select(basinIdx);
+                }
             }
         });
 
@@ -512,8 +536,17 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         yearCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                updateStormList();
-                pshData.setYear(Integer.valueOf(yearCombo.getText()));
+                if (checkEditStatusOk()) {
+                    updateStormList();
+                    pshData.setYear(Integer.valueOf(yearCombo.getText()));
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected year. Change
+                     * menu back to previously selected year.
+                     */
+                    yearCombo.select(yearIdx);
+                }
             }
         });
 
@@ -533,7 +566,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         stormCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                pshData.setStormName(stormCombo.getText());
+                if (checkEditStatusOk()) {
+                    pshData.setStormName(stormCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected storm. Change
+                     * menu back to previously selected storm.
+                     */
+                    stormCombo.select(stormIdx);
+                }
             }
         });
 
@@ -563,7 +605,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         forecasterCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                pshData.setForecaster(forecasterCombo.getText());
+                if (checkEditStatusOk()) {
+                    pshData.setForecaster(forecasterCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected forecaster.
+                     * Change menu back to previously selected forecaster.
+                     */
+                    forecasterCombo.select(fcstrIdx);
+                }
             }
         });
 
@@ -614,17 +665,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     }
 
     /**
-     * If any tab's table is in the editing state, cancel it.
+     * Check the current tab's editing state to prevent
+     * loss of user input
+     *
+     * @return
      */
-    private void cancelEditing() {
-        metarTab.cancelEditing();
-        nonMetarTab.cancelEditing();
-        marineTab.cancelEditing();
-        rainfallTab.cancelEditing();
-        floodingTab.cancelEditing();
-        waterLevelTab.cancelEditing();
-        tornadoesTab.cancelEditing();
-        effectsTab.cancelEditing();
+    protected boolean checkEditStatusOk() {
+        int selectedIndex = tabFolder.getSelectionIndex();
+        if (selectedIndex >= 0) {
+            PshTabComp tabComp = (PshTabComp) tabFolder.getItem(selectedIndex).getControl();
+            return tabComp.checkEditStatusOk();
+        }
+        return false;
     }
 
     /**
@@ -696,11 +748,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         tornadoesTab = new PshTornadoesTabComp(this, tabFolder);
         effectsTab = new PshEffectsTabComp(this, tabFolder);
 
-        // Cancel row editing when switching tabs.
+        curTab = tabFolder.getSelectionIndex();
+
+        // Check row editing status when switching tabs.
         tabFolder.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                cancelEditing();
+                int newTab = tabFolder.getSelectionIndex();
+                tabFolder.setSelection(curTab);
+                if (checkEditStatusOk()) {
+                    tabFolder.setSelection(newTab);
+                    curTab = newTab;
+                }
             }
         });
 
@@ -750,22 +809,6 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
 
         });
 
-        // Add a listener to each combo so that the tabs can be shown when all
-        // of them have a selection.
-        comboListener = new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                cancelEditing();
-                showTabContent();
-            }
-        };
-
-        forecasterCombo.addSelectionListener(comboListener);
-        stormCombo.addSelectionListener(comboListener);
-
-        basinCombo.addSelectionListener(comboListener);
-        yearCombo.addSelectionListener(comboListener);
-
     }
 
     /**
@@ -781,6 +824,10 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         if (stackLayout != null && tabFolder != null
                 && stackComposite != null) {
             if (show) {
+                basinIdx = basinCombo.getSelectionIndex();
+                yearIdx = yearCombo.getSelectionIndex();
+                stormIdx = stormCombo.getSelectionIndex();
+                fcstrIdx = forecasterCombo.getSelectionIndex();
                 stackLayout.topControl = tabFolder;
 
                 countiesButton.setEnabled(true);
@@ -997,7 +1044,7 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
      */
     @Override
     public boolean close() {
-        if (PshUtil.exitConfirmed(getShell())) {
+        if (checkEditStatusOk() && PshUtil.exitConfirmed(getShell()))  {
             return super.close();
         } else {
             return false;

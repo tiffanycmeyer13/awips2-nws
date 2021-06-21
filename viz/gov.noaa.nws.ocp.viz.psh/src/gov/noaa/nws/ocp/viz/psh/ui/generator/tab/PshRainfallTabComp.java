@@ -55,6 +55,9 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * Sep 26, 2017 #38085      wpaintsil   Implement rainfall start/end date selection.
  * Nov,08  2017 #40423      jwu         Use PshCity for location.
  * May 24, 2021 20652       wkwock      Re-factor load user files
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
+ *
  * </pre>
  * 
  * @author wpaintsil
@@ -465,7 +468,7 @@ public class PshRainfallTabComp extends PshTabComp {
             pshData.getRainfall().setEndHour(startHourCombo.getText());
 
             saveAlert(PshUtil.savePshData(pshData));
-
+            table.setUnsavedChanges(false);
             pshGeneratorData.setPshData(pshData);
         }
 
