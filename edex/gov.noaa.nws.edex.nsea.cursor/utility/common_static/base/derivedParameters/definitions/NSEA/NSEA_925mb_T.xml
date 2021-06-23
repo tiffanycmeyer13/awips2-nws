@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="T" abbreviation="925mb Temp" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="925MB" abbreviation="T"/>
+    </Method>
+</DerivedParameter>

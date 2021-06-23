@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="" name="Critical Angle SBCIN Check" abbreviation="NSEA_CritAng_sbCINCheck" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method levels="Surface" name="NSEA_CritAng.sbCINCheck">
+    <Field level="Surface" abbreviation="cCin"/>
+    </Method>
+</DerivedParameter>
+

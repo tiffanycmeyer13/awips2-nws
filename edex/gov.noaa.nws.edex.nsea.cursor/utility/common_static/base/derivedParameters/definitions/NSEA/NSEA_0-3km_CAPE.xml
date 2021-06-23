@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="CAPE to 3kmAGL" abbreviation="0-3km MLCAPE" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-1 km AGL" abbreviation="loCape"/>
+    </Method>
+</DerivedParameter>

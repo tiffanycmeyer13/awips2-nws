@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K/km" name="Lapse Rate" abbreviation="700-500mb LR" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="700-500 mb" abbreviation="gamma"/>
+    </Method>
+</DerivedParameter>

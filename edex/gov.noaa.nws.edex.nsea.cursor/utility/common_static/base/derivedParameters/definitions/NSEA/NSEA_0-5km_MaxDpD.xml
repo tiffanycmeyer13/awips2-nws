@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="DpDMax" abbreviation="Max 0-5km Dew Point Dep" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-5kmAgl" abbreviation="NSEA_DpDMax"/>
+    </Method>
+</DerivedParameter>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="TwMax" abbreviation="Max Warm Nose Wet Bulb Temp" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0.5-5.5kmAgl" abbreviation="NSEA_TwMax"/>
+    </Method>
+</DerivedParameter>

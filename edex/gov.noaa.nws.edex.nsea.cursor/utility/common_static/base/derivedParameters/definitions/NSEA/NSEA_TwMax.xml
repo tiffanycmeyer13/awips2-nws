@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K" name="Tw Max in Layer" abbreviation="NSEA_TwMax" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method name="Max">
+        <Field abbreviation="Twstk"/>
+    </Method>
+</DerivedParameter>

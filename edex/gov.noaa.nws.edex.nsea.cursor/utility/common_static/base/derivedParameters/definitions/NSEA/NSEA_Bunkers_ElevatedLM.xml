@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="Bunkers Elevated Left-Moving Supercell" abbreviation="Bunkers Elevated Left-Moving Supercell Vectors" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="LM6"/>
+    </Method>
+</DerivedParameter>

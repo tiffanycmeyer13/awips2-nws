@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="Cross Totals" abbreviation="Cross Totals" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="cTOT"/>
+    </Method>
+</DerivedParameter>

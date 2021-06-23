@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter abbreviation="SHERB_S3" name="SHERB_S3" unit="">
+    <Method name="NSEA_SHERB_S3" levels="Layer">
+        <Field abbreviation="ShrMag" level="0-3kmAgl"/>
+        <Field abbreviation="gamma" level="0-3kmAgl"/>
+        <Field abbreviation="gamma" level="700MB-500MB"/>
+    </Method>
+</DerivedParameter>

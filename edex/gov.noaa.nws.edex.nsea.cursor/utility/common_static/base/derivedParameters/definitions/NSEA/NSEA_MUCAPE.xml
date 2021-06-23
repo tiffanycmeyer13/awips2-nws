@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="Most Unstable CAPE" abbreviation="MUCAPE" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-6kmAgl" abbreviation="muCape"/>
+    </Method>
+</DerivedParameter>

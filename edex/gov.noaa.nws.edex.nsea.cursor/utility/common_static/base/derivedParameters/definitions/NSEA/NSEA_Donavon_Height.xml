@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="ft" name="50 dBZ Hgt for 1 in. Svr Hail" abbreviation="50 dBZ Hail Hgt AGL" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="50dbzZ"/>
+    </Method>
+</DerivedParameter>

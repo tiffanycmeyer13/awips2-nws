@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K/s" name="Equiv Pot Temp Adv" abbreviation="0-1km Theta-E Adv" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-1kmAgl" abbreviation="EPTA"/>
+    </Method>
+</DerivedParameter>
