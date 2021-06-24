@@ -65,6 +65,7 @@ import gov.noaa.nws.ocp.common.localization.psh.PshConfigurationManager;
  * 16,NOV 2017  #40987     jwu         Add length limits to location/county etc.
  * 20,NOV 2017  #41127     jwu         Tune final format to match legacy.
  * 23 JAN 2016  DCS19326   wpaintsil   Baseline version
+ * 09 JUN 2021  DCS20652   wkwock      Change mixed case from capitalize to define by user, Lat/lon use 4 digit decimal
  *
  * </pre>
  *
@@ -156,19 +157,18 @@ public class PshProductBuilder {
     }
 
     /**
-     * Capitalize a string normally or fully.
+     * Update the string to upper case if mixedCase is false.
      * 
      * @param string
      * @param mixedCase
      * @return
      */
-    private static String capitalize(String string, boolean mixedCase) {
-        String finalString = WordUtils.capitalizeFully(string);
+    private static String updateCase(String string, boolean mixedCase) {
         if (!mixedCase) {
-            finalString = finalString.toUpperCase();
+            return string.toUpperCase();
         }
 
-        return finalString;
+        return string;
     }
 
     private static List<Map<String, String>> metarData(
@@ -285,7 +285,7 @@ public class PshProductBuilder {
                 Map<String, String> marineEntryMap = new HashMap<>();
 
                 marineEntryMap.put("station", marineEntry.getSite());
-                String latlon = String.format("%-5.2f %-7.2f",
+                String latlon = String.format("%-7.4f %-9.4f",
                         marineEntry.getLat(), marineEntry.getLon());
                 marineEntryMap.put("latlon", String.format("%-13s", latlon));
                 marineEntryMap.put("mslp", String.format("%-7s",
@@ -335,10 +335,7 @@ public class PshProductBuilder {
                 Map<String, String> rainfallEntryMap = new HashMap<>();
                 float dist = rainEntry.getDistance();
                 String dir = rainEntry.getDirection().trim();
-                String cityInfo = WordUtils.capitalizeFully(city.getName());
-                if (!mixedCase) {
-                    cityInfo = cityInfo.toUpperCase();
-                }
+                String cityInfo = updateCase(city.getName(), mixedCase);
 
                 if (dist > 0 && dir.length() > 0
                         && !dir.equalsIgnoreCase("None")) {
@@ -349,19 +346,16 @@ public class PshProductBuilder {
                 rainfallEntryMap.put("cityInfo",
                         String.format("%-28.24s", cityInfo));
 
-                String county = WordUtils.capitalizeFully(city.getCounty());
-                if (!mixedCase) {
-                    county = county.toUpperCase();
-                }
+                String county = updateCase(city.getCounty(), mixedCase);
 
                 rainfallEntryMap.put("county",
                         String.format("%-19.19s", county));
                 rainfallEntryMap.put("id",
                         String.format("%-12.12s", city.getStationID()));
                 rainfallEntryMap.put("lat",
-                        String.format("%-5.2f", city.getLat()));
+                        String.format("%-7.4f", city.getLat()));
                 rainfallEntryMap.put("lon",
-                        String.format("%7.2f", city.getLon()));
+                        String.format("%9.4f", city.getLon()));
                 rainfallEntryMap.put("rainfall",
                         String.format("%5.2f", rainEntry.getRainfall()));
 
@@ -386,7 +380,7 @@ public class PshProductBuilder {
                 Map<String, String> floodingEntryMap = new HashMap<>();
 
                 String county = floodingEntry.getCounty().trim();
-                county = capitalize(county, mixedCase);
+                county = updateCase(county, mixedCase);
 
                 String flooding = county + COUNTY_SEPARATOR
                         + floodingEntry.getRemarks();
@@ -412,11 +406,11 @@ public class PshProductBuilder {
                 waterLevelEntryMap.put("id",
                         String.format("%-5.5s", city.getStationID()));
 
-                String location = capitalize(city.getName(), mixedCase);
+                String location = updateCase(city.getName(), mixedCase);
                 waterLevelEntryMap.put("location",
                         String.format("%-15.15s", location));
 
-                String county = capitalize(city.getCounty(), mixedCase);
+                String county = updateCase(city.getCounty(), mixedCase);
                 waterLevelEntryMap.put("county",
                         String.format("%-12.12s", county));
 
@@ -459,7 +453,7 @@ public class PshProductBuilder {
                 Map<String, String> tornadoEntryMap = new HashMap<>();
                 float dist = tornadoEntry.getDistance();
                 String dir = tornadoEntry.getDirection().trim();
-                String location = capitalize(city.getName(), mixedCase);
+                String location = updateCase(city.getName(), mixedCase);
                 if (dist > 0 && dir.length() > 0
                         && !dir.equalsIgnoreCase("None")) {
                     location = String.format("%d %s %s", Math.round(dist), dir,
@@ -469,7 +463,7 @@ public class PshProductBuilder {
                 tornadoEntryMap.put("location",
                         String.format("%-28.25s", location));
 
-                String county = capitalize(city.getCounty(), mixedCase);
+                String county = updateCase(city.getCounty(), mixedCase);
                 tornadoEntryMap.put("county",
                         String.format("%-16.16s", county));
 
@@ -507,7 +501,7 @@ public class PshProductBuilder {
                 EffectDataEntry effectEntry = effectInfo;
                 Map<String, String> effectsEntryMap = new HashMap<>();
 
-                String county = capitalize(effectEntry.getCounty(), mixedCase);
+                String county = updateCase(effectEntry.getCounty(), mixedCase);
                 effectsEntryMap.put("county",
                         String.format("%-20.16s", county));
 
@@ -525,6 +519,29 @@ public class PshProductBuilder {
             }
         }
         return effectData;
+
+    }
+
+    private <T> String getCountyType(List<T> dataList) {
+        // get county type
+        String countyType = "   County    ";
+        for (Object obj : dataList) {
+            String state = "";
+            if (obj instanceof WaterLevelDataEntry) {
+                state = ((WaterLevelDataEntry) obj).getLocation().getState();
+            } else if (obj instanceof TornadoDataEntry) {
+                state = ((TornadoDataEntry) obj).getLocation().getState();
+            } else if (obj instanceof RainfallDataEntry) {
+                state = ((RainfallDataEntry) obj).getCity().getState();
+            }
+            if ("LA".equalsIgnoreCase(state) || "MS".equalsIgnoreCase(state)) {
+                countyType = "County/Parish";
+                break;
+            } else if ("VA".equalsIgnoreCase(state)) {
+                countyType = " County/City ";
+            }
+        }
+        return countyType;
 
     }
 
@@ -634,6 +651,8 @@ public class PshProductBuilder {
             context.put("rainEnd", rainPeriod.get(1));
             context.put("rainfallList",
                     rainfallData(rainfallDataList, mixedCase));
+            String countyType = getCountyType(rainfallDataList);
+            context.put("rainCounty", countyType);
 
             break;
 
@@ -682,6 +701,10 @@ public class PshProductBuilder {
             context.put("wlList",
                     waterLevelData(waterLevelDataList, mixedCase));
 
+            // get county type
+            countyType = getCountyType(waterLevelDataList);
+            context.put("wlCounty", countyType);
+
             break;
 
         case TORNADO:
@@ -707,7 +730,8 @@ public class PshProductBuilder {
             List<TornadoDataEntry> tornadoDataList = pshData.getTornado()
                     .getData();
             context.put("tornadoList", tornadoData(tornadoDataList, mixedCase));
-
+            countyType = getCountyType(tornadoDataList);
+            context.put("tCounty", countyType);
             break;
 
         case EFFECT:
@@ -857,7 +881,7 @@ public class PshProductBuilder {
         List<String> pshCnty = pshData.getIncludedCounties();
         List<String> includedCnty = new ArrayList<>();
         for (String cnty : pshCnty) {
-            includedCnty.add(WordUtils.capitalizeFully(cnty));
+            includedCnty.add(cnty);
         }
 
         String counties = formatString(includedCnty, MAX_LINE_LENGTH,
@@ -966,6 +990,8 @@ public class PshProductBuilder {
         String rainfallRmk = pshData.getRainfall().getRemarks();
         context.put("rainfallRmk", formatString(rainfallRmk, MAX_LINE_LENGTH,
                 REMARK_START, WORD_SEPARATOR));
+        String countyType = getCountyType(rainfallDataList);
+        context.put("rainCounty", countyType);
 
         /**
          * Storm inland flooding entries.
@@ -1007,6 +1033,8 @@ public class PshProductBuilder {
         List<WaterLevelDataEntry> waterLevelDataList = pshData.getWaterLevel()
                 .getData();
         context.put("wlList", waterLevelData(waterLevelDataList, mixedCase));
+        countyType = getCountyType(waterLevelDataList);
+        context.put("wlCounty", countyType);
 
         String waterLevelRmk = pshData.getWaterLevel().getRemarks();
         context.put("wlRmk", formatString(waterLevelRmk, MAX_LINE_LENGTH,
@@ -1034,6 +1062,8 @@ public class PshProductBuilder {
         List<TornadoDataEntry> tornadoDataList = pshData.getTornado().getData();
 
         context.put("tornadoList", tornadoData(tornadoDataList, mixedCase));
+        countyType = getCountyType(tornadoDataList);
+        context.put("tCounty", countyType);
 
         /**
          * Storm effects entries.

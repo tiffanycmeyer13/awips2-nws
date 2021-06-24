@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.WordUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -99,6 +98,7 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Dec 08, 2017 #41955      astrakovsky Added static county list for storing county geometry data.
  * Feb 15, 2018 #46354      wpaintsil   Various refactorings.
  * May 27, 2021 DCS22095    mporricelli Make Setup editing more efficient
+ * JUN 09, 2021 DCS20652    wkwock      Remove capitalize from station name
  *
  * </pre>
  *
@@ -386,8 +386,8 @@ public class PshUtil {
             TableItem item, int column, String fieldText, String tipText,
             String[] autoSuggestions, PshMultiFieldSetupDialog dialog) {
 
-        TableEditor fieldEditor = createTableField(table, item, column, fieldText,
-                tipText);
+        TableEditor fieldEditor = createTableField(table, item, column,
+                fieldText, tipText);
 
         Text textField = (Text) fieldEditor.getEditor();
 
@@ -451,8 +451,8 @@ public class PshUtil {
             TableItem item, int column, String fieldText, String tipText,
             String[] autoSuggestions) {
 
-        TableEditor fieldEditor = createTableField(table, item, column, fieldText,
-                tipText);
+        TableEditor fieldEditor = createTableField(table, item, column,
+                fieldText, tipText);
 
         Text textField = (Text) fieldEditor.getEditor();
 
@@ -1301,7 +1301,7 @@ public class PshUtil {
     public static String buildStationFullName(PshStation station) {
         String code = station.getCode();
         String state = station.getState();
-        String name = WordUtils.capitalizeFully(station.getName().trim());
+        String name = station.getName().trim();
 
         String fname = "";
         if (code != null && !code.isEmpty()) {

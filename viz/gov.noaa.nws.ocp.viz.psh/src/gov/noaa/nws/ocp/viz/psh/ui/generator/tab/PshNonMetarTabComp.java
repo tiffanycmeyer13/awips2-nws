@@ -6,6 +6,7 @@ package gov.noaa.nws.ocp.viz.psh.ui.generator.tab;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -23,6 +24,7 @@ import gov.noaa.nws.ocp.common.localization.psh.PshStation;
 import gov.noaa.nws.ocp.common.localization.psh.PshStations;
 import gov.noaa.nws.ocp.viz.psh.PshUtil;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.IPshData;
+import gov.noaa.nws.ocp.viz.psh.ui.generator.PshUserFileDialog;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshControlType;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshNonMetarTable;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshSortableTable;
@@ -36,6 +38,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * Date         Ticket#     Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
+ * May 24, 2021  20652      wkwock      Add load user files
  * 
  * </pre>
  * 
@@ -64,7 +67,7 @@ public class PshNonMetarTabComp extends PshTabComp {
         sashData.heightHint = 500;
         verticalSashForm.setLayoutData(sashData);
 
-        createRemarksArea(verticalSashForm, false, true, "Final Remarks");
+        createRemarksArea(verticalSashForm, false, true, true, "Final Remarks");
 
         verticalSashForm.setWeights(new int[] { 60, 40 });
 
@@ -200,4 +203,69 @@ public class PshNonMetarTabComp extends PshTabComp {
         pshGeneratorData.setPshData(pshData);
     }
 
+    @Override
+    protected void loadUserFile() {
+        // create and open user file dialog
+        PshUserFileDialog userFileLoader = new PshUserFileDialog(getShell(),
+                "Example User File",
+                "The data fields must follow the example shown below"
+                        + "\n\nSite,Latitude,Longitude,Lowest Pressure,"
+                        + "Date/Time,incomplete,Sust Wind,Date/Time,Incomplete,"
+                        + "Peak Wind,Wind Date Time,Incomplete,E,Anemhght"
+                        + "\n\nWhere:\n*Date/Time is in dd/HHmm format, and E is estimated wind."
+                        + "\n\n-------------------------------------------------------------------------------------------------"
+                        + "\nAn Example file with two non-metar observations will look as follows:"
+                        + "\n\nCDRF1-Cedar Key, FL/V,28.08,-82.76,1,123,22/1234,0,"
+                        + "\n50,22/1234,1,100,22/0212,1,213");
+        userFileLoader.open();
+
+        List<String[]> fieldsList = userFileLoader.getFieldsList(14);
+        if (!fieldsList.isEmpty()) {
+            for (String[] fields : fieldsList) {
+                createNonMetarTableItem(fields);
+            }
+
+            updatePreviewArea();
+        }
+    }
+
+    private void createNonMetarTableItem(String[] fields) {
+        NonMetarDataEntry nonMetarData = new NonMetarDataEntry();
+
+        nonMetarData.setSite(fields[0]);
+        if (NumberUtils.isNumber(fields[1])) {
+            nonMetarData.setLat(PshUtil.parseFloat(fields[1]));
+        }
+        if (NumberUtils.isNumber(fields[2])) {
+            nonMetarData.setLon(PshUtil.parseFloat(fields[2]));
+        }
+
+        nonMetarData.setMinSeaLevelPres(fields[3]);
+        nonMetarData.setMinSeaLevelPresTime(fields[4]);
+        if (fields[5].equalsIgnoreCase("I")) {
+            nonMetarData.setMinSeaLevelComplete(fields[5].toUpperCase());
+        } else {
+            nonMetarData.setMinSeaLevelComplete("");
+        }
+
+        nonMetarData.setSustWind(fields[6]);
+        nonMetarData.setSustWindTime(fields[7]);
+        if (fields[8].equalsIgnoreCase("I")) {
+            nonMetarData.setSustWindComplete(fields[8].toUpperCase());
+        } else {
+            nonMetarData.setSustWindComplete("");
+        }
+
+        nonMetarData.setPeakWind(fields[9]);
+        nonMetarData.setPeakWindTime(fields[10]);
+        if (fields[11].equalsIgnoreCase("I")) {
+            nonMetarData.setPeakWindComplete(fields[11].toUpperCase());
+        } else {
+            nonMetarData.setPeakWindComplete("");
+        }
+        nonMetarData.setEstWind(fields[12]);
+        nonMetarData.setAnemHgmt(fields[13]);
+
+        table.addItem(nonMetarData);
+    }
 }

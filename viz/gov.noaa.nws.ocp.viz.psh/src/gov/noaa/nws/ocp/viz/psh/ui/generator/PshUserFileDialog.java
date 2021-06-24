@@ -1,7 +1,9 @@
 package gov.noaa.nws.ocp.viz.psh.ui.generator;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -31,6 +33,7 @@ import gov.noaa.nws.ocp.viz.psh.PshUtil;
  * ------------ ---------- ----------- --------------------------
  * Jun 17, 2017 #35463      wpaintsil   Initial creation.
  * Sep 19, 2017 #36924      astrakovsky Implemented user file parsing.
+ * May 24, 2021 20652       wkwock      Parse CSV format lines with quotation
  * 
  * </pre>
  * 
@@ -151,7 +154,8 @@ public class PshUserFileDialog extends CaveJFACEDialog {
      */
     private void showExampleMessage(Point parentLocation, Point parentSize) {
 
-        int exampleX = 800, exampleY = 350;
+        int exampleX = 800;
+        int exampleY = 350;
 
         MessageDialog exampleMessage = new MessageDialog(getShell(),
                 messageTitle, null, messageText, MessageDialog.INFORMATION,
@@ -185,7 +189,7 @@ public class PshUserFileDialog extends CaveJFACEDialog {
         // browse for file
         FileDialog browseDialog = new FileDialog(getShell(), SWT.OPEN);
         browseDialog.setText("Browse");
-        String[] filterExt = { "*.txt" };
+        String[] filterExt = { "*.txt", "*.csv" };
         browseDialog.setFilterExtensions(filterExt);
         String selected = browseDialog.open();
 
@@ -227,6 +231,101 @@ public class PshUserFileDialog extends CaveJFACEDialog {
      */
     public void setFileStrings(List<String> fileStrings) {
         this.fileStrings = fileStrings;
+    }
+
+    /**
+     * Get the fields list from file content
+     * 
+     * @param fieldsPerLine
+     * @return fields list
+     */
+    public List<String[]> getFieldsList(int fieldsPerLine) {
+        // track line content errors
+        StringJoiner errorLines = new StringJoiner(", ");
+        boolean noLineFound = true;
+        List<String[]> fieldSList = new ArrayList<>();
+
+        // continue only if file was loaded and contained something
+        if (fileStrings == null || fileStrings.isEmpty()) {
+            return fieldSList;
+        }
+
+        // parse the file
+        for (int i = 0; i < fileStrings.size(); i++) {
+            if (fileStrings.get(i).trim().isEmpty()) {
+                continue;
+            }
+            // parse each line
+            List<String> tmpFields = parseCsvLine(fileStrings.get(i));
+
+            // use only if line has the correct number of fields
+            if (tmpFields.size() == fieldsPerLine) {
+                // trim whitespace for each field
+                String[] fields = new String[fieldsPerLine];
+                fields = tmpFields.toArray(fields);
+
+                // create a new table item with entered fields
+                fieldSList.add(fields);
+                noLineFound = false;
+            } else {
+                // add 1 so that 1st line is 1 not 0, etc.
+                errorLines.add(Integer.toString(i + 1));
+            }
+        }
+
+        if (errorLines.length() != 0) {
+            // some or all lines are not valid
+            MessageDialog dialog = new MessageDialog(getShell(), "Warning",
+                    null,
+                    "These line(s) are invalid: " + errorLines
+                            + ".\nPlease fix them and try again.",
+                    MessageDialog.WARNING, new String[] { "Ok" }, 0);
+            dialog.open();
+        } else if (noLineFound) {
+            // some or all lines are not valid
+            MessageDialog dialog = new MessageDialog(getShell(), "Warning",
+                    null, "There is no entry found in the file.",
+                    MessageDialog.WARNING, new String[] { "Ok" }, 0);
+            dialog.open();
+        } else {
+            // all data loaded message
+            MessageDialog dialog = new MessageDialog(getShell(), "Success",
+                    null, "File successfully loaded.",
+                    MessageDialog.INFORMATION, new String[] { "Ok" }, 0);
+            dialog.open();
+        }
+
+        return fieldSList;
+    }
+
+    /**
+     * parse lines into fields separate by comma
+     * 
+     * @param line
+     * @return fields
+     */
+    public List<String> parseCsvLine(String line) {
+        List<String> result = new ArrayList<>();
+
+        boolean inQuotes = false;
+
+        StringBuilder field = new StringBuilder();
+
+        for (char c : line.toCharArray()) {
+            if (c == '"') { // handle embedded double quotes ""
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                result.add(field.toString());
+                field = new StringBuilder();
+            } else {
+                field.append(c);
+            }
+        }
+
+        // last field
+        result.add(field.toString());
+
+        return result;
     }
 
 }

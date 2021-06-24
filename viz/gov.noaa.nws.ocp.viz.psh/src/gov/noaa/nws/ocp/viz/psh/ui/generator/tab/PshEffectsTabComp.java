@@ -32,6 +32,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * Date         Ticket#     Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
+ * JUN 09, 2021  DCS20652   wkwock      Update createControls for load user files
  * 
  * </pre>
  * 
@@ -93,7 +94,7 @@ public class PshEffectsTabComp extends PshTabComp {
         sashData.heightHint = 500;
         verticalSashForm.setLayoutData(sashData);
 
-        createRemarksArea(verticalSashForm, true, false, "Remarks");
+        createRemarksArea(verticalSashForm, true, false, false, "Remarks");
 
         setRemarksTextEditable(false);
 
