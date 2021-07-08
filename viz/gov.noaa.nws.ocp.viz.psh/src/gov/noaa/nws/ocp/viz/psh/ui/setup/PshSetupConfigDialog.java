@@ -51,6 +51,7 @@ import gov.noaa.nws.ocp.viz.psh.PshUtil;
  * Dec 05, 2017 #41620     wpaintsil    Add xml product export options.
  * Dec 11, 2017 #41998     jwu          Use localization access control file in base/roles.
  * Feb 15, 2018 #46354     wpaintsil    Various refactorings.
+ * May 24, 2021 20652      wkwock       Change East to Eastern
  * 
  * </pre>
  * 
@@ -530,7 +531,7 @@ public class PshSetupConfigDialog extends PshMultiFieldSetupDialog {
             notesList.add("Indicate if Daylight Savings is observed (Y/N).");
             notesList.add("                ****");
             notesList.add(
-                    "Indicate the Storm Basin area you are in (AT = Atlantic, EP = East Pacific, etc.");
+                    "Indicate the Storm Basin area you are in (AT = Atlantic, EP = Eastern Pacific, etc.");
 
             setupConfigExampleForm = new PshSetupExampleFormDialog(getShell(),
                     "Post Storm Report Configuration Example Form",

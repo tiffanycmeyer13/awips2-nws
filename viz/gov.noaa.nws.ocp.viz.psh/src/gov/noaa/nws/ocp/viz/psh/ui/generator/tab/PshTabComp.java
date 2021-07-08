@@ -60,6 +60,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTable;
  * Nov 20, 2017 #39868      wpaintsil   Don't call save method if there is no 
  *                                      table data added and the tab began 
  *                                      with no table data.
+ * May 24, 2021 20652       wkwock      Add load user files button.
  * 
  * </pre>
  * 
@@ -350,8 +351,8 @@ public abstract class PshTabComp extends Composite {
      * @param saveEdit
      *            add the "Edit Final Remarks" button if true; false otherwise
      */
-    protected void createRemarksArea(Composite parent, boolean loadExternal,
-            boolean saveEdit, String labelString) {
+    protected void createRemarksArea(Composite parent, boolean loadLsr,
+            boolean loadUser, boolean saveEdit, String labelString) {
 
         Composite remarksAreaComp = new Composite(parent, SWT.NONE);
         GridLayout remarksLayout = new GridLayout(1, false);
@@ -378,7 +379,7 @@ public abstract class PshTabComp extends Composite {
         horizontalSashForm.setWeights(new int[] { 40, 60 });
 
         // "Load External Files" button
-        if (loadExternal) {
+        if (loadLsr || loadUser) {
 
             loadExternalComp = new Composite(remarksAreaComp, SWT.NONE);
             GridLayout loadExternalLayout = new GridLayout(2, true);
@@ -387,17 +388,32 @@ public abstract class PshTabComp extends Composite {
             loadExternalComp.setLayoutData(
                     new GridData(SWT.LEFT, SWT.FILL, false, false));
 
-            Button loadLSRButton = new Button(loadExternalComp, SWT.PUSH);
+            if (loadLsr) {
+                Button loadLSRButton = new Button(loadExternalComp, SWT.PUSH);
 
-            loadLSRButton.setText("Load LSR\nFiles");
-            loadLSRButton.addSelectionListener(new SelectionAdapter() {
+                loadLSRButton.setText("Load LSR\nFiles");
+                loadLSRButton.addSelectionListener(new SelectionAdapter() {
 
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    new PshLSRDialog(getShell(), PshTabComp.this).open();
-                }
-            });
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        new PshLSRDialog(getShell(), PshTabComp.this).open();
+                    }
+                });
+            }
 
+            if (loadUser) {
+                Button loadUserButton = new Button(loadExternalComp, SWT.PUSH);
+
+                loadUserButton.setText("Load User\nFiles");
+                loadUserButton.addSelectionListener(new SelectionAdapter() {
+
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        // load a user file
+                        loadUserFile();
+                    }
+                });
+            }
         }
     }
 
@@ -654,4 +670,8 @@ public abstract class PshTabComp extends Composite {
      * Save Final Remarks separately in tabs that have Final Remarks.
      */
     public abstract void saveFinalRemarks();
+
+    /** Load user file */
+    protected void loadUserFile() {
+    }
 }
