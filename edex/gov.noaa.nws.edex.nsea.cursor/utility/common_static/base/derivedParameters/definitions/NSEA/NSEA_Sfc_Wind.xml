@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="" abbreviation="Sfc Wind" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="SFC" abbreviation="Wind"/>
+    </Method>
+</DerivedParameter>

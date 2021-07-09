@@ -21,6 +21,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * 26 JUN 2017  #35269     jwu         Initial creation
  * 06 JUL 2017  #35269     jwu         Add dirName
  * 11 JAN 2018  DCS19326   jwu         Baseline version.
+ * 09 JUN 2021  DCS21225   wkwock      Update names to be consistent with StormNames.py
  * 
  * </pre>
  * 
@@ -41,7 +42,7 @@ public enum PshBasin {
     /**
      * Eastern.
      */
-    EP(1, "East Pacific", "eastpac"),
+    EP(1, "Eastern Pacific", "eastpac"),
 
     /**
      * Central.
@@ -51,11 +52,12 @@ public enum PshBasin {
     /**
      * West.
      */
-    WP(3, "West Pacific", "westpac");
+    WP(3, "Western Pacific", "westpac");
 
     @DynamicSerializeElement
     private int value;
 
+    /** Basin name. Should be same as in StormNames.py */
     @DynamicSerializeElement
     private String name;
 

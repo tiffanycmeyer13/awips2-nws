@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="%" name="Max RH" abbreviation="Max RH in Cloud Ice Layer" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="-10 to -20C" abbreviation="NSEA_RHMax"/>
+    </Method>
+</DerivedParameter>

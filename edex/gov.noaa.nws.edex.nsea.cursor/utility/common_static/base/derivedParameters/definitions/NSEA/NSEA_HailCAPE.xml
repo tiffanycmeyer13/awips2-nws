@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="Computed CAPE" abbreviation="SB Hail Growth CAPE" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="-10C to -30C" abbreviation="NSEA_cCape"/>
+    </Method>
+</DerivedParameter>

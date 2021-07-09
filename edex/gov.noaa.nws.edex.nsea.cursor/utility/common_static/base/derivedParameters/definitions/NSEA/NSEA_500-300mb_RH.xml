@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="%" name="RH" abbreviation="500-300mb RH" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="500-300 mb" abbreviation="RH"/>
+    </Method>
+</DerivedParameter>

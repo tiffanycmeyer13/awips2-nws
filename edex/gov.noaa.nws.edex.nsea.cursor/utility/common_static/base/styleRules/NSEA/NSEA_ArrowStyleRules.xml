@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<styleRuleset>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>850mb Moisture Transport Vectors</parameter>
+            <parameter>925mb Moisture Transport Vectors</parameter>
+        </paramLevelMatches>
+        <arrowStyle>
+            <displayUnits label="gm/kgs">g*m/(kg*s)</displayUnits>
+            <scale>0.10</scale>
+        </arrowStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+           <parameter>0 to 3km Line Normal Shear Vectors (Left)</parameter>
+           <parameter>0 to 3km Line Normal Shear Vectors (Right)</parameter>
+        </paramLevelMatches>
+        <arrowStyle>
+            <displayUnits>kts</displayUnits>
+        </arrowStyle>
+    </styleRule>
+</styleRuleset>

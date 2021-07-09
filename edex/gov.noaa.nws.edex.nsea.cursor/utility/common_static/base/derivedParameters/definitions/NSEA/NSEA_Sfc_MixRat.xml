@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="g/kg" name="Mixing Ratio" abbreviation="Sfc Mixing Ratio" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="SFC" abbreviation="mixRat"/>
+    </Method>
+</DerivedParameter>

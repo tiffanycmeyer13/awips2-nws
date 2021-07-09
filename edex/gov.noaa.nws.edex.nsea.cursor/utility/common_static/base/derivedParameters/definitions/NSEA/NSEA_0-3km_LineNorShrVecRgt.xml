@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <!--
+        Code courtesy of Chris Stumpf (WFO HUN)
+    -->
+<DerivedParameter unit="m/s" name="Line-Normal Bulk Shear >= 30kts Right" abbreviation="0 to 3km Line Normal Shear Vectors (Right)" xmlns:ns2="group">
+    <Method levels="0-3kmAgl" name="NSEA_LNSVecRight">
+        <Field abbreviation="BlkShr"/>
+        <Field abbreviation="BlkMag"/>
+    </Method>
+</DerivedParameter>

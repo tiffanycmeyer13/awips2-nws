@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -23,6 +24,7 @@ import gov.noaa.nws.ocp.common.localization.psh.PshCity;
 import gov.noaa.nws.ocp.common.localization.psh.PshConfigurationManager;
 import gov.noaa.nws.ocp.viz.psh.PshUtil;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.IPshData;
+import gov.noaa.nws.ocp.viz.psh.ui.generator.PshUserFileDialog;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshControlType;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshWaterLevelTable;
@@ -37,6 +39,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshWaterLevelTable;
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
  * Nov,08  2017 #40423      jwu         Replace tide/surge with water level.
  * Nov,14  2017 #40426      jwu         Update GUI with water level.
+ * May 24, 2021 20652       wkwock      Add load user files
  * 
  * </pre>
  * 
@@ -109,7 +112,7 @@ public class PshWaterLevelTabComp extends PshTabComp {
         sashData.heightHint = 500;
         verticalSashForm.setLayoutData(sashData);
 
-        createRemarksArea(verticalSashForm, false, true, "Remarks");
+        createRemarksArea(verticalSashForm, false, true, true, "Remarks");
 
     }
 
@@ -186,4 +189,58 @@ public class PshWaterLevelTabComp extends PshTabComp {
 
     }
 
+    @Override
+    protected void loadUserFile() {
+        // create and open user file dialog
+        PshUserFileDialog userFileLoader = new PshUserFileDialog(getShell(),
+                "Example User File",
+                "The data fields must follow the example shown below"
+                        + "\n\nLocation, ID, County, State, Lat, Lon, Water Level, Datum, Date/Time,Source,Incomplete"
+                        + "\n\nWhere:\n*Date/Time is in dd/HHmm format"
+                        + "\n\n-------------------------------------------------------------------------------------------------"
+                        + "\nAn Example file with a water level observations will look as follows:"
+                        + "\n\nAguadilla, AUDP4, Aguadilla, PR, 18.45664, -67.16458, 10, MHHW, 20/1225,NOS,I");
+        userFileLoader.open();
+
+        List<String[]> fieldsList = userFileLoader.getFieldsList(11);
+        if (!fieldsList.isEmpty()) {
+            for (String[] fields : fieldsList) {
+                createWaterLevelTableItem(fields);
+            }
+
+            updatePreviewArea();
+        }
+    }
+
+    private void createWaterLevelTableItem(String[] fields) {
+        WaterLevelDataEntry waterData = new WaterLevelDataEntry();
+
+        PshCity city = new PshCity();
+        city.setName(fields[0]);
+        city.setStationID(fields[1]);
+        city.setCounty(fields[2]);
+        city.setState(fields[3]);
+        if (NumberUtils.isNumber(fields[4])) {
+            city.setLat(PshUtil.parseFloat(fields[4]));
+        }
+        if (NumberUtils.isNumber(fields[5])) {
+            city.setLon(PshUtil.parseFloat(fields[5]));
+        }
+        waterData.setLocation(city);
+
+        if (NumberUtils.isNumber(fields[6])) {
+            waterData.setWaterLevel(PshUtil.parseFloat(fields[6]));
+        }
+
+        waterData.setDatum(fields[7]);
+        waterData.setDatetime(fields[8]);
+        waterData.setSource(fields[9]);
+        if (fields[10].equalsIgnoreCase("I")) {
+            waterData.setIncomplete(fields[10].toUpperCase());
+        } else {
+            waterData.setIncomplete("");
+        }
+
+        table.addItem(waterData);
+    }
 }

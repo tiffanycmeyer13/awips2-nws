@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="K/s" name="Equiv Pot Temp Adv" abbreviation="Sfc Theta-E Adv" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="SFC" abbreviation="EPTA"/>
+    </Method>
+</DerivedParameter>
