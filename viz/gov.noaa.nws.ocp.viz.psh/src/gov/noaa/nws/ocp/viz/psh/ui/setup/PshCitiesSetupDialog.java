@@ -59,7 +59,8 @@ import gov.noaa.ocp.viz.psh.data.PshStationsProvider;
  * Dec 11, 2017 #41998     jwu          Use localization access control file in base/roles.
  * Feb 15, 2018 #46354     wpaintsil   Various refactorings.
  * May 27, 2021 DCS22095   mporricelli  Add some qc checks
- * 
+ * Jul 19, 2021 DCS22178   mporricelli  Verify PSH Lock owner before saving
+ *
  * </pre>
  * 
  * @author astrakovsky
@@ -283,7 +284,6 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
                 "Save current cities to localization", new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-
                         // save all entries
                         saveItems(true);
                     }
@@ -439,6 +439,9 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
     @Override
     protected final void saveItems(boolean displayMessage) {
 
+        if (!PshUtil.checkLockStatusOk(getShell())) {
+            return;
+        }
         // save current row before saving all
         saveRow();
 

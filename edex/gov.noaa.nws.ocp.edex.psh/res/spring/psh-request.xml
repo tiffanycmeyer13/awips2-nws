@@ -19,6 +19,10 @@
     
     <bean id="retrievePshData" class="gov.noaa.nws.ocp.edex.psh.handler.RetrievePSHDataHandler"/>
       
-    <bean id="pshtransmitter" class="gov.noaa.nws.ocp.edex.psh.handler.PshProductTransmitHandler"/>    
-    
+    <bean id="pshtransmitter" class="gov.noaa.nws.ocp.edex.psh.handler.PshProductTransmitHandler"/>
+
+    <bean id="pshlock"
+        class="gov.noaa.nws.ocp.edex.psh.handler.PshLockHandler" />
+
+
 </beans>

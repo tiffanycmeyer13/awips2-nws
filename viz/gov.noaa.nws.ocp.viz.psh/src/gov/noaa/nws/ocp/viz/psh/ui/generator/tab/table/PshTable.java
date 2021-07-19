@@ -95,6 +95,7 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Dec 18, 2018 DR20978     jwu         Add match cities as auto assist while user is typing in.
  * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their changes have not
  *                                      been saved
+ * Jul 19, 2021 DCS22178    mporricelli Verify PSH Lock owner before saving
  *
  * </pre>
  *
@@ -870,26 +871,29 @@ public abstract class PshTable {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (deleteButton.getText().equals(DELETE_STRING)
-                        && table.getSelectionCount() > 0) {
-                    boolean confirm = new MessageDialog(tab.getShell(),
-                            "Confirm Delete", null,
-                            "Are you sure you want to delete this entry?",
-                            MessageDialog.QUESTION,
-                            new String[] { IDialogConstants.YES_LABEL,
-                                    IDialogConstants.NO_LABEL },
-                            1).open() == MessageDialog.OK;
+                    if (deleteButton.getText().equals(DELETE_STRING)
+                            && table.getSelectionCount() > 0) {
 
-                    if (confirm) {
-                        deleteRow(table.getSelectionIndex());
-                        tab.savePshData(
-                                new ArrayList<StormDataEntry>(tableData.values()));
-                        setUnsavedChanges(false);
-                        if (table.getSelectionCount() < 1) {
-                            editButton.setEnabled(false);
-                            deleteButton.setEnabled(false);
-                            upButton.setEnabled(false);
-                            downButton.setEnabled(false);
+                    if (PshUtil.checkLockStatusOk(tab.getShell())) {
+                        boolean confirm = new MessageDialog(tab.getShell(),
+                                "Confirm Delete", null,
+                                "Are you sure you want to delete this entry?",
+                                MessageDialog.QUESTION,
+                                new String[] { IDialogConstants.YES_LABEL,
+                                        IDialogConstants.NO_LABEL },
+                                1).open() == MessageDialog.OK;
+
+                        if (confirm) {
+                            deleteRow(table.getSelectionIndex());
+                            tab.savePshData(new ArrayList<StormDataEntry>(
+                                    tableData.values()));
+                            setUnsavedChanges(false);
+                            if (table.getSelectionCount() < 1) {
+                                editButton.setEnabled(false);
+                                deleteButton.setEnabled(false);
+                                upButton.setEnabled(false);
+                                downButton.setEnabled(false);
+                            }
                         }
                     }
 
@@ -998,9 +1002,10 @@ public abstract class PshTable {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                tab.savePshData(
-                        new ArrayList<StormDataEntry>(tableData.values()));
-
+                if(PshUtil.checkLockStatusOk(tab.getShell())) {
+                    tab.savePshData(
+                            new ArrayList<StormDataEntry>(tableData.values()));
+                }
             }
         });
 
@@ -1021,6 +1026,8 @@ public abstract class PshTable {
         });
 
     }
+
+
 
     /**
      * Delete a row in the table.
