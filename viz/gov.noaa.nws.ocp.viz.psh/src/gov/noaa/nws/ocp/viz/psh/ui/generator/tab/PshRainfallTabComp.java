@@ -6,8 +6,12 @@ package gov.noaa.nws.ocp.viz.psh.ui.generator.tab;
 import java.text.DateFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +61,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * May 24, 2021 20652       wkwock      Re-factor load user files
  * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
  *                                      changes have not been saved
- *
+ * Jul 27, 2021 DCS22098    mporricelli Update Rainfall tab start and end times from
+ *                                      data when available
  * </pre>
  * 
  * @author wpaintsil
@@ -280,14 +285,21 @@ public class PshRainfallTabComp extends PshTabComp {
             endMonCombo.add(String.format("%02d", mm));
         }
 
-        // Fill hour combos
-        for (int hh = 0; hh <= 2345; hh += 15) {
-            if (hh % 100 == 60) {
-                hh += 40;
-            }
-            startHourCombo.add(String.format("%04d", hh));
-            endHourCombo.add(String.format("%04d", hh));
+        // Fill day combos for initial formatting
+        for (int dd = 1; dd < 32; dd++) {
+            startDayCombo.add(String.format("%02d", dd));
+            endDayCombo.add(String.format("%02d", dd));
         }
+
+        // Fill hour combos at 15-minute intervals
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HHmm");
+        LocalTime lt = LocalTime.of(0, 0);
+        do {
+            String s = dtf.format(lt);
+            startHourCombo.add(s);
+            endHourCombo.add(s);
+            lt = lt.plusMinutes(15);
+        } while (lt.isAfter(LocalTime.MIN));
 
         // Fill day combos based on the month and year
         startMonCombo.addSelectionListener(new SelectionAdapter() {
@@ -391,7 +403,8 @@ public class PshRainfallTabComp extends PshTabComp {
         if (startDay != null && startDay.trim().length() > 0) {
             startDayCombo.setText(startDay);
         } else {
-            startDayCombo.setText("" + startCal.get(Calendar.DAY_OF_MONTH));
+            startDayCombo.setText(
+                    String.format("%02d", startCal.get(Calendar.DAY_OF_MONTH)));
         }
 
         if (startHour != null && startHour.trim().length() == 4) {
@@ -407,7 +420,8 @@ public class PshRainfallTabComp extends PshTabComp {
         if (endDay != null && endDay.trim().length() > 0) {
             endDayCombo.setText(endDay);
         } else {
-            endDayCombo.setText("" + endCal.get(Calendar.DAY_OF_MONTH));
+            endDayCombo.setText(
+                    String.format("%02d", endCal.get(Calendar.DAY_OF_MONTH)));
         }
 
         if (endHour != null && endHour.trim().length() == 4) {
@@ -465,7 +479,7 @@ public class PshRainfallTabComp extends PshTabComp {
             pshData.getRainfall().setStartDay(startDayCombo.getText());
             pshData.getRainfall().setEndDay(endDayCombo.getText());
             pshData.getRainfall().setStartHour(startHourCombo.getText());
-            pshData.getRainfall().setEndHour(startHourCombo.getText());
+            pshData.getRainfall().setEndHour(endHourCombo.getText());
 
             saveAlert(PshUtil.savePshData(pshData));
             table.setUnsavedChanges(false);
@@ -497,6 +511,46 @@ public class PshRainfallTabComp extends PshTabComp {
         saveAlert(PshUtil.savePshData(pshData));
 
         pshGeneratorData.setPshData(pshData);
+
+    }
+
+    /**
+     * Update Rain Start and Rain End times
+     */
+    @Override
+    public void updateStartEndTimes() {
+        PshData tempData = new PshData();
+        tempData.getRainfall()
+                .setData(table.getTableData(RainfallDataEntry.class));
+
+        List<RainfallDataEntry> dataList = tempData.getRainfall().getData();
+        List<ZonedDateTime> dateTimeList = new ArrayList<>();
+
+        for (RainfallDataEntry dataItem : dataList) {
+            ZonedDateTime dateTime = dataItem.getReportDateTime();
+            dateTimeList.add(dateTime);
+        }
+
+        if (!dateTimeList.isEmpty()) {
+
+            Collections.sort(dateTimeList);
+
+            ZonedDateTime earliest = dateTimeList.get(0);
+            ZonedDateTime latest = dateTimeList.get(dateTimeList.size() - 1);
+
+            startMonCombo
+                    .setText(String.format("%02d", earliest.getMonthValue()));
+            startDayCombo
+                    .setText(String.format("%02d", earliest.getDayOfMonth()));
+            startHourCombo.setText(String.format("%02d", earliest.getHour())
+                    + String.format("%02d", earliest.getMinute()));
+
+            endMonCombo.setText(String.format("%02d", latest.getMonthValue()));
+            endDayCombo.setText(String.format("%02d", latest.getDayOfMonth()));
+            endHourCombo.setText(String.format("%02d", latest.getHour())
+                    + String.format("%02d", latest.getMinute()));
+
+        }
 
     }
 

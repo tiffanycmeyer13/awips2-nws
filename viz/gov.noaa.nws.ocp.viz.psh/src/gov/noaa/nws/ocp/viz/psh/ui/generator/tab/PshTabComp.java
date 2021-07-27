@@ -64,6 +64,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTable;
  * May 24, 2021 20652       wkwock      Add load user files button.
  * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
  *                                      changes have not been saved
+ * Jul 27, 2021 DCS22098    mporricelli Update Rainfall tab start and end times from
+ *                                      data when available
  *
  * </pre>
  * 
@@ -729,5 +731,11 @@ public abstract class PshTabComp extends Composite {
 
     /** Load user file */
     protected void loadUserFile() {
+    }
+
+    /**
+     * Update Rain Start and Rain End times
+     */
+    public void updateStartEndTimes() {
     }
 }
