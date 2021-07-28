@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="in" name="Precipitable H2O" abbreviation="Precipitable H2O" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="PW"/>
+    </Method>
+</DerivedParameter>

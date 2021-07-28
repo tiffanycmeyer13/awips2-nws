@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.WordUtils;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -29,6 +28,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
@@ -97,6 +97,8 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Nov 22, 2017 #40417      astrakovsky Added alternate method for reading a file.
  * Dec 08, 2017 #41955      astrakovsky Added static county list for storing county geometry data.
  * Feb 15, 2018 #46354      wpaintsil   Various refactorings.
+ * May 27, 2021 DCS22095    mporricelli Make Setup editing more efficient
+ * JUN 09, 2021 DCS20652    wkwock      Remove capitalize from station name
  *
  * </pre>
  *
@@ -384,8 +386,8 @@ public class PshUtil {
             TableItem item, int column, String fieldText, String tipText,
             String[] autoSuggestions, PshMultiFieldSetupDialog dialog) {
 
-        TableEditor fieldEditor = createTableField(table, item, column, tipText,
-                tipText);
+        TableEditor fieldEditor = createTableField(table, item, column,
+                fieldText, tipText);
 
         Text textField = (Text) fieldEditor.getEditor();
 
@@ -449,8 +451,8 @@ public class PshUtil {
             TableItem item, int column, String fieldText, String tipText,
             String[] autoSuggestions) {
 
-        TableEditor fieldEditor = createTableField(table, item, column, tipText,
-                tipText);
+        TableEditor fieldEditor = createTableField(table, item, column,
+                fieldText, tipText);
 
         Text textField = (Text) fieldEditor.getEditor();
 
@@ -1299,7 +1301,7 @@ public class PshUtil {
     public static String buildStationFullName(PshStation station) {
         String code = station.getCode();
         String state = station.getState();
-        String name = WordUtils.capitalizeFully(station.getName().trim());
+        String name = station.getName().trim();
 
         String fname = "";
         if (code != null && !code.isEmpty()) {
@@ -1319,6 +1321,108 @@ public class PshUtil {
         }
 
         return fname;
+    }
+
+    /**
+     * Verify validity of latitude text field; if not valid, change field's
+     * background color
+     * 
+     * @param text
+     *            - the text to be verified
+     * @param latCol
+     *            - column number of table's latitude
+     * @param tableItem
+     *            - current row
+     * @return validity - boolean of lat value's validity
+     */
+    public static boolean verifyLatField(String text, TableItem tableItem,
+            int latCol) {
+        boolean validField = false;
+        if (text != null) {
+            try {
+                double lat = Double.parseDouble(text);
+                if (Math.abs(lat) <= 90) {
+                    validField = true;
+                }
+            } catch (NumberFormatException e) {
+                // Carry on with false
+            }
+        }
+        setBackground(tableItem, latCol, validField);
+        return validField;
+    }
+
+    /**
+     * Verify validity of longitude text field; if not valid, change field's
+     * background color
+     * 
+     * @param text
+     *            - the text to be verified
+     * @param lonCol
+     *            - column number of table's longitude
+     * @param tableItem
+     *            - current row
+     * @return validity - boolean of lon value's validity
+     */
+    public static boolean verifyLonField(String text, TableItem tableItem,
+            int lonCol) {
+        boolean validField = false;
+        if (text != null) {
+            try {
+                double lon = Double.parseDouble(text);
+                if (Math.abs(lon) <= 180) {
+                    validField = true;
+                }
+            } catch (NumberFormatException e) {
+                // Carry on with false
+            }
+        }
+        setBackground(tableItem, lonCol, validField);
+        return validField;
+
+    }
+
+    /**
+     * Verify text field is filled; if blank, change field's background color
+     * 
+     * @param text
+     *            - text to be verified
+     * @param tableItem
+     *            - current row
+     * @param column
+     *            - current column
+     * @return - true if field filled, false if blank
+     */
+    public static boolean verifyFieldFilled(String text, TableItem tableItem,
+            int column) {
+        boolean isFilled = !text.isEmpty();
+        setBackground(tableItem, column, isFilled);
+        return isFilled;
+    }
+
+    /**
+     * Change/set background color of this field
+     *
+     * @param tableItem
+     *            - current row
+     * @param column
+     *            - current column
+     * @param isNormal
+     *            - true if field entry is valid, false otherwise
+     */
+    public static void setBackground(TableItem tableItem, int column,
+            boolean isNormal) {
+
+        if (isNormal) {
+            Color white = tableItem.getDisplay()
+                    .getSystemColor(SWT.COLOR_WHITE);
+            tableItem.setBackground(column, white);
+        } else {
+            Color yellow = tableItem.getDisplay()
+                    .getSystemColor(SWT.COLOR_YELLOW);
+            tableItem.setBackground(column, yellow);
+        }
+
     }
 
 }

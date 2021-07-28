@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter abbreviation="Microburst Composite" name="Microburst Composite" unit="">
+    <Method name="NSEA_MCP" levels="Layer">
+        <Field abbreviation="cCape" level="Surface"/>
+        <Field abbreviation="L-I" level="Surface"/>
+        <Field abbreviation="gamma" level="0-3kmAgl"/>
+        <Field abbreviation="vTOT"/>
+        <Field abbreviation="dCape" level="Surface"/>
+        <Field abbreviation="PW"/>
+    </Method>
+</DerivedParameter>

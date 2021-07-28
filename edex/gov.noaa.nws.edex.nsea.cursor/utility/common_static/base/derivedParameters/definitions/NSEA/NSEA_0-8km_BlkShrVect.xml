@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="Bulk Shear Vectors" abbreviation="0-8km Blk Shr Vect" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-8 km AGL" abbreviation="BlkShr"/>
+    </Method>
+</DerivedParameter>

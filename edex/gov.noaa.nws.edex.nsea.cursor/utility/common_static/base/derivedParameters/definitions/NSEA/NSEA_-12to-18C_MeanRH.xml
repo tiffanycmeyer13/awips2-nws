@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="%" name="Mean RH" abbreviation="Mean RH in Dendritic Layer" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="-12 to -18C" abbreviation="RH"/>
+    </Method>
+</DerivedParameter>

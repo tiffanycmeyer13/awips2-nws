@@ -34,6 +34,9 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTornadoTable;
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
  * Aug 22, 2017 #36922      astrakovsky Added autocomplete fields for rainfall and tornadoes.
  * Sep 08, 2017 #36923      astrakovsky Added direction control type.
+ * Jun 10, 2021  20652      wkwock      Update createRemarksArea for load user file
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -91,7 +94,8 @@ public class PshTornadoesTabComp extends PshTabComp {
         sashData.heightHint = 500;
         verticalSashForm.setLayoutData(sashData);
 
-        createRemarksArea(verticalSashForm, true, false, "Tornado Remarks");
+        createRemarksArea(verticalSashForm, true, false, false,
+                "Tornado Remarks");
 
         setRemarksTextEditable(false);
 
@@ -129,7 +133,7 @@ public class PshTornadoesTabComp extends PshTabComp {
             pshData.getTornado().setData(tornadoDataList);
 
             saveAlert(PshUtil.savePshData(pshData));
-
+            table.setUnsavedChanges(false);
             pshGeneratorData.setPshData(pshData);
         }
     }

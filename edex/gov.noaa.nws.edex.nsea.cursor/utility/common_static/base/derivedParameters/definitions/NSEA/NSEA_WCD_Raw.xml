@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="Warm Cloud Depth Raw" abbreviation="Warm Cloud Depth Raw" xmlns:ns2="group">
+    <Method levels="Layer" name="Difference">
+        <Field level="0C" abbreviation="0C Hgt AGL"/>
+        <Field level="LiftCondLvl" abbreviation="zAGL"/>
+    </Method>
+</DerivedParameter>

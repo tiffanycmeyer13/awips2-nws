@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="g·m/(kg·s)" name="Moisture Transport" abbreviation="850mb Moisture Transport Vectors" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="850MB" abbreviation="MTV"/>
+    </Method>
+</DerivedParameter>

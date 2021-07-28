@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter name="Bulk Richardson Number" abbreviation="Bulk Richardson Number" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="Layer" abbreviation="BRN"/>
+    </Method>
+</DerivedParameter>

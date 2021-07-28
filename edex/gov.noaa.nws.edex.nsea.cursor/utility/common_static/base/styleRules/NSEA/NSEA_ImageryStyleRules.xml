@@ -1,0 +1,865 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<styleRuleset>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>600mb CAPE</parameter>
+      <parameter>625mb CAPE</parameter>
+      <parameter>650mb CAPE</parameter>
+      <parameter>675mb CAPE</parameter>
+      <parameter>700mb CAPE</parameter>
+      <parameter>725mb CAPE</parameter>
+      <parameter>750mb CAPE</parameter>
+      <parameter>775mb CAPE</parameter>
+      <parameter>800mb CAPE</parameter>
+      <parameter>825mb CAPE</parameter>
+      <parameter>850mb CAPE</parameter>
+      <parameter>875mb CAPE</parameter>
+      <parameter>900mb CAPE</parameter>
+      <parameter>925mb CAPE</parameter>
+      <parameter>950mb CAPE</parameter>
+      <parameter>MUCAPE</parameter>
+      <parameter>MLCAPE</parameter>
+      <parameter>SBCAPE</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>J/kg</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>5000</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>500</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>SB Hail Growth CAPE</parameter>
+      <parameter>ML Hail Growth CAPE</parameter>
+      <parameter>DCAPE</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>J/kg</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>2500</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>500</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-3km MLCAPE</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>J/kg</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>500</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>50</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>600mb CIN</parameter>
+      <parameter>625mb CIN</parameter>
+      <parameter>650mb CIN</parameter>
+      <parameter>675mb CIN</parameter>
+      <parameter>700mb CIN</parameter>
+      <parameter>725mb CIN</parameter>
+      <parameter>750mb CIN</parameter>
+      <parameter>775mb CIN</parameter>
+      <parameter>800mb CIN</parameter>
+      <parameter>825mb CIN</parameter>
+      <parameter>850mb CIN</parameter>
+      <parameter>875mb CIN</parameter>
+      <parameter>900mb CIN</parameter>
+      <parameter>925mb CIN</parameter>
+      <parameter>950mb CIN</parameter>
+      <parameter>SBCIN</parameter>
+      <parameter>MLCIN</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>J/kg</displayUnits>
+      <range scale="LINEAR">
+          <minValue>0</minValue>
+          <maxValue>250</maxValue>
+      </range>
+          <defaultColormap>Grid/gridded data</defaultColormap>
+          <colorbarLabeling>
+            <increment>25</increment>
+        </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Warm Cloud Depth</parameter>
+      <parameter>50 dBZ Hail Hgt AGL</parameter>
+      <parameter>0C Hgt AGL</parameter>
+      <parameter>-10C Hgt AGL</parameter>
+      <parameter>-12C Hgt AGL</parameter>
+      <parameter>-18C Hgt AGL</parameter>
+      <parameter>-20C Hgt AGL</parameter>
+      <parameter>-30C Hgt AGL</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>ft</displayUnits>
+    </imageStyle>
+  </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>850mb Moisture Flux Divergence</parameter>
+      <parameter>925mb Moisture Flux Divergence</parameter>
+      </paramLevelMatches>
+     <imageStyle>
+     <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+     <range scale="LINEAR">
+        <minValue>-120</minValue>
+        <maxValue>2</maxValue>
+      </range>
+      <colorbarLabeling>
+        <increment>20</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+     <parameter>850mb Moisture Trans Mag</parameter>
+     <parameter>925mb Moisture Trans Mag</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+     <displayUnits label="ktsg/kg">kts·g/kg</displayUnits>
+     <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>500</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>50</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Sfc Theta-E Adv</parameter>
+      <parameter>850mb Theta-E Adv</parameter>
+      <parameter>925mb Theta-E Adv</parameter>
+      <parameter>0-1km Theta-E Adv</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits label="C/12hr">K/h*12</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-100</minValue>
+        <maxValue>100</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>25</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>ML LCL Hgt</parameter>
+      <parameter>Sfc-Based LCL Hgt</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>m</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>2400</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>200</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>SB LI</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-15</minValue>
+        <maxValue>15</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>4</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>K Index</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-50</minValue>
+        <maxValue>50</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>Cross Totals</parameter>
+      <parameter>Total Totals</parameter>
+     </paramLevelMatches>
+   <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>70</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>Vertical Totals</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+      <displayUnits></displayUnits>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>5</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>SWEAT Index</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+      <displayUnits></displayUnits>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>100</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Showalter Index</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+          <minValue>-15</minValue>
+          <maxValue>15</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+          <increment>4</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-3km ThetaE Diff</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>K</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-50</minValue>
+        <maxValue>50</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>3</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-3km LR</parameter>
+      <parameter>700-500mb LR</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits label="C/km">K/km</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-5</minValue>
+        <maxValue>10</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>1</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-500m Helicity</parameter>
+      <parameter>0-1km Helicity</parameter>
+      <parameter>0-2km Helicity</parameter>
+      <parameter>0-3km Helicity</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>m*m/s*s</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>500</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>100</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-500m Blk Shr Mag</parameter>
+      <parameter>0-1km Blk Shr Mag</parameter>
+      <parameter>0-2km Blk Shr Mag</parameter>
+      <parameter>0-3km Blk Shr Mag</parameter>
+      <parameter>0-6km Blk Shr Mag</parameter>
+      <parameter>0-8km Blk Shr Mag</parameter>
+      <parameter>0-10km Blk Shr Mag</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>kts</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>100</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>0-1km EHI</parameter>
+      <parameter>0-2km EHI</parameter>
+      <parameter>0-3km EHI</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>m*m/s*s</displayUnits>
+      <range scale="LINEAR">
+          <minValue>0</minValue>
+          <maxValue>8.</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+          <increment>0.5</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>Sig Tor Parm</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+      <displayUnits></displayUnits>
+      <range scale="LINEAR">
+          <minValue>0</minValue>
+          <maxValue>15</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>2</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>Non-Supercell Tor Parm</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+      <displayUnits></displayUnits>
+      <range scale="LINEAR">
+          <minValue>0</minValue>
+          <maxValue>10</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>1</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>MCS Maint Prob</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>%</displayUnits>
+      <range scale="LINEAR">
+          <minValue>0</minValue>
+          <maxValue>100</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+          <increment>20</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+ <styleRule>
+   <paramLevelMatches>
+      <parameter>Sig Severe</parameter>
+   </paramLevelMatches>
+   <imageStyle>
+      <displayUnits></displayUnits>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10000</increment>
+      </colorbarLabeling>
+   </imageStyle>
+ </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>-12 to -18C Omega</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits label="-ubar/s">(Pa/s)*-0.1</displayUnits>
+      <range mirror="true" scale="LOG">
+        <minValue>0.5</minValue>
+        <maxValue>30</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <values>0 1 2 5 10 20</values>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>-12 to -18C Thickness</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>ft</displayUnits>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Hail Growth Zone Thickness</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>m</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>10000</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>500</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Max Warm Nose Wet Bulb Temp</parameter>
+      <parameter>Max Warm Nose Dew Point Dep</parameter>
+      <parameter>Min Cold Nose Wet Bulb Temp</parameter>
+      <parameter>Avg Cold Nose Wet Bulb Temp</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-45</minValue>
+        <maxValue>45</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Max 0-5km Dew Point Dep</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-4</minValue>
+        <maxValue>60</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>5</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Surface Temp</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>F</displayUnits>
+      <range scale="LINEAR">
+          <minValue>-50</minValue>
+          <maxValue>115</maxValue>
+        </range>
+        <defaultColormap>Grid/gridded data</defaultColormap>
+        <colorbarLabeling>
+          <increment>20</increment>
+        </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Sfc Dew Point</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>F</displayUnits>
+      <range scale="LINEAR">
+          <minValue>-40</minValue>
+          <maxValue>90</maxValue>
+        </range>
+        <defaultColormap>Grid/gridded data</defaultColormap>
+        <colorbarLabeling>
+          <increment>20</increment>
+        </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>500mb Temp</parameter>
+      <parameter>700mb Temp</parameter>
+      <parameter>850mb Temp</parameter>
+      <parameter>925mb Temp</parameter>
+      <parameter>700mb Dew Point</parameter>
+      <parameter>850mb Dew Point</parameter>
+      <parameter>925mb Dew Point</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>C</displayUnits>
+      <range scale="LINEAR">
+          <minValue>-40</minValue>
+          <maxValue>40</maxValue>
+        </range>
+        <defaultColormap>Grid/gridded data</defaultColormap>
+        <colorbarLabeling>
+          <increment>20</increment>
+        </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Max RH in Dendritic Layer</parameter>
+      <parameter>Mean RH in Dendritic Layer</parameter>
+      <parameter>500-300mb RH</parameter>
+      <parameter>700-500mb RH</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>%</displayUnits>
+      <range scale="LINEAR">
+        <minValue>-5</minValue>
+        <maxValue>105</maxValue>
+      </range>
+      <defaultColormap>Grid/warm to cold</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Bulk Richardson Number</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>%</displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>150</maxValue>
+      </range>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>10</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+      <parameter>Microburst Composite</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+    <displayUnits></displayUnits>
+      <range scale="LINEAR">
+        <minValue>0</minValue>
+        <maxValue>12</maxValue>
+      </range>
+      <colorbarLabeling>
+        <values>3 5 7 9 11</values>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>Large Hail Parameter</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits></displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>30</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>1</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>Supercell Composite Parm</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits></displayUnits>
+            <colorbarLabeling>
+                <increment>10</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>SHERB_S3</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits></displayUnits>
+            <colorbarLabeling>
+                <increment>0.4</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+    <parameter>Critical Angle (Filtered)</parameter>
+    <parameter>Critical Angle</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>deg</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>360</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>30</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+     <parameter>Sfc Mixing Ratio</parameter>
+     <parameter>0-1km Mixing Ratio</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>g/kg</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>30</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>5</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+     <parameter>MSL Pressure</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>mb</displayUnits>
+            <range scale="LINEAR">
+                <minValue>850</minValue>
+                <maxValue>1060</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>50</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+     <parameter>1 Hr Sfc Press Change</parameter>
+     <parameter>3 Hr Sfc Press Change</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>mb</displayUnits>
+            <range scale="LINEAR">
+                <minValue>-12</minValue>
+                <maxValue>12</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>3</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+      <creatingEntity>RUC130</creatingEntity>
+      <parameter>Sfc Moisture Convergence</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>200</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>25</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+      <creatingEntity>LAPS</creatingEntity>
+      <parameter>Sfc Moisture Convergence</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>800</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>100</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+      <creatingEntity>HRRR</creatingEntity>
+      <parameter>Sfc Moisture Convergence</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>1500</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>250</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+      <creatingEntity>RUC130</creatingEntity>
+      <parameter>0-1km Moisture Convergence</parameter>
+      <parameter>925mb Moisture Convergence</parameter>
+      <parameter>850mb Moisture Convergence</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>100</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>20</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+      <creatingEntity>LAPS</creatingEntity>
+      <creatingEntity>HRRR</creatingEntity>
+      <parameter>0-1km Moisture Convergence</parameter>
+      <parameter>925mb Moisture Convergence</parameter>
+      <parameter>850mb Moisture Convergence</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits label="g/kg/12hr">(g/kg)/h*12</displayUnits>
+            <range scale="LINEAR">
+                <minValue>0</minValue>
+                <maxValue>400</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>50</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+    <paramLevelMatches>
+     <parameter>Sfc Pot Temp</parameter>
+     <parameter>Sfc Theta-E</parameter>
+     <parameter>850mb Theta-E</parameter>
+     <parameter>700mb Theta-E</parameter>
+     <parameter>0-1km Theta-E</parameter>
+    </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>K</displayUnits>
+            <range scale="LINEAR">
+                <minValue>250</minValue>
+                <maxValue>380</maxValue>
+            </range>
+            <colorbarLabeling>
+                <increment>20</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>0-3km VGP</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits></displayUnits>
+            <colorbarLabeling>
+                <increment>0.10</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+     <parameter>925mb Height</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>m</displayUnits>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>20</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+  <styleRule>
+    <paramLevelMatches>
+     <parameter>850mb Height</parameter>
+     <parameter>700mb Height</parameter>
+     <parameter>500mb Height</parameter>
+     <parameter>250mb Height</parameter>
+    </paramLevelMatches>
+    <imageStyle>
+      <displayUnits>dam</displayUnits>
+      <defaultColormap>Grid/gridded data</defaultColormap>
+      <colorbarLabeling>
+        <increment>20</increment>
+      </colorbarLabeling>
+    </imageStyle>
+  </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+     <parameter>500mb 6hr Hgt Change</parameter>
+     <parameter>500mb 12hr Hgt Change</parameter>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>dam</displayUnits>
+            <range scale="LINEAR">
+                <minValue>-50</minValue>
+                <maxValue>50</maxValue>
+            </range>
+            <defaultColormap>Grid/gridded data</defaultColormap>
+            <colorbarLabeling>
+                <increment>10</increment>
+            </colorbarLabeling>
+        </imageStyle>
+    </styleRule>
+</styleRuleset>

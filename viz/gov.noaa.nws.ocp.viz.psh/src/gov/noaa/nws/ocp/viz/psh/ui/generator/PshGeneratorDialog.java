@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,7 +48,6 @@ import gov.noaa.nws.ocp.common.localization.psh.PshBasin;
 import gov.noaa.nws.ocp.common.localization.psh.PshConfigurationManager;
 import gov.noaa.nws.ocp.common.localization.psh.PshCounties;
 import gov.noaa.nws.ocp.common.localization.psh.PshForecasters;
-import gov.noaa.nws.ocp.common.localization.psh.PshStormNames;
 import gov.noaa.nws.ocp.viz.psh.PshPrintUtil;
 import gov.noaa.nws.ocp.viz.psh.PshUtil;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshEffectsTabComp;
@@ -56,6 +56,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshMarineTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshMetarTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshNonMetarTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshRainfallTabComp;
+import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTornadoesTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshWaterLevelTabComp;
 import gov.noaa.nws.ocp.viz.psh.ui.setup.PshCitiesSetupDialog;
@@ -90,6 +91,9 @@ import gov.noaa.nws.ocp.viz.psh.ui.setup.PshSetupConfigDialog;
  * Nov 20, 2017 #40417      astrakovsky Added historical report viewer to menu.
  * Dec 06, 2017 #41620      wpaintsil   Add import option to the File menu.
  * Dec 11, 2017 #41998      jwu         Use localization access control file in base/roles.
+ * JUN 09, 2021  DCS21225   wkwock      Use storm names from StormNames.py
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -115,6 +119,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
      */
     private Label countiesLabel;
 
+    private int curTab = 0;
+
+    private int basinIdx;
+
+    private int yearIdx;
+
+    private int stormIdx;
+
+    private int fcstrIdx;
+
     /**
      * The tab folder holding each tab
      */
@@ -126,6 +140,8 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     private PshData pshData;
 
     private Combo basinCombo;
+
+    private Label yearLbl;
 
     private Combo yearCombo;
 
@@ -148,8 +164,6 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     private PshTornadoesTabComp tornadoesTab;
 
     private PshEffectsTabComp effectsTab;
-
-    private SelectionAdapter comboListener;
 
     private Composite stackComposite;
 
@@ -196,6 +210,8 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
      * Title string used for the window title and the tabs
      */
     public static final String PSH_TITLE = "POST TROPICAL CYCLONE REPORT GENERATOR";
+
+    private Map<String, Map<Long, List<String>>> stormNames = null;
 
     /**
      * Constructor
@@ -276,7 +292,9 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         viewSendMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                new PshViewSendDialog(getShell(), pshData).open();
+                if (checkEditStatusOk()) {
+                    new PshViewSendDialog(getShell(), pshData).open();
+                }
             }
         });
 
@@ -288,10 +306,12 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         printMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
+                if (checkEditStatusOk()) {
 
-                String pshReport = PshUtil.buildPshReport(pshData);
+                    String pshReport = PshUtil.buildPshReport(pshData);
 
-                PshPrintUtil.getPshPrinter().printInput(pshReport);
+                    PshPrintUtil.getPshPrinter().printInput(pshReport);
+                }
 
             }
         });
@@ -328,9 +348,9 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         closeMenuItem.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-
-                PshGeneratorDialog.this.close();
-
+                if (checkEditStatusOk()) {
+                    PshGeneratorDialog.this.close();
+                }
             }
         });
 
@@ -476,8 +496,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         basinCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                updateStormList();
-                pshData.setBasinName(basinCombo.getText());
+                if (checkEditStatusOk()) {
+                    updateYearList();
+                    updateStormList();
+                    pshData.setBasinName(basinCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected basin. Change
+                     * menu back to previously selected basin.
+                     */
+                    basinCombo.select(basinIdx);
+                }
             }
         });
 
@@ -488,7 +518,8 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         yearLayout.marginBottom = 10;
         yearComp.setLayout(yearLayout);
 
-        new Label(yearComp, SWT.NORMAL).setText("Year:");
+        yearLbl = new Label(yearComp, SWT.NORMAL);
+        yearLbl.setText("Year:");
 
         yearCombo = new Combo(yearComp, SWT.READ_ONLY);
 
@@ -505,8 +536,17 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         yearCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                updateStormList();
-                pshData.setYear(Integer.valueOf(yearCombo.getText()));
+                if (checkEditStatusOk()) {
+                    updateStormList();
+                    pshData.setYear(Integer.valueOf(yearCombo.getText()));
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected year. Change
+                     * menu back to previously selected year.
+                     */
+                    yearCombo.select(yearIdx);
+                }
             }
         });
 
@@ -526,7 +566,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         stormCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                pshData.setStormName(stormCombo.getText());
+                if (checkEditStatusOk()) {
+                    pshData.setStormName(stormCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected storm. Change
+                     * menu back to previously selected storm.
+                     */
+                    stormCombo.select(stormIdx);
+                }
             }
         });
 
@@ -556,7 +605,16 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         forecasterCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                pshData.setForecaster(forecasterCombo.getText());
+                if (checkEditStatusOk()) {
+                    pshData.setForecaster(forecasterCombo.getText());
+                    showTabContent();
+                } else {
+                    /*
+                     * Do not continue switch to newly selected forecaster.
+                     * Change menu back to previously selected forecaster.
+                     */
+                    forecasterCombo.select(fcstrIdx);
+                }
             }
         });
 
@@ -607,17 +665,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     }
 
     /**
-     * If any tab's table is in the editing state, cancel it.
+     * Check the current tab's editing state to prevent
+     * loss of user input
+     *
+     * @return
      */
-    private void cancelEditing() {
-        metarTab.cancelEditing();
-        nonMetarTab.cancelEditing();
-        marineTab.cancelEditing();
-        rainfallTab.cancelEditing();
-        floodingTab.cancelEditing();
-        waterLevelTab.cancelEditing();
-        tornadoesTab.cancelEditing();
-        effectsTab.cancelEditing();
+    protected boolean checkEditStatusOk() {
+        int selectedIndex = tabFolder.getSelectionIndex();
+        if (selectedIndex >= 0) {
+            PshTabComp tabComp = (PshTabComp) tabFolder.getItem(selectedIndex).getControl();
+            return tabComp.checkEditStatusOk();
+        }
+        return false;
     }
 
     /**
@@ -689,11 +748,18 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         tornadoesTab = new PshTornadoesTabComp(this, tabFolder);
         effectsTab = new PshEffectsTabComp(this, tabFolder);
 
-        // Cancel row editing when switching tabs.
+        curTab = tabFolder.getSelectionIndex();
+
+        // Check row editing status when switching tabs.
         tabFolder.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                cancelEditing();
+                int newTab = tabFolder.getSelectionIndex();
+                tabFolder.setSelection(curTab);
+                if (checkEditStatusOk()) {
+                    tabFolder.setSelection(newTab);
+                    curTab = newTab;
+                }
             }
         });
 
@@ -743,22 +809,6 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
 
         });
 
-        // Add a listener to each combo so that the tabs can be shown when all
-        // of them have a selection.
-        comboListener = new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                cancelEditing();
-                showTabContent();
-            }
-        };
-
-        forecasterCombo.addSelectionListener(comboListener);
-        stormCombo.addSelectionListener(comboListener);
-
-        basinCombo.addSelectionListener(comboListener);
-        yearCombo.addSelectionListener(comboListener);
-
     }
 
     /**
@@ -774,6 +824,10 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         if (stackLayout != null && tabFolder != null
                 && stackComposite != null) {
             if (show) {
+                basinIdx = basinCombo.getSelectionIndex();
+                yearIdx = yearCombo.getSelectionIndex();
+                stormIdx = stormCombo.getSelectionIndex();
+                fcstrIdx = forecasterCombo.getSelectionIndex();
                 stackLayout.topControl = tabFolder;
 
                 countiesButton.setEnabled(true);
@@ -822,11 +876,11 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
         // another forecaster.
         if (pshData.getForecaster() != null
                 && !pshData.getForecaster().equals(forecasterCombo.getText())) {
-            new MessageDialog(getShell(), "", null,
-                    "The report for the storm, " + pshData.getStormName()
-                            + ", has been already created or previously edited by the forecaster, "
-                            + pshData.getForecaster() + ".",
-                    MessageDialog.WARNING, new String[] { "OK" }, 0).open();
+            new MessageDialog(getShell(), "", null, "The report for the storm, "
+                    + pshData.getStormName()
+                    + ", has been already created or previously edited by the forecaster, "
+                    + pshData.getForecaster() + ".", MessageDialog.WARNING,
+                    new String[] { "OK" }, 0).open();
 
         }
 
@@ -990,7 +1044,7 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
      */
     @Override
     public boolean close() {
-        if (PshUtil.exitConfirmed(getShell())) {
+        if (checkEditStatusOk() && PshUtil.exitConfirmed(getShell()))  {
             return super.close();
         } else {
             return false;
@@ -998,22 +1052,74 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     }
 
     /**
+     * Update the year combo base on the basin selection
+     */
+    private void updateYearList() {
+        yearCombo.removeAll();
+        PshBasin pshBasin = PshBasin.getPshBasin(basinCombo.getText());
+
+        if (pshBasin == PshBasin.AT || pshBasin == PshBasin.EP) {
+            // Atlantic and Eastern Pacific
+            String[] comboYears = new String[12];
+            int currentYear = TimeUtil.newCalendar().get(Calendar.YEAR);
+            int ii = 0;
+            // 12 years for the yearCombo
+            for (int jj = currentYear + 1; jj >= currentYear - 10; jj--) {
+                comboYears[ii] = String.valueOf(jj);
+                ii++;
+            }
+            yearCombo.setItems(comboYears);
+            yearCombo.select(1);
+            yearLbl.setText("Year:");
+        } else {
+            // Central Pacific and Western Pacific
+            Map<Long, List<String>> nameLists = stormNames
+                    .get(pshBasin.getName());
+            if (nameLists != null) {
+                // use the list number from StormNames.py instead of years
+                for (Long num : nameLists.keySet()) {
+                    yearCombo.add(num.toString());
+                }
+                yearCombo.select(0);
+            }
+
+            yearLbl.setText("List:");
+        }
+    }
+
+    /**
      * Update storm name list for basin/year selection.
      */
     private void updateStormList() {
-
         PshBasin basin = PshBasin.getPshBasin(basinCombo.getText());
-        PshStormNames storms = PshConfigurationManager.getInstance()
-                .getStormNames(basin, yearCombo.getText());
+        if (stormNames == null) {
+            // get the storm names from StormNames.py
+            stormNames = PshConfigurationManager.getInstance().readStormNames();
+        }
+
+        Long listNum = Long.parseLong(yearCombo.getText());
+        if (basin == PshBasin.AT || basin == PshBasin.EP) {
+            // for Atlantic and Eastern Pacific. Rotate every 6 years
+            // In StormNames.py, 3 is for year 2021, 2027, etc, 4 is for year
+            // 2022, 2028, etc
+            listNum = (listNum - 2) % 6;
+        }
 
         stormCombo.removeAll();
 
-        // Save to storm names into localization SITE level
-        if (storms != null && !storms.getStorms().isEmpty()) {
-            PshConfigurationManager.getInstance().saveStormNames(storms);
+        // get storm names base on the basin name
+        Map<Long, List<String>> basinStormNames = stormNames
+                .get(basin.getName());
 
-            for (String storm : storms.getStorms()) {
-                stormCombo.add(storm);
+        if (basinStormNames != null) {
+            // get the storm names base on the year/list selection
+            List<String> names = basinStormNames.get(listNum);
+
+            // populate the storm names to stormCombo
+            if (names != null && !names.isEmpty()) {
+                for (String name : names) {
+                    stormCombo.add(name);
+                }
             }
         }
 

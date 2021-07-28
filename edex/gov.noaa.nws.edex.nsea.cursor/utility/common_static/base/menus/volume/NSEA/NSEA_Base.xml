@@ -1,0 +1,2404 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <!--
+        This_software_was_developed_and_/_or_modified_by_Raytheon_Company,
+        pursuant_to_Contract_DG133W-05-CQ-1067_with_the_US_Government.
+
+        U.S._EXPORT_CONTROLLED_TECHNICAL_DATA
+        This_software_product_contains_export-restricted_data_whose
+        export/transfer/disclosure_is_restricted_by_U.S._law._Dissemination
+        to_non-U.S._persons_whether_in_the_United_States_or_abroad_requires
+        an_export_license_or_other_authorization.
+
+        Contractor_Name:________Raytheon_Company
+        Contractor_Address:_____6825_Pine_Street,_Suite_340
+        ________________________Mail_Stop_B8
+        ________________________Omaha,_NE_68106
+        ________________________402.291.0100
+
+        See_the_AWIPS_II_Master_Rights_File_("Master_Rights_File.pdf")_for
+        further_licensing_information.
+    -->
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="titleItem" titleText="------ Bundles ------"
+        id="BundlesLine" />
+    <contribute xsi:type="subMenu" menuText="Elevated CAPE Environment">
+    <contribute xsi:type="titleItem" titleText="------ Parcel Buoyancy/Inhibition ------"
+        id="BundlesLine" />
+    <contribute xsi:type="subMenu" menuText="600 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="600"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="600"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="600"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="625 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="625"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="625"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="625"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="650 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="650"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="650"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="650"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="675 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="675"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="675"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="675"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="700"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="700"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="700"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="725 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="725"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="725"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="725"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="750 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="750"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="750"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="750"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="775 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="775"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="775"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="775"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="800 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="800"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="800"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="800"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="825 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="825"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="825"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="825"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="850"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="850"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="850"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="875 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="875"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="875"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="875"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="900 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="900"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="900"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="900"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="925"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="925"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="925"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="950 mb">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        <substitute key="level" value="950"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        <substitute key="level" value="950"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Nmb_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        <substitute key="level" value="950"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="All Planes">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_AllPlanes_Parcel_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_AllPlanes_Parcel_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_AllPlanes_Parcel_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Hail Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Hail_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Hail_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Hail_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Heavy Rainfall Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HeavyRain_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HeavyRain_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HeavyRain_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Pulse Severe Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Pulser_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Pulser_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Pulser_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="QLCS Tornado/Wind Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_QLCS_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_QLCS_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_QLCS_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Supercell Tornado Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SupercellTor_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SupercellTor_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SupercellTor_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+<!--     <contribute xsi:type="subMenu" menuText="Snow Efficiency Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Snow_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Snow_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Snow_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Weather Environment">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TopDownWx_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TopDownWx_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TopDownWx_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>     -->
+    <contribute xsi:type="titleItem" titleText="------ Individual Parameters ------"
+        id="IndividualParmsLine" />
+    <contribute xsi:type="subMenu" menuText="Composite Indices and Parameters">
+    <contribute xsi:type="subMenu" menuText="0-3 km EHI">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_EHI_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_EHI_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_EHI_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-2 km EHI">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_EHI_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_EHI_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_EHI_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km EHI">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_EHI_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_EHI_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_EHI_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Bulk Richardson Number">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_BRN_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_BRN_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_BRN_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Cross Totals">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="K Index">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_KI_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_KI_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_KI_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface-Based Lifted Index">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LI_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LI_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LI_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Large Hail Parameter">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LHP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LHP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_LHP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="MCS Maint Prob">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MMP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MMP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MMP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Microburst Composite">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MCP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MCP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MCP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Non-Supercell Tornado Parameter">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_NST_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_NST_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_NST_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="SHERBS3">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SHERB_S3_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SHERB_S3_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SHERB_S3_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Showalter Index">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Showalter_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Showalter_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Showalter_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Sig Severe Parameter">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SSP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SSP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SSP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Sig Tor Parameter">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_STP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_STP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_STP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Supercell Composite Parameter">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SCP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SCP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SCP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="SWEAT Index">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SWEAT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SWEAT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SWEAT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Total Totals">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_TT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Vertical Totals">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_VT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_VT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_VT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Vorticity Generation Parameter (0-3 km)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_VGP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_VGP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_VGP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Critical Heights and Levels">
+    <contribute xsi:type="subMenu" menuText="-30 C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-30C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-30C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-30C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="-20 C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-20C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-20C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-20C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+<!--     <contribute xsi:type="subMenu" menuText="-18C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-18C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-18C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-18C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="-12C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute> -->
+    <contribute xsi:type="subMenu" menuText="-10 C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0 C Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0C_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0C_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0C_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="50 dBZ Hail Height AGL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Donavon_Height_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Donavon_Height_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Donavon_Height_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Mixed Layer (0-1 km) LCL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLLCL_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLLCL_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLLCL_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface-Based LCL">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_LCL_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_LCL_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_LCL_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Heavy Rainfall/Moisture Parameters">
+    <contribute xsi:type="subMenu" menuText="500-300 mb RH">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500-300mb_RH_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500-300mb_RH_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500-300mb_RH_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700-500 mb RH">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_RH_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_RH_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_RH_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Moisture Transport Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Moisture Transport Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransVectors_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransVectors_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_MoistureTransVectors_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Theta-E">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Theta-E Advection">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TEAdv_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TEAdv_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_TEAdv_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Moisture Transport Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Moisture Transport Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransVectors_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransVectors_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_MoistureTransVectors_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Theta-E">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Theta-E Advection">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TEAdv_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TEAdv_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_TEAdv_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Theta-E">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Theta-E Advection">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Mixing Ratio">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Mixing Ratio">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MixRat_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MixRat_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MixRat_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Theta-E">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Theta-E Advection">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TEAdv_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TEAdv_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_TEAdv_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Precipitable Water">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_PW_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_PW_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_PW_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Warm Cloud Depth">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_WCD_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_WCD_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_WCD_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Shear Parameters">
+    <contribute xsi:type="subMenu" menuText="0-10 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-10 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-10km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-8 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-8 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-8km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-6 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-6 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-6km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km Line-Normal Bulk Shear Arrows (Mag >= 30 kts)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LineNorShrVec_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LineNorShrVec_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LineNorShrVec_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km Helicity">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_Helicity_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_Helicity_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_Helicity_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-2 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-2 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-2 km Helicity">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_Helicity_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_Helicity_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-2km_Helicity_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Helicity">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_Helicity_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_Helicity_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_Helicity_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-500 m Bulk Shear Magnitude">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrMag_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrMag_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrMag_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-500 m Bulk Shear Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_BlkShrVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-500 m Helicity">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_Helicity_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_Helicity_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_Helicity_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Critical Angle">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRM_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRM_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRM_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Critical Angle (CAPE/CIN Filtered)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRMFiltered_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRMFiltered_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CritAngRMFiltered_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Storm Motion">
+    <contribute xsi:type="subMenu" menuText="700-300 mb Mean Wind">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-300mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-300mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-300mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Bunkers Elevated LM Supercell Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedLM_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedLM_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedLM_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Bunkers Elevated RM Supercell Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedRM_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedRM_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_ElevatedRM_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Bunkers LM Supercell Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_LM_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_LM_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_LM_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Bunkers RM Supercell Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_RM_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_RM_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Bunkers_RM_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Corfidi Vectors">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CorfidiVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CorfidiVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_CorfidiVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Corfidi Vectors - Forward-Propagating">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_FPCorfidiVect_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_FPCorfidiVect_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_FPCorfidiVect_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface Analysis">
+    <contribute xsi:type="subMenu" menuText="Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="MSLP Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MSLP_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MSLP_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MSLP_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Mixing Ratio">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_MixRat_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Potential Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PoT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PoT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PoT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Pressure Change (1 hr)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_1HR_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_1HR_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_1HR_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Pressure Change (3 hr)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_3HR_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_3HR_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_PressChange_3HR_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Theta-E">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Theta-E Advection">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_TEAdv_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Thermodynamic Parameters">
+    <contribute xsi:type="subMenu" menuText="0-3 km Lapse Rate">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LR_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LR_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_LR_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km MLCAPE">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_CAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_CAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_CAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-3 km Max Theta-e Differential">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_TEDif_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_TEDif_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-3km_TEDif_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700-500 mb Lapse Rate">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_LR_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_LR_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700-500mb_LR_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Downdraft CAPE">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_DCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_DCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_DCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Hail Growth Zone CAPE (0-1 km Mixed Layer)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_ML_HailCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_ML_HailCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_ML_HailCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Hail Growth Zone CAPE (Surface-Based)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SB_HailCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SB_HailCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SB_HailCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Hail Growth Zone Thickness">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HGZT_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HGZT_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_HGZT_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Mixed Layer (0-1 km) CAPE">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Mixed Layer (0-1 km) CIN">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCIN_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCIN_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MLCIN_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Most Unstable CAPE">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MUCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MUCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_MUCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface-Based CAPE">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCAPE_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCAPE_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCAPE_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Surface-Based CIN">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCIN_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCIN_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_SBCIN_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Upper Air Analysis">
+    <contribute xsi:type="subMenu" menuText="250 mb Height Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Hgt_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Hgt_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Hgt_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="250 mb Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_250mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="500 mb Height Change (6 hr)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_6hr_HgtChange_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_6hr_HgtChange_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_6hr_HgtChange_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="500 mb Height Change (12 hr)">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_12hr_HgtChange_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_12hr_HgtChange_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_12hr_HgtChange_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="500 mb Height Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Hgt_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Hgt_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Hgt_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="500 mb Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="500 mb Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_500mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Height Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Hgt_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Hgt_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Hgt_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="700 mb Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_700mb_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Height Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Hgt_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Hgt_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Hgt_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="850 mb Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_850mb_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Dew Point">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Td_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Height Contours">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Hgt_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Hgt_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Hgt_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Temperature">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Wind Barbs">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Wind_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Wind_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_Wind_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="925 mb Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_925mb_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Moisture Convergence">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MCon_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-1 km Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="0-500 m Wind Streamlines">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_WindStreamlines_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_WindStreamlines_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-500m_WindStreamlines_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>
+
+<!--     <contribute xsi:type="subMenu" menuText="Winter Parameters">
+    <contribute xsi:type="subMenu" menuText="Dendritic Growth Layer Mean RH">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_MeanRH_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_MeanRH_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_MeanRH_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Dendritic Growth Layer Omega">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Omega_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Omega_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Omega_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Dendritic Growth Layer Thickness">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Thickness_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Thickness_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-12to-18C_Thickness_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Max RH in Cloud Ice Layer">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10to-20C_MaxRH_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10to-20C_MaxRH_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_-10to-20C_MaxRH_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Max Warm Nose Wet Bulb Temp">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0.5-5.5km_MaxTw_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0.5-5.5km_MaxTw_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0.5-5.5km_MaxTw_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Min Cold Nose Wet Bulb Temp">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MinTw_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MinTw_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-1km_MinTw_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Avg Cold Nose Wet Bulb Temp">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-800m_Tw_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-800m_Tw_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-800m_Tw_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Surface Temp">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_Sfc_T_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="Top Down Wx - Max 0-5km Dew Point Dep">
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-5km_MaxDpD_StdEnv.xml"
+        menuText="HRRR" id="hrrrstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="HRRR"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-5km_MaxDpD_StdEnv.xml"
+        menuText="LAPS" id="lapsstdenv" useReferenceTime="true">
+        <substitute key="modelName" value="LAPS"/>
+        </contribute>
+        <contribute xsi:type="bundleItem" file="bundles/volume/NSEA/NSEA_0-5km_MaxDpD_StdEnv.xml"
+        menuText="RAP" id="rap13stdenv" useReferenceTime="true">
+        <substitute key="modelName" value="${RAP13model}"/>
+        </contribute>
+    </contribute>
+    </contribute>             -->
+</menuTemplate>

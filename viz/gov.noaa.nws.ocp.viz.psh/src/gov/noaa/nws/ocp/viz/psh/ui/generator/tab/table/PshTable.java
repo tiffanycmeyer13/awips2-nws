@@ -93,6 +93,9 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Dec 08, 2017 #41955      astrakovsky Improved editing performance for rainfall/tornado tabs.
  * Dec 10, 2018 DR20982     jwu         Allow user type in for storm "Effects".
  * Dec 18, 2018 DR20978     jwu         Add match cities as auto assist while user is typing in.
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their changes have not
+ *                                      been saved
+ *
  * </pre>
  *
  * @author wpaintsil
@@ -146,6 +149,11 @@ public abstract class PshTable {
      * selected).
      */
     protected boolean editing = false;
+
+    /**
+     * Flag for whether there are unsaved changes in table
+     */
+    protected boolean unsavedChanges = false;
 
     /**
      * Flag for whether a new entry is being edited.
@@ -454,11 +462,11 @@ public abstract class PshTable {
             @Override
             public void widgetSelected(SelectionEvent e) {
 
-                if (editButton != null && !editing) {
+                if (editButton != null && !isEditing()) {
                     // Create a new entry in the table and edit it.
                     TableItem newItem = new TableItem(table, SWT.NONE);
                     table.select(table.getItemCount() - 1);
-                    newEntry = true;
+                    setNewEntry(true);
                     clearRemarks();
                     editButton.notifyListeners(SWT.Selection, new Event());
                     addButton.setEnabled(false);
@@ -487,11 +495,12 @@ public abstract class PshTable {
         }
     }
 
+
     /**
      * Cancel the editing action
      */
     public void cancelEditing() {
-        if (editing) {
+        if (isEditing()) {
             cancelButton.notifyListeners(SWT.Selection, new Event());
         }
 
@@ -499,6 +508,7 @@ public abstract class PshTable {
         deleteButton.setEnabled(false);
         upButton.setEnabled(false);
         downButton.setEnabled(false);
+        tab.updatePreviewArea();
         table.deselectAll();
     }
 
@@ -570,12 +580,10 @@ public abstract class PshTable {
                 upButton.setEnabled(true);
                 downButton.setEnabled(true);
 
-                if (!editing) {
-                    updateRemarks();
-                }
-
-                if (editing) {
+                if (isEditing()) {
                     table.deselectAll();
+                } else {
+                    updateRemarks();
                 }
             }
         });
@@ -607,7 +615,7 @@ public abstract class PshTable {
 
                 // toggle between an edit and ok button
                 if (editButton.getText().equals(EDIT_STRING)) {
-                    editing = true;
+                    setEditing(true);
                     editButton.setText(OK_STRING);
                     editButton.setEnabled(true);
                     addButton.setEnabled(false);
@@ -770,11 +778,11 @@ public abstract class PshTable {
                     }
 
                     autoPopulateLatLon();
-                    autoPopulateGaugeStation();
+                    autoPopulateGaugeStation(currentEditorRow);
                     autocompleteFields();
 
                 } else if (validInput()) {
-                    editing = false;
+                    setEditing(false);
                     editButton.setText(EDIT_STRING);
                     table.select(currentSelection);
 
@@ -796,7 +804,8 @@ public abstract class PshTable {
                     // save row that was being edited and dispose controls.
                     setRow();
 
-                    newEntry = false;
+                    setNewEntry(false);
+                    setUnsavedChanges(true);
                     addButton.setEnabled(true);
                     saveButton.setEnabled(true);
                     revertButton.setEnabled(true);
@@ -873,7 +882,9 @@ public abstract class PshTable {
 
                     if (confirm) {
                         deleteRow(table.getSelectionIndex());
-
+                        tab.savePshData(
+                                new ArrayList<StormDataEntry>(tableData.values()));
+                        setUnsavedChanges(false);
                         if (table.getSelectionCount() < 1) {
                             editButton.setEnabled(false);
                             deleteButton.setEnabled(false);
@@ -911,7 +922,8 @@ public abstract class PshTable {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                editing = false;
+                setEditing(false);
+                setUnsavedChanges(false);
                 editButton.setText(EDIT_STRING);
                 table.select(currentSelection);
 
@@ -942,8 +954,9 @@ public abstract class PshTable {
 
                 // If this is editing a new entry triggered by the "Add Entry"
                 // button, remove the new entry if editing is cancelled.
-                if (newEntry) {
+                if (isNewEntry()) {
                     if (currentSelection >= 0) {
+                        tableData.remove(table.getItem(currentSelection));
                         table.remove(currentSelection);
                     }
                     if (table.getSelectionCount() < 1) {
@@ -952,7 +965,7 @@ public abstract class PshTable {
                         upButton.setEnabled(false);
                         downButton.setEnabled(false);
                     }
-                    newEntry = false;
+                    setNewEntry(false);
                     clearRemarks();
                 }
 
@@ -1037,7 +1050,7 @@ public abstract class PshTable {
     private void autoPopulateLatLon() {
         if ((tab.getTabType() == PshDataCategory.METAR
                 || tab.getTabType() == PshDataCategory.NON_METAR
-                || tab.getTabType() == PshDataCategory.MARINE) && editing) {
+                || tab.getTabType() == PshDataCategory.MARINE) && isEditing()) {
             PshCombo stationCombo = (PshCombo) currentEditorRow.get(0)
                     .getEditor();
             PshNumberText latText = (PshNumberText) currentEditorRow.get(1)
@@ -1755,7 +1768,7 @@ public abstract class PshTable {
     private void moveUp() {
 
         if (table.getSelectionCount() > 0 && table.getSelectionCount() < 2
-                && table.getSelectionIndex() > 0 && !editing) {
+                && table.getSelectionIndex() > 0 && !isEditing()) {
             int selectionIndex = table.getSelectionIndex();
 
             StormDataEntry shiftedData = tableData
@@ -1777,7 +1790,7 @@ public abstract class PshTable {
     private void moveDown() {
         if (table.getSelectionCount() > 0 && table.getSelectionCount() < 2
                 && table.getSelectionIndex() < table.getItemCount() - 1
-                && !editing) {
+                && !isEditing()) {
             int selectionIndex = table.getSelectionIndex();
 
             StormDataEntry shiftedData = tableData
@@ -1794,53 +1807,11 @@ public abstract class PshTable {
     }
 
     /**
-     * When editing a row in the Storm Surge (Water Level) tab, populate the ID,
-     * county, state, lat/lon fields when a gauge station is selected.
+     * Populate the ID, county, state, lat/lon fields when a gauge station is
+     * selected. Implement in subclass.
      */
-    private void autoPopulateGaugeStation() {
-        if (tab.getTabType() == PshDataCategory.WATER_LEVEL && editing) {
-            PshCombo stationCombo = (PshCombo) currentEditorRow.get(0)
-                    .getEditor();
-            Text idText = (Text) currentEditorRow.get(1).getEditor();
-            Text countyText = (Text) currentEditorRow.get(2).getEditor();
-            Text stateText = (Text) currentEditorRow.get(3).getEditor();
-            PshNumberText latText = (PshNumberText) currentEditorRow.get(4)
-                    .getEditor();
-            PshNumberText lonText = (PshNumberText) currentEditorRow.get(5)
-                    .getEditor();
+    protected void autoPopulateGaugeStation(List<TableEditor> editorRow) {
 
-            int curSelection = stationCombo.getSelectionIndex();
-            stationCombo.addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    // clear the fields if station changes.
-                    if (curSelection != stationCombo.getSelectionIndex()) {
-                        for (int ii = 1; ii < currentEditorRow.size(); ii++) {
-                            Control editorField = currentEditorRow.get(ii)
-                                    .getEditor();
-                            if (editorField instanceof Button) {
-                                ((Button) editorField).setSelection(false);
-                            } else if (editorField instanceof PshAbstractControl) {
-                                ((PshAbstractControl) editorField).setText("");
-                            } else if (editorField instanceof Text) {
-                                ((Text) editorField).setText("");
-                            }
-                        }
-                    }
-
-                    List<PshCity> gaugeStations = PshConfigurationManager
-                            .getInstance().getCities().getTideGaugeStations();
-
-                    PshCity selectedStation = gaugeStations
-                            .get(stationCombo.getSelectionIndex());
-                    idText.setText(selectedStation.getStationID());
-                    countyText.setText(selectedStation.getCounty());
-                    stateText.setText(selectedStation.getState());
-                    latText.setText(String.valueOf(selectedStation.getLat()));
-                    lonText.setText(String.valueOf(selectedStation.getLon()));
-                }
-            });
-        }
     }
 
     /**
@@ -1902,6 +1873,64 @@ public abstract class PshTable {
         }
 
         return cities.toArray(new String[] {});
+    }
+
+    /**
+     * Determine whether editing in progress
+     *
+     * @return editing the editing true/false status
+     *
+     */
+    public boolean isEditing() {
+        return editing;
+    }
+
+    /**
+     * Set editing status
+     *
+     * @param editing
+     *            the editing true/false status to set
+     */
+    public void setEditing(boolean editing) {
+        this.editing = editing;
+    }
+
+    /**
+     * Determine whether changes are unsaved
+     *
+     * @return the unsavedChanges true/false status
+     */
+    public boolean isUnsavedChanges() {
+        return unsavedChanges;
+    }
+
+    /**
+     * Set whether changes are unsaved
+     *
+     * @param unsavedChanges
+     *            the unsavedChanges true/false status to set
+     */
+    public void setUnsavedChanges(boolean unsavedChanges) {
+        this.unsavedChanges = unsavedChanges;
+    }
+
+    /**
+     * Determine whether new entry in progress
+     *
+     * @return true/false status
+     */
+    public boolean isNewEntry() {
+        return newEntry;
+    }
+
+    /**
+     * Set whether new entry in progress
+     *
+     * @param newEntry
+     *            the newEntry true/false status to set
+     */
+    public void setNewEntry(boolean newEntry) {
+        this.newEntry = newEntry;
     }
 
 }

@@ -31,6 +31,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 02/02/2016  17469    wkwock      Initial creation
+ * 06/27/2021  92561    wkwock      Correct end time calculation and remove 'Z' from the 'until' line
  * 
  * </pre>
  * 
@@ -173,14 +174,9 @@ public abstract class AbstractCWAComp extends Composite {
      * @return end time
      */
     protected String getEndTime() {
-        Calendar startCal = TimeUtil.newGmtCalendar(getDateTime());
+        Date startCal = getDateTime();
         Calendar endCal = TimeUtil.newGmtCalendar(endTime.getTime());
-        int startMinute = startCal.get(Calendar.HOUR_OF_DAY) * 60
-                + startCal.get(Calendar.MINUTE);
-        int endMinute = endCal.get(Calendar.HOUR_OF_DAY) * 60
-                + endCal.get(Calendar.MINUTE);
-        endCal.set(Calendar.DAY_OF_MONTH, startCal.get(Calendar.DAY_OF_MONTH));
-        if (startMinute >= endMinute) {
+        if (endCal.before(startCal)) {
             endCal.add(Calendar.DAY_OF_MONTH, 1);
         }
 
@@ -220,7 +216,7 @@ public abstract class AbstractCWAComp extends Composite {
             int seriesId) {
         StringBuilder validLine = new StringBuilder();
         validLine.append(cwsuId).append(" CWA ").append(seriesId)
-                .append(" VALID UNTIL ").append(endDateTime).append("Z \n");
+                .append(" VALID UNTIL ").append(endDateTime).append(" \n");
 
         return validLine.toString();
     }

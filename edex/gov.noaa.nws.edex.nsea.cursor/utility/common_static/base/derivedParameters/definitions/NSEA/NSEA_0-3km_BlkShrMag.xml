@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="Bulk Shear Magnitude" abbreviation="0-3km Blk Shr Mag" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="0-3 km AGL" abbreviation="BlkMag"/>
+    </Method>
+</DerivedParameter>

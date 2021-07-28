@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="LCL Hgt" abbreviation="Sfc-Based LCL Hgt" xmlns:ns2="group">
+    <Method name="Multiply">
+        <Field level="Surface" abbreviation="DpD"/>
+        <ConstantField value="120.0"/>
+    </Method>
+</DerivedParameter>

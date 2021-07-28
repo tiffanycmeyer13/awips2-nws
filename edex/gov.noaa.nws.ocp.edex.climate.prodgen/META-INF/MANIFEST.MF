@@ -19,7 +19,8 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ocp.edex.common.climate,
  gov.noaa.nws.ocp.edex.climate,
  com.raytheon.uf.common.dissemination,
- javax.xml.bind
+ javax.xml.bind,
+ org.slf4j
 Export-Package: gov.noaa.nws.ocp.edex.climate.prodgen
 Import-Package: com.raytheon.uf.common.auth.resp,
  com.raytheon.uf.common.auth.user,

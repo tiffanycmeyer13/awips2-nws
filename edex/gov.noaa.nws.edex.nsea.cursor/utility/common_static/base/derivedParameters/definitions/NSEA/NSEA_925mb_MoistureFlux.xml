@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="(g/kg)/s" name="Moisture Flux Divergence" abbreviation="925mb Moisture Flux Divergence" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="925MB" abbreviation="MCon"/>
+    </Method>
+</DerivedParameter>

@@ -5,6 +5,7 @@ package gov.noaa.nws.ocp.viz.cwagenerator.ui;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
@@ -25,6 +26,7 @@ import com.raytheon.uf.common.dissemination.OfficialUserProduct;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.common.time.SimulatedTime;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.core.auth.UserController;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -41,6 +43,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 06/27/2021  92561    wkwock      Fix local time zone issue
  * 
  * </pre>
  * 
@@ -128,9 +131,12 @@ public class CWAProduct {
             if (productList != null && !productList.isEmpty()) {
                 productTxt = productList.get(0).getProduct();
                 refTime = TimeUtil
-                        .newGmtCalendar(productList.get(0).getRefTime()).toInstant().atZone(TimeUtil.GMT_TIME_ZONE.toZoneId());
+                        .newGmtCalendar(productList.get(0).getRefTime())
+                        .toInstant().atZone(TimeUtil.GMT_TIME_ZONE.toZoneId());
                 insertTime = TimeUtil
-                        .newGmtCalendar(productList.get(0).getInsertTime().getTimeInMillis()).toInstant().atZone(TimeUtil.GMT_TIME_ZONE.toZoneId());
+                        .newGmtCalendar(productList.get(0).getInsertTime()
+                                .getTimeInMillis())
+                        .toInstant().atZone(TimeUtil.GMT_TIME_ZONE.toZoneId());
             } else {
                 productTxt = "";
             }
@@ -337,16 +343,21 @@ public class CWAProduct {
             return issuanceNum;
         }
 
-        TimeZone timeZone = TimeZone.getTimeZone(localTimeZoneId);
-        Calendar localCal = TimeUtil.newCalendar(timeZone);
-        ZonedDateTime tmpInsertTime = ZonedDateTime.of(insertTime.toLocalDateTime(), timeZone.toZoneId());
+        // localTimeZoneId is always a valid time zone ID in here
+        TimeZone timeZone = TimeZone.getTimeZone(localTimeZoneId.trim());
 
-        // Check if it is the 1st product for this phenomenon
-        if (localCal.get(Calendar.YEAR) > tmpInsertTime.getYear()
-                || (localCal.get(Calendar.MONTH)+1) > tmpInsertTime
-                        .getMonth().getValue()
-                || localCal.get(Calendar.DAY_OF_MONTH) > tmpInsertTime
-                        .getDayOfMonth()) {
+        ZonedDateTime localCal = Instant
+                .ofEpochMilli(SimulatedTime.getSystemTime().getMillis())
+                .atZone(timeZone.toZoneId());
+
+        ZonedDateTime tmpInsertTime = insertTime
+                .withZoneSameInstant(timeZone.toZoneId());
+
+        if (localCal.getYear() > tmpInsertTime.getYear()
+                || ((localCal.getYear() == tmpInsertTime.getYear()) && (localCal
+                        .getDayOfYear() > tmpInsertTime.getDayOfYear()))) {
+            // 1st one for this phenomenon in the new day, the issuance # should
+            // be 1.
             issuanceNum = 1;
             isIssuanceNumReset = true;
         } else {
@@ -364,7 +375,8 @@ public class CWAProduct {
             cwaProduct.getProductTxt();
             ZonedDateTime lastInsertTime = cwaProduct.getInsertTime();
 
-            if (lastInsertTime != null && lastInsertTime.isAfter(tmpInsertTime)) {
+            if (lastInsertTime != null
+                    && lastInsertTime.isAfter(tmpInsertTime)) {
                 issuanceNum = 1;
                 isIssuanceNumReset = true;
             }

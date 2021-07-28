@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="Computed CAPE" abbreviation="700mb CAPE" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="700MB" abbreviation="cCape"/>
+    </Method>
+</DerivedParameter>
