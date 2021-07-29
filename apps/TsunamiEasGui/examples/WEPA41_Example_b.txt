@@ -1,0 +1,118 @@
+WEPA41 PAAQ 081819
+TSUWCA
+
+BULLETIN
+Tsunami Message Number 2
+NWS National Tsunami Warning Center Palmer AK
+1119 AM PDT Fri Jul 8 2016
+
+CAZ109-101-103-104-ORZ021-022-081949-
+/T.EXA.PAAQ.TS.Y.0086.000000T0000Z-000000T0000Z/
+Coastal areas between and including Gualala River,
+California (80 miles NW of San Francisco) to Douglas/Lane
+Line, Oregon (10 miles SW of Florence)
+1119 AM PDT Fri Jul 8 2016
+
+...THE TSUNAMI ADVISORY IS MODIFIED TO INCLUDE THE COASTAL
+   AREAS OF California AND Oregon FROM GUALALA RIVER
+   CALIFORNIA /WHICH IS LOCATED 80 MILES NW OF SAN FRANCISCO/
+   TO DOUGLAS/LANE LINE OREGON /WHICH IS LOCATED 10 MILES SW
+   OF FLORENCE/...
+
+If you are located in this coastal area, move off the 
+beach and out of harbors and marinas.
+
+Tsunami advisories mean that a tsunami capable of producing
+strong currents or waves dangerous to persons in or very near
+the water is expected or is already occurring.  Areas in the
+advisory should not expect widespread inundation.  Tsunamis
+are a series of waves dangerous many hours after initial
+arrival time.  The first wave may not be the largest.
+
+At 1109 AM Pacific Daylight Time on July 8 an earthquake with
+preliminary magnitude 8.2 occurred 90 miles southeast of
+ Petropavlovsk Kamchatka.
+
+Estimated tsunami start times for selected sites are;
+
+Port Orford        Oregon              625 PM.  PDT. July 8.
+Charleston         Oregon              635 PM.  PDT. July 8.
+Fort Bragg         California          640 PM.  PDT. July 8.
+Brookings          Oregon              640 PM.  PDT. July 8.
+Crescent City      California          640 PM.  PDT. July 8.
+
+The tsunami advisory will remain in effect until further notice.
+Refer to the internet site ntwc.arh.noaa.gov for more information.
+
+$$
+
+AKZ185-081949-
+/T.EXA.PAAQ.TS.Y.0086.000000T0000Z-000000T0000Z/
+Coastal areas between and including Unimak Pass, Alaska (80
+miles NE of Unalaska) to Samalga Pass, Alaska (30 miles SW
+of Nikolski)
+1119 AM PDT Fri Jul 8 2016
+
+...THE TSUNAMI ADVISORY IS MODIFIED TO INCLUDE THE COASTAL
+   AREAS OF Alaska FROM UNIMAK PASS ALASKA /WHICH IS LOCATED
+   80 MILES NE OF UNALASKA/ TO SAMALGA PASS ALASKA /WHICH IS
+   LOCATED 30 MILES SW OF NIKOLSKI/...
+
+If you are located in this coastal area, move off the 
+beach and out of harbors and marinas.
+
+Tsunami advisories mean that a tsunami capable of producing
+strong currents or waves dangerous to persons in or very near
+the water is expected or is already occurring.  Areas in the
+advisory should not expect widespread inundation.  Tsunamis
+are a series of waves dangerous many hours after initial
+arrival time.  The first wave may not be the largest.
+
+At 1109 AM Pacific Daylight Time on July 8 an earthquake with
+preliminary magnitude 8.2 occurred 90 miles southeast of
+ Petropavlovsk Kamchatka.
+
+Estimated tsunami start times for selected sites are;
+
+Unalaska           Alaska              135 PM. AKDT. July 8.
+
+The tsunami advisory will remain in effect until further notice.
+Refer to the internet site ntwc.arh.noaa.gov for more information.
+
+$$
+
+AKZ187-195-191-081949-
+/T.CON.PAAQ.TS.Y.0086.000000T0000Z-000000T0000Z/
+Coastal areas between and including Samalga Pass, Alaska
+(30 miles SW of Nikolski) to Attu, Alaska
+1119 AM PDT Fri Jul 8 2016
+
+...THE TSUNAMI ADVISORY REMAINS IN EFFECT FOR THE COASTAL
+   AREAS OF Alaska FROM SAMALGA PASS ALASKA /WHICH IS LOCATED
+   30 MILES SW OF NIKOLSKI/ TO ATTU ALASKA...
+
+If you are located in this coastal area, move off the 
+beach and out of harbors and marinas.
+
+Tsunami advisories mean that a tsunami capable of producing
+strong currents or waves dangerous to persons in or very near
+the water is expected or is already occurring.  Areas in the
+advisory should not expect widespread inundation.  Tsunamis
+are a series of waves dangerous many hours after initial
+arrival time.  The first wave may not be the largest.
+
+At 1109 AM Pacific Daylight Time on July 8 an earthquake with
+preliminary magnitude 8.2 occurred 90 miles southeast of
+ Petropavlovsk Kamchatka.
+
+Estimated tsunami start times for selected sites are;
+
+Shemya             Alaska             1130 AM. AKDT. July 8.
+Adak               Alaska             1230 PM. AKDT. July 8.
+Saint Paul         Alaska              145 PM. AKDT. July 8.
+
+The tsunami advisory will remain in effect until further notice.
+Refer to the internet site ntwc.arh.noaa.gov for more information.
+
+$$
+
