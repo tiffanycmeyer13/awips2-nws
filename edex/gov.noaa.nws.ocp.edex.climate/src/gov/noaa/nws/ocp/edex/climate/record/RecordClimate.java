@@ -176,7 +176,7 @@ public final class RecordClimate {
                         EDEXUtil.getMessageProducer()
                                 .sendAsync(ClimateAlertUtils.CPG_ENDPOINT, sm);
 
-                        EDEXUtil.sendMessageAlertViz(Priority.INFO,
+                        EDEXUtil.sendMessageAlertViz(Priority.WARN,
                                 "Climate Record Event Report",
                                 ClimateAlertUtils.SOURCE_EDEX,
                                 ClimateAlertUtils.CATEGORY_CLIMATE,
