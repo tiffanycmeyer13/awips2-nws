@@ -40,6 +40,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshWaterLevelTable;
  * Nov,08  2017 #40423      jwu         Replace tide/surge with water level.
  * Nov,14  2017 #40426      jwu         Update GUI with water level.
  * May 24, 2021 20652       wkwock      Add load user files
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -157,7 +159,7 @@ public class PshWaterLevelTabComp extends PshTabComp {
             pshData.getWaterLevel().setData(surgeDataList);
 
             saveAlert(PshUtil.savePshData(pshData));
-
+            table.setUnsavedChanges(false);
             pshGeneratorData.setPshData(pshData);
         }
     }

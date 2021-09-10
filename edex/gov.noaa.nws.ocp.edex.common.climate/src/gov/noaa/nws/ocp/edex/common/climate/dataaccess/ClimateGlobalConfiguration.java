@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext;
@@ -62,6 +64,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 23 OCT 2018  DR 20919   dfriedman   Make properties available to Spring.
  * 13 MAY 2019  DR 21151   dfriedman   Do not cause EDEX to fail to start if Climate config is bad.
  * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
+ * 09 JUN 2021  DCS 22324  wpaintsil   Refine saveGlobal() so that globalDay.properties formatting 
+ *                                     and default comments are preserved.
  * </pre>
  * 
  * @author xzhang
@@ -126,13 +130,16 @@ public class ClimateGlobalConfiguration {
 
                 resGlobal.setUseValidIm(
                         "T".equals(prop.getProperty("climate.useValidIm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setUseValidPm(
                         "T".equals(prop.getProperty("climate.useValidPm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoAsterisk(
                         "T".equals(prop.getProperty("climate.noAsterisk"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoColon(
                         "T".equals(prop.getProperty("climate.noColon")) ? true
                                 : false);
@@ -141,7 +148,8 @@ public class ClimateGlobalConfiguration {
                                 : false);
                 resGlobal.setNoSmallLetters(
                         "T".equals(prop.getProperty("climate.noSmallLetters"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setValidIm(prop.getProperty("climate.intermediate"));
                 resGlobal.setValidPm(prop.getProperty("climate.evening"));
                 resGlobal.setT1(
@@ -238,16 +246,20 @@ public class ClimateGlobalConfiguration {
      */
     public static int saveGlobal(ClimateGlobal global) {
         int status = 0;
-        Properties prop = new Properties();
-
         IPathManager pm = PathManagerFactory.getPathManager();
 
         LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
                 LocalizationLevel.SITE);
 
+        // Get the site-level file for editing.
         ILocalizationFile lf = pm.getLocalizationFile(lc, GLOBAL_DAY_PATH);
+        File globalFile = pm.getFile(lc, GLOBAL_DAY_PATH);
 
-        try (SaveableOutputStream output = lf.openOutputStream()) {
+        SaveableOutputStream output = null;
+        try {
+            PropertiesConfiguration prop = new PropertiesConfiguration(
+                    globalFile);
+
             // set the properties value
             prop.setProperty("climate.T1", String.valueOf(global.getT1()));
             prop.setProperty("climate.T2", String.valueOf(global.getT2()));
@@ -306,11 +318,21 @@ public class ClimateGlobalConfiguration {
                             global.getSnowReportingStations()));
 
             // save properties
-            prop.store(output, null);
+            output = lf.openOutputStream();
+            prop.save(output);
             output.save();
         } catch (Exception e) {
-            logger.error("Error saving global day properties.", e);
+            logger.error("Error saving global day properties to localization.",
+                    e);
             status = -1;
+        } finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException e) {
+                logger.error("Error saving output.", e);
+            }
         }
 
         return status;
@@ -388,7 +410,8 @@ public class ClimateGlobalConfiguration {
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY,
                     globalConfig.getTimezone());
         } else {
-            logger.error("Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
+            logger.error(
+                    "Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, "GMT");
         }
         return props;

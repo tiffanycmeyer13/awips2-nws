@@ -3,6 +3,7 @@
  */
 package gov.noaa.nws.ocp.viz.psh.ui.generator.tab;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +62,12 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTable;
  *                                      table data added and the tab began 
  *                                      with no table data.
  * May 24, 2021 20652       wkwock      Add load user files button.
- * 
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
+ * Jul 27, 2021 DCS22098    mporricelli Update Rainfall tab start and end times from
+ *                                      data when available
+ * Jul 30, 2021 DCS22178    mporricelli Verify PSH Lock owner before saving
+ *
  * </pre>
  * 
  * @author wpaintsil
@@ -619,8 +625,63 @@ public abstract class PshTabComp extends Composite {
         setRemarksText("");
     }
 
+    /**
+     * Checks the status of the user's editing on the current tab. If user has
+     * made an entry, but has not clicked the OK button, pop up dialog asking
+     * whether to discard the entry or let them continue to edit it. If user has
+     * made an entry and clicked 'OK', but has not saved, pop up dialog asking
+     * whether to discard, save, or let them continue to edit it
+     * 
+     * @return true if entry should be handled by software per user's response,
+     *         false if user will continue editing themselves
+     */
+    public boolean checkEditStatusOk() {
+        int response;
+        if (table.isEditing()) {
+            response = new MessageDialog(getShell(), "Unsaved Data", null,
+                    "Editing of " + tabType
+                            + " in progress. Please complete or discard entry.",
+                    MessageDialog.QUESTION,
+                    new String[] { "Discard " + tabType + " Entry",
+                            "Continue Editing " + tabType },
+                    1).open();
+            if (response == 0) {
+                cancelEditing();
+                return true;
+            } else {
+                return false;
+            }
+
+        } else if (table.isUnsavedChanges()) {
+            response = new MessageDialog(getShell(), "Unsaved Data", null,
+                    "There are unsaved " + tabType
+                            + " changes. Would you like to save your changes?",
+                    MessageDialog.QUESTION, new String[] { "Discard Changes",
+                            "Save Changes", "Continue Editing " + tabType },
+                    1).open();
+            if (response == 0) {
+                table.setEditing(true);
+                table.setNewEntry(true);
+                cancelEditing();
+                updatePreviewArea();
+                return true;
+            } else if (response == 1) {
+                if (PshUtil.checkLockStatusOk(getShell())) {
+                    savePshData(new ArrayList<>(
+                            table.getTableData(StormDataEntry.class)));
+                    cancelEditing();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void cancelEditing() {
         setRemarksTextEditable(false);
+        table.setUnsavedChanges(false);
         table.cancelEditing();
     }
 
@@ -673,5 +734,11 @@ public abstract class PshTabComp extends Composite {
 
     /** Load user file */
     protected void loadUserFile() {
+    }
+
+    /**
+     * Update Rain Start and Rain End times
+     */
+    public void updateStartEndTimes() {
     }
 }

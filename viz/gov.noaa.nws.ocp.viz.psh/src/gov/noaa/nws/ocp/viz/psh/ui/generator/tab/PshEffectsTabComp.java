@@ -33,6 +33,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * ------------ ---------- ----------- --------------------------
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
  * JUN 09, 2021  DCS20652   wkwock      Update createControls for load user files
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -136,7 +138,7 @@ public class PshEffectsTabComp extends PshTabComp {
             pshData.getEffect().setData(effectDataList);
 
             saveAlert(PshUtil.savePshData(pshData));
-
+            table.setUnsavedChanges(false);
             pshGeneratorData.setPshData(pshData);
         }
     }
