@@ -45,12 +45,13 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
-
 import com.raytheon.uf.common.geospatial.MapUtil;
+import com.raytheon.uf.common.message.WsId;
 import com.raytheon.uf.common.serialization.SingleTypeJAXBManager;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.status.UFStatus.Priority;
+import com.raytheon.uf.viz.core.VizApp;
 import com.raytheon.uf.viz.core.auth.UserController;
 import com.raytheon.uf.viz.core.catalog.DirectDbQuery;
 import com.raytheon.uf.viz.core.exception.VizException;
@@ -63,11 +64,14 @@ import org.locationtech.jts.io.WKBReader;
 
 import gov.noaa.nws.ocp.common.dataplugin.psh.PshData;
 import gov.noaa.nws.ocp.common.dataplugin.psh.PshDataCategory;
+import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshLockRequest;
 import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshPreviewServiceRequest;
 import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshProductServiceRequest;
 import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshProductTransmitRequest;
 import gov.noaa.nws.ocp.common.dataplugin.psh.request.RetrievePSHDataRequest;
 import gov.noaa.nws.ocp.common.dataplugin.psh.request.SavePSHDataRequest;
+import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshLockRequest.ReqType;
+import gov.noaa.nws.ocp.common.dataplugin.psh.response.PshLockServiceResponse;
 import gov.noaa.nws.ocp.common.dataplugin.psh.response.PshProductServiceResponse;
 import gov.noaa.nws.ocp.common.localization.psh.PshCities;
 import gov.noaa.nws.ocp.common.localization.psh.PshCity;
@@ -99,6 +103,8 @@ import gov.noaa.ocp.viz.psh.data.PshCounty;
  * Feb 15, 2018 #46354      wpaintsil   Various refactorings.
  * May 27, 2021 DCS22095    mporricelli Make Setup editing more efficient
  * JUN 09, 2021 DCS20652    wkwock      Remove capitalize from station name
+ * Jul 19, 2021 DCS22178    mporricelli Add checkLockStatusOk()
+
  *
  * </pre>
  *
@@ -1425,4 +1431,40 @@ public class PshUtil {
 
     }
 
+    /**
+     * Verify whether user owns the PSH Lock
+     *
+     * @param shell
+     * @return true if user owns lock, false otherwise
+     */
+    public static boolean checkLockStatusOk(Shell shell) {
+        PshLockServiceResponse response = new PshLockServiceResponse();
+        PshLockRequest request = new PshLockRequest();
+        request.setReqType(ReqType.CHECK_LOCKOWNER);
+
+        WsId curUser = VizApp.getWsId();
+
+        try {
+            response = (PshLockServiceResponse) ThriftClient
+                    .sendRequest(request);
+        } catch (VizException e) {
+            statusHandler.error("Request check PSHLock status failed. ", e);
+            new MessageDialog(shell, "Error", null,
+                    "Update did not succeed. Could not verify that PSH Lock is owned by "
+                            + curUser.toPrettyString(),
+                    MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
+            return false;
+        }
+
+        WsId lockOwner = response.getLockOwner();
+
+        if (!lockOwner.equals(curUser)) {
+            new MessageDialog(shell, "PSH App Locked", null,
+                    "Update did not succeed. PSH is currently locked by "
+                            + lockOwner.toPrettyString(),
+                    MessageDialog.INFORMATION, new String[] { "OK" }, 0).open();
+            return false;
+        }
+        return true;
+    }
 }

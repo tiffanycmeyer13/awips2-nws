@@ -40,10 +40,18 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 
+import com.raytheon.uf.common.message.WsId;
+import com.raytheon.uf.common.status.IUFStatusHandler;
+import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
+import com.raytheon.uf.viz.core.VizApp;
+import com.raytheon.uf.viz.core.exception.VizException;
+import com.raytheon.uf.viz.core.requests.ThriftClient;
 import com.raytheon.viz.ui.dialogs.CaveJFACEDialog;
 
 import gov.noaa.nws.ocp.common.dataplugin.psh.PshData;
+import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshLockRequest;
+import gov.noaa.nws.ocp.common.dataplugin.psh.request.PshLockRequest.ReqType;
 import gov.noaa.nws.ocp.common.localization.psh.PshBasin;
 import gov.noaa.nws.ocp.common.localization.psh.PshConfigurationManager;
 import gov.noaa.nws.ocp.common.localization.psh.PshCounties;
@@ -94,6 +102,7 @@ import gov.noaa.nws.ocp.viz.psh.ui.setup.PshSetupConfigDialog;
  * JUN 09, 2021  DCS21225   wkwock      Use storm names from StormNames.py
  * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
  *                                      changes have not been saved
+ * Jul 19, 2021 DCS22178    mporricelli Add maintenance of PSH Lock
  * 
  * </pre>
  * 
@@ -103,6 +112,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.setup.PshSetupConfigDialog;
  */
 public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
 
+    private static final IUFStatusHandler logger = UFStatus
+            .getHandler(PshGeneratorDialog.class);
     /**
      * A Timer object used to create a marquee animation
      */
@@ -212,6 +223,12 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
     public static final String PSH_TITLE = "POST TROPICAL CYCLONE REPORT GENERATOR";
 
     private Map<String, Map<Long, List<String>>> stormNames = null;
+
+    private static final long TIME_REFRESH =  (long) (2.5 * TimeUtil.MILLIS_PER_MINUTE);
+
+    private WsId curUser;
+
+    private Timer lockTimer;
 
     /**
      * Constructor
@@ -1041,16 +1058,77 @@ public class PshGeneratorDialog extends CaveJFACEDialog implements IPshData {
 
     /**
      * Add confirm dialog to all close buttons/menu options.
+     * Break PSH Lock when exiting
      */
     @Override
     public boolean close() {
-        if (checkEditStatusOk() && PshUtil.exitConfirmed(getShell()))  {
+        if (checkEditStatusOk() && PshUtil.exitConfirmed(getShell())) {
+            PshLockRequest request = new PshLockRequest();
+            request.setCurrentUser(curUser);
+            request.setReqType(ReqType.BREAKLOCK);
+            try {
+                ThriftClient.sendRequest(request);
+                lockTimer.cancel();
+            } catch (VizException e) {
+                logger.error("Request to remove PSHLock failed. ", e);
+            }
             return super.close();
         } else {
             return false;
         }
     }
 
+    /**
+     * Open the PSH Generator dialog. Start shutdownhook thread
+     * to deal with PSH lock upon shutdown. Start TimerTask to
+     * renew the PSH lock periodically while PSH session in use.
+     *
+     */
+    @Override
+    public int open() {
+        curUser = VizApp.getWsId();
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                PshLockRequest request = new PshLockRequest();
+                request.setCurrentUser(curUser);
+                request.setReqType(ReqType.BREAKLOCK);
+
+                try {
+                    ThriftClient.sendRequest(request);
+                    lockTimer.cancel();
+                } catch (VizException e) {
+                    logger.error("Request to remove PSH Lock failed. ", e);
+                }
+
+            }
+        });
+
+        // Run TimerTask to periodically renew PSH Lock
+
+        TimerTask timerTask = new TimerTask() {
+
+            @Override
+            public void run() {
+                PshLockRequest request = new PshLockRequest();
+                request.setCurrentUser(curUser);
+                request.setReqType(ReqType.RENEW_TIMEOUT);
+                try {
+                    ThriftClient.sendRequest(request);
+                } catch (VizException e) {
+                    logger.error("Request to update PSHLock execution time failed. ", e);
+                }
+            }
+
+        };
+
+        lockTimer = new Timer();
+        lockTimer.schedule(timerTask, TIME_REFRESH, TIME_REFRESH);
+
+        return super.open();
+
+    }
     /**
      * Update the year combo base on the basin selection
      */

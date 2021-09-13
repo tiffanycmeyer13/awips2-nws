@@ -3,9 +3,11 @@
  */
 package gov.noaa.nws.ocp.viz.psh.ui.generator;
 
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -74,6 +76,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.PshTabComp;
  * Nov 16  2017 #40987     jwu         Use blank instead of "-" when "Incomplete" is not set.
  * Nov 08  2017 #40156     jwu         Adjust local time to UTC when parsing tornadoes.
  * Jan 08, 2017 DCS19326   wpaintsil   Baseline version
+ * Jul 27, 2021 DCS22098   mporricelli Pull report times from LSR product for use in Rainfall tab
+ *
  * </pre>
  *
  * @author wpaintsil
@@ -240,6 +244,7 @@ public class PshLSRDialog extends CaveJFACEDialog {
             switch (tab.getTabType()) {
             case RAINFALL:
                 parseRainfall(lsrLines);
+                tab.updateStartEndTimes();
                 break;
             case FLOODING:
                 parseFlooding(lsrLines, mixedCase);
@@ -291,29 +296,22 @@ public class PshLSRDialog extends CaveJFACEDialog {
      *            date String in the format MM/dd/yyyy
      * @param time
      *            time String in the format hhmm a
-     * @return dateTime String in the format dd/HHmm
+     *
+     * @return ZonedDateTime in UTC
      */
-    private static String parseDateTime(String zone, String date, String time) {
-        DateFormat timeFormat = new SimpleDateFormat("hhmm a MM/dd/yyyy");
-        Calendar formattedLocalDate = TimeUtil.newCalendar();
-        try {
-            formattedLocalDate.setTime(timeFormat.parse(time + " " + date));
-        } catch (ParseException e) {
-            logger.warn("Could not parse date or time string: " + time + " "
-                    + date);
-        }
+    private static ZonedDateTime parseDateTime(String zone, String date,
+            String time) {
+        DateTimeFormatter dtf = DateTimeFormatter
+                .ofPattern("hhmm a MM/dd/yyyy");
+        LocalDateTime ldt = LocalDateTime.parse(time + " " + date, dtf);
 
-        // Adjust to UTC
         PshTimeZone pshTZ = PshTimeZone.getPshTimeZone(zone.substring(0, 1));
-        int timeDiff = pshTZ.getTimeOffset(formattedLocalDate.getTime());
+        ZoneId zoneId = pshTZ.getZonedId();
 
-        formattedLocalDate.add(Calendar.HOUR_OF_DAY, -timeDiff);
+        ZonedDateTime zdt = ldt.atZone(zoneId);
 
-        return formattedLocalDate.get(Calendar.DAY_OF_MONTH) + "/"
-                + String.format("%02d",
-                        formattedLocalDate.get(Calendar.HOUR_OF_DAY))
-                + String.format("%02d",
-                        formattedLocalDate.get(Calendar.MINUTE));
+        return zdt.withZoneSameInstant(ZoneId.of("UTC"));
+
     }
 
     /**
@@ -565,6 +563,7 @@ public class PshLSRDialog extends CaveJFACEDialog {
         List<RainfallDataEntry> rainDataList = new ArrayList<>();
 
         Pattern terminator = Pattern.compile("\\$\\$");
+        String timezone = "EST";
 
         for (int ii = 0; ii < lsrLines.length; ii++) {
             // check if the line has the "$$" terminator string
@@ -572,6 +571,9 @@ public class PshLSRDialog extends CaveJFACEDialog {
 
                 String[] splitLine = lsrLines[ii].split(" ");
 
+                if (ii == 2) {
+                    timezone = splitLine[2];
+                }
                 if (ii > 6 && !lsrLines[ii].isEmpty()
                         && !lsrLines[ii].substring(0, 1).equals(" ")) {
                     if (splitLine.length > 1
@@ -632,6 +634,14 @@ public class PshLSRDialog extends CaveJFACEDialog {
                             magn.replaceAll(" ", "");
 
                             RainfallDataEntry rainData = new RainfallDataEntry();
+
+                            String localTime = line1.substring(0, 7).trim();
+                            String date = line2.substring(0, 10).trim();
+
+                            ZonedDateTime dateTime = parseDateTime(timezone, date,
+                                    localTime);
+
+                            rainData.setReportDateTime(dateTime);
 
                             rainData.setRainfall(PshUtil.parseFloat(magn));
                             rainData.setIncomplete(inc);
@@ -818,7 +828,7 @@ public class PshLSRDialog extends CaveJFACEDialog {
                                 .trim();
                         String lon = findPattern(LON_REGEX, lonStr);
 
-                        String date = line2.substring(0, 7).trim();
+                        String date = line2.substring(0, 10).trim();
 
                         String magnitudeString = line2.substring(13, 28);
                         String[] magnitude = magnitudeString.split(" ");
@@ -861,8 +871,12 @@ public class PshLSRDialog extends CaveJFACEDialog {
 
                             tornadoData.setMagnitude(magn);
 
-                            tornadoData.setDatetime(
-                                    parseDateTime(zone, date, localTime));
+                            ZonedDateTime zdt = parseDateTime(zone, date, localTime);
+
+                            String dateTime = zdt.format(
+                                    DateTimeFormatter.ofPattern("dd/HHmm"));
+
+                            tornadoData.setDatetime(dateTime);
 
                             float tlat = PshUtil.parseFloat(lat);
                             if (latStr.endsWith("S")) {
