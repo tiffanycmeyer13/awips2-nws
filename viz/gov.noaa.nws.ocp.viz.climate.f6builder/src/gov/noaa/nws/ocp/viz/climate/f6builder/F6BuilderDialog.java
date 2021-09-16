@@ -87,6 +87,7 @@ import gov.noaa.nws.ocp.viz.common.climate.util.ClimateGUIUtils;
  * 17 OCT 2017  39614     amoore       Address review comments.
  * 28 AUG 2018  DR 20861  dfriedman    Add option to enable transmission of products.
  * 22 MAY 2019  DR 21287  dfriedman    Show response over F6 dialog before closing.
+ * 14 SEP 2021  22147     jrohwein     change impl for getting prev day when running current F6
  * </pre>
  * 
  * @author xzhang
@@ -450,9 +451,10 @@ public class F6BuilderDialog extends ClimateCaveDialog {
                 Calendar cal = TimeUtil.newCalendar();
                 if (currentF6button.getSelection()) {
 
+                    cal.add(Calendar.DAY_OF_MONTH, -1);
                     date.setYear(cal.get(Calendar.YEAR));
                     date.setMon(cal.get(Calendar.MONTH) + 1);
-                    date.setDay(cal.get(Calendar.DAY_OF_MONTH) - 1);
+                    date.setDay(cal.get(Calendar.DAY_OF_MONTH));
                 } else {
                     Calendar preCal = new GregorianCalendar(
                             Integer.parseInt(
@@ -636,3 +638,4 @@ public class F6BuilderDialog extends ClimateCaveDialog {
     }
 
 }
+
