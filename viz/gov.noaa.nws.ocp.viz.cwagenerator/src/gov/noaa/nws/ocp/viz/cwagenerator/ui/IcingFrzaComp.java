@@ -20,9 +20,10 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.IcingFrzaConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.IcingFrzaNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -33,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -80,14 +82,14 @@ public class IcingFrzaComp extends AbstractCWAComp {
     private Button noUpdateChk;
 
     /** frequency items */
-    private static final String freqItems[] = { " OCNL", " FQT", " CONS" };
+    private static final String[] freqItems = { " OCNL", " FQT", " CONS" };
 
     /** intensity items */
-    private static final String intstyItems[] = { "MOD", "MOD/SEV", "SEV",
+    private static final String[] intstyItems = { "MOD", "MOD/SEV", "SEV",
             "EXTRM" };
 
     /** type items */
-    private static final String typeItems[] = { "CLR ICE", "RIME ICE",
+    private static final String[] typeItems = { "CLR ICE", "RIME ICE",
             "MXD ICE", "FZDZ", "FZRA", "SLT" };
 
     /**
@@ -141,12 +143,12 @@ public class IcingFrzaComp extends AbstractCWAComp {
 
         flightFromCbo = new Combo(flightComp, SWT.READ_ONLY);
         flightFromCbo.add("SFC");
-        for (int i = 10; i <= 440;) {
+        for (int i = 10; i <= 440; i += 10) {
             flightFromCbo.add(String.format("%03d", i));
-            i += 10;
         }
         flightFromCbo.select(0);
         flightFromCbo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 updateToFlightCbo();
             }
@@ -157,9 +159,8 @@ public class IcingFrzaComp extends AbstractCWAComp {
         toFlightLbl.setText("To:");
 
         flightToCbo = new Combo(flightComp, SWT.READ_ONLY);
-        for (int i = 10; i <= 450;) {
+        for (int i = 10; i <= 450; i += 10) {
             flightToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         flightToCbo.select(0);
 
@@ -208,9 +209,8 @@ public class IcingFrzaComp extends AbstractCWAComp {
         int flightToLevel = Integer.parseInt(flightToCbo.getText());
 
         flightToCbo.removeAll();
-        for (int i = initLevel; i <= 450;) {
+        for (int i = initLevel; i <= 450; i += 10) {
             flightToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         if (flightToLevel < initLevel) {
             flightToCbo.select(0);
@@ -235,7 +235,8 @@ public class IcingFrzaComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
 
         String endDateTime = getEndTime();
 
@@ -293,8 +294,8 @@ public class IcingFrzaComp extends AbstractCWAComp {
         return output.toString();
     }
 
-    public AbstractCWAConfig getConfig() {
-        IcingFrzaConfig config = new IcingFrzaConfig();
+    public AbstractCWANewConfig getConfig() {
+        IcingFrzaNewConfig config = new IcingFrzaNewConfig();
         config.setFreq(freqCbo.getItem(freqCbo.getSelectionIndex()));
         config.setIntsty(intstyCbo.getItem(intstyCbo.getSelectionIndex()));
         config.setType(typeCbo.getItem(typeCbo.getSelectionIndex()));
@@ -319,18 +320,18 @@ public class IcingFrzaComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse icing/fraza time.");
         }
 
-        if (!(config instanceof IcingFrzaConfig)) {
+        if (!(config instanceof IcingFrzaNewConfig)) {
             return;
         }
 
-        IcingFrzaConfig ifc = (IcingFrzaConfig) config;
+        IcingFrzaNewConfig ifc = (IcingFrzaNewConfig) config;
         int index = freqCbo.indexOf(ifc.getFreq());
         if (index >= 0) {
             freqCbo.select(index);

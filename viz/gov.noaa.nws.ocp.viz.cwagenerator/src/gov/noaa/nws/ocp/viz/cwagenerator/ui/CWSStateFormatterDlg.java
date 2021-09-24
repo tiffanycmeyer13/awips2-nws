@@ -3,41 +3,26 @@
  **/
 package gov.noaa.nws.ocp.viz.cwagenerator.ui;
 
-import java.awt.Color;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.eclipse.core.commands.Command;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.VerifyEvent;
-import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.commands.ICommandService;
 import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.localization.exception.LocalizationException;
@@ -47,35 +32,30 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.core.IDisplayPane;
 import com.raytheon.uf.viz.core.drawables.IDescriptor;
+import com.raytheon.uf.viz.core.drawables.IRenderableDisplay;
+import com.raytheon.uf.viz.core.drawables.ResourcePair;
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
-import com.raytheon.viz.ui.VizWorkbenchManager;
+import com.raytheon.viz.ui.UiUtil;
+import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenConstant;
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.SigmetCommAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.FillPatternList.FillPattern;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.AbstractDrawableComponent;
-import gov.noaa.nws.ncep.ui.pgen.elements.Layer;
-import gov.noaa.nws.ncep.ui.pgen.elements.Product;
-import gov.noaa.nws.ncep.ui.pgen.file.ProductConverter;
-import gov.noaa.nws.ncep.ui.pgen.file.Products;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResourceData;
-import gov.noaa.nws.ncep.ui.pgen.sigmet.Sigmet;
-import gov.noaa.nws.ncep.viz.common.ui.color.ColorButtonSelector;
+import gov.noaa.nws.ncep.viz.common.SnapUtil;
 import gov.noaa.nws.ocp.viz.cwagenerator.action.IUpdateFormatter;
 import gov.noaa.nws.ocp.viz.cwagenerator.CWAGeneratorUtil;
-import gov.noaa.nws.ocp.viz.cwagenerator.action.CWAResource;
+import gov.noaa.nws.ocp.viz.cwagenerator.action.CWAGeneratorResource;
+import gov.noaa.nws.ocp.viz.cwagenerator.action.CWAGeneratorResourceData;
 import gov.noaa.nws.ocp.viz.cwagenerator.action.VorsDrawingTool;
 import gov.noaa.nws.ocp.viz.cwagenerator.action.VorsSelectHandler;
 import gov.noaa.nws.ocp.viz.cwagenerator.action.VorsSelectingTool;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAProductConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAProductNewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.PointLatLon;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.ProductConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
+import gov.noaa.nws.ocp.viz.cwagenerator.drawable.AbstractDrawableComponent;
 
 /**
  * 
@@ -88,36 +68,19 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 1, 2020  75767      wkwock      Initial creation
+ * Sep 10, 2021 28802      wkwock      Remove PGEN dependence
  *
  * </pre>
  *
  * @author wkwock
  */
-public class CWSStateFormatterDlg extends SigmetCommAttrDlg
+public class CWSStateFormatterDlg extends CaveSWTDialog
         implements IUpdateFormatter {
     /** logger */
     private static final IUFStatusHandler logger = UFStatus
             .getHandler(CWSStateFormatterDlg.class);
 
-    private Composite top = null;
-
-    public static final String AREA = "Area";
-
-    public static final String LINE = "Line";
-
-    public static final String ISOLATED = "Isolated";
-
-    public static final String LINE_SEPERATER = ":::";
-
-    private String lineType = AREA;
-
-    private String origLineType = lineType;
-
-    private static final String WIDTH = "10.00";
-
-    private String width = WIDTH;
-
-    protected ColorButtonSelector cs = null;
+    private VorDrawingComp vorDrawingComp = null;
 
     /** product text field */
     private StyledText productTxt;
@@ -152,14 +115,15 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
 
     private VorsSelectingTool selectTool;
 
-    private Map<Product, AbstractCWAConfig> productList = new HashMap<>();
-
     private CWAProductDlg owner;
+
+    private CWAGeneratorResource cwaResource;
+
+    protected AbstractEditor mapEditor = null;
 
     public CWSStateFormatterDlg(Shell parShell, String productId,
             CWAGeneratorConfig cwaConfigs, CWAProductDlg owner) {
-        super(parShell);
-        setShellStyle(SWT.DIALOG_TRIM | SWT.PRIMARY_MODAL);
+        super(parShell, SWT.DIALOG_TRIM | SWT.PRIMARY_MODAL);
         this.retrievalProductId = cwaConfigs.getAwipsNode() + productId;
         this.productId = cwaConfigs.getKcwsuId() + productId;
         if (!cwaConfigs.isOperational()) {
@@ -173,6 +137,7 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
             ttaaii = "FAAK20 ";
         }
         activateCWAResource();
+        cwaResource.setOwnerDlg(this);
     }
 
     /**
@@ -197,120 +162,21 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
     }
 
     @Override
-    public Control createDialogArea(Composite parent) {
-        top = parent;
-        top.setLayout(new GridLayout(1, false));
-        createTopBar();
-        stateComp = new CWSStateIDComp(parent, cwaConfigs);
+    protected void initializeComponents(Shell shell) {
+        shell.setLayout(new GridLayout(1, false));
+        vorDrawingComp = new VorDrawingComp(shell, cwaResource, this);
+        stateComp = new CWSStateIDComp(shell, cwaConfigs);
         GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
         stateComp.setLayoutData(gd);
         createProductTextBox();
-        return top;
-    }
-
-    private void createTopBar() {
-        Composite topBar = new Composite(top, SWT.NONE);
-        GridLayout mainLayout = new GridLayout(10, false);
-        topBar.setLayout(mainLayout);
-        GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
-        topBar.setLayoutData(gd);
-
-        Button areaBttn = new Button(topBar, SWT.RADIO);
-        areaBttn.setText("Area");
-        setLineType(AREA);
-        areaBttn.setSelection(true);
-
-        Button lineBttn = new Button(topBar, SWT.RADIO);
-        lineBttn.setText("Line");
-
-        Button isolatedBttn = new Button(topBar, SWT.RADIO);
-        isolatedBttn.setText("Isolated  ");
-
-        Label widthLbl = new Label(topBar, SWT.LEFT);
-        widthLbl.setText("Width: ");
-        Text widthTxt = new Text(topBar, SWT.SINGLE | SWT.BORDER);
-        widthTxt.setText("10.00");
-        widthTxt.setEnabled(false);
-
-        areaBttn.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                widthTxt.setEnabled(false);
-
-                setLineType(AREA);
-            }
-        });
-
-        lineBttn.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                widthTxt.setEnabled(true);
-
-                setLineType(LINE + LINE_SEPERATER + getSideOfLine());
-            }
-        });
-
-        isolatedBttn.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                widthTxt.setEnabled(true);
-
-                setLineType(ISOLATED);
-            }
-        });
-
-        widthTxt.addListener(SWT.Modify, new Listener() {
-            @Override
-            public void handleEvent(Event e) {
-                setWidth(widthTxt.getText());
-            }
-        });
-
-        Label colorLbl = new Label(topBar, SWT.LEFT);
-        colorLbl.setText("Color:");
-
-        cs = new ColorButtonSelector(topBar);
-        Color clr = Color.yellow;
-        cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
-
-        Button clearBttn = new Button(topBar, SWT.PUSH);
-        clearBttn.setText("Clear");
-        gd = new GridData();
-        gd.horizontalIndent = 40;
-        clearBttn.setLayoutData(gd);
-        clearBttn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                drawingLayer.removeAllProducts();
-                drawingLayer.removeAllActiveDEs();
-                mapEditor.refresh();
-                changeMouseMode(true);// draw VORs mode
-            }
-        });
-
-        Button saveBttn = new Button(topBar, SWT.PUSH);
-        saveBttn.setText("Save");
-        saveBttn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                saveVORs();
-            }
-        });
-        Button openBttn = new Button(topBar, SWT.PUSH);
-        openBttn.setText("Open");
-        openBttn.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                openVORs();
-            }
-        });
+        createButtonsForButtonBar(shell);
     }
 
     /**
      * save VORs to file
      */
-    private void saveVORs() {
-        AbstractCWAConfig config = stateComp.getConfig();
+    public void saveVORs() {
+        AbstractCWANewConfig config = stateComp.getConfig();
         config.setStartTimeChk(stateComp.getStartTimeChk());
         config.setStartTime(stateComp.getStartTime());
         config.setEndTime(stateComp.getEndTime());
@@ -320,19 +186,16 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         config.setTime(TimeUtil.newGmtCalendar().toString());
 
         // save VORs
-        ArrayList<Product> prds = new ArrayList<>();
-        prds.add(drawingLayer.getActiveProduct());
-        Products products = ProductConverter.convert(prds);
-        config.setVorProduct(products);
+        config.setDrawable(cwaResource.getDrawable());
 
         SaveVorsDlg saveVorsDlg = new SaveVorsDlg(getShell(),
                 productId + stateComp.getWeatherName(), config);
         saveVorsDlg.open();
     }
 
-    private void openVORs() {
+    public void openVORs() {
         // read product configurations
-        CWAProductConfig tmpProductconfig = null;
+        CWAProductNewConfig tmpProductconfig = null;
         String fileName = CWAGeneratorUtil.CWS_PRODUCT_CONFIG_FILE;
         if (!this.cwaConfigs.isOperational()) {
             fileName = CWAGeneratorUtil.CWS_PRACTICE_PRODUCT_CONFIG_FILE;
@@ -346,55 +209,17 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
             logger.error("Failed to read product configurations.", e);
         }
 
-        // display VORs product
-        productList.clear();
-        if (tmpProductconfig != null) {
-            for (AbstractCWAConfig config : tmpProductconfig.getCwaProducts()) {
-                java.util.List<Product> prds = ProductConverter
-                        .convert(config.getVorProduct());
-                addProduct(prds);
-                for (Product product : prds) {
-                    productList.put(product, config);
-                }
-            }
-        }
-
+        cwaResource.setProductConfigs(tmpProductconfig);
         changeMouseMode(false);
-        drawingLayer.setEditable(true);
+        cwaResource.setEditable(true);
         mapEditor.refresh();
-    }
-
-    private void addProduct(java.util.List<Product> prds) {
-        PgenResourceData prd = drawingLayer.getResourceData();
-        if (prd.removeEmptyDefaultProduct()) {
-            if (prds != null && !prds.isEmpty()) {
-                prd.getProductList().clear();
-            }
-        }
-
-        // Find the active Product.
-        int index = -1;
-        if (!prd.getProductList().isEmpty()) {
-            index = prd.getProductList().indexOf(prd.getActiveProduct());
-        }
-
-        // Append all products
-        prd.getProductList().addAll(prds);
-
-        /*
-         * Set active product and layer to start layering control.
-         */
-        if (index < 0) {
-            prd.setActiveProduct(prd.getProductList().get(0));
-            prd.setActiveLayer(prd.getProductList().get(0).getLayer(0));
-        }
     }
 
     /**
      * create the product text box
      */
     private void createProductTextBox() {
-        productTxt = new StyledText(top,
+        productTxt = new StyledText(shell,
                 SWT.MULTI | SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         GridData gd = new GridData(SWT.CENTER, SWT.FILL, false, false);
         gd.heightHint = productTxt.getLineHeight() * 10;
@@ -404,14 +229,11 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         productTxt.setLayoutData(gd);
         gc.dispose();
 
-        productTxt.addVerifyListener(new VerifyListener() {
-            @Override
-            public void verifyText(VerifyEvent e) {
-                // lock the 1st four lines
-                if (!allowMod && (productTxt.getLineAtOffset(e.start) < 4
-                        || productTxt.getLineAtOffset(e.end) < 4)) {
-                    e.doit = false;
-                }
+        productTxt.addVerifyListener((VerifyEvent e) -> {
+            // lock the 1st four lines
+            if (!allowMod && (productTxt.getLineAtOffset(e.start) < 4
+                    || productTxt.getLineAtOffset(e.end) < 4)) {
+                e.doit = false;
             }
         });
     }
@@ -419,19 +241,24 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
     /**
      * Create bottom buttons
      */
-    @Override
     public void createButtonsForButtonBar(Composite parent) {
-        parent.setLayout(new GridLayout(6, false));
+        Composite composite = new Composite(parent, SWT.NONE);
+        GridLayout layout = new GridLayout();
+        composite.setLayout(layout);
+        GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
+        composite.setLayoutData(gd);
 
-        routineRdo = new Button(parent, SWT.RADIO);
+        composite.setLayout(new GridLayout(6, false));
+
+        routineRdo = new Button(composite, SWT.RADIO);
         routineRdo.setText("Rtn");
         routineRdo.setSelection(true);
 
-        corRdo = new Button(parent, SWT.RADIO);
+        corRdo = new Button(composite, SWT.RADIO);
         corRdo.setText("COR");
         corRdo.setSelection(false);
 
-        Button newBtn = new Button(parent, SWT.PUSH);
+        Button newBtn = new Button(composite, SWT.PUSH);
         newBtn.setText("Create New Text");
         newBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -440,7 +267,7 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
             }
         });
 
-        Button previousBtn = new Button(parent, SWT.PUSH);
+        Button previousBtn = new Button(composite, SWT.PUSH);
         previousBtn.setText("Use Previous CWA Text");
         previousBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -449,7 +276,7 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
             }
         });
 
-        Button sendBtn = new Button(parent, SWT.PUSH);
+        Button sendBtn = new Button(composite, SWT.PUSH);
         sendBtn.setText("Send Text");
         sendBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -458,7 +285,7 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
             }
         });
 
-        Button exitBtn = new Button(parent, SWT.PUSH);
+        Button exitBtn = new Button(composite, SWT.PUSH);
         exitBtn.setText("Exit");
         exitBtn.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -469,34 +296,19 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         this.open();
     }
 
-    @Override
-    public Control createButtonBar(Composite parent) {
-        Composite composite = new Composite(parent, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        composite.setLayout(layout);
-        GridData gd = new GridData(SWT.CENTER, SWT.DEFAULT, true, false);
-        composite.setLayoutData(gd);
-
-        // Add the buttons to the button bar.
-        createButtonsForButtonBar(composite);
-        return composite;
-    }
-
-    public CWAResource createNewResource() {
-        CWAResource drawingLayer = null;
-        AbstractEditor editor = PgenUtil.getActiveEditor();
+    public CWAGeneratorResource createNewResource() {
+        CWAGeneratorResource drawingLayer = null;
+        AbstractEditor editor = CWAGeneratorUtil.getActiveEditor();
         if (editor != null) {
             try {
-                PgenResourceData rscData = new PgenResourceData();
+                CWAGeneratorResourceData rscData = new CWAGeneratorResourceData();
 
                 for (IDisplayPane pane : editor.getDisplayPanes()) {
                     IDescriptor idesc = pane.getDescriptor();
                     if (!idesc.getResourceList().isEmpty()) {
-                        drawingLayer = new CWAResource(rscData,
+                        drawingLayer = new CWAGeneratorResource(rscData,
                                 new LoadProperties());
                         idesc.getResourceList().add(drawingLayer);
-                        idesc.getResourceList()
-                                .addPreRemoveListener(drawingLayer);
                         drawingLayer.init(pane.getTarget());
                     }
                 }
@@ -508,40 +320,13 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
     }
 
     private void activateCWAResource() {
-        drawingLayer = createNewResource();
-        mapEditor = PgenUtil.getActiveEditor();
+        cwaResource = createNewResource();
+        mapEditor = CWAGeneratorUtil.getActiveEditor();
         drawTool = new VorsDrawingTool();
         drawTool.setEnabled(true);
-        drawTool.setDrawingLayer(drawingLayer);
+        drawTool.setDrawingLayer(cwaResource);
         drawTool.setMapEditor(mapEditor);
-        //
-        // Get the commandId for this item
-        String commandId = "gov.noaa.nws.ncep.ui.pgen.rsc.PgenSelect";
-        IEditorPart part = VizWorkbenchManager.getInstance().getActiveEditor();
-        ICommandService service = (ICommandService) part.getSite()
-                .getService(ICommandService.class);
-        Command cmd = service.getCommand(commandId);
 
-        if (cmd != null) {
-
-            // Set up information to pass to the AbstractHandler
-            HashMap<String, Object> params = new HashMap<>();
-            params.put("editor", part);
-            params.put(PgenConstant.NAME, "CONV_SIGMET");
-            params.put(PgenConstant.CLASSNAME, "SIGMET");
-            ExecutionEvent exec = new ExecutionEvent(cmd, params, null,
-                    "Select");
-
-            try {
-                drawTool.execute(exec);
-            } catch (ExecutionException e) {
-                logger.error(
-                        "Failed to set PGEN drawing mode for the current map",
-                        e);
-            }
-        }
-
-        drawTool.setAttrDlg(this);
         drawTool.activate();
         mapEditor.registerMouseHandler(drawTool.getMouseHandler());
         mapEditor.refresh();
@@ -565,23 +350,33 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
 
         String fromline = "FROM " + getEditableAttrFromLine();
         String body = "AREA OF ";
-        if (getLineType().equals(SigmetCommAttrDlg.LINE)) {
+        if (vorDrawingComp.getDrawingType() == DrawingType.LINE) {
             body = "AREA..." + (int) getWidth() + " NM WIDE...";
-        } else if (getLineType().equals(SigmetCommAttrDlg.ISOLATED)) {
+        } else if (vorDrawingComp.getDrawingType() == DrawingType.ISOLATED) {
             // Remove from text with ISOL IFA point
             fromline = getEditableAttrFromLine();
             body = "ISOL...DIAM " + (int) getWidth() + "NM...";
         }
 
-        String stateIDStr = CwaUtil
-                .getStates(getAbstractSigmet().getLinePoints(), getLineType());
+        List<PointLatLon> points = cwaResource.getCoordinates();
+        String stateIDStr = "";
+        if (points != null && !points.isEmpty()) {
+            Coordinate[] coors = new Coordinate[points.size()];
+            for (int i = 0; i < points.size(); i++) {
+                coors[i] = new Coordinate(points.get(i).getLat(),
+                        points.get(i).getLon());
+            }
+            stateIDStr = CWAGeneratorUtil.getStates(coors,
+                    vorDrawingComp.getDrawingType());
+        }
+
         String productStr = stateComp.createText(wmoHeader, header, fromline,
                 body, cwaConfigs.getCwsuId(), retrievalProductId,
                 corRdo.getSelection(), cwaConfigs.isOperational(),
-                getLineType(), Double.parseDouble(width), stateIDStr);
+                vorDrawingComp.getDrawingType(), vorDrawingComp.getWidth(),
+                stateIDStr);
 
         setProductText(productStr);
-
     }
 
     /**
@@ -673,13 +468,13 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
     private void sendProduct() {
         String product = productTxt.getText();
         if (product.trim().isEmpty()) {
-            MessageBox messageBox = new MessageBox(top.getShell(), SWT.OK);
+            MessageBox messageBox = new MessageBox(shell.getShell(), SWT.OK);
             messageBox.setText("No Product to Save");
             messageBox.setMessage("There's no product to save.");
             messageBox.open();
             return;
         } else {
-            MessageBox messageBox = new MessageBox(top.getShell(),
+            MessageBox messageBox = new MessageBox(shell.getShell(),
                     SWT.YES | SWT.NO);
             messageBox.setText("Save Product");
             String message = "Save product " + productId + " to textdb?";
@@ -699,7 +494,7 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         boolean success = cwaProduct.sendText(site);
 
         if (cwaConfigs.isOperational()) {
-            MessageBox messageBox = new MessageBox(top.getShell(), SWT.OK);
+            MessageBox messageBox = new MessageBox(shell.getShell(), SWT.OK);
             messageBox.setText("Product Distribution");
             if (success) {
                 messageBox.setMessage(
@@ -746,88 +541,13 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         }
     }
 
-    @Override
-    public Color[] getColors() {
-
-        Color[] colors = new Color[2];
-        colors[0] = new java.awt.Color(cs.getColorValue().red,
-                cs.getColorValue().green, cs.getColorValue().blue);
-        colors[1] = Color.green;
-
-        return colors;
-    }
-
-    private void setColor(Color clr) {
-        cs.setColorValue(new RGB(clr.getRed(), clr.getGreen(), clr.getBlue()));
-    }
-
-    @Override
-    public String getLineType() {
-        return this.lineType;
-    }
-
-    public void setLineType(String lType) {
-        setOrigLineType(getLineType());
-        this.lineType = lType;
-    }
-
-    public String getOrigLineType() {
-        return this.origLineType;
-    }
-
-    public void setOrigLineType(String lType) {
-        this.origLineType = lType;
-    }
-
-    @Override
     public double getWidth() {
-        return Double.parseDouble(this.width);
+        return this.vorDrawingComp.getWidth();
     }
 
-    public void setWidth(String widthString) {
-        this.width = widthString;
-    }
-
-    @Override
-    public void setAttrForDlg(IAttribute attr) {
-        Color clr = attr.getColors()[0];
-        if (clr != null) {
-            this.setColor(clr);
-        }
-    }
-
-    @Override
-    public String getPatternName() {
-        return null;
-    }
-
-    @Override
-    public int getSmoothFactor() {
-        return 0;
-    }
-
-    @Override
-    public Boolean isClosedLine() {
-        return null;
-    }
-
-    @Override
-    public Boolean isFilled() {
-        return null;
-    }
-
-    @Override
-    public FillPattern getFillPattern() {
-        return null;
-    }
-
-    @Override
-    public Coordinate[] getLinePoints() {
-        return null;
-    }
-
-    public void updateFormatter(Product selectedProduct) {
-        AbstractCWAConfig config = productList.get(selectedProduct);
+    public void updateFormatter(AbstractDrawableComponent drawable) {
+        AbstractCWANewConfig config = this.cwaResource
+                .getSelectedConfig(drawable);
         if (config == null) {
             return;
         }
@@ -836,15 +556,12 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
         setProductText(config.getProductTxt());
         routineRdo.setSelection(config.isRoutine());
         corRdo.setSelection(!config.isRoutine());
+    }
 
-        if (!selectedProduct.getLayers().isEmpty()) {
-            Layer layer = selectedProduct.getLayer(0);
-            AbstractDrawableComponent element = layer.getElement(0);
-            if (element instanceof Sigmet) {
-                Sigmet sigmet = (Sigmet) element;
-                setEditableAttrFromLine(sigmet.getEditableAttrFromLine());
-            }
-        }
+    @Override
+    public void clearDrawings() {
+        // clear all drawings
+        cwaResource.clearDrawings();
     }
 
     /**
@@ -852,42 +569,66 @@ public class CWSStateFormatterDlg extends SigmetCommAttrDlg
      * 
      * @param isDrawMode
      */
-    private void changeMouseMode(boolean isDrawMode) {
+    public void changeMouseMode(boolean isDrawMode) {
         if (isDrawMode) {// draw mode
             if (selectTool != null) {
-                IInputHandler abc = selectTool.getMouseHandler();
-                mapEditor.unregisterMouseHandler(abc);
+                IInputHandler mouseHandler = selectTool.getMouseHandler();
+                mapEditor.unregisterMouseHandler(mouseHandler);
             }
             mapEditor.registerMouseHandler(drawTool.getMouseHandler());
+            cwaResource.setEditable(true);
         } else {// select mode
             mapEditor.unregisterMouseHandler(drawTool.getMouseHandler());
             if (selectTool == null) {
-
-                selectTool = new VorsSelectingTool(mapEditor, drawingLayer,
+                selectTool = new VorsSelectingTool(mapEditor, cwaResource,
                         this);
-                selectTool.setDrawingLayer(drawingLayer);
+                selectTool.setDrawingLayer(cwaResource);
                 IInputHandler selectHandler = new VorsSelectHandler(mapEditor,
-                        drawingLayer, this);
+                        cwaResource, this);
                 selectTool.setHandler(selectHandler);
                 selectTool.activate();
-
             }
             mapEditor.registerMouseHandler(selectTool.getMouseHandler());
         }
     }
 
     @Override
-    public boolean close() {
+    protected void disposed() {
         if (drawTool != null) {
             mapEditor.unregisterMouseHandler(drawTool.getMouseHandler());
+            drawTool.dispose();
         }
         if (selectTool != null) {
             mapEditor.unregisterMouseHandler(selectTool.getMouseHandler());
         }
-        drawTool.dispose();
-        drawingLayer.dispose();
+
+        cwaResource.dispose();
         mapEditor.refresh();
 
-        return super.close();
+        for (IRenderableDisplay display : UiUtil
+                .getDisplaysFromContainer(mapEditor)) {
+            for (ResourcePair rp : display.getDescriptor().getResourceList()) {
+                if (rp.getResource() instanceof CWAGeneratorResource) {
+                    CWAGeneratorResource rsc = (CWAGeneratorResource) rp
+                            .getResource();
+                    rsc.unload();
+                }
+            }
+        }
     }
+
+    private String getEditableAttrFromLine() {
+        List<PointLatLon> points = cwaResource.getCoordinates();
+        if (points == null || points.isEmpty()) {
+            return "";
+        }
+        Coordinate[] coors = new Coordinate[points.size()];
+        for (int i = 0; i < points.size(); i++) {
+            coors[i] = new Coordinate(points.get(i).getLat(),
+                    points.get(i).getLon());
+        }
+        return SnapUtil.getVORText(coors, "-",
+                vorDrawingComp.getDrawingType().typeName, 6, false, true, true);
+    }
+
 }

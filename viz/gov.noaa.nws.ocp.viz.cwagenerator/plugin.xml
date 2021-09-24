@@ -22,7 +22,7 @@
        <menuContribution locationURI="menu:tools?before=tools.Da">
             <command
                 commandId="gov.noaa.nws.ocp.viz.cwa.ui.Cwa"
-                label="CWA">
+                label="CWA Generator">
                 <visibleWhen>
                     <reference
                         definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">

@@ -19,10 +19,11 @@ import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
 import gov.noaa.nws.ncep.edex.common.stationTables.Station;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.EruptStatus;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.VolcanoConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.VolcanoNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -33,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -83,11 +85,11 @@ public class VolcanoComp extends AbstractCWAComp {
     private List<Station> volcanoList;
 
     /** ash items */
-    private static final String ashItems[] = { "Satellite", "Radar",
+    private static final String[] ashItems = { "Satellite", "Radar",
             "Satellite & Radar", "PIREP", "Webcam", "Volcano Observatory" };
 
     /** plume items */
-    private static final String plumeItems[] = { "N", "NNE", "NE", "ENE", "E",
+    private static final String[] plumeItems = { "N", "NNE", "NE", "ENE", "E",
             "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW",
             "NWN" };
 
@@ -147,17 +149,14 @@ public class VolcanoComp extends AbstractCWAComp {
         topsLbl.setText(" Tops:");
 
         topsCbo = new Combo(ashComp, SWT.READ_ONLY);
-        for (int i = 10; i <= 400;) {
+        for (int i = 10; i <= 400; i += 10) {
             topsCbo.add(String.format("%03d", i));
-            i += 10;
         }
-        for (int i = 450; i <= 600;) {
+        for (int i = 450; i <= 600; i += 50) {
             topsCbo.add(Integer.toString(i));
-            i += 50;
         }
-        for (int i = 700; i <= 6000;) {
+        for (int i = 700; i <= 6000; i += 100) {
             topsCbo.add(Integer.toString(i));
-            i += 100;
         }
         topsCbo.select(0);
 
@@ -179,9 +178,8 @@ public class VolcanoComp extends AbstractCWAComp {
 
         plumeSpdCbo = new Combo(plumeComp, SWT.READ_ONLY);
         plumeSpdCbo.add(MOV_LTL);
-        for (int i = 5; i <= 100;) {
+        for (int i = 5; i <= 100; i += 5) {
             plumeSpdCbo.add(String.format("%02d KT", i));
-            i += 5;
         }
         plumeSpdCbo.select(0);
 
@@ -203,9 +201,8 @@ public class VolcanoComp extends AbstractCWAComp {
 
         withinCbo = new Combo(reachComp, SWT.READ_ONLY);
         withinCbo.add("");// 1st one blank
-        for (int i = 1; i <= 6;) {
+        for (int i = 1; i <= 6; i++) {
             withinCbo.add(String.format("%d HOURS", i));
-            i++;
         }
         withinCbo.select(0);
     }
@@ -225,7 +222,8 @@ public class VolcanoComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
 
         String endDateTime = getEndTime();
 
@@ -323,8 +321,8 @@ public class VolcanoComp extends AbstractCWAComp {
         reachCbo.select(0);
     }
 
-    public AbstractCWAConfig getConfig() {
-        VolcanoConfig config = new VolcanoConfig();
+    public AbstractCWANewConfig getConfig() {
+        VolcanoNewConfig config = new VolcanoNewConfig();
         config.setAsh(ashCbo.getItem(ashCbo.getSelectionIndex()));
         config.setEndTime(getEndTime());
         if (eruptedRdo.getSelection()) {
@@ -349,16 +347,16 @@ public class VolcanoComp extends AbstractCWAComp {
         return config;
     }
 
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse Volcano time.");
         }
-        if (!(config instanceof VolcanoConfig)) {
+        if (!(config instanceof VolcanoNewConfig)) {
             return;
         }
-        VolcanoConfig vc = (VolcanoConfig) config;
+        VolcanoNewConfig vc = (VolcanoNewConfig) config;
         int index = volcanoCbo.indexOf(vc.getVolcano());
         if (index >= 0) {
             volcanoCbo.select(index);

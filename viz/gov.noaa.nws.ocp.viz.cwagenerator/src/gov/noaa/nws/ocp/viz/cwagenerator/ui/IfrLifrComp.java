@@ -19,9 +19,10 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.IfrLifrConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.IfrLifrNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -32,6 +33,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -112,27 +114,27 @@ public class IfrLifrComp extends AbstractCWAComp {
     private Button noUpdateChk;
 
     /** coverage items */
-    private static final String CoverageItems[] = { "", "OCNL", "SCT",
+    private static final String[] CoverageItems = { "", "OCNL", "SCT",
             "WDSPRD" };
 
     /** flight items */
-    private static final String flightItems[] = { "IFR", "IFR/PTCHY LIFR",
+    private static final String[] flightItems = { "IFR", "IFR/PTCHY LIFR",
             "IFR/LIFR", "LIFR" };
 
     /** cig from items */
-    private static final String cigFromItems[] = { "AOB ", "000", "002", "003",
+    private static final String[] cigFromItems = { "AOB ", "000", "002", "003",
             "004", "005" };
 
     /** cig to items */
-    private static final String cigToItems[] = { "002", "003", "004", "005",
+    private static final String[] cigToItems = { "002", "003", "004", "005",
             "010" };
 
     /** visby from items */
-    private static final String vsbyFromItems[] = { "AOB ", "LOCLY AOB ", "1/4",
+    private static final String[] vsbyFromItems = { "AOB ", "LOCLY AOB ", "1/4",
             "1/2", "3/4", "1" };
 
     /** visby to items */
-    private static final String vsbyToItems[] = { "1/4SM", "1/2SM", "3/4SM",
+    private static final String[] vsbyToItems = { "1/4SM", "1/2SM", "3/4SM",
             "1SM", "1 1/2SM", "3SM" };
 
     /**
@@ -289,7 +291,8 @@ public class IfrLifrComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
         if (!(brChk.getSelection() || fgChk.getSelection()
                 || hzChk.getSelection() || dzChk.getSelection()
                 || raChk.getSelection() || snChk.getSelection()
@@ -385,9 +388,9 @@ public class IfrLifrComp extends AbstractCWAComp {
             cigF += "-";
         }
 
-        String Lvsby = vsbyFromCbo.getText();
-        if (!Lvsby.equals("AOB ") && !Lvsby.equals("LOCLY AOB ")) {
-            Lvsby += "-";
+        String lvsby = vsbyFromCbo.getText();
+        if (!lvsby.equals("AOB ") && !lvsby.equals("LOCLY AOB ")) {
+            lvsby += "-";
         }
         // get next series ID
         CWAProduct cwaProduct = new CWAProduct(productId, cwsuId, isOperational,
@@ -407,7 +410,7 @@ public class IfrLifrComp extends AbstractCWAComp {
                 .append(flightCbo.getText()).append(" CONDS. ");
         output.append("CIGS ").append(cigF).append(cigToCbo.getText())
                 .append(". ");
-        output.append("VIS ").append(Lvsby).append(vsbyToCbo.getText())
+        output.append("VIS ").append(lvsby).append(vsbyToCbo.getText())
                 .append(" ");
         output.append(wxBR).append(wxFG).append(wxHZ).append(wxDZ).append(wxRA)
                 .append(wxSN).append(wxFU).append(wxDU).append(wxSS)
@@ -441,8 +444,8 @@ public class IfrLifrComp extends AbstractCWAComp {
         return output.toString();
     }
 
-    public AbstractCWAConfig getConfig() {
-        IfrLifrConfig config = new IfrLifrConfig();
+    public AbstractCWANewConfig getConfig() {
+        IfrLifrNewConfig config = new IfrLifrNewConfig();
         config.setDvlpgChk(dvlpgChk.getSelection());
         config.setCoverage(
                 coverageCbo.getItem(coverageCbo.getSelectionIndex()));
@@ -479,16 +482,16 @@ public class IfrLifrComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse IfrLifr time.");
         }
-        if (!(config instanceof IfrLifrConfig)) {
+        if (!(config instanceof IfrLifrNewConfig)) {
             return;
         }
-        IfrLifrConfig ilc = (IfrLifrConfig) config;
+        IfrLifrNewConfig ilc = (IfrLifrNewConfig) config;
         dvlpgChk.setSelection(ilc.isDvlpgChk());
 
         int index = coverageCbo.indexOf(ilc.getCoverage());
@@ -565,6 +568,5 @@ public class IfrLifrComp extends AbstractCWAComp {
         }
 
         noUpdateChk.setSelection(ilc.isNoUpdateChk());
-
     }
 }
