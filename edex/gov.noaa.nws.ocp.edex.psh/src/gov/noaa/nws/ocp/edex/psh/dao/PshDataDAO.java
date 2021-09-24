@@ -8,6 +8,7 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageProperties;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
+import com.raytheon.uf.common.datastorage.records.DataUriMetadataIdentifier;
 import com.raytheon.uf.common.datastorage.records.StringDataRecord;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 
@@ -15,21 +16,21 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord;
 
 /**
  * PshDataDAO
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
  *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * Aug 12, 2017            pwang     Initial creation
- * Jan 25, 2018 #45125     wpaintsil Use path keys xml file instead 
- *                                   of overriding persistToHDF5().
+ * Aug 12, 2017            pwang       Initial creation
+ * Jan 25, 2018 #45125     wpaintsil   Use path keys xml file instead
+ *                                     of overriding persistToHDF5().
+ * Sep 23, 2021 8608       mapeters    Pass metadata ids to datastore
  *
  * </pre>
  *
  * @author pwang
- * @version 1.0
  */
 public class PshDataDAO extends PluginDao {
 
@@ -51,7 +52,8 @@ public class PshDataDAO extends PluginDao {
 
         storageRecord.setProperties(props);
         storageRecord.setCorrelationObject(record);
-        dataStore.addDataRecord(storageRecord);
+        dataStore.addDataRecord(storageRecord,
+                new DataUriMetadataIdentifier(record));
 
         return dataStore;
     }
