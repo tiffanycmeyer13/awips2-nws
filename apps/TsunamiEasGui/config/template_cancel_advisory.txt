@@ -1,0 +1,19 @@
+# This is the main Advisory cencellation template as of version 20180510
+# !!! PLEASE COPY THIS TEMPLATE INTO THE etc/ directory if you wish to change
+# This determines the format and what information will be included in both the automatic parsed and backup templates.
+# If changes are made, please test thoroughly.
+# The following are place holders for information that the GUI will fill in if available
+# AAAAAA: Area description of tsunami WWA area
+# NNNNNN: Default action statement for given WWA
+# EEEEEE: Earthquake information
+# ZZZZZZ: Default timezone
+# LLLLLL: Listing of arrival times and stations
+# SSSSSS: Generic Local Actions. This phrase is defined in config_tsu.py, local_actions variable
+
+THE TSUNAMI ADVISORY HAS BEEN CANCELED AAAAAA. NO TSUNAMI ADVISORY IS IN EFFECT FOR THAT AREA. 
+
+REPEAT, THE NATIONAL WEATHER SERVICE HAS CANCELED THE EARLIER TSUNAMI ADVISORY AAAAAA.
+
+AS LOCAL CONDITIONS CAN CAUSE A WIDE VARIATION IN TSUNAMI WAVE ACTION, THE ALL CLEAR DETERMINATIONS MUST BE MADE BY LOCAL AUTHORITIES.
+
+ONCE AGAIN, THE NATIONAL WEATHER SERVICE HAS CANCELED THE TSUNAMI ADVISORY AAAAAA.

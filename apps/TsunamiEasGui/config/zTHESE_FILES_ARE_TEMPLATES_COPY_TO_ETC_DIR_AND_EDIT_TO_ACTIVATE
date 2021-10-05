@@ -1,0 +1,8 @@
+The files in this directory are templates that are updated with each subversion update
+
+As a result, the localized working files for the program need to be copied to the etc/ directory
+
+config_tsu.template.py needs to the renamed to config_tsu.py after being copied to the etc/ directory
+
+The other filenames are OK for the etc/ directory
+

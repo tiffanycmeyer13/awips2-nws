@@ -1,0 +1,47 @@
+000
+WEPA41 PAAQ 192306
+TSUWCA
+
+BULLETIN
+Tsunami Message Number 5
+NWS National Tsunami Warning Center Palmer AK
+306 PM AKDT Mon Oct 19 2020
+
+AKZ121-171-181-200006-
+/O.CAN.PAAQ.TS.W.0022.000000T0000Z-000000T0000Z/
+/O.NEW.PAAQ.TS.Y.0022.201019T2306Z-000000T0000Z/
+Coastal areas between and including Kennedy Entrance,
+Alaska (40 miles SW of Homer) to Unimak Pass, Alaska (80
+miles NE of Unalaska)
+306 PM AKDT Mon Oct 19 2020
+
+...A TSUNAMI ADVISORY IS NOW IN EFFECT WHICH INCLUDES THE
+   COASTAL AREAS OF ALASKA FROM KENNEDY ENTRANCE ALASKA, WHICH
+   IS LOCATED 40 MILES SW OF HOMER, TO UNIMAK PASS ALASKA,
+   WHICH IS LOCATED 80 MILES NE OF UNALASKA,...
+
+If you are located in this coastal area, move off the
+beach and out of harbors and marinas.
+
+Tsunami advisories mean that a tsunami capable of producing
+strong currents or waves dangerous to persons in or very near
+the water is expected or is already occurring.  Areas in the
+advisory should not expect widespread inundation.  Tsunamis
+are a series of waves dangerous many hours after initial
+arrival time.  The first wave may not be the largest.
+
+At 1255 PM Alaska Daylight Time on October 19 an earthquake with
+preliminary magnitude 7.5 occurred 55 miles southeast of
+ Sand Point Alaska.
+
+Estimated tsunami start times for selected sites are;
+
+Cold Bay           Alaska              245 PM. AKDT. October 19.
+Kodiak             Alaska              250 PM. AKDT. October 19.
+
+The tsunami advisory will remain in effect until further notice.
+Refer to the internet site tsunami.gov for more information.
+
+$$
+
+
