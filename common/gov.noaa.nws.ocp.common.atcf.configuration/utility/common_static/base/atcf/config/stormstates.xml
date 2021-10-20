@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<StormStates>
+    <!--
+        This file contains the storm states used in Public Advisory. 
+        They are shown in Advisory Composition => Forecast Type dialog.
+        id          - Unique identifier
+        retired     - Flag to indicate if the state will show on GUI 
+                         (false = show; true = do not show)
+        name        - Name shown on GUI
+        description - State description shown in advisory.
+    -->
+    <State id="NO" retired="false" name="Normal" description=" "/>
+    <State id="IN" retired="false" name="Inland" description="inland"/>
+    <State id="DS" retired="true"  name="Dissipating" description="dissipating"/>
+    <State id="DD" retired="false" name="Dissipated" description="dissipated"/>
+    <State id="EX" retired="true"  name="Extratropical" description="extratropical"/>
+    <State id="RL" retired="true"  name="Remnant low" description="remnant low"/>
+    <State id="DI" retired="true"  name="Dissipating Inland" description="dissipating inland"/>
+    <State id="PT" retired="false" name="Post-Tropical" description="post-tropical"/>
+    <State id="PE" retired="false" name="Post-Trop/Extratrop" description="post-trop/extratrop"/>
+    <State id="PI" retired="false" name="Post-Trop/Inland" description="post-trop/inland"/>
+    <State id="PL" retired="false" name="Post-Trop/Remant low" description="post-trop/remnant low"/>
+    <State id="TC" retired="true"  name="Tropical cylone" description="tropical cylone"/>
+    <State id="PO" retired="true"  name="Potential TC" description="potential trop cyclone"/>
+    <State id="OW" retired="false" name="Over water" description="over water"/>
+</StormStates>

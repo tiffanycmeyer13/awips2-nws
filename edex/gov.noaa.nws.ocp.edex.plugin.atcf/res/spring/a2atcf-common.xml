@@ -1,0 +1,26 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="a2atcfNamespaceCreator" class="gov.noaa.nws.ocp.edex.plugin.atcf.db.NamespaceCreator"
+        depends-on="admin_metadataSessionFactory, admin_metadataTxManager">
+        <constructor-arg ref="daoConfigFactory" />
+        <constructor-arg value="metadata" />
+    </bean>
+
+    <bean id="a2atcfEdexDbPluginProperties" class="com.raytheon.uf.edex.database.DatabasePluginProperties"
+        depends-on="a2atcfNamespaceCreator">
+        <property name="pluginFQN"
+            value="gov.noaa.nws.ocp.common.dataplugin.atcf" />
+        <property name="pluginName" value="a2atcf" />
+        <property name="database" value="metadata" />
+    </bean>
+
+    <bean id="a2atcfRegistered" factory-bean="dbPluginRegistry"
+        factory-method="register">
+        <constructor-arg value="gov.noaa.nws.ocp.edex.plugin.atcf" />
+        <constructor-arg ref="a2atcfEdexDbPluginProperties" />
+    </bean>
+
+</beans>

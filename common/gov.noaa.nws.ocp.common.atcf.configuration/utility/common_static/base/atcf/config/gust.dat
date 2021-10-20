@@ -1,0 +1,66 @@
+
+This file contains:
+        A table of default gust data dependent upon maximum wind speed (kts).
+The data are used to generate text warnings and web graphic labels.
+The format is:
+
+intensity              gust 
+  (kts)                (kts)
+
+
+
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+0                0
+5               10
+10              15
+15              20
+20              30
+25              35
+30              40
+35              45
+40              50
+45              55
+50              60
+55              65
+60              75
+65              80
+70              85
+75              90
+80             100
+85             105
+90             110
+95             115
+100            120
+105            130
+110            135
+115            140
+120            145
+125            150
+130            160
+135            165
+140            170
+145            175
+150            185
+155            190
+160            195
+165            200
+170            205
+175            215
+180            220
+185            225
+190            230
+195            240
+200            245
+205            250
+210            255
+215            260
+220            270
+225            275
+230            280
+235            285
+240            295
+245            300
+250            305

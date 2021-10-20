@@ -1,0 +1,223 @@
+{{!--
+    Variables:
+        header.wmoId           - TTAAii part of WMO heading
+        header.category        - Product category, i.e., TCA
+        header.basin           - 2-character product basin, AT/EP/CP
+        header.binNummber      - AWIPS bin number, 1 to 5
+        header.wfo             - WFO id of primary office, i.e., KNHC/PHFO/KWNH 
+        header.advClass        - Storm category, i.e, Hurricane
+        header.advName         - Storm name for this advisory, i.e., IRMA
+        header.advNumber       - Advisory number
+        header.advNumPhrase    - Combined phrase based on advisory type, length of advisory class & name, 
+                                 and if this is a special advisory.
+        header.backup          - Flag to indicate if an backup office is issuing the advisory
+        header.issuedBy        - Primary office's address
+        header.stormId         - Storm ID, i.e., AL112017
+        header.issusedByBackup - Backup office's address
+        header.potentialTC     - Flag for Potential Tropical Cyclone
+        header.finalAdv        - Flag to indicate this is the last advisory
+        header.pubFreqEd3      - Flag to if public advisory frequency is 3.
+        header.forecaster      - Forester's full first name
+        
+        headLine               - Content for Headline section.
+        inserHeadLine          - Reminder line at the end of Headline section.
+        summary                - AdvisorySummary, formatted info to build Summary section
+        watchWarnReminder      - Reminder line at the end of Watch and Warnings section.
+        hazards                - Content for Hazards section.
+        discus                 - AdvisoryDiscussion, formatted info to build Discussion section
+        prevDiscus             - Discussion section issued in previous TCP.
+
+        tau0                   - ForecastData at TAU 0.
+        tau3                   - ForecastData at TAU 3 (or the special TAU):
+        forecast               - List of ForecastData from TAU 12 to TAU 72.
+        outlook                - List of ForecastData from TAU 96 to TAU 168.
+
+          --- Each ForecastData has the following fields ------
+            times              - ForecastTime at TAU 3, UTC.
+            localTimes         - ForecastTime at TAU 3, in local time zone.
+               tau             - TAU, i.e., 3
+               fcstHour        - TAU formatted as 3-Digit hour, i.e., "  3"
+               plusHour        - Hours away from TAU 3, 2-Digit, i.e., "06"
+               amPm            - AM or PM
+               hour            - hour, i.e., "9", "15"
+               hour2           - 2-Digit hour, i.e., "09"
+               minute          - 2-digit minutes usually 00 (00 or 30 for special advisory)
+               timeZone        - Time zone, UTC for TCM.
+               weekDay         - Day in the week, i.e, "MON"
+               mon             - Month, 2-Digit, i.e., "09".
+               month           - Month, i.e. "AUG"
+               day             - 2-Digit day, i.e., "05"
+               year            - 4-digit year, i.e., "2021"
+               hhmmaz          - "200 AM EDT"
+               ddHH            - 4-digit year, i.e., "2021"
+               hhmm            - 4-digit year, i.e., "2021"
+               ymdh            - 4-digit year, i.e., "2021"
+               advTime         - Advisory time.
+                                 For UTC time (TCM/PWS/TCA), i.e., "2100 UTC SAT MAY 16 2020"
+                                 For local time (TCP/TCD), i.e., "500 PM EDT Sat May 16 2020"                                     
+            lat                - Latitude,  i.e, "35.2N"
+            lon                - Longitude, i.e, "82.5W"
+            state              - Storm state
+            dissipated         - Flag to show if storm dissipated (DD) 
+            windData           - Wind data include maximum wind, gust, wind & wave radii
+                - maxWind      - maximum wind
+                - gust         - gust
+                - windRadii    - List of wind radii for 34/50/64 kt
+                - waveRadii    - 12 ft seas wave radii
+                    - rad      - Radii (34/50/64 kt or 12 ft)
+                    - quad[]   - Wind or wave radii in each quadrant.
+
+        nextIntermTime         - ForecastTime to issue next intermediate advisory.
+        nextAdvTime            - ForecastTime to issue next routine advisory.
+
+    Handlebars helpers:
+       ~       - Remove up to the first handlebar's expression or non-whitespace character on a side.
+       right   - Justify text to the right
+                 The 'pad' parameter specifies a character that will pad the justified text on the left
+       if/else - Present the context if the condition is true. It leaves a blank line if condition
+                 is false and no "else" clause.
+       each    - Loop
+       with    - Present the context if the context is defined (non-empty, not 0, not false, not null).
+       unless  - Reverse of if.
+       blank   - A custom empty string for indentation, no real meaning.       
+--}}
+{{header.wmoId}} {{header.wfo}} 000000
+{{header.category}}{{header.basin}}{{header.binNumber}}
+
+BULLETIN
+{{header.advClass}} {{header.advName}} {{header.advNumPhrase}} {{right header.advNumber size=3 pad=" "}}{{#if intermediate}}A{{/if}}
+{{header.issuedBy}}       {{header.stormId}}
+{{#if header.issuedByBackup}}
+    {{~break}}{{header.issuedByBackup}}
+{{/if}}
+{{#with tau3.localTimes}}{{advTime}}{{/with}}
+
+{{#if headline}}
+    {{~headline}}
+{{else}}
+    {{~insertHeadline}}
+{{/if}}
+
+
+SUMMARY OF {{tau3.localTimes.hhmmaz}}...{{tau3.times.hhmm}} UTC...INFORMATION
+----------------------------------------------
+LOCATION...{{summary.lat}} {{summary.lon}}
+
+{{#if summary.geoReference1}}
+ABOUT {{summary.distanceMi1}} MI...{{summary.distanceKm1}} KM {{summary.geoDirection1}} OF {{upper summary.geoReference1}}
+{{/if}}
+{{#if summary.geoReference2}}
+ABOUT {{summary.distanceMi2}} MI...{{summary.distanceKm2}} KM {{summary.geoDirection2}} OF {{upper summary.geoReference2}}
+{{/if}}
+PRESENT MOVEMENT...{{summary.direction}} OR {{summary.degrees}} DEGREES AT {{summary.movementMph}} MPH...{{summary.movementKmh}} KM/H
+MAXIMUM SUSTAINED WINDS...{{summary.windMph}} MPH...{{summary.windKmh}} KM/H
+MINIMUM CENTRAL PRESSURE...{{summary.pressureMb}} MB...{{summary.pressureIn}} INCHES
+
+
+WATCHES AND WARNINGS
+--------------------
+{{watchWarn}}
+{{#if watchWarnReminder}}
+{{blank}}
+{{watchWarnReminder}}
+{{/if}}
+
+
+DISCUSSION AND OUTLOOK
+----------------------
+{{#with discus}}
+{{#wrap}}
+At {{localTime}} ({{utcTime}} UTC), the {{intensityStatus}} {{advClass}} {{advName}} {{centerOrLocated}}
+near latitude {{fullLat}}, longitude {{fullLon}}. {{longIntensity}}{{movingOrStay}}{{movingDirSpd}}{{expectedMotion}}{{insertMotion}}
+
+Maximum sustained winds are near {{windMph}} mph ({{windKmh}} km/h) with higher gusts.
+{{~#if stormCategory}}{{advName}} is a category {{stormCategory}} hurricane on the Saffir-Simpson Hurricane Wind Scale.{{/if~}}
+{{#if intensityTendency}}
+{{intensityTendency}} is forecast during the next 48 hours. !** [ADD ANY ADDITIONAL INTENSITY INFO HERE] **!
+{{break}}
+{{/if}}
+{{/wrap}}
+{{#if addGenesisInfo}}
+!** [ADD GENESIS INFORMATION HERE] **!
+* Formation chance through 48 hours...high...XX percent
+* Formation chance through 5 days...high...XX percent
+{{break}}
+{{/if}}
+{{#wrap}}
+{{#if windGr64}}
+    {{~break}}Hurricane-force winds extend outward up to {{windRad64Mph}} miles({{windRad64Kmh}} km)
+{{/if}}
+{{~#if windGr34}}
+     {{#if windGr64}}
+        {{~break}} from the center and tropical storm-force winds extend outward up to {{windRad34Mph}} miles ({{windRad34Kmh}} km).
+    {{else}}
+        {{#if subtropicalStorm}}
+            {{~break}}Winds of 40 mph extend outward up to {{windRad34Mph}} miles ({{windRad34Kmh}} km) from the center.
+        {{else}}
+            {{~break}}Tropical storm-force winds extend outward up to {{windRad34Mph}} miles ({{windRad34Kmh}} km) from the center.
+        {{/if}}
+    {{/if}}
+    {{~break}}
+{{/if}}
+The estimated minimum central pressure is {{pressureMb}} mb ({{pressureIn}} inches).
+{{/wrap}}
+{{/with}}
+
+
+HAZARDS AFFECTING LAND
+----------------------
+{{#if hazards}}
+    {{~hazards}}
+{{else}}
+    {{~break}}None
+{{/if}}
+
+
+NEXT ADVISORY
+-------------
+{{#if header.finalAdv}}
+    {{~break}}This is the last public advisory issued by the {{header.lastAdvFrom}} on this system.
+{{else}}
+    {{#if header.pubFreqEq3}}
+        {{~break}}Next intermediate advisory at {{nextIntermTime.hhmmaz}}
+    {{/if}}
+    {{~break}}Next complete advisory at {{nextAdvTime.hhmmaz}}
+{{/if}}
+
+$$
+Forecaster {{header.forecaster}}
+
+{{#if header.issuedByWPC}}{{#unless header.backup}}
+FORECAST POSITIONS AND MAX WINDS
+
+{{#with tau3}}
+    {{~break}}INIT {{times.ddHH}}{{times.minute}}Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+{{/with}}
+{{#each forecast}}
+    {{#if windData}}
+         {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+    {{else}}
+        {{#if state}}
+            {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z{{state}}
+        {{/if}}
+    {{/if}}
+{{/each~}}
+{{#each outlook}}
+    {{#if windData}}
+         {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+    {{else}}
+        {{#if state}}
+            {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z{{state}}
+        {{/if}}
+    {{/if}}
+{{/each~}}
+{{/unless}}{{/if}}
+
+NNNN
+
+!** DELETE EVERYTHING BELOW BEFORE EXITING **!
+======= PREVIOUS DISCUSSION ========
+
+{{prevDiscus}}
+
+==== End of PREVIOUS DISCUSSION ====

@@ -1,0 +1,57 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://camel.apache.org/schema/spring
+    http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean class="com.raytheon.uf.common.logback.appender.ThreadBasedAppender"
+        factory-method="registerThreadPattern">
+        <constructor-arg value="a2atcf" />
+        <constructor-arg value="Ingest.a2atcf.*" />
+    </bean>
+
+    <bean id="a2atcfDeckProcessor"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.decoder.AtcfDeckProcessor" />
+
+    <!-- class=" com.raytheon.uf.edex.distribution.DistributionSrv" -->
+    <bean id="a2atcfDistRegistry" factory-bean="distributionSrv"
+        factory-method="register">
+        <constructor-arg value="a2atcf" />
+        <constructor-arg value="jms-durable:queue:Ingest.a2atcf" />
+    </bean>
+
+    <camelContext id="a2atcf-camel"
+        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+        <endpoint id="a2atcfFileEndpoint" uri="file:${edex.home}/data/sbn/a2atcf?noop=true&amp;idempotent=false" />
+
+        <!-- Begin Atcf routes -->
+        <route id="a2atcfFileConsumerRoute">
+            <from uri="a2atcfFileEndpoint" />
+            <bean ref="fileToString" />
+            <setHeader name="pluginName">
+                <constant>a2atcf</constant>
+            </setHeader>
+            <to uri="jms-durable:queue:Ingest.a2atcf" />
+        </route>
+
+        <route id="a2atcfIngestRoute">
+            <from uri="jms-durable:queue:Ingest.a2atcf" />
+            <setHeader name="pluginName">
+                <constant>a2atcf</constant>
+            </setHeader>
+
+            <doTry>
+                <bean ref="stringToFile" />
+                <pipeline>
+                    <bean ref="a2atcfDeckProcessor" method="decode" />
+                    <to uri="log:a2atcf?level=INFO" />
+                </pipeline>
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:a2atcf?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+    </camelContext>
+</beans>
