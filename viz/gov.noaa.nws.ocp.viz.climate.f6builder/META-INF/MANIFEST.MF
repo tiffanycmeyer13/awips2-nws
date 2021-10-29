@@ -8,5 +8,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: gov.noaa.nws.ocp.viz.common.climate,
  com.raytheon.uf.viz.core,
  com.raytheon.viz.ui,
- org.eclipse.core.runtime;bundle-version="3.11.1",
+ org.eclipse.core.runtime,
  com.raytheon.viz.core

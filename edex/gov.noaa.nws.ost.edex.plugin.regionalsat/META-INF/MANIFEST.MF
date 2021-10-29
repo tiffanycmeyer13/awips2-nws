@@ -6,12 +6,12 @@ Bundle-Version: 1.15.0.qualifier
 Eclipse-RegisterBuddy: com.raytheon.edex.common, com.raytheon.uf.common.serialization
 Bundle-Vendor: NWS
 Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools;bundle-version="1.0.0",
+ com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.measure,
  javax.persistence,
  com.raytheon.edex.plugin.satellite,
- ucar.nc2;bundle-version="1.0.0"
+ ucar.nc2
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: 
  com.raytheon.edex.util.satellite,

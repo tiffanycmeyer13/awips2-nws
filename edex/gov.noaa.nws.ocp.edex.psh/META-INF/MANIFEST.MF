@@ -6,17 +6,17 @@ Bundle-Version: 1.17.0.qualifier
 Bundle-Vendor: NWS
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.common.auth;bundle-version="1.17.0",
+ com.raytheon.uf.common.auth,
  com.raytheon.uf.common.dataplugin.text,
  com.raytheon.uf.common.dissemination,
  com.raytheon.uf.common.localization,
- com.raytheon.uf.common.status;bundle-version="1.17.0",
- com.raytheon.uf.common.wmo;bundle-version="1.16.0",
+ com.raytheon.uf.common.status,
+ com.raytheon.uf.common.wmo,
  com.raytheon.uf.edex.plugin.text,
- com.raytheon.uf.edex.plugin.text.dbsrv;bundle-version="1.16.0",
+ com.raytheon.uf.edex.plugin.text.dbsrv,
  gov.noaa.nws.ocp.common.dataplugin.psh,
  gov.noaa.nws.ocp.common.localization.psh,
- org.apache.commons.lang;bundle-version="2.6.0",
+ org.apache.commons.lang,
  org.apache.velocity,
  com.raytheon.uf.common.time
 Export-Package: gov.noaa.nws.ocp.edex.psh.dao,
