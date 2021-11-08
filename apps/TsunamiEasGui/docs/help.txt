@@ -1,33 +1,38 @@
 === Basic Use ===
-After starting the Tsunami Radio Helper, the program will automatically grab the latest TSU statement from the Tsunami Warning Center, and attempt to pull all the needed information.  If successful, you will see the text for a radio statement in the main text window. Read through it to make sure all the information is correct. Utilize the 'View TSU Statement' button on the top right of the window to look through the TSU statement that the program used to create the text you see.
+After starting the Tsunami EAS GUI, the program will automatically grab the latest TSU statement from the appropriate Tsunami Warning Center (TWC), and attempt to pull all the needed information.  If successful, you will see the text for a radio statement in the main text window.  If you see any "XXXX" framing code, replace it manually as the program could not pull it from the TWC statement.  
 
-Once everything looks good, double check that the 'Product expires in' setting on the bottom right is what you want.
+Read through it to make sure all the information is correct. Utilize the 'View TSU Statement' button on the top right of the window to look through the TSU statement that the program used to create the text you see.
 
-Then press the red 'Send to Radio' button on the bottom left.  You will be prompted one time just to make sure you want to activate the radio. Selecting the Red 'Go Ahead' button WILL send it to the radio. You task is now complete!
+If all looks good, press the red 'Send to Radio' button on the bottom left. This will NOT send anything to the radio just yet. You will be prompted one more time just to make sure you want to activate the radio. Selecting the Red 'Go Ahead' button WILL send it to the radio. Your task is now complete!
 
+=== Backup Templates ===
+Backup templates are the fall back plan in the event that the TSU statement parsing fails or produces unsatisfactory results. Selecting one of these options will fill in the main text window with a generic script. There will be 'framing' code (XXXXXX) that you will need to replace with relavant information. If you prefill the desired zones check boxes beforehand, and the template fill will attempt to create a simple area description for you.
+
+=== Imminent Tsunami ===
+If you are one of the preapproved offices to do so, and you have copied in the appropriate template into the etc/ directory, you will see the option to load in an imminent tsunami warning template.  Use this for large local earthquakes which would generate a tsunami too quickly to wait for an official WWA from the Tsunami Warning Center.
+
+=== Program Mode ===
+There are 2 modes available in the GUI. 'Practice' mode disables your ability to send anything to the radio.  'Live' mode means the GUI is fully functional and you CAN send something to the radio.  You can also utilize the "Add Test Wording" option to pepper the statement with test wording.
+
+The AWIPS workstation mode will influence which modes are available in the GUI.
+
+=== Options Menu ===
+'Clear Tracked WWA' will clear the running log of Tsunami WWA statements sent to the radio by this GUI. This tracking will be used to remind you if two statements are on the radio for the same area. While testing this GUI, you may find that those notices are not functioning properly. In this event, use this feature and try again from the beginning.
 
 === Multiple WWA Case === 
 In the rare event that there are multiple Tsunami WWAs in effect for your CWA (warning and advisory for example), you will have to send two seperate statement to the radio - one for each WWA. The program handles this by prompting you with a choice for which WWA to send to the radio first. Go through the process as normal. After sending the first statement out, you will be prompted again to send the other WWA statement.
 
 
-=== Backup Templates ===
-Backup templates are the fall back plan in the event that the TSU statement parsing fails or produces unsatisfactory results. Selecting one of these options will fill in the main text window with a generic script. There will be 'framing' code (XXXXXX) that you will need to replace with relavant information. If you prefill the desired zones check boxes beforehand, and the template fill will attempt to create a simple area description for you.
-
-
-=== Program Mode ===
-There are 3 modes available in the GUI. 'Practice' mode disables your ability to send anything to the radio.  'Live' mode means the GUI is fully functional and you CAN send something to the radio.  'Test' mode is similar to live mode, except the statement will be filled with "test" wording.
-
-The AWIPS workstation mode will influence which modes are available in the GUI.
-
-
-=== Options Menu ===
-'Clear Tracked WWA' will clear the running log of Tsunami WWA statements sent to the radio by this GUI. This tracking will be used to remind you if two statements are on the radio for the same area. While testing this GUI, you may find that those notices are not functioning properly. In this event, use this feature and try again from the beginning.
-
 === More Help ===
-If more help is needed, visit the project Google site at:
-http://sites.google.com/a/noaa.gov/nws-wr-lox/projects/tsunami
+If more help is needed, visit the project vlab site at:
+https://vlab.noaa.gov/redmine/projects/nwsscp/wiki/TsunamiEasGui
 
-You may also contact the developers
+You may also contact the developers:
 Ryan Kittell (ryan.kittell@noaa.gov 805-988-6619)
-Bill Schneider (bill.schneider@noaa.gov)
+Jim Buchman (jim.buchman@noaa.gov 301-427-9257)
 
+Or reach out to some of the helpers:
+Jon Bonk (jon.bonk@noaa.gov)
+Tony Freeman (tony.freeman@noaa.gov)
+
+*** HELP Version:  August, 2021 ***

@@ -9,8 +9,9 @@
 # Credit to Bill Schneider, Original Co-developer (now retired)
 # Notes:
 #  - On initial installation, 
-#    1) Copy this file into the TsunamiEasGui/etc directory
-#    2) This file is configured for WFO LOX. Edit it, and replace the LOCALIZED CONFIGURATION settings to your CWA
+#    1) Copy this file to ../etc/config_tsu.py
+#    2) This file is configured for WFO LOX. Edit etc/config_tsu.py, and replace the
+#       LOCALIZED CONFIGURATION settings with values appropriate for your CWA.
 #
 #  - If a line gets too long (like in zone_list), you can add a \ to the end 
 #    of the line to allow a line break.
@@ -28,7 +29,7 @@ db="/awips2/fxa/bin/textdb"
 # Comment out this variable to disable program from activating NWR. Good for testing purposes. 
 # Set nwrsend to "activate" to turn on ability to send to NWR
 # Program will now use built in script to send to NWR, no longer relies on transferNWR (as of version 20180510)
-#nwrsend="activate"  # Uncomment to activate.
+#nwrsend="activate"   # Uncomment to activate.
 
 #  ========  LOCALIZED CONFIGURATION VARIABLES ===========
 #  The variables below will LIKELY NEED to be changed for your local office.  
@@ -149,7 +150,7 @@ tzid="pst" # standard time id (pst, ast)
 
 #  Font sizes
 fontsize=12 # for gui text
-textsize=15  # formain text windows
+textsize=15  # for main text windows
 
 #  Default number of minutes product should remain on NWR.
 #  Note: this is configurable on the fly in the CRS Settings menu.
