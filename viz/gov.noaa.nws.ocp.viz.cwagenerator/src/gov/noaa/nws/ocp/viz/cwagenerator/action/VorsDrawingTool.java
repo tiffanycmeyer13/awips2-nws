@@ -3,17 +3,14 @@
  **/
 package gov.noaa.nws.ocp.viz.cwagenerator.action;
 
+import org.locationtech.jts.geom.Coordinate;
+
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.editor.AbstractEditor;
+import com.raytheon.viz.ui.input.InputAdapter;
+import com.raytheon.viz.ui.tools.AbstractModalTool;
 
-import gov.noaa.nws.ncep.ui.pgen.PgenUtil;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.AttrSettings;
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.FrontAttrDlg;
-import gov.noaa.nws.ncep.ui.pgen.display.IAttribute;
-import gov.noaa.nws.ncep.ui.pgen.elements.DECollection;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableType;
-import gov.noaa.nws.ncep.ui.pgen.tools.PgenMultiPointDrawingTool;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.PointLatLon;
 
 /**
  * 
@@ -26,12 +23,20 @@ import gov.noaa.nws.ncep.ui.pgen.tools.PgenMultiPointDrawingTool;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 2, 2020  75767      wkwock      Initial creation
+ * Sep 10, 2021 28802      wkwock      Remove PGEN from CWA
  *
  * </pre>
  *
  * @author wkwock
  */
-public class VorsDrawingTool extends PgenMultiPointDrawingTool {
+public class VorsDrawingTool extends AbstractModalTool {
+    private AbstractEditor mapEditor = null;
+
+    private IInputHandler mouseHandler;
+
+    /** A handler to the current drawing layer */
+    private CWAGeneratorResource drawingLayer;
+
     public VorsDrawingTool() {
         super();
     }
@@ -41,71 +46,64 @@ public class VorsDrawingTool extends PgenMultiPointDrawingTool {
     }
 
     public IInputHandler getMouseHandler() {
-
         if (this.mouseHandler == null) {
-
             this.mouseHandler = new VorsDrawingHandler();
-
         }
 
         return this.mouseHandler;
     }
 
-    public class VorsDrawingHandler extends PgenMultiPointDrawingHandler {
+    public class VorsDrawingHandler extends InputAdapter {
         @Override
         public boolean handleMouseUp(int x, int y, int button) {
-            if (!drawingLayer.isEditable() || shiftDown)
-                return false;
-
             if (button == 3) {
-                if (points.isEmpty()) {
-                    PgenUtil.setSelectingMode();
-
-                } else if (points.size() < 2) {
-
-                    drawingLayer.removeGhostLine();
-                    points.clear();
-
-                    mapEditor.refresh();
-
-                } else {
-                    DrawableType drawableType = DrawableType.CONV_SIGMET;
-                    // create a new DrawableElement.
-                    elem = def.create(drawableType, (IAttribute) attrDlg,
-                            pgenCategory, pgenType, points,
-                            drawingLayer.getActiveLayer());
-                    attrDlg.setDrawableElement((DrawableElement) elem);
-                    AttrSettings.getInstance()
-                            .setSettings((DrawableElement) elem);
-
-                    if (elem != null
-                            &&  "Front".equalsIgnoreCase(elem.getPgenCategory())
-                            && ((FrontAttrDlg) attrDlg).labelEnabled()) {
-
-                        DECollection dec = new DECollection("labeledFront");
-                        dec.setPgenCategory(pgenCategory);
-                        dec.setPgenType(pgenType);
-                        dec.addElement(elem);
-                        drawingLayer.addElement(dec);
-
-                        PgenUtil.setDrawingTextMode(true,
-                                ((FrontAttrDlg) attrDlg).useFrontColor(), "",
-                                dec);
-                        elem = null;
-                    } else {
-                        // add the product to PGEN resource
-                        drawingLayer.addElement(elem);
-                    }
-
-                    drawingLayer.removeGhostLine();
-
-                    mapEditor.refresh();
-                }
-                points.clear();
+                drawingLayer.completeDrawing();
+                mapEditor.refresh();
                 mapEditor.unregisterMouseHandler(this);
             }
 
-            return true;
+            return false;
         }
+
+        @Override
+        public boolean handleMouseDown(int x, int y, int button) {
+            if (button == 1) {
+                Coordinate loc = mapEditor.translateClick(x, y);
+                PointLatLon point = new PointLatLon(loc.x, loc.y);
+                drawingLayer.addPoint(point, false);
+            }
+
+            return false;
+        }
+
+        @Override
+        public boolean handleMouseMove(int x, int y) {
+            Coordinate loc = mapEditor.translateClick(x, y);
+            PointLatLon point = new PointLatLon(loc.x, loc.y);
+            drawingLayer.addPoint(point, true);
+            return false;
+        }
+    }
+
+    protected boolean isResourceEditable() {
+        if (drawingLayer == null) {
+            return false;
+        } else {
+            return drawingLayer.isEditable();
+        }
+    }
+
+    @Override
+    protected void deactivateTool() {
+        mapEditor.unregisterMouseHandler(getMouseHandler());
+    }
+
+    @Override
+    protected void activateTool() {
+        mapEditor.registerMouseHandler(getMouseHandler());
+    }
+
+    public void setDrawingLayer(CWAGeneratorResource drawingLayer) {
+        this.drawingLayer = drawingLayer;
     }
 }

@@ -30,9 +30,9 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
 
 import gov.noaa.nws.ocp.viz.cwagenerator.CWAGeneratorUtil;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAProductConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.CWSConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAProductNewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.CWSNewConfig;
 
 /**
  * Class for save VORs dialog.
@@ -42,6 +42,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWSConfig;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 05/15/2020  75767    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -55,9 +56,9 @@ public class SaveVorsDlg extends CaveSWTDialog {
     /** suggested name for this configuration */
     private String suggestedName;
 
-    private CWAProductConfig configXML = null;
+    private CWAProductNewConfig configXML = null;
 
-    private AbstractCWAConfig config;
+    private AbstractCWANewConfig config;
 
     private Text nameTxt;
 
@@ -73,12 +74,12 @@ public class SaveVorsDlg extends CaveSWTDialog {
      * @param productId
      */
     public SaveVorsDlg(Shell shell, String suggestedName,
-            AbstractCWAConfig config) {
+            AbstractCWANewConfig config) {
         super(shell, SWT.DIALOG_TRIM | CAVE.DO_NOT_BLOCK);
         this.suggestedName = suggestedName;
         this.config = config;
         fileName = CWAGeneratorUtil.CWA_PRODUCT_CONFIG_FILE;
-        if (config instanceof CWSConfig) {
+        if (config instanceof CWSNewConfig) {
             fileName = CWAGeneratorUtil.CWS_PRODUCT_CONFIG_FILE;
         }
         try {
@@ -162,7 +163,8 @@ public class SaveVorsDlg extends CaveSWTDialog {
     @Override
     public void opened() {
         if (configXML != null && configXML.getCwaProducts() != null) {
-            for (AbstractCWAConfig productConfig : configXML.getCwaProducts()) {
+            for (AbstractCWANewConfig productConfig : configXML
+                    .getCwaProducts()) {
                 namesList.add(productConfig.getConfigName());
             }
         }
@@ -181,9 +183,10 @@ public class SaveVorsDlg extends CaveSWTDialog {
         }
         // Go through the existing list, warn user if there's a match
         // one
-        AbstractCWAConfig foundConfig = null;
+        AbstractCWANewConfig foundConfig = null;
         if (configXML != null && configXML.getCwaProducts() != null) {
-            for (AbstractCWAConfig productConfig : configXML.getCwaProducts()) {
+            for (AbstractCWANewConfig productConfig : configXML
+                    .getCwaProducts()) {
                 if (newName.equals(productConfig.getConfigName())) {
                     foundConfig = productConfig;
                     break;
@@ -191,15 +194,15 @@ public class SaveVorsDlg extends CaveSWTDialog {
             }
         } else {
             if (configXML == null) {
-                configXML = new CWAProductConfig();
+                configXML = new CWAProductNewConfig();
             }
             if (configXML.getCwaProducts() == null) {
-                ArrayList<AbstractCWAConfig> configList = new ArrayList<>();
+                ArrayList<AbstractCWANewConfig> configList = new ArrayList<>();
                 configXML.setCwaElementList(configList);
             }
         }
 
-        java.util.List<AbstractCWAConfig> configList = configXML
+        java.util.List<AbstractCWANewConfig> configList = configXML
                 .getCwaProducts();
         if (foundConfig != null) {
             MessageBox messageBox = new MessageBox(shell, SWT.YES | SWT.NO);

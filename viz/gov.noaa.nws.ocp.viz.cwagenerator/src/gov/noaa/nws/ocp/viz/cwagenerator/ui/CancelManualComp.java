@@ -17,9 +17,10 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.CancelManualConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.CancelManualNewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -31,6 +32,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 06/03/2020  75767    wkwock      Moved this class from PGEN to NWS
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -106,7 +108,8 @@ public class CancelManualComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
         String endDateTime = getEndTime();
 
         // get next series ID
@@ -162,8 +165,8 @@ public class CancelManualComp extends AbstractCWAComp {
         cancelChk.setText("Cancel " + cwsuId + " CWA");
     }
 
-    public AbstractCWAConfig getConfig() {
-        CancelManualConfig config = new CancelManualConfig();
+    public AbstractCWANewConfig getConfig() {
+        CancelManualNewConfig config = new CancelManualNewConfig();
         config.setCancelChk(cancelChk.getSelection());
         config.setSeeChk(seeChk.getSelection());
         config.setAddnlInfo(addnlInfoTxt.getText());
@@ -173,17 +176,17 @@ public class CancelManualComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse cancel/manual product time.");
         }
-        if (!(config instanceof CancelManualConfig)) {
+        if (!(config instanceof CancelManualNewConfig)) {
             return;
         }
 
-        CancelManualConfig cmc = (CancelManualConfig) config;
+        CancelManualNewConfig cmc = (CancelManualNewConfig) config;
         cancelChk.setSelection(cmc.isCancelChk());
         seeChk.setSelection(cmc.isSeeChk());
         addnlInfoTxt.setText(cmc.getAddnlInfo());

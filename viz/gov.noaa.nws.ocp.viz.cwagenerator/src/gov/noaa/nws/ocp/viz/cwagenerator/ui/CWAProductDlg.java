@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -64,6 +63,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
  * 12/19/2016   17469       wkwock      Initial Creation.
  * 06/02/2020   75767       wkwock      Migrated from PGEN to NWS
  * 06/27/2021   92561       wkwock      Added local time zone validations
+ * 09/10/2021   28802       wkwock      Remove unnecessary exception catch
  * 
  * </pre>
  * 
@@ -224,12 +224,9 @@ public class CWAProductDlg extends CaveSWTDialog {
 
         praticeBgColor = new Color(top.getDisplay(), 255, 140, 0);
 
-        getShell().addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-                if (praticeBgColor != null) {
-                    praticeBgColor.dispose();
-                }
+        getShell().addDisposeListener((DisposeEvent e) -> {
+            if (praticeBgColor != null) {
+                praticeBgColor.dispose();
             }
         });
     }
@@ -278,14 +275,9 @@ public class CWAProductDlg extends CaveSWTDialog {
         }
 
         String site = productId.substring(productId.length() - 3);
-        try {
-            cwaDlg = new CWAFormatterDlg(getShell(), site, productId,
-                    cwaConfigs, this);
-            cwaDlg.setParameters(site, productId, cwaConfigs);
-            cwaDlg.open();
-        } catch (VizException e) {
-            logger.error("Failed to open CWA formatter dialog.", e);
-        }
+        cwaDlg = new CWAFormatterDlg(getShell(), site, productId, cwaConfigs,
+                this);
+        cwaDlg.open();
     }
 
     /**
@@ -361,6 +353,7 @@ public class CWAProductDlg extends CaveSWTDialog {
             modeCbo.select(1);
         }
         modeCbo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 cwaConfigs.setOperational(modeCbo.getSelectionIndex() == 0);
                 changeModeGui();
@@ -369,6 +362,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         });
 
         siteCbo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 cwaConfigs.setCwsuId(siteCbo.getText());
                 cwaConfigs.setKcwsuId("K" + siteCbo.getText());
@@ -685,12 +679,10 @@ public class CWAProductDlg extends CaveSWTDialog {
             }
         }
 
-        if (found) {
-            if (!cwaConfigs.getKcwsuId()
-                    .equalsIgnoreCase("K" + originalCwsuID)) {
-                found = false;
-                badID = cwaConfigs.getKcwsuId();
-            }
+        if (found && !cwaConfigs.getKcwsuId()
+                .equalsIgnoreCase("K" + originalCwsuID)) {
+            found = false;
+            badID = cwaConfigs.getKcwsuId();
         }
         if (!found) {
             MessageBox messageBox = new MessageBox(getShell(),
