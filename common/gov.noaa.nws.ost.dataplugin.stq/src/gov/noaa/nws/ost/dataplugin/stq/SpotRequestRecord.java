@@ -36,6 +36,7 @@ import org.locationtech.jts.geom.Geometry;
  *                                       Data plugin
  * Jan  21, 2016  18524      pwang       Added the setter to avoid Archiver error
  * 
+ * Nov 22, 2021   22245      jrohwein    change projectname column length to 120
  * </pre>
  * 
  * @author pwang
@@ -92,7 +93,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     private PointDataView pointDataView;
 
     // Project Name
-    @Column(length = 32)
+    @Column(length = 120)
     @DynamicSerializeElement
     @XmlAttribute
     private String projectName;
@@ -516,3 +517,4 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     }
 
 }
+
