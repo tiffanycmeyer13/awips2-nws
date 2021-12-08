@@ -8,6 +8,7 @@ import com.raytheon.uf.common.dataplugin.persist.IPersistable;
 import com.raytheon.uf.common.datastorage.IDataStore;
 import com.raytheon.uf.common.datastorage.StorageProperties;
 import com.raytheon.uf.common.datastorage.records.AbstractStorageRecord;
+import com.raytheon.uf.common.datastorage.records.DataUriMetadataIdentifier;
 import com.raytheon.uf.common.datastorage.records.StringDataRecord;
 import com.raytheon.uf.edex.database.plugin.PluginDao;
 
@@ -27,6 +28,7 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord;
  *                                   overriding persistToHDF5().
  * Apr 05, 2021  8374     randerso   Renamed IDataRecord.get/setProperties to
  *                                   get/setProps
+ * Sep 23, 2021  8608     mapeters   Pass metadata ids to datastore
  *
  * </pre>
  *
@@ -52,7 +54,8 @@ public class PshDataDAO extends PluginDao {
 
         storageRecord.setProps(props);
         storageRecord.setCorrelationObject(record);
-        dataStore.addDataRecord(storageRecord);
+        dataStore.addDataRecord(storageRecord,
+                new DataUriMetadataIdentifier(record));
 
         return dataStore;
     }

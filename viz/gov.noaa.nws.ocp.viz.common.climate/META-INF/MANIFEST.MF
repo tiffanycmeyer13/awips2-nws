@@ -8,7 +8,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui;visibility:=reexport,
  gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
  com.raytheon.uf.common.status;visibility:=reexport,
- org.eclipse.core.runtime;bundle-version="3.11.1",
+ org.eclipse.core.runtime,
  com.raytheon.uf.common.dataplugin.text,
  com.raytheon.uf.viz.core,
  com.raytheon.viz.ui;visibility:=reexport,
