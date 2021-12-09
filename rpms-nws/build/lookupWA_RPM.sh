@@ -1,0 +1,17 @@
+#!/bin/bash
+
+function lookupWA_RPM()
+{
+        # Arguments
+        #       1) name of the rpm to lookup
+        #       2) WA RPM build directory root
+
+        # lookup the rpm
+        if [ "${1}" = "awips2-tsunamieasgui" ]; then
+                export RPM_SPECIFICATION="${2}/Installer.TsunamiEasGui"
+                return 0
+        fi
+
+        return 1
+}
+
