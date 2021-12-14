@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SidebarMenuSelection>
+    <Entry show="true" name="select storm" alias="select storm" command="gov.noaa.nws.ocp.viz.atcf.ui.chooseStorm"/>
+    <Entry show="true" name="clear ATCF display" alias="clear ATCF display" command="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="best tracks" alias="best tracks" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track 34-kt radii" alias="b-track 34-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track 50-kt radii" alias="b-track 50-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track 64-kt radii" alias="b-track 64-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track RMW" alias="b-track RMW" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track ROCI" alias="b-track ROCI" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track intensities" alias="b-track intensities" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="b-track labels" alias="b-track labels" command="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="fixes" alias="fixes" command="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"/>
+    <Entry show="true" name="fix wind radii" alias="fix wind radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"/>
+    <Entry show="true" name="fix autolabel" alias="fix autolabel" command="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"/>
+    <Entry show="true" name="fix confidences" alias="fix confidences" command="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="obj aids" alias="obj aids" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="aid intensities" alias="aid intensities" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="aid 34-kt radii" alias="aid 34-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="aid 50-kt radii" alias="aid 50-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="aid 64-kt radii" alias="aid 64-kt radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="GPCE" alias="GPCE" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="GPCE climatology" alias="GPCE climatology" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="GPCE-AX" alias="GPCE-AX" command="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="forecast track" alias="forecast track" command="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"/>
+    <Entry show="true" name="forecast wind radii" alias="forecast wind radii" command="gov.noaa.nws.ocp.viz.atcf.ui.windRadiiForecast"/>
+    <Entry show="true" name="forecast seas radii" alias="forecast seas radii" command="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"/>
+    <Entry show="true" name="cumul wind probs" alias="cumul wind probs" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="forecast labels" alias="forecast labels" command="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="prepare compute data" alias="prepare compute data" command="gov.noaa.nws.ocp.viz.atcf.ui.prepareComputeData"/>
+    <Entry show="true" name="list compute data" alias="list compute data" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="send compute data" alias="send compute data" command="gov.noaa.nws.ocp.viz.atcf.ui.sendComputeData"/>
+    <Entry show="true" name="NWP model priority" alias="NWP model priority" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="retrieve PRIMARY guidance" alias="retrieve PRIMARY guidance" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="run your own consensus" alias="run your own consensus" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="list latest consensus run" alias="list latest consensus run" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="-------------" alias="-------------" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="chart/storm titles" alias="chart/storm titles" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="logo-thumbnail" alias="logo-thumbnail" command="com.raytheon.viz.ui.actions.notImplemented"/>
+    <Entry show="true" name="34kt wind probs at sites" alias="34kt wind probs at sites" command="com.raytheon.viz.ui.actions.notImplemented"/>
+</SidebarMenuSelection>

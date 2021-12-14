@@ -1,0 +1,110 @@
+WEXX20 PAAQ 241600
+TSUAT1
+
+BULLETIN
+Tsunami Message Number 5
+NWS National Tsunami Warning Center Palmer AK
+1200 PM EDT Tue Mar 24 2020
+
+NLZ220-230-210-120-132-140-241-242-110-131-540-530-570-520-
+510-560-610-720-710-730-740-750-760-770-241730-
+/T.NEW.PAAQ.TS.W.0230.200324T1600Z-000000T0000Z/
+Coastal areas between and including Cape Ray, Newfoundland
+to Cape Chidley, Labrador
+1200 PM EDT Tue Mar 24 2020
+
+...A TSUNAMI WARNING IS NOW IN EFFECT WHICH INCLUDES THE
+   COASTAL AREAS OF NEWFOUNDLAND AND LABRADOR FROM CAPE RAY
+   NEWFOUNDLAND TO CAPE CHIDLEY LABRADOR...
+
+If you are located in this coastal area, move inland 
+to higher ground.
+
+Tsunami warnings mean that a tsunami with significant
+inundation is possible or is already occurring.  Tsunamis are
+a series of waves dangerous many hours after initial arrival
+time.  The first wave may not be the largest.
+
+At 800 AM Eastern Daylight Time on March 24 an earthquake with
+preliminary magnitude 8.8 occurred 
+in the North Atlantic Ocean.
+
+Estimated tsunami start times for selected sites are;
+
+Bonavista          Newfoundland        325 PM.  NDT. March 24.
+Cape Makkovik      Labrador            300 PM.  ADT. March 24.
+Battle Harbour     Labrador            330 PM.  NDT. March 24.
+Saint Lawrence     Newfoundland        410 PM.  NDT. March 24.
+
+The tsunami warning will remain in effect until further notice.
+Refer to the internet site tsunami.gov for more information.
+
+$$
+
+GMZ031-032-034-035-042>044-052>055-AMZ630-650-651-550-552-
+555-450-452-454-330-350-352-354-250-252-254-256-130-135-150-
+152-154-156-158-ANZ631>638-656-658-650-652-654-430-431-450>455-
+330-335-338-340-345-350-353-355-230>237-250-254-255-256-150-
+050>052-FLZ076>078-174-168-172-173-047-054-059-064-141-147-
+124-125-033-038-GAZ154-166-117-119-139-141-SCZ048>052-054-
+056-NCZ106-108-110-045>047-080-081-094-095-098-103-104-015>017-
+030>032-102-VAZ084-086-091-094-095-098-099-100-MDZ025-DEZ002>004-
+NJZ006-012>014-021-023>026-106-108-NYZ071>075-078>081-176>179-
+CTZ009>012-RIZ002-004>008-MAZ007-016-019>024-NHZ014-MEZ022>028-
+029-030-NBZ570-550-660-641-NSZ210-230-260-250-110-120-130-
+170-160-150-140-270-280-320-410-450-440-430-QCZ670-680-NLZ340-
+241730-
+/T.NEW.PAAQ.TS.Y.0230.200324T1600Z-000000T0000Z/
+Coastal areas between and including Flamingo, Florida to
+Cape Ray, Newfoundland
+1200 PM EDT Tue Mar 24 2020
+
+...A TSUNAMI ADVISORY IS NOW IN EFFECT WHICH INCLUDES THE
+   COASTAL AREAS OF FLORIDA, GEORGIA, SOUTH CAROLINA, NORTH
+   CAROLINA, VIRGINIA, MARYLAND, DELAWARE, NEW JERSEY, NEW
+   YORK, CONNECTICUT, RHODE ISLAND, MASSACHUSETTS, NEW
+   HAMPSHIRE, MAINE, NEW BRUNSWICK, NOVA SCOTIA AND
+   NEWFOUNDLAND FROM FLAMINGO FLORIDA TO CAPE RAY
+   NEWFOUNDLAND...
+
+If you are located in this coastal area, move off the 
+beach and out of harbors and marinas.
+
+Tsunami advisories mean that a tsunami capable of producing
+strong currents or waves dangerous to persons in or very near
+the water is expected or is already occurring.  Areas in the
+advisory should not expect widespread inundation.  Tsunamis
+are a series of waves dangerous many hours after initial
+arrival time.  The first wave may not be the largest.
+
+At 800 AM Eastern Daylight Time on March 24 an earthquake with
+preliminary magnitude 8.8 occurred 
+in the North Atlantic Ocean.
+
+Estimated tsunami start times for selected sites are;
+
+Scatarie Island    Nova Scotia         345 PM.  ADT. March 24.
+Lockeport          Nova Scotia         355 PM.  ADT. March 24.
+Cape Hatteras      North Carolina      335 PM.  EDT. March 24.
+Montauk            New York            405 PM.  EDT. March 24.
+Grand Manan Island New Brunswick       520 PM.  ADT. March 24.
+Atlantic City      New Jersey          435 PM.  EDT. March 24.
+Nantucket          Massachusetts       435 PM.  EDT. March 24.
+Virginia Beach     Virginia            450 PM.  EDT. March 24.
+Miami              Florida             455 PM.  EDT. March 24.
+Portland           Maine               455 PM.  EDT. March 24.
+Boston             Massachusetts       520 PM.  EDT. March 24.
+Key West           Florida             540 PM.  EDT. March 24.
+Manhattan          New York            540 PM.  EDT. March 24.
+Daytona            Florida             545 PM.  EDT. March 24.
+Melbourne Beach    Florida             555 PM.  EDT. March 24.
+Myrtle Beach       South Carolina      555 PM.  EDT. March 24.
+Jacksonville Beach Florida             610 PM.  EDT. March 24.
+Charleston         South Carolina      615 PM.  EDT. March 24.
+Savannah           Georgia             625 PM.  EDT. March 24.
+
+The tsunami advisory will remain in effect until further notice.
+Refer to the internet site tsunami.gov for more information.
+
+$$
+

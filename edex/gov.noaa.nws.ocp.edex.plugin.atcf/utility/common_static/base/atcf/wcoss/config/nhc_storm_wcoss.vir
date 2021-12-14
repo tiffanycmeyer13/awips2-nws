@@ -1,0 +1,117 @@
+
+
+#=====================================================================
+
+#  Print the start time and exit
+export LD_LIBRARY_PATH="/usrx/local/lsf/8.3/linux2.6-glibc2.3-x86_64/lib:/usrx/local/intel/itac/8.0.3.007/itac/slib_impi4:/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/lib/intel64:/usrx/local/intel/composerxe/mkl/lib/intel64:/usrx/local/intel/impi/4.0.3.008/intel64/lib:/usrx/local/intel/composerxe/ipp/lib/intel64:/usrx/local/intel/composerxe/tbb/lib/intel64/cc4.1.0_libc2.4_kernel2.6.16.21:/usrx/local/intel/composer_xe_2011_sp1.11.339/debugger/lib/intel64:/usrx/local/intel/composer_xe_2011_sp1.11.339/mpirt/lib/intel64"
+
+echo " *** WALLCLOCK START TIME = `date '+%e%h%y %H:%M'` ***"
+
+#=====================================================================
+
+#  Print the node running this process
+
+#echo " *** Node name running this process = $LOADL_PROCESSOR_LIST ***"
+
+#=====================================================================
+
+#  This portion of a Korn shell script set up the initial conditions
+#    for NCEP's GFDL model for all tropical cyclones over the Atlantic,
+#    east Pacific and central Pacific basins on the IBM-SP.  This portion
+#    must be append to the storm_#_(strmid).sh which contains current
+#    information about which tropical cyclone to run the GFDL model on.
+ 
+#=====================================================================
+
+#  Define the atcf directory, the storm directory, the input file,
+#   the output file, the ncep file and prgms directory
+
+# input com filename
+
+input=${strmid}.com
+
+# primary root directory
+
+atcfdir=/nhc/save/guidance 
+
+# storm directory
+
+stormdir=${atcfdir}/storm-data/${strmid}
+
+# compute execution directory (for PRODUCTION)
+
+zcomdir=${atcfdir}"/storm-data/zcom"
+
+# location of programs (executables and scripts)
+
+prgmsdir=/nhc/save/guidance/prgms
+exedir=${prgmsdir}/exec
+scriptdir=${prgmsdir}/scripts
+
+# location of log directory
+logdir=${atcfdir}/storm-data/
+
+mkdir -p ${logdir}/${strmid}
+
+#  Run utility script that transfers ATCF com file here from NHC
+#  Check for existance before continuning
+
+cd ${stormdir}
+
+rm -f ${input}
+
+echo " ** Copying Storm Info File (${strmid}.com) ** "
+cp ${zcomdir}/${input} ${stormdir}/${input}
+
+sleep 5
+
+if [[ ! -f ${input} ]]; then
+   echo "***** ERROR ***** input file not xfer'ed to IBM TIDE/GYRE"
+   exit 1
+fi
+
+#=====================================================================
+
+#   The ncepdata program writes the CARQ cards to the storm files
+
+${exedir}/ncepdata.x ${input} ${ncepfile} > ncepdata.out
+${exedir}/ncepdata-devel.x ${input} ${ncepdevfile} > ncepdevdata.out
+
+echo "** Running NCEP model initializer for GFDL/HWRF setup..."
+
+if [[ -f ncepdata.dat ]]; then
+   rm -f ncepdata.dat
+fi
+
+if [[ -f tcvitals.dat ]]; then
+   cat tcvitals.dat > $ncepfile
+   tm=`date -u '+%e %h %Y %H:%M UTC'`
+   echo "[${tm}] \c" >> $archivefile
+   cat tcvitals.dat  >> $archivefile
+   rm -f tcvitals.dat
+fi
+
+echo "** Running NCEP model initializer (genesis mode) for GFDL/HWRF setup..."
+
+if [[ -f ncepdevdata.dat ]]; then
+   rm -f ncepdevdata.dat
+fi
+
+if [[ -f tcvitals-devel.dat ]]; then
+   cat tcvitals-devel.dat > $ncepdevfile
+   tm=`date -u '+%e %h %Y %H:%M UTC'`
+   echo "[${tm}] \c" >> $archivedevfile
+   cat tcvitals-devel.dat  >> $archivedevfile
+   rm -f tcvitals-devel.dat
+fi
+
+
+#=====================================================================
+
+#  Print the end time and exit
+
+echo " *** WALLCLOCK END TIME = `date '+%e%h%y %H:%M'` ***"
+
+exit 0
+
+#  End script

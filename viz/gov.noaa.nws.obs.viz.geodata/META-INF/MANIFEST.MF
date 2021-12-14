@@ -18,7 +18,7 @@ Require-Bundle: com.raytheon.uf.viz.core.rsc,
  com.raytheon.viz.ui,
  com.raytheon.uf.viz.ui.menus,
  com.raytheon.uf.common.style,
- gov.noaa.nws.obs.common.dataplugin.geodata;bundle-version="1.0.0",
+ gov.noaa.nws.obs.common.dataplugin.geodata,
  com.raytheon.uf.viz.productbrowser.datalisting,
  javax.xml.bind
 Export-Package: gov.noaa.nws.obs.viz.geodata.rsc,

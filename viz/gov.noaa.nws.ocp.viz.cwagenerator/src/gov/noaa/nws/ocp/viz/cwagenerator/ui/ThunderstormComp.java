@@ -20,11 +20,11 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ncep.ui.pgen.attrdialog.SigmetCommAttrDlg;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CondType;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.ThunderstormConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.ThunderstormNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -36,6 +36,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 06/02/2020  75767    wkwock      Migrated from PGEN to NWS
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -104,10 +105,10 @@ public class ThunderstormComp extends AbstractCWAComp {
     private Button noUpdateChk;
 
     /** type items */
-    private static final String typeItems[] = { "SHRA/TSRA", "TSRA", "TS" };
+    private static final String[] typeItems = { "SHRA/TSRA", "TSRA", "TS" };
 
     /** intensity items */
-    private static final String intstItems[] = { "---", "MOD", "MOD TO HVY",
+    private static final String[] intstItems = { "---", "MOD", "MOD TO HVY",
             "HVY", "HVY TO EXTRM", "EXTRM" };
 
     /**
@@ -170,9 +171,8 @@ public class ThunderstormComp extends AbstractCWAComp {
 
         dirCbo = new Combo(windComp, SWT.READ_ONLY);
         dirCbo.add("---");
-        for (int i = 10; i <= 360;) {
+        for (int i = 10; i <= 360; i += 10) {
             dirCbo.add(String.format("%03d", i));
-            i += 10;
         }
         dirCbo.select(0);
 
@@ -181,9 +181,8 @@ public class ThunderstormComp extends AbstractCWAComp {
 
         spdCbo = new Combo(windComp, SWT.READ_ONLY);
         spdCbo.add(MOV_LTL);
-        for (int i = 5; i <= 60;) {
+        for (int i = 5; i <= 60; i += 5) {
             spdCbo.add(String.format("%03d", i));
-            i += 5;
         }
         spdCbo.select(0);
 
@@ -194,9 +193,8 @@ public class ThunderstormComp extends AbstractCWAComp {
         topsFromCbo = new Combo(windComp, SWT.READ_ONLY);
         topsFromCbo.add("TO");
         topsFromCbo.add("ABV");
-        for (int i = 10; i <= 550;) {
+        for (int i = 10; i <= 550; i += 10) {
             topsFromCbo.add(String.format("%03d", i));
-            i += 10;
         }
         topsFromCbo.select(0);
 
@@ -204,9 +202,8 @@ public class ThunderstormComp extends AbstractCWAComp {
         slash2Lbl.setText("/");
 
         topsToCbo = new Combo(windComp, SWT.READ_ONLY);
-        for (int i = 10; i <= 600;) {
+        for (int i = 10; i <= 600; i += 10) {
             topsToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         topsToCbo.select(0);
 
@@ -278,7 +275,7 @@ public class ThunderstormComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String drawTytpe, double drawWidth,
+            boolean isOperational, DrawingType drawTytpe, double drawWidth,
             String stateIDs) {
 
         int topsTo = Integer.parseInt(topsToCbo.getText());
@@ -321,11 +318,10 @@ public class ThunderstormComp extends AbstractCWAComp {
             output.append("DVLPG ");
         }
 
-        if ((drawTytpe.equals(SigmetCommAttrDlg.AREA))
-                || (drawTytpe.startsWith(SigmetCommAttrDlg.LINE)
-                        && drawWidth >= 20.0)) {
+        if ((drawTytpe == DrawingType.AREA)
+                || (drawTytpe == DrawingType.LINE && drawWidth >= 20.0)) {
             output.append("AREA ");
-        } else if (drawTytpe.equals(SigmetCommAttrDlg.ISOLATED)) {
+        } else if (drawTytpe == DrawingType.ISOLATED) {
             output.append("ISOL ");
         } else { // this must be line type
             output.append("LINE ");
@@ -343,9 +339,9 @@ public class ThunderstormComp extends AbstractCWAComp {
         output.append(typeCbo.getText());
 
         int tmpDrawWidth = (int) drawWidth; // truncated to whole number
-        if (drawTytpe.startsWith(SigmetCommAttrDlg.LINE) && drawWidth < 20.0) {
+        if (drawTytpe == DrawingType.LINE && drawWidth < 20.0) {
             output.append(" ").append(tmpDrawWidth).append("NM WIDE");
-        } else if (drawTytpe.equals(SigmetCommAttrDlg.ISOLATED)) {
+        } else if (drawTytpe == DrawingType.ISOLATED) {
             output.append(" DIAM ").append(tmpDrawWidth).append("NM");
         }
 
@@ -425,8 +421,8 @@ public class ThunderstormComp extends AbstractCWAComp {
         return output.toString();
     }
 
-    public AbstractCWAConfig getConfig() {
-        ThunderstormConfig config = new ThunderstormConfig();
+    public AbstractCWANewConfig getConfig() {
+        ThunderstormNewConfig config = new ThunderstormNewConfig();
         config.setEndTime(getEndTime());
         config.setDvlpgChk(dvlpgChk.getSelection());
         config.setEmbdChk(embdChk.getSelection());
@@ -457,17 +453,17 @@ public class ThunderstormComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse Thunderstorm time.");
         }
 
-        if (!(config instanceof ThunderstormConfig)) {
+        if (!(config instanceof ThunderstormNewConfig)) {
             return;
         }
-        ThunderstormConfig tsc = (ThunderstormConfig) config;
+        ThunderstormNewConfig tsc = (ThunderstormNewConfig) config;
         dvlpgChk.setSelection(tsc.isDvlpgChk());
         embdChk.setSelection(tsc.isEmbdChk());
 

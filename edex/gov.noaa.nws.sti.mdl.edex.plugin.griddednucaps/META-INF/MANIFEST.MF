@@ -15,5 +15,5 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.edex.plugin.grid,
  org.apache.camel,
  com.raytheon.uf.common.wmo,
- ucar.nc2;bundle-version="4.6.10",
+ ucar.nc2,
  org.slf4j

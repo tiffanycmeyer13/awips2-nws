@@ -1,0 +1,2484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+    <!-- Handlers -->
+    <extension
+        point="org.eclipse.ui.handlers">
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.AtcfStartHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.startATCF">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.AtcfStartHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.atcfHelp">
+        </handler> 
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.StartStormHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.startStormDialogue">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ViewFixDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.startViewFixData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChooseStormHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.chooseStorm">
+        </handler> 
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChooseAreaHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.chooseArea">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChooseDataTypeHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.chooseDataType">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ReBestTrackTool"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.reBest">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.StormManagementHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.CleanupStormsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.cleanupStorms">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.StartGenesisHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.startGenesis">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListStormsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listStorms">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayFixesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayObjectiveAidsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids">
+        </handler>
+
+        <handler
+              class="gov.noaa.nws.ocp.viz.atcf.menu.AtcfSeparateMenuHandler"
+              commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd">
+         </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.AdvisoryCompositionHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.advisoryComposition">
+        </handler>
+        <!--
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.WindProbabilitiesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.windProbabilities">
+        </handler>
+        -->
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.AviationAdvisoryHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.icaoAdvisory">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.PublicAdvisoryHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.publicAdvisory">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.IntermediatePublicAdvisoryHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.intermediatePublicAdvisory">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastAdvisoryHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastAdvisory">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DiscussionHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.discussion">
+        </handler>
+
+         <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.CPAsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.computeCpas">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastIntensityHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.intensityForecast">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastWindRadiiHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.windRadiiForecast">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastSeasHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.seasForecast">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ConfigSidebarHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.configSidebar">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.EditBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.editBestTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeFixSiteHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeFixSite">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeFixTypeHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeFixType">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.PrepareComputeDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.prepareComputeData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.SendComputeDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.sendComputeData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ModelPriorityHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.modelPriority">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListComputeDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listComputeData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.EnterObjAidsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAids">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.EnterObjAidsNoWindRadiiHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAidsNoWindRadii">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ComputeBestTrackCPAsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.ComputeBestTrackCPAs">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeColorHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeColor">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ObjAidSpeedAnalysisHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.ObjAidSpeedAnalysis">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeCPALocationsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.CPALocations">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeObjAidDefaultsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.objAidDefaults">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.PreferencesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.preferences">
+        </handler> 
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.EditFixesDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.editFixData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.EditFixesDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.enterFixData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayPartialBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.partialBestTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackIntensities">
+        </handler>
+ 
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackLabels">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.BestTrackRadiiOptionsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackRadii">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayObjectiveAidsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.objAidsIntensities">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayFcstTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.FcstTrackRadiiOptionsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.fcstTrackRadii">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayFcstTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackWindRadii">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.DisplayFcstTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackSeaRadii">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeFixScatterometerHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeFixScatterometerSatTypes">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ChangeFixMicrowaveHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeFixMicrowaveSatTypes">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.FixErrorHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.fixError">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastTrackTool"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ImportFixesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes">
+        </handler>
+ 
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListWorkingBestTrackHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listWorkingBestTrack">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListAdvisoryDataHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listAdvisoryData">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListLatestForecastHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listLatestForecast">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListForecastDevelopmentHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listForecastDevelopment">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListFixesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listFixes">
+        </handler>
+
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListFixesHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listFlaggedFixes">
+        </handler>
+        
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ListObjAidsHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.listObjAids">
+        </handler>
+        
+        <handler
+            class="gov.noaa.nws.ocp.viz.atcf.handler.ForecastGenesisProbHandler"
+            commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb">
+        </handler>
+
+     </extension>
+
+    <!-- Definitions -->
+    <extension
+        point="org.eclipse.core.expressions.definitions">
+        <definition
+            id="gov.noaa.nws.ocp.viz.atcf.inAtcfMode">
+            <with
+                variable="atcfMode">
+                <iterate
+                    operator="or">
+                    <equals
+                         value="gov.noaa.nws.ocp.viz.atcf.start">
+                    </equals>
+                </iterate>
+            </with>
+        </definition>
+
+        <definition
+            id="gov.noaa.nws.ocp.viz.atcf.inAtcf">
+            <with variable="activeContexts">
+                <iterate
+                    operator="or">
+                    <equals
+                        value="gov.noaa.nws.ocp.viz.atcf.atcfContext">
+                    </equals>
+                </iterate>
+            </with>
+        </definition>
+
+
+
+        <definition
+            id="gov.noaa.nws.ocp.viz.atcf.inAtcfAny">
+            <and>
+                <reference
+                    definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcf">
+                </reference>
+                <or>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>
+                    <with
+                         variable="activeContexts">
+                         <iterate
+                             operator="or">
+                             <equals
+                                 value="gov.noaa.nws.ncep.viz.ui.display.NCMapContext">
+                             </equals>
+                         </iterate>
+                    </with>
+                </or>
+            </and>
+        </definition>
+
+
+        <definition
+              id="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+           <and>
+              <reference
+                    definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAny">
+              </reference>
+           </and>
+        </definition>
+
+    </extension>
+
+    <!-- A context for ATCF -->
+    <extension
+        point="org.eclipse.ui.contexts">
+        <context
+            description="ATCF Main Context"
+            id="gov.noaa.nws.ocp.viz.atcf.atcfContext"
+            name="ATCF Context">
+        </context>
+    </extension>
+
+    <!-- Add ATCF activation to D2D and NCP CAVE menu & toolbar -->
+    <extension
+        point="org.eclipse.ui.menus">
+        <menuContribution locationURI="menu:tools?before=tools.A">
+            <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.startATCF"
+                label="ATCF">
+                <visibleWhen>
+                    <reference
+                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                    </reference>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+
+        <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=d2d-3">
+            <toolbar
+                id="atcf">
+                <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.startATCF"
+                    label="ATCF">
+                     <visibleWhen>
+                         <reference
+                             definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
+                         </reference>
+                     </visibleWhen>
+                </command>
+            </toolbar>
+        </menuContribution>
+
+        <menuContribution locationURI="menu:NCTools?after=AODT">
+            <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.startATCF"
+                label="ATCF">
+                <visibleWhen>
+                    <reference
+                        definitionId="gov.noaa.nws.ncep.viz.ui.personalities.inNCActionSet">
+                    </reference>
+                </visibleWhen>
+            </command>
+        </menuContribution>
+
+        <menuContribution
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=NC-3">
+            <toolbar
+                id="atcfNC">
+                <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.startATCF"
+                    label="ATCF">
+                     <visibleWhen>
+                         <reference
+                             definitionId="gov.noaa.nws.ncep.viz.ui.personalities.inNCActionSet">
+                         </reference>
+                     </visibleWhen>
+                </command>
+            </toolbar>
+        </menuContribution>
+
+       <menuContribution
+             allPopups="false"
+             locationURI="toolbar:org.eclipse.ui.main.toolbar?after=atcfNC">
+          <toolbar
+                id="gov.noaa.nws.ocp.viz.atcf.separateMenuToolbar">
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.file"
+                   label="File"
+                   tooltip="File"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.tools"
+                   label="Tools"
+                   tooltip="Tools"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.fixes"
+                   label="Fixes"
+                   tooltip="Fixes"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.track"
+                   label="Track"
+                   tooltip="Track"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.aids"
+                   label="Aids"
+                   tooltip="Aids"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.forecast"
+                   label="Forecast"
+                   tooltip="Forecast"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.advisory"
+                   label="Advisory"
+                   tooltip="Advisory"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.graphic"
+                   label="Graphic"
+                   tooltip="Graphic"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.manageStorms"
+                   label="Manage-Storms"
+                   tooltip="Manage-Storms"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.statistics"
+                   label="Statistics"
+                   tooltip="Statistics"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.messages"
+                   label="Messages"
+                   tooltip="Messages"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.configure"
+                   label="Configure"
+                   tooltip="Configure"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+                   id="gov.noaa.nws.ocp.viz.atcf.sepmb.help"
+                   label="Help"
+                   tooltip="Help"
+                   style="pulldown">
+                <visibleWhen>
+                   <reference
+                         definitionId="gov.noaa.nws.ocp.viz.atcf.inAtcfAnySeparate">
+                   </reference>
+                </visibleWhen>
+             </command>
+          </toolbar>
+       </menuContribution>
+       <menuContribution
+             locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.file">
+          <separator
+                name="atcfFileMenuSep"
+                visible="true">
+          </separator>
+          <menu
+                label="Print NHC Advisories">
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print All Messages"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Forecast/Advisory Message"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Probabilities Message"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Tropical Cyclone Discussion"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Public Message"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Public_A Message"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print Public_B Message"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Print ICAO Message"
+                   style="push">
+             </command>
+          </menu>
+          <menu
+                label="Transfer NWS Storms">
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="CPHC get storm from NHC"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="NHC get storm from CPHC"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="WPC get storm from NHC"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="NHC get storm from WPC"
+                   style="push">
+             </command>
+          </menu>
+          <menu
+                label="Communicate With Other Sites">
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Put Storm to NRL/FNMOC TC Page"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Get Storm From PEARL FTP Site"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Deactivate Storm On NRL/FNMOC TC Page"
+                   style="push">
+             </command>
+          </menu>
+          <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                label="View Forcaster Log..."
+                style="push">
+          </command>
+          <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                label="Send Error Report"
+                style="push">
+          </command>
+          <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                label="Display ATCF Environment..."
+                style="push">
+          </command>
+       </menuContribution>
+
+       <menuContribution
+             locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.tools">
+          <separator
+                name="atcfToolMenuSep"
+                visible="true">
+          </separator>
+          <menu
+                label="Select Overlays To Erase">
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Best Tracks"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Best Track Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Best Track Legends"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Fixes"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Fix Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Obj Best Track"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Obj Best Track Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Old Obj Best Track"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Obj Aids"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Forecast Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastTrack"
+                   label="Forecast Track"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.windRadiiForecast"
+                   label="Forecast Wind Radii"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.seasForecast"
+                   label="Forecast Seas Radii"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Chart/Storm Titles"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Warning, CPA and Distance/Bearing Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Error Swath"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Satellite Image"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Logo/Thumbnail"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Geograph Labels"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Breakpoints"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="Geography Boundary Areas"
+                   style="push">
+             </command>
+             <command
+                   commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                   label="All Fields"
+                   style="push">
+             </command>
+          </menu>
+          <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                label="Distance..."
+                style="push">
+          </command>
+          <command
+                commandId="com.raytheon.viz.ui.clear"
+                label="Clear Map"
+                style="push">
+          </command>
+          <command
+                commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                label="Local Scripts..."
+                style="push">
+          </command>
+          <separator
+                name="atcfToolMenuEnd"
+                visible="true">
+          </separator>
+       </menuContribution>
+
+       <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.fixes">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+                 label="Display Fixes…"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.enterFixData"
+                 label="Enter Fix Data…"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Flag Fixes..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.startViewFixData"
+                 label="View Fix Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listFixes"
+                 label="List Fixes..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listFlaggedFixes"
+                 label="List Flagged Fixes..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.editFixData"
+                 label="Edit Fix Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Make Fix Labels..."
+                 style="push">
+           </command>
+           <menu
+                 label="Import Fixes">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="All"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="ALL">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Subjective Dvorak"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="DVTS">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Objective Dvorak"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="DVTO">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="SSMI"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="SSMI">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Quickscat"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="QSCT">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="SEAW"
+                    style="push">
+                     <parameter
+                        name="fixType"
+                        value="SEAW">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="TRMM"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="TRMM">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Geosat Altimeter"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="ALTG">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="AMSU"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="AMSU">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Conventional Radar"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="RDRC">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Doppler Radar"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="RDRD">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="TRMM Radar"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="RDRT">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Synoptic"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="SYNP">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Aircraft"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="AIRC">
+                    </parameter>
+               </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Analysis"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="ANAL">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Dropsonde"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="DRPS">
+                    </parameter>
+               </command>
+               <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+                    label="Unknown"
+                    style="push">
+                    <parameter
+                        name="fixType"
+                        value="UNKN">
+                    </parameter>
+               </command>
+           </menu>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Log Comments..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfFixesMenuSep"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Check Fix Data..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.track">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.chooseStorm"
+                 label="Display Best Track..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.partialBestTrack"
+                 label="Display a Partial Best Track..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listWorkingBestTrack"
+                 label="List Working Best Track..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.editBestTrack"
+                 label="Edit Best Track Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Make Labels..."
+                 style="push">
+           </command>
+           <menu
+                 label="Objective Best Track">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Make Objective Best Track..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Display Objective Best Track..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="View Objective Best Track Info..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Make Labels..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="List Objective Best Track..."
+                    style="push">
+              </command>
+           </menu>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.reBest"
+                 label="Re-Best"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Fix Intensity vs Time..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Fix Wind Radii vs Time..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Fix Wind Radii (radial graph)..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackIntensities"
+                 label="Display Best Track Intensities"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackLabels"
+                 label="Display Best Track Labels"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackRadii"
+                 label="Best Track Wind Radii Options..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.ComputeBestTrackCPAs"
+                 label="Compute Best Track CPAs..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Log Comments..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfTrackMenuSep"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Check Best Track Data..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.aids">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+                 label="Display Objective Aids..."
+                 style="push">
+           </command>
+           <menu
+                 label="Create Obj Aid Forecasts">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.prepareComputeData"
+                    label="Prepare Compute Data"
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.listComputeData"
+                    label="List Compute Data"
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Send Compute Data"
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.modelPriority"
+                    label="NWP Model Priority"
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Retrieve PRIMARY Guidance"
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Run Your Own Consensus..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="List Latest Consensus Run..."
+                    style="push">
+              </command>
+           </menu>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAids"
+                 label="Enter Objective Aid..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAidsNoWindRadii"
+                 label="Enter Objective Aid (no wind radii)..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listObjAids"
+                 label="List Objective Aid Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.ObjAidSpeedAnalysis"
+                 label="Objective Aid Speed Analysis..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Inventory Object Aid Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listForecastDevelopment"
+                 label="List Forecast Development Type/Phase..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Aid Intensity vs Time..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Aid Wind Radii vs Time..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Graph Aid Wind Radii (radial graph)..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.objAidsIntensities"
+                 label="Display Aid Intensities"
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAidsMenuSep"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Check Objective Aid Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Check Probability Data..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.forecast">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastTrack"
+                 label="Forecast Track..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.intensityForecast"
+                 label="Forecast Intensity..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.windRadiiForecast"
+                 label="Forecast Wind Radii..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.seasForecast"
+                 label="Forecast Seas..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb"
+                 label="TC Genesis Probability..."
+                 style="push">
+                 <parameter
+                        name="basin"
+                        value="AL">
+                 </parameter>
+           </command>
+           <separator
+                 name="atcfForecastMenuSep"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Activate Current Forecast"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Inactivate Current Forecast"
+                 style="push">
+           </command>
+           <separator
+                 name="atcfForecastMenuSep1"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Erase Wind Radii Display"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Error Swath..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Display Cumulative Wind Probs..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listLatestForecast"
+                 label="List Latest Forecast..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="List Genesis Probability Forecasts..."
+                 style="push">
+           </command>
+        </menuContribution>
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.advisory">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.advisoryComposition"
+                 label="Advisory Composition..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listAdvisoryData"
+                 label="List Advisory Data..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Public Advisory Composition..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAdvisorySep0"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastAdvisory"
+                 label="Edit Forecast/Advisory..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.publicAdvisory"
+                 label="Edit Public Advisory..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.intermediatePublicAdvisory"
+                 label="Edit Intermediate Public Advisory..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Edit Wind Speed Probabilities..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.icaoAdvisory"
+                 label="Edit ICAO Advisory..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.discussion"
+                 label="Edit Tropical Cyclone Discussion..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAdvisorySep1"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Edit Tropical Cyclone Position Estimate..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Edit Tropical Cyclone Update..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAdvisorySep2"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Edit Warning..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Run P-Surge..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAdvisorySep3"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.computeCpas"
+                 label="Compute CPAs..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Compute Bearing/Distance to Forecast..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfAdvisorySep4"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Activate Current Forecast..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Inactivate Current Forecast..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.graphic">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+                 label="Display Forecast Track..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackWindRadii"
+                 label="Display Forecast Track and Wind Radii..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackSeaRadii"
+                 label="Display 12 ft Seas Radii..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.fcstTrackRadii"
+                 label="Forecast Wind Radii Options..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Display Error Swath"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Display Cumulative Wind Probs..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Create GIS Overlay..."
+                 style="push">
+           </command>
+           <separator
+                 name="atcfGraphicSep0"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Chart and Storm Titles..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Logo/Thumbnail..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Label Forecast..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Warning Legend..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="CPA Label..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Bearing/Distance Label..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Geographic Boundary Areas..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Breakpoints"
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.manageStorms">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.listStorms"
+                 label="List Active Storm..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.startGenesis"
+                 label="Start a Genesis Area..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Spawn an Invest from a Genesis Area..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="spawnInvest">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="End a Genesis Area..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="endGenesis">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Restart a Genesis Area..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="restartGenesis">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Archive a Genesis Area..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="archiveGenesis">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.startStormDialogue"
+                 label="Start a Storm..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Copy a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="copyStorm">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Renumber a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="renumberStorm">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Name an Existing Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="nameExisting">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Correct a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="correctStorm">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Restart a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="restartStorm">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="End a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="endStorm">
+              </parameter>
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+                 label="Delete a Storm..."
+                 style="push">
+              <parameter
+                    name="menuSelection"
+                    value="deleteStorm">
+              </parameter>
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.statistics">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="End of Year Fix Errors..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Fix Errors by Site..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Triangle Tables..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Single Model Errors..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Homogeneous Statistics..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.messages">
+           <menu
+                 label="North Atlantic">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb"
+                    label="Forecast TC Genesis Probabilities..."
+                    style="push">
+                    <parameter
+                        name="basin"
+                        value="AL">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Special Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Disturbance Statement..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Summary..."
+                    style="push">
+              </command>
+           </menu>
+           <menu
+                 label="East Pacific">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb"
+                    label="Forecast TC Genesis Probabilities..."
+                    style="push">
+                    <parameter
+                        name="basin"
+                        value="EP">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Special Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Disturbance Statement..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Summary..."
+                    style="push">
+              </command>
+           </menu>
+           <menu
+                 label="Central Pacific">
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb"
+                    label="Forecast TC Genesis Probabilities..."
+                    style="push">
+                    <parameter
+                        name="basin"
+                        value="CP">
+                    </parameter>
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Special Tropical Weather Outlook..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Disturbance Statement..."
+                    style="push">
+              </command>
+              <command
+                    commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                    label="Tropical Weather Summary..."
+                    style="push">
+              </command>
+           </menu>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="NHC Public Information Statement"
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.configure">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.changeColor"
+                 label="Change Colors..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.configSidebar"
+                 label="Change Sidebar Menu Selections..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.preferences"
+                 label="Preferences..."
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Display ATCF Environment..."
+                 style="push">
+           </command>
+        </menuContribution>
+
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb._sep">
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Separator"
+                 style="push">
+           </command>
+        </menuContribution>
+ 
+        <menuContribution
+              locationURI="menu:gov.noaa.nws.ocp.viz.atcf.sepmb.help">
+           <separator
+                 name="atcfHelpMenuSep"
+                 visible="true">
+           </separator>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Contents"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="ATCF and Web-ATCF User&apos;s Guide (DoD Verison 5.0)"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="ATCF Data Format (ver 5.1)"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="ATCF Full Documentation"
+                 style="push">
+           </command>
+           <command
+                 commandId="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+                 label="Version"
+                 style="push">
+           </command>
+        </menuContribution>
+
+   </extension>
+
+   <!-- Commands -->
+   <extension
+       point="org.eclipse.ui.commands">
+
+       <category
+            name="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+            description="ATCF Sidebar Commands"
+            id="gov.noaa.nws.ocp.viz.atcf.commands.sidebar">
+      </category>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.startATCF"
+           name="Start ATCF">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.atcfHelp"
+           name="ATCF Help">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.chooseStorm"
+           name="Select Storm">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.startStormDialogue"
+           name="Start a Storm...">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.startViewFixData"
+           name="View Fix Data">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.stormManagement"
+           name="Storm Management">
+           <commandParameter
+                id="menuSelection"
+                name="Menu Selection (Storm Management)"
+                optional="false">
+           </commandParameter>
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.reBest"
+           name="ReBest">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.chooseArea"
+           name="Choose Area">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.chooseDataType"
+           name="Choose Data Type">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listStorms"
+           name="List Active Storms">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.startGenesis"
+           name="Start a Genesis Area">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.cleanupStorms"
+           name="Cleanup Storms Directory">
+       </command>
+
+      <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+           name="Display Fixes">
+       </command>
+ 
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+           name="fixes">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+           name="fix wind radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+           name="fix autolabel">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFixData"
+           name="fix confidences">
+       </command>
+
+      <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="Display Objective Aids">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="obj aids">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="aid intensities">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="aid 34-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="aid 50-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="aid 64-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="GPCE">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="GPCE climatology">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayObjectiveAids"
+           name="GPCE-AX">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.intensityForecast"
+           name="Forecast Intensity">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.windRadiiForecast"
+           name="Forecast Wind Radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.seasForecast"
+           name="Forecast Seas">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.advisoryComposition"
+           name="Advisory Composition">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listAdvisoryData"
+           name="List Advisory Data">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.separateMenuCmd"
+           name="Create ATCF Separate Menu">
+       </command> 
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.computeCpas"
+           name="Compute CPAs">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.publicAdvisory"
+           name="Edit Public Advisory">
+       </command>
+
+        <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.intermediatePublicAdvisory"
+           name="Edit Intermediate Public Advisory">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.forecastAdvisory"
+           name="Edit Forecast Advisory">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.icaoAdvisory"
+           name="Edit ICAO Advisory">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.discussion"
+           name="Edit Tropical Cyclone Discussion">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.configSidebar"
+           name="Config Sidebar">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="best tracks">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track 34-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track 50-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track 64-kt radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track RMW">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track ROCI">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track intensities">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayBestTrack"
+           name="b-track labels">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+           name="Display Forecast Track">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackWindRadii"
+           name="Display Forecast Track and Wind Radii">
+       </command>
+ 
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayFcstTrackSeaRadii"
+           name="Display 12 ft Seas Radii">
+       </command>
+ 
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.fcstTrackRadii"
+           name="Forecast Track Wind Radii Options">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+           name="forecast track">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+           name="forecast wind radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+           name="forecast seas radii">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.displayForecastTrack"
+           name="forecast labels">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listLatestForecast"
+           name="List Latest Forecast">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listForecastDevelopment"
+           name="List Forecast Development Type/Phase">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listFixes"
+           name="List Fixes">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listFlaggedFixes"
+           name="List Flagged Fixes">
+       </command>
+       
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listObjAids"
+           name="List Objective Aids Data">
+       </command>
+
+       <!-- Dummy command with no handlers - used to disable an main menu entry -->
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+           name="Disable Menu Entry">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.editBestTrack"
+           name="Best Track">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.changeFixSite"
+           name="Change Fix Site">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.changeFixType"
+           name="Change Fix Type">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.prepareComputeData"
+           name="Prepare Compute Data">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.sendComputeData"
+           name="Send Compute Data">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.modelPriority"
+           name="NWP model priority">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listComputeData"
+           name="list compute data">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAids"
+           name="Enter Obj Aids">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.EnterObjAidsNoWindRadii"
+           name="Enter Obj Aids (no wind radii)">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.ComputeBestTrackCPAs"
+           name="Compute Best Track CPAs">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.changeColor"
+           name="Change Color">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.ObjAidSpeedAnalysis"
+           name="Objective Aid Speed Analysis">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.CPALocations"
+           name="Change CPA Locations">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.objAidDefaults"
+           name="Change Objective Aid Defaults">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.preferences"
+           name="Preferences">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.editFixData"
+           name="Edit Fix Data">
+        </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.enterFixData"
+           name="Enter Fix Data">
+        </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.partialBestTrack"
+           name="Display Partial Best Track">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.listWorkingBestTrack"
+           name="List Working Best Track">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackRadii"
+           name="Best Track Radii Options">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackIntensities"
+           name="Display Best Track Intensities">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.bestTrackLabels"
+           name="Display Best Track Labels">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.windRadii"
+           name="Forecast Wind Radii">
+       </command>
+ 
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.seasForecast"
+           name="Forecast Seas">
+       </command>
+       
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.objAidsIntensities"
+           name="Display Aid Intensities">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.changeFixScatterometerSatTypes"
+           name="Change Fix Scatterometer Satellite Types">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.changeFixMicrowaveSatTypes"
+           name="Change Fix Microwave Satellite Types">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.fixError"
+           name="Fix Error Preferences">
+       </command>
+
+       <command
+           categoryId="gov.noaa.nws.ocp.viz.atcf.commands.sidebar"
+           id="gov.noaa.nws.ocp.viz.atcf.ui.disableMenuEntry"
+           name="clear ATCF display">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.forecastTrack"
+           name="Forecast Track">
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.importFixes"
+           name="Import Fixes">
+           <commandParameter
+                id="fixType"
+                name="Fix Type"
+                optional="false">
+           </commandParameter>
+       </command>
+
+       <command
+           id="gov.noaa.nws.ocp.viz.atcf.ui.forecastGenesisProb"
+           name="TC Genesis Prob">
+           <commandParameter
+                id="basin"
+                name="Basin"
+                optional="true">
+           </commandParameter>
+       </command>
+
+    </extension>
+
+    <!-- Preference -->
+
+    <extension
+          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
+       <path
+             application="ATCF"
+             localizationType="COMMON_STATIC"
+             name="Config"
+             recursive="true"
+             value="atcf/config">
+       </path>
+       <path
+             application="ATCF"
+             localizationType="COMMON_STATIC"
+             name="Interpolator"
+             recursive="true"
+             value="atcf/interpolator">
+       </path>
+    </extension>
+    <extension
+          point="com.raytheon.viz.ui.contextualMenu">
+       <contextualMenu
+             actionClass="gov.noaa.nws.ocp.viz.atcf.rsc.bg.BackgroundManagerAction"
+             capabilityClass="gov.noaa.nws.ocp.viz.atcf.rsc.AtcfResource"
+             name="gov.noaa.nws.ocp.viz.atcf.rsc.bg.BackgroundManager"
+             sortID="600">
+       </contextualMenu>
+    </extension>
+
+</plugin>

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Tsunami EAS GUI
+Exec=/awips2/apps/TsunamiEasGui/bin/nwr_tsu.py
+Icon=/usr/share/applications/tsunami_icon.jpg
+Terminal=true
+Type=Application

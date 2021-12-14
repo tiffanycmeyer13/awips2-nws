@@ -1,0 +1,181 @@
+
+
+This file contains:
+    forecast-center: (JTWC=Pearl, NWOC=Pearl, NLMC=Norfolk, OFCL=NHC),
+    station-code: (PGTW=Pearl, PHNC=Pearl, KNGU=Norfolk, KNIP=JAX,
+                      KNHC=NHC, PHFO=CPHC, KWBC=WPC),
+    forecast-ctr(old): forecast center name for old forecast when a
+                      "special" forecast has been issued,
+    ddn-code: the ATCF requestor code for ATCF DDN messages to FNMOC,
+            ATCG - JTWC (Pearl)
+            ATCP - NWOC (PEARL)
+            ATCS - NOCF SAN DIEGO
+            ATCN - NLMC (NORFOLK)
+            ATCJ - NLMF JACKSONVILE
+            ATCH - CPHC (HONOLULU)
+            ATCM - NHC (MIAMI)
+            ATCY - NPS
+    center-name: "JOINT TYPHOON WRNCEN PEARL HARBOR HI", "NAVLANTMETOCCEN NORFOLK VA"
+    map-area:               what default map area you want (WHOLEWORLD)
+    editor:                 editor invoked when "edit a file" option is selected,
+    high-resolution-map:    display high res. (200m) map when map is zoomed to
+                            threshold diagonal size,
+    high-res-threshold(nm): display high res. map when diagonal map size is
+                            less than this value(nm),
+    max-zoom-limit(nm):     zoom limit, zooming in too far causes various problems
+    color-printer:          flag to determine whether printer is color printer,
+    logo:                   flag to display logo,
+    logofile:               file name of command logo (gif or bmp file in $ATCFIMAGES),
+    logo-position:          logo position: upper right, lower right, upper left
+                            or lower left,
+    ATCF-id-position:       ATCF id position; upper right, lower right, upper left
+                            or lower left,
+    center-id-position:     center id position; upper right, lower right, upper left
+                            or lower left,
+    graphic-label:          add a label to the top of the ATCF graphic,
+    auto-relocate-labels:   automatically relocate boxed labels when scaling
+    relocate-label-offset:  # of characters to offset labels, from map right edge
+    latlon-line-freq:       lat/lon line frequency: 0-default, 1-less, 2-more
+    map-lines-bold:         map boundary lines bold, applies to the screen only
+    map-lines-width:        if map-lines-bold, width of map lines in pixels
+    geography-labels:       toggle for plotting geography labels on map
+    map-win-width(pixels):  storm window width in pixels,
+    map-win-height(pixels): storm window height in pixels, recommended at least 525,
+    loopwin-width(pixels):  two panel loop window width in pixels,
+    loopwin-height(pixels): two panel loop window height in pixels,
+    plotter-landscape:      flag for plotter page orientation (landscape/portrait)
+    plotter-width(inches):  plotter page width size in inches,
+    plotter-height(inches): plotter page height size in inches,
+    btrack-dashndots-on:    default for best track line type based on intensity,
+    btrack-intensities-on:  default toggle for best track wind intensities,
+    btrack-windradii-on:    default toggle for best track wind radii,
+    btrack-special-sttype:  draw characters for the "special" storm types,
+    old-fixes-greyed-out:   old fixes displayed in a different color,
+    old-fixes-time-range:   age of fix to change to different color,
+    new-fix-display-only:   only display fixes within selected DTG time range,
+    new-fix-time-range:     age of fix for new-fix-display-only limit,
+    conf-rad-time-range:    default time range for fix confidence circles,
+    fix-conf-radii-on:      default toggle for fix confidence circles,
+    fix-windradii-on:       default toggle fix 34 kt wind radii,
+    fix-rad-time-range:     default time range of fix 34kt wind radii,
+    fix-autolabel-on:       default toggle for fix autolabel capability,
+    fix-autolab-time-range: default time range for autolabelling fixes,
+    fix-site-label-on:      default toggle to include site in fix label,
+    fix-tnum-label-on:      default toggle to include T Num and CI Num in fix label,
+    fix-hide-noncenter:     toggle to hide non-center fixes
+    fix-noncenter-native:   toggle to display non-center fixes in native fix color
+    fix-select-dups:        have user select from multiple fixes for mouse-over,
+    right-margin-size:      # of chars to allow for lbls in right margin,
+    bogus-priority-levels:  priority levels for bogus/compute, initializes GFDN, GFDL (1-9)
+    useTAU60:               allow forecast for TAU 60
+    forecast_tau_labels:    show tau labels on obj aid tracks during forecast
+    forecast_complete_trac: show complete obj aid tracks during forecast
+    forecast_consensus_aid: show consensus aids tracks during forecast
+    consensusAidName:       consensus aid default name, track
+    consensusIntName:       consensus aid default name, intensity
+    consensusRadName:       consensus aid default name, radii
+    aidsLoop:               controls field loop on/off during forecast track,
+    aidsProb:               controls GPCE probability on/off,
+    aidsProbClim:           controls GPCE climatology on/off,
+    aidsGPCE_AX:            controls GPCE climatology on/off,
+    aidsPEST:               controls PEST probability aid on/off,
+    aidsDashesDots:         aid line styles, solid tau 0-72, dashes 72-120, dots 120+
+    techlistfile:           file name for list of objective aid names, aid defaults, aid colors,
+    synoptic_data_range:    range (hours) to plot synoptic data
+    scatterometer_range:    range (hours) to plot scatterometer data
+    cloud_track_wind_range: range (hours) to plot cloud track wind range data
+    raob/pibal_range:       range (hours) to plot raob range data
+    aircraft_report_range:  range (hours) to plot a/c data
+    alt_sig_wave_ht_range:  range (hours) to plot altimeter sig wave hts
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+forecast-center:        OFCL
+station-code:           KNHC
+forecast-ctr(old):      OFCO
+ddn-code:               ATCM
+center-name:            NOT USED FOR NHC
+map-area:               AREAOFOPERAT
+editor:                 kwrite -graphicssystem raster
+high-resolution-map:    TRUE
+high-res-threshold(nm): 1000
+max-zoom-limit(nm):     30
+color-printer:          TRUE
+logo:                   FALSE
+logofile:               noaalogo75.bmp
+logo-position:          upper right
+ATCF-id-position:       lower left
+center-id-position:     lower right
+graphic-label:          TRUE
+auto-relocate-labels:   TRUE
+relocate-label-offset:  2
+latlon-line-freq:       1
+map-lines-bold:         TRUE
+map-lines-width:        2
+geography-labels:       FALSE
+map-win-width(pixels):  1024
+map-win-height(pixels): 768
+loopwin-width(pixels):  761
+loopwin-height(pixels): 782
+plotter-landscape:      TRUE
+plotter-width(inches):  40
+plotter-height(inches): 36
+btrack-dashndots-on:    FALSE
+btrack-intensities-on:  FALSE
+btrack-windradii-on:    FALSE
+btrack-special-sttype:  TRUE
+old-fixes-greyed-out:   FALSE
+old-fixes-time-range:   3
+new-fix-display-only:   FALSE
+new-fix-time-range:     3
+conf-rad-time-range:    3
+fix-conf-radii-on:      FALSE
+fix-windradii-on:       FALSE
+fix-rad-time-range:     3
+fix-autolabel-on:       FALSE
+fix-autolab-time-range: 3
+fix-site-label-on:      TRUE
+fix-tnum-label-on:      TRUE
+fix-hide-noncenter:     FALSE
+fix-noncenter-native:   FALSE
+fix-select-dups:        FALSE
+right-margin-size:      40
+bogus-priority-levels:  8
+useTAU60:               TRUE
+forecast_tau_labels:    FALSE
+forecast_complete_trac: FALSE
+forecast_consensus_aid: TRUE
+consensusAidName:       TVCN
+consensusIntName:       IVCN
+consensusRadName:       RVCN
+fcstLabelSolidDashDot:  solid
+aidsProb:               TRUE
+aidsProbClim:           TRUE
+aidsGPCE_AX:            FALSE
+aidsPEST:               FALSE
+aidsDashesDots:         TRUE
+techlistfile:           techlist.dat
+synoptic_data_range:    0
+scatterometer_range:    1
+cloud_track_wind_range: 2
+raob/pibal_range:       3
+aircraft_report_range:  4
+alt_sig_wave_ht_range:  5
+aidsLoop:               FALSE
+disp-storm-symbols:     TRUE
+disp-storm-number:      FALSE
+disp-tracklines-legend: FALSE
+btrack-color-intensity: FALSE
+disp-track-color-leg:   FALSE
+strack-colors-ss-scale: FALSE
+disp-ss-color-legend:   FALSE
+disp-track-labels:      FALSE
+btrack-labels-on:       FALSE
+obj-track:              0
+obj-track-int:          0
+obj-track-radii:        0
+advisory-fcst-range:    72
+advisory-outlook-range: 120
+tauLimit64KtWindRadii:  48
+tauLimitAllWindRadii:   72

@@ -1,0 +1,383 @@
+#BSUB -J job_put_STRMID_VAR
+#BSUB -o /nhc/save/guidance/storm-data/log/STRMID_VAR/STRMID_VAR.aid.DTG_VAR
+#BSUB -e /nhc/save/guidance/storm-data/log/STRMID_VAR/STRMID_VAR.aid.DTG_VAR
+#BSUB -L /bin/ksh
+#BSUB -q 'prod_class1'
+#BSUB -n 1
+#BSUB -R affinity[core]
+#BSUB -R rusage[mem=500]
+#BSUB -cwd /nhc/save/guidance
+#BSUB -P NHC-T2O
+#BSUB -W 00:08
+
+strmid=STRMID_VAR
+
+#=====================================================================
+
+# Ensure time set is UTC
+
+export TZ=UTC
+
+# DBNET environement
+
+# DBNET environment
+export DBNROOT=/iodprod/dbnet_siphon
+export dbnet_type=WAN_TEXT
+
+
+#  Print the start time and exit
+export LD_LIBRARY_PATH="/usrx/local/lsf/8.3/linux2.6-glibc2.3-x86_64/lib:/usrx/local/intel/itac/8.0.3.007/itac/slib_impi4:/usrx/local/intel/composer_xe_2011_sp1.11.339/compiler/lib/intel64:/usrx/local/intel/composerxe/mkl/lib/intel64:/usrx/local/intel/impi/4.0.3.008/intel64/lib:/usrx/local/intel/composerxe/ipp/lib/intel64:/usrx/local/intel/composerxe/tbb/lib/intel64/cc4.1.0_libc2.4_kernel2.6.16.21:/usrx/local/intel/composer_xe_2011_sp1.11.339/debugger/lib/intel64:/usrx/local/intel/composer_xe_2011_sp1.11.339/mpirt/lib/intel64"
+D
+echo " *** WALLCLOCK START TIME = `date '+%e-%h-%y %H:%M'` ***"
+echo " The LD_LIBRARY_PATH = $LD_LIBRARY_PATH"
+
+let pstart_total=`date +%s`
+
+#=====================================================================
+
+#  DBNET Message routing Environment
+
+#dbnetdir=/stmp/${strmid}
+#Modifed 5/22/2014 by MD for new path to scrub directory on WCOSS
+dbnetdir=/ptmpp1/nhc.prod/chg/${strmid}
+
+echo " The machine id = $MACHINE_ID"
+echo " The dbnet path = $DBNROOT"
+echo " The dbnet dir  = $dbnetdir"
+
+#=====================================================================
+
+#  Print the node running this process
+
+#echo " *** Node name running this process = $LOADL_PROCESSOR_LIST ***"
+
+#=====================================================================
+
+#  This portion of a Korn shell script runs the objective guidance
+#    for all tropical cyclones over the Atlantic, east Pacific and
+#    central Pacific basins on NCEP's IBM-CCS.  This portion
+#    must be append to the forecast_(strmid).sh which contains current
+#    information about which tropical cyclone to run the guidance on.
+ 
+#=====================================================================
+
+#  Define the atcf directory, the storm directory, the input file,
+#   the output file, the ncep file and prgms directory
+
+# primary root storm directory
+
+atcfdir=/nhc/save/guidance
+
+# storm directory
+
+stormdir=${atcfdir}/storm-data/${strmid}
+
+# carq pickoff directory for production execution
+
+zcomdir=${atcfdir}/storm-data/zcom
+
+# location of programs (executables and scripts)
+
+prgmsdir=/nhc/save/guidance/prgms
+exedir=${prgmsdir}/exec
+scriptdir=${prgmsdir}/scripts
+
+# location of log directory
+logdir=${atcfdir}/storm-data/log
+
+echo ${logdir}/${strmid}
+mkdir -p ${logdir}/${strmid}
+
+# input compute filename convention
+
+input=${strmid}.com
+
+# basin info (parse from com)
+
+basin=`echo ${strmid} | cut -c1-2 | tr 'a-z' 'A-Z'`
+
+# output A-deck filename convention
+
+output=a${strmid}.dat
+
+# tcvitals - model initialization
+
+ncepfile=${atcfdir}/storm-data/ncep/tcvitals
+
+
+#=====================================================================
+
+#  Check for the existence of the storm directory.  If not present,
+#     create it.
+
+if [[ ! -d $stormdir ]]; then
+    mkdir -p $stormdir
+fi
+
+#  Move to the storm directory
+
+cd $stormdir
+
+#=====================================================================
+
+#  Check for the existence of the start_time file to see if another
+#  forecast.sh is running for this storm.
+#  Note - current running process can *not* be pre-empted so the newer
+#         process is terminated
+
+if [[ -f start_time ]]; then
+
+#  If it is, compare the start time stored in the file plus a
+#  3 minute offset with the current time.
+
+  integer offset=3
+  integer start
+  integer current
+  integer end
+
+  read start < start_time
+  current=`date -u '+%j%H%M'`
+  ((end = start + offset))
+
+  if ((current <= end))
+  then
+        echo " Another nhc_forecast_${strmid}.sh for the same storm is running, exiting "
+        exit 1
+  fi
+  
+fi
+
+date -u '+%j%H%M' > start_time
+
+#=====================================================================
+
+#  Check for the existence of the input file before continuing.
+#  Also remove the previous AWIPS message.
+
+rm -f ${input}
+rm -f awipsmsg
+
+#  Run utility script that transfers ATCF com file here from NHC
+#  Check for existance before continuning
+
+echo " ** Copying Storm Info File (${strmid}.com) ** "
+cp ${zcomdir}/${input} ${stormdir}/${input}
+
+sleep 5
+
+if [[ ! -f $input ]]; then
+   echo "***** ERROR ***** input file not xfer'ed to IBM-WCOSS (TIDE/GYRE)"
+   exit 1
+fi
+
+
+#=====================================================================
+
+#   The ncepdata program writes the com cards to the output and the
+#   tcvitals files
+#   valid for all basins
+
+echo " ** Processing NCEP Model initialization program (${basin})."
+
+let pstart=`date +%s`
+${exedir}/ncepdata.x ${input} ${ncepfile} > ncepdata.out
+
+if [[ -f ncepdata.dat ]]; then
+   cat ncepdata.dat >> ${output}
+   cat ncepdata.dat > awips.dat
+   rm  -f ncepdata.dat
+fi
+
+# OPS Post for Models
+if [[ -f tcvitals.dat ]]; then
+   cat tcvitals.dat >> ${ncepfile}
+   cat tcvitals.dat >> ${strmid}.tcvitals
+   cat tcvitals.dat  > ${strmid}-tcvitals.dat
+###   chmod o+w ${ncepfile}
+   chmod a+w ${ncepfile}
+   rm -f tcvitals.dat
+fi
+
+let pend=`date +%s`
+
+let pdelta=$((pend-pstart))
+echo " runtime in seconds is -> $pdelta."
+
+# total runtime for NCEP model initialization
+tncep=$pdelta
+
+#=====================================================================
+
+#   The ukmet processes the UKMET messages
+#   Confine to AL, EP and CP basins
+
+if [[ ${basin} = "AL" || ${basin} = "EP" || ${basin} = "CP" ]]; then
+
+   echo " ** Processing UKMET GTS Message program (${basin})."
+ 
+   let pstart=`date +%s`
+ 
+   ${exedir}/ukmet.x ${input} > ukmet.out
+   /nhc/save/guidance/prgms/test/ukmet/swap_techname.pl ${strmid} ${stormdir} > ukmet_run.out
+
+   if [[ -f ukmet.dat ]]; then
+      cat ukmet.dat >> ${output}
+#      rm -f ukmet.dat
+      mv -f ukmet.dat ukmet.dat1
+   fi
+   
+   let pend=`date +%s`
+
+   let pdelta=$((pend-pstart))
+   echo " runtime in seconds is -> $pdelta."
+
+   # total runtime for Ukmet GTS message processing 
+   tukmet=$pdelta
+
+
+fi
+ 
+#=====================================================================
+
+#   Beta-Advection Models (BAMS, BAMM and BAMD)
+#   Al, EP and CP Basins only
+
+if [[ $basin = "AL" || $basin = "EP" || $basin = "CP" ]]; then
+
+
+   # BAMD - deep layer beta-advection track forecast
+
+   echo " ** Processing 5-Day Beta-Advection model DEEP (${basin})."
+ 
+   let pstart=`date +%s`
+ 
+   ${exedir}/bamadv.x BAMD ${input} > bamd.out
+
+   if [[ -f bamadv.dat ]]; then
+      cat bamadv.dat >> ${output}
+      cat bamadv.dat >> awips.dat
+      rm -f bamadv.dat
+   fi
+ 
+ 
+   # BAMM - medium layer beta-advection track forecast
+ 
+   echo " ** Processing 5-Day Beta-Advection model MEDIUM (${basin})."
+ 
+   ${exedir}/bamadv.x BAMM ${input} > bamm.out
+
+   if [[ -f bamadv.dat ]]; then
+      cat bamadv.dat >> ${output}
+      cat bamadv.dat >> awips.dat
+      cat bamadv.dat > bamm.dat
+      cp -f bamadv.dat lbar.temp
+      rm -f bamadv.dat
+   fi
+ 
+   # BAMS - shallow layer beta-advection track forecast 
+
+   echo " ** Processing 5-Day Beta-Advection model SHALLOW (${basin})."
+
+   ${exedir}/bamadv.x BAMS ${input} > bams.out
+
+   if [[ -f bamadv.dat ]]; then
+      cat bamadv.dat >> ${output}
+      cat bamadv.dat >> awips.dat
+      rm -f bamadv.dat
+   fi
+   
+   let pend=`date +%s`
+
+   let pdelta=$((pend-pstart))
+   echo " runtime in seconds is -> $pdelta."
+
+   # total runtime for all Bams models
+   tbams=$pdelta
+
+fi
+
+#=====================================================================
+
+#   The ships_run produces an intensity forecast 
+#   Al, EP and CP Basins only
+
+if [[ $basin = "AL" || $basin = "EP" || $basin = "CP" ]]; then
+   
+   echo " ** Processing 5-Day SHIPS model (${basin})."
+
+   let pstart=`date +%s`
+
+   ${scriptdir}/ships_run.ksh ${input} bamm.dat > ships_run.out
+
+   if [[ -f ships.dat ]]; then
+      cat ships.dat >> ${output}
+      cat ships.dat >> awips.dat
+      rm -f  ships.dat
+   fi
+   
+   let pend=`date +%s`
+   
+   let pdelta=$((pend-pstart))
+   echo " runtime in seconds is -> $pdelta."
+
+   # total runtime for SHIPS
+   tships=$pdelta
+
+   echo " ** Processing 5-Day ECMWF SHIPS model (${basin})."
+
+   let pstart=`date +%s`
+
+   ${scriptdir}/eships_run.ksh ${input} bamm.dat > eships_run.out
+
+#   if [[ -f eships.dat ]]; then
+#      cat eships.dat >> ${output}
+#      rm -f  eships.dat
+#   fi
+   
+   let pend=`date +%s`
+   
+   let pdelta=$((pend-pstart))
+   echo " runtime in seconds is -> $pdelta."
+
+   # total runtime for SHIPS
+   teships=$pdelta
+
+fi
+
+#=====================================================================
+
+#  Remove the start_time file
+
+rm -f start_time
+
+#=====================================================================
+
+# Performing clean up functions
+echo "** Performing clean up..."
+
+dtg=`date +%Y%m%d%H%M`
+mv -f ${logdir}/SHIPS-${strmid}.????????.????.log.gz ${logdir}/${strmid}
+
+#  Print the end time and exit
+
+let pend_total=`date +%s`
+
+let pdelta=$((pend_total-pstart_total))
+
+echo " ===================================================================="
+echo " Total runtime of entire package in seconds is -> $pdelta."
+echo " "
+echo " Program by Program timing breakdown: "
+echo " ------------------------------------ "
+echo " NCEP init      -> [$tncep] seconds"
+echo " BAMS/BAMM/BAMD -> [$tbams] seconds"
+echo " SHIPS/LGEM     -> [$tships] seconds"
+echo " eSHIPS/eLGEM   -> [$teships] seconds"
+echo " "
+echo " ===================================================================="
+echo " "
+echo " *** WALLCLOCK END TIME = `date '+%e-%h-%y %H:%M'` ***"
+
+exit 0
+
+#  End script

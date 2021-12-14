@@ -1,0 +1,10 @@
+
+This file contains satellite types used for entering scatterometer fixes.
+Note, these satellite types must also be listed in $ATCFINC/fixtypes.dat.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+ASCT
+RSCT
+OSCT

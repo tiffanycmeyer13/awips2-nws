@@ -1,0 +1,103 @@
+
+This file contains data to be used by the atcf application.
+This file defines parameters to be used for displaying objective aids.
+The first field is the technique name.
+The second field is the technique description.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+AP01  GFS Ensemble +01 member
+AP02  GFS Ensemble +02 member
+AP03  GFS Ensemble +03 member
+AP04  GFS Ensemble +04 member
+AP05  GFS Ensemble +05 member
+AP06  GFS Ensemble +06 member
+AP07  GFS Ensemble +07 member
+AP08  GFS Ensemble +08 member
+AP09  GFS Ensemble +09 member
+AP10  GFS Ensemble +10 member
+AP11  GFS Ensemble +11 member
+AP12  GFS Ensemble +12 member
+AP13  GFS Ensemble +13 member
+AP14  GFS Ensemble +14 member
+AP15  GFS Ensemble +15 member
+AP16  GFS Ensemble +16 member
+AP17  GFS Ensemble +17 member
+AP18  GFS Ensemble +18 member
+AP19  GFS Ensemble +19 member
+AP20  GFS Ensemble +20 member
+EN01  ECMWF model Ensemble +01 member [NCEP tracker]
+EN02  ECMWF model Ensemble +02 member [NCEP tracker]
+EN03  ECMWF model Ensemble +03 member [NCEP tracker]
+EN04  ECMWF model Ensemble +04 member [NCEP tracker]
+EN05  ECMWF model Ensemble +05 member [NCEP tracker]
+EN06  ECMWF model Ensemble +06 member [NCEP tracker]
+EN07  ECMWF model Ensemble +07 member [NCEP tracker]
+EN08  ECMWF model Ensemble +08 member [NCEP tracker]
+EN09  ECMWF model Ensemble +09 member [NCEP tracker]
+EN10  ECMWF model Ensemble +10 member [NCEP tracker]
+EN11  ECMWF model Ensemble +11 member [NCEP tracker]
+EN12  ECMWF model Ensemble +12 member [NCEP tracker]
+EN13  ECMWF model Ensemble +13 member [NCEP tracker]
+EN14  ECMWF model Ensemble +14 member [NCEP tracker]
+EN15  ECMWF model Ensemble +15 member [NCEP tracker]
+EN16  ECMWF model Ensemble +16 member [NCEP tracker]
+EN17  ECMWF model Ensemble +17 member [NCEP tracker]
+EN18  ECMWF model Ensemble +18 member [NCEP tracker]
+EN19  ECMWF model Ensemble +19 member [NCEP tracker]
+EN20  ECMWF model Ensemble +20 member [NCEP tracker]
+EN21  ECMWF model Ensemble +21 member [NCEP tracker]
+EN22  ECMWF model Ensemble +22 member [NCEP tracker]
+EN23  ECMWF model Ensemble +23 member [NCEP tracker]
+EN24  ECMWF model Ensemble +24 member [NCEP tracker]
+EN25  ECMWF model Ensemble +25 member [NCEP tracker]
+EP01  ECMWF model Ensemble +26 member [NCEP tracker]
+EP02  ECMWF model Ensemble +27 member [NCEP tracker]
+EP03  ECMWF model Ensemble +28 member [NCEP tracker]
+EP04  ECMWF model Ensemble +29 member [NCEP tracker]
+EP05  ECMWF model Ensemble +30 member [NCEP tracker]
+EP06  ECMWF model Ensemble +31 member [NCEP tracker]
+EP07  ECMWF model Ensemble +32 member [NCEP tracker]
+EP08  ECMWF model Ensemble +33 member [NCEP tracker]
+EP09  ECMWF model Ensemble +34 member [NCEP tracker]
+EP10  ECMWF model Ensemble +35 member [NCEP tracker]
+EP11  ECMWF model Ensemble +36 member [NCEP tracker]
+EP12  ECMWF model Ensemble +37 member [NCEP tracker]
+EP13  ECMWF model Ensemble +38 member [NCEP tracker]
+EP14  ECMWF model Ensemble +39 member [NCEP tracker]
+EP15  ECMWF model Ensemble +40 member [NCEP tracker]
+EP16  ECMWF model Ensemble +41 member [NCEP tracker]
+EP17  ECMWF model Ensemble +42 member [NCEP tracker]
+EP18  ECMWF model Ensemble +43 member [NCEP tracker]
+EP19  ECMWF model Ensemble +44 member [NCEP tracker]
+EP20  ECMWF model Ensemble +45 member [NCEP tracker]
+EP21  ECMWF model Ensemble +46 member [NCEP tracker]
+EP22  ECMWF model Ensemble +47 member [NCEP tracker]
+EP23  ECMWF model Ensemble +48 member [NCEP tracker]
+EP24  ECMWF model Ensemble +49 member [NCEP tracker]
+EP25  ECMWF model Ensemble +50 member [NCEP tracker]
+UE00  UKMET MOGREPS-G Ensemble Control Member
+UE01  UKMET MOGREPS-G Ensemble +01 member
+UE02  UKMET MOGREPS-G Ensemble +02 member
+UE03  UKMET MOGREPS-G Ensemble +03 member
+UE04  UKMET MOGREPS-G Ensemble +04 member
+UE05  UKMET MOGREPS-G Ensemble +05 member
+UE06  UKMET MOGREPS-G Ensemble +06 member
+UE07  UKMET MOGREPS-G Ensemble +07 member
+UE08  UKMET MOGREPS-G Ensemble +08 member
+UE09  UKMET MOGREPS-G Ensemble +09 member
+UE10  UKMET MOGREPS-G Ensemble +10 member
+UE11  UKMET MOGREPS-G Ensemble +11 member
+UE12  UKMET MOGREPS-G Ensemble +12 member
+UE13  UKMET MOGREPS-G Ensemble +13 member
+UE14  UKMET MOGREPS-G Ensemble +14 member
+UE15  UKMET MOGREPS-G Ensemble +15 member
+UE16  UKMET MOGREPS-G Ensemble +16 member
+UE17  UKMET MOGREPS-G Ensemble +17 member
+UE18  UKMET MOGREPS-G Ensemble +18 member
+UE19  UKMET MOGREPS-G Ensemble +19 member
+UE20  UKMET MOGREPS-G Ensemble +20 member
+UE21  UKMET MOGREPS-G Ensemble +21 member
+UE22  UKMET MOGREPS-G Ensemble +22 member
+UE23  UKMET MOGREPS-G Ensemble Previous Control member

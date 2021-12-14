@@ -1,0 +1,83 @@
+
+This file contains fix sites used for entering and displaying satellite fixes
+and for computing error statistics.
+
+The file format is as follows:
+fix site - The specific site from which the fix comes (4 or 5 digits).
+retired/developmental flag - 1 means don't use the fix site in normal operations.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+#SITE RETIRED
+
+TAFB 0
+ SAB 0
+ NHC 0
+KNHC 0
+KWBC 0
+KGWC 1
+KNES 0
+NSOF 0
+CIMS 0 
+PHFO 0
+PHWA 0
+PHKM 0
+PHMO 0
+PHKI 0
+PGUM 0
+PHIK 0
+PGTW 0
+AMSU 0
+CIRA 0
+CIRW 0
+TJUA 0
+KAKQ 0
+KAMX 0
+KBOX 0
+KBRO 0
+KBYX 0
+KCAE 0
+KCBW 0
+KCLX 0
+KCRP 0
+KCXX 0
+KDGX 0
+KDIX 0
+KDOX 0
+KENX 0
+KEOX 0
+KEVX 0
+KEWX 0
+KFCX 0
+KFFC 0
+KFWS 0
+KGRK 0
+KGSP 0
+KGWX 0
+KHGX 0
+KHTX 0
+KJAX 0
+KLCH 0
+KLIX 0
+KLTX 0
+KLWX 0
+KLZK 0
+KMHX 0
+KMLB 0
+KMOB 0
+KMXX 0
+KNKX 0
+KNQA 0
+KOHX 0
+KOKX 0
+KPOE 0
+KRAX 0
+KSHV 0
+KSOX 0
+KTBW 0
+KTLH 0
+KTLX 0
+KVAX 0
+KVTX 0
+KYUX 0

@@ -1,0 +1,123 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean id="atcfSandboxPurger"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.purge.SandboxPurger">
+    </bean>
+
+    <camelContext id="a2atcf-handler"
+        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+
+        <endpoint id="sboxPurgeCron"
+            uri="clusteredquartz://a2atcf/sboxPurger/?cron=${atcf.sbox.purge.cron}" />
+
+        <!-- purge sandbox tables -->
+        <route id="sboxPurgeWork">
+            <from uri="sboxPurgeCron" />
+            <doTry>
+                <bean ref="atcfSandboxPurger" method="purgeSandbox" />
+                <doCatch>
+                    <exception>java.lang.Throwable</exception>
+                    <to uri="log:atcfSandboxPurger?level=ERROR" />
+                </doCatch>
+            </doTry>
+        </route>
+
+        <!-- Route to send alerts to ATCF -->
+        <route id="a2atcfNotify">
+            <from uri="vm:edex.atcfNotification" />
+            <bean ref="serializationUtil" method="transformToThrift" />
+            <to uri="jms-generic:topic:edex.a2atcf.msg" />
+        </route>
+
+    </camelContext>
+
+    <!-- Register Requests and Handlers -->
+
+    <bean id="getDeckRecordsHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetDeckRecordsHandler" />
+    <bean id="getSandboxesHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetSandboxesHandler" />
+    <bean id="getStormsHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetStormsHandler" />
+    <bean id="newStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.NewStormHandler" />
+    <bean id="updateStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.UpdateStormHandler" />
+    <bean id="saveModifiedDeckRecordHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.SaveDeckRecordEditHandler" />
+    <bean id="checkoutDeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CheckoutDeckHandler" />
+    <bean id="checkoutADeckDtgHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CheckoutADeckDtgHandler" />
+    <bean id="checkinDeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CheckinDeckHandler" />
+    <bean id="checkSandboxMergeableHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CheckSandboxMergeableHandler" />
+    <bean id="mergeEditingSandboxWithBaselineHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.MergeEditingSandboxWithBaselineHandler" />
+    <bean id="discardInvadeSandboxHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.DiscardInvadeSandboxHandler" />
+    <bean id="saveEditDeckRecordSandboxHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.SaveEditDeckRecordSandboxHandler" />
+    <bean id="getDeckRecordChangeCDHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetDeckRecordChangeCDHandler" />
+    <bean id="sendAtcfDataToWcossHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.SendAtcfDataToWcossRequestHandler" />
+    <bean id="getForecastTrackRecordsHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetForecastTrackRecordsHandler" />
+    <bean id="newForecastTrackHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.NewForecastTrackHandler" />
+    <bean id="checkinForecastTrackHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CheckinForecastTrackHandler" />
+    <bean id="PrepareComputeHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.PrepareComputeHandler" />
+    <bean id="deleteForecastTrackRecordHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.DeleteForecastTrackRecordHandler" />
+    <bean id="genesisToStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GenesisToStormHandler" />
+    <bean id="getGenesisHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetGenesisHandler" />
+    <bean id="newGenesisHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.NewGenesisHandler" />
+    <bean id="updateGenesisHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.UpdateGenesisHandler" />
+    <bean id="getGenesisDeckRecordsHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetGenesisDeckRecordsHandler" />    
+    <bean id="updateGenesisEDeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.UpdateGenesisEDeckHandler" />
+    <bean id="mergeDeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.MergeDeckHandler" />
+    <bean id="rollbackMergedDeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.RollbackMergedDeckHandler" />
+    <bean id="getDeckMergeLogListHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.GetDeckMergeLogListHandler" />
+    <bean id="modelPriorityRequestHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.ModelPriorityRequestHandler" />
+    <bean id="listComputeDataRequestHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.ListComputeDataRequestHandler" />
+    <bean id="createDeckFileHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CreateDeckFileHandler" />
+    <bean id="createStormsFileHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CreateStormsFileHandler" />
+    <bean id="interpolateADeckHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.InterpolateADeckHandler" />
+    <bean id="importFixesDataHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.ImportFixesDataHandler" />
+    <bean id="copyStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.CopyStormHandler" />
+    <bean id="deleteStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.DeleteStormHandler" />
+    <bean id="endStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.EndStormHandler" />
+    <bean id="restartStormHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.RestartStormHandler" />
+    <bean id="ReadAdvisoryFileHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.ReadAdvisoryFileHandler" />
+    <bean id="writeAdvisoryFilesHandler"
+        class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.WriteAdvisoryFilesHandler" />
+
+</beans>
+

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AtcfSites>
+    <!--
+        This file contains definition for all ATCF sites. 
+        id            - site dentifier
+        wfoId         - WFO station code
+        bureau        - Department where the forecast center belongs to.
+        center        - Name of forecast center
+        city          - City of forecast center
+        state         - State  of forecast center
+
+        issueByOffice - Combo of "super center city state" - inferred.
+    -->
+    <Site id="NHC"  wfoId="KNHC" bureau="NWS" center="National Hurricane Center" city="Miami" state="FL"/>
+    <Site id="CPHC" wfoId="PHFO" bureau="NWS" center="Central Pacific Hurricane Center" city="Honolulu" state="HI"/>
+    <Site id="WPC"  wfoId="KWNH" bureau="NWS" center="Weather Prediction Center" city="College Park" state="MD"/>
+</AtcfSites>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+    <nSmooth>10</nSmooth>
+    <fcstHourOutputFrequency>6</fcstHourOutputFrequency>
+    <models>
+        <model input="EMX" output="EMXI" minRelaxFH="0" maxRelaxFH="120"/>
+        <model input="HWRF" output="HWFI" minRelaxFH="0" maxRelaxFH="120"/>
+    </models>
+</configuration>
