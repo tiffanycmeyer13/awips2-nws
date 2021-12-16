@@ -1,0 +1,14 @@
+
+This file contains data to be used by the atcf application.
+This file defines parameters to be used for displaying objective aids.
+The first field is the technique name.
+The second field is the technique description.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+XTRP  Extrapolation using past 12-hr motion
+CLP5  CLImatology-PERsistance model 5-day
+TABD  Beta and Advection model, deep (NHC)
+TABM  Beta and Advection model, medium (NHC)
+TABS  Beta and Advection model, shallow (NHC)

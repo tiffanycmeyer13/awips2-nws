@@ -6,14 +6,11 @@ package gov.noaa.nws.ocp.viz.cwagenerator.action;
 
 import com.raytheon.uf.viz.core.rsc.IInputHandler;
 import com.raytheon.viz.ui.editor.AbstractEditor;
-
-import gov.noaa.nws.ncep.ui.pgen.elements.DrawableElement;
-import gov.noaa.nws.ncep.ui.pgen.rsc.PgenResource;
-import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenDrawingTool;
+import com.raytheon.viz.ui.tools.AbstractModalTool;
 
 /**
  * 
- * Class for select VORs
+ * Class for select VORs drawings
  * 
  * <pre>
  *
@@ -22,34 +19,26 @@ import gov.noaa.nws.ncep.ui.pgen.tools.AbstractPgenDrawingTool;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 2, 2020  75767      wkwock      Initial creation
+ * Sep 10, 2021 22802      wkwock      Remove PGEN dependence
  *
  * </pre>
  *
  * @author wkwock
  */
-public class VorsSelectingTool extends AbstractPgenDrawingTool {
+public class VorsSelectingTool extends AbstractModalTool {
     private IUpdateFormatter formatter;
-
+    private AbstractEditor mapEditor = null;
     /**
      * Input handler for mouse event
      */
     private IInputHandler selectHandler;
-
+    private CWAGeneratorResource drawingLayer;
     public VorsSelectingTool(AbstractEditor mapEditor,
-            PgenResource drawingLayer,
+            CWAGeneratorResource drawingLayer,
             IUpdateFormatter cwaFormatterDlg) {
         this.mapEditor = mapEditor;
         this.drawingLayer = drawingLayer;
         this.formatter = cwaFormatterDlg;
-    }
-
-    @Override
-    protected void activateTool() {
-    }
-
-    @Override
-    public void deactivateTool() {
-        super.deactivateTool();
     }
 
     /**
@@ -59,31 +48,25 @@ public class VorsSelectingTool extends AbstractPgenDrawingTool {
      */
     public IInputHandler getMouseHandler() {
         if (this.selectHandler == null) {
-            this.selectHandler = new VorsSelectHandler(mapEditor, drawingLayer,
-                    formatter);
+            this.selectHandler = new VorsSelectHandler(mapEditor, drawingLayer, formatter);
         }
 
         return this.selectHandler;
+    }
 
+    public void setDrawingLayer(CWAGeneratorResource drawingLayer) {
+        this.drawingLayer=drawingLayer;
+    }
+
+    public void setHandler(IInputHandler selectHandler) {
+        this.selectHandler=selectHandler;
     }
 
     @Override
-    public void resetMouseHandler() {
-        setHandler(selectHandler);
+    protected void deactivateTool() {
     }
 
-    /**
-     * get the selected drawable element.
-     * 
-     * @return drawable element
-     */
-    public DrawableElement getSelectedDE() {
-        DrawableElement de = null;
-
-        if (drawingLayer != null) {
-            de = drawingLayer.getSelectedDE();
-        }
-
-        return de;
+    @Override
+    protected void activateTool() {
     }
 }

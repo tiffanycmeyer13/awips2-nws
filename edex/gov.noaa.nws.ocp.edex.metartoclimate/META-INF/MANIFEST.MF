@@ -5,12 +5,12 @@ Bundle-SymbolicName: gov.noaa.nws.ocp.edex.metartoclimate
 Bundle-Version: 1.19.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: com.raytheon.edex.common,
- com.raytheon.uf.edex.decodertools;bundle-version="1.0.0",
+ com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.persistence,
  javax.measure,
- com.raytheon.uf.common.status;bundle-version="1.14.1",
- org.slf4j;bundle-version="1.7.12",
+ com.raytheon.uf.common.status,
+ org.slf4j,
  gov.noaa.nws.ocp.edex.common.climate,
  javax.xml.bind
 Import-Package: com.raytheon.edex.plugin.obs.metar,

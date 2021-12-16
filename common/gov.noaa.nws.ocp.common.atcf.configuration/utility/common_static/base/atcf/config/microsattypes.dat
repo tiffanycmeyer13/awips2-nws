@@ -1,0 +1,13 @@
+
+This file contains satellite types used for entering microwave fixes.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+SSMS
+SSMI
+GPM
+AMSU
+AMSR
+WSAT
+

@@ -19,8 +19,9 @@ import org.eclipse.swt.widgets.Spinner;
 
 import com.raytheon.uf.common.time.util.TimeUtil;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -32,6 +33,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 02/02/2016  17469    wkwock      Initial creation
  * 06/27/2021  92561    wkwock      Correct end time calculation and remove 'Z' from the 'until' line
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -72,7 +74,7 @@ public abstract class AbstractCWAComp extends Composite {
      * @param parent
      * @param style
      */
-    public AbstractCWAComp(Composite parent, int style,
+    protected AbstractCWAComp(Composite parent, int style,
             CWAGeneratorConfig cwaConfigs) {
         super(parent, style);
         this.cwaConfigs = cwaConfigs;
@@ -235,16 +237,16 @@ public abstract class AbstractCWAComp extends Composite {
      */
     protected abstract String createText(String wmoId, String header,
             String fromline, String body, String cwsuId, String productId,
-            boolean isCor, boolean isOperational, String type, double width,
-            String stateIds);
+            boolean isCor, boolean isOperational, DrawingType type,
+            double width, String stateIds);
 
-    public abstract AbstractCWAConfig getConfig();
+    public abstract AbstractCWANewConfig getConfig();
 
     public String getWeatherName() {
         return weatherType.getName();
     }
 
-    public void updateProductConfig(AbstractCWAConfig config)
+    public void updateProductConfig(AbstractCWANewConfig config)
             throws ParseException {
         setStartTimeChk(config.isStartTimeChk());
         if (config.isStartTimeChk()) {
@@ -259,5 +261,5 @@ public abstract class AbstractCWAComp extends Composite {
         Date d = sdf.parse(config.getEndTime().substring(2, 6));
 
         endTime.setTime(d);
-    };
+    }
 }

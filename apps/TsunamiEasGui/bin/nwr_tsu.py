@@ -8,7 +8,12 @@ Version="20210915"
 
 #"BIG COMMAND search for 'nwrsend'. Comment nwrsend line in config to hard turn off"
 
-#
+# MODIFICATION HISTORY:
+# =====================================================================================
+# 20211013 - J. Buchman
+#  Also get the time that the bulletin was added to the AWIPS Text database, and log it.
+# 20211006 - J. Buchman
+#  No error if chmod() on a temporary file fails.
 # 20210915 - J. Buchman
 #  Updated with second round of Gerrit code review comments.
 # 20210910 - J. Buchman
@@ -1071,6 +1076,37 @@ def grabTWC(pil,zone_ids):
             cmd=db+" -r "+pil
             tsuin=os.popen(cmd).read()
 
+            try:
+                # Check when this bulletin was added to Text DB.
+                cmd = db + " -tU " + pil
+                bulletinTm = int(os.popen(cmd).read())
+                now = int(time.time())
+
+                if bulletinTm > 0:
+                    dif = now - bulletinTm
+                    minutes,seconds = divmod(dif,60)
+                    hours,minutes = divmod(minutes,60)
+                    days,hours = divmod(hours,24)
+
+                    sPlu = mPlu = hPlu = dPlu = "s"
+                    if seconds == 1: sPlu = ""
+                    if minutes == 1: mPlu = ""
+                    if hours   == 1: hPlu = ""
+                    if days    == 1: dPlu = ""
+
+                    if days > 0:
+                        timeAgo = "{0} day{1} and {2} hour{3}".format(days, dPlu, hours, hPlu)
+                    elif hours > 0:
+                        timeAgo = "{0} hour{1} and {2} minute{3}".format(hours, hPlu, minutes, mPlu)
+                    else:
+                        timeAgo = "{0} minute{1} and {2} second{3}".format(minutes, mPlu, seconds, sPlu)
+                    timeGoneBy = "A {0} bulletin was received {1} ago".format(pil, timeAgo)
+                    # print(timeGoneBy)
+                    flagMeBasic(timeGoneBy, "Tsunami Bulletin Found", 0)
+
+            except:
+                logging.exception("An error occurred getting bulletin creation time.")
+
         segs=tsuin.replace("\r","").upper().split("$$") # by segment
         pat="[0-9][0-9][0-9]>[0-9][0-9][0-9]"
 
@@ -1792,11 +1828,15 @@ def previewBMH():
     # Format BMH Header and Send Out
     crsout=crsCodeme(active,text)
     #print local_dir+"data/tsradio.txt"
-    pp=open(local_dir+"data/tsradio.txt","w")  # write to temporary file. useful for printing
+    tmpFile = os.path.join(local_dir, "data", "tsradio.txt")
+    pp=open(tmpFile, "w")  # write to temporary file. useful for printing
     pp.write(crsout)
     pp.close()
     # Set the mode so that other users in the AWIPS group can write to the file later.
-    os.chmod(local_dir + "data/tsradio.txt", 0o664)
+    try:
+        os.chmod(tmpFile, 0o664)
+    except:
+        logging.exception("(nonfatal) Could not change mode for file {0}".format(tmpFile))
 
     # display
     alertframe1=Toplevel()
@@ -1816,18 +1856,22 @@ def previewBMH():
     Button(bframe,text="   Close   ",command=alertframe1.destroy,bg="#000",fg="#fff").grid(row=0,column=0)
     Button(bframe,text="   Print   ",command=printBMH,bg="#afa",fg="#000").grid(row=0,column=1)
 
-# Print Radio Script
+# Print source tsunami bulletin.
 def printTSU():
     global wcapil
     cmd=db+" -r "+wcapil
     tsuin=os.popen(cmd).read()
-    pp=open(local_dir+"data/TSUWCA.txt","w")  # write to temporary file
+    tmpFile = os.path.join(local_dir, "data", "TSUWCA.txt")
+    pp=open(tmpFile, "w")  # write to temporary file.
     pp.write(tsuin)
     pp.close()
     # Set the mode so that other users in the AWIPS group can write to the file later.
-    os.chmod(local_dir + "data/TWUWCA.txt", 0o664)
+    try:
+        os.chmod(tmpFile, 0o664)
+    except:
+        logging.exception("(nonfatal) Could not change mode for file {0}".format(tmpFile))
 
-    pipe=subprocess.getoutput("lp "+local_dir+"data/TSUWCA.txt") # use commands to remove a2ps output
+    pipe=subprocess.getoutput("lp " + tmpFile) # use commands to remove a2ps output
 
 # launch point to view TSU product
 def showTSU():
@@ -2025,7 +2069,7 @@ def flagMeSend(mesg): # window to display errors
     ftext.insert(0.0,mesg)
     Button(alertframe,text="Go Back And Fix",command=alertframe.destroy,bg="#ddd",fg="#000").grid(row=1,column=0,padx=gp,pady=gp)
     Button(alertframe,text="Continue Anyway",command=almostsendtoRadio,bg="#ddd",fg="#000").grid(row=1,column=1,padx=gp,pady=gp)
-    logging.error(datetime.datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')+"\n" + mesg)
+    logging.error(mesg)
 
 
 def flagMeBasic(msg,title="Attention...",prompt=0): # window to display errors
@@ -2050,7 +2094,7 @@ def flagMeBasic(msg,title="Attention...",prompt=0): # window to display errors
     else:
         Button(alertframe,text="Cancel",command=alertframe.destroy,bg="#ccc",fg="#000").grid(row=1,column=0,padx=gp,pady=gp)
         Button(alertframe,text=str(prompt),command=lambda i="test":autoFill(i),bg="#37c",fg="#fff").grid(row=1,column=1,padx=gp,pady=gp)
-    logging.error(datetime.datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')+"\n"+msg)
+    logging.error(msg)
 
 
 def sendtoRadioCheck():
@@ -2155,13 +2199,17 @@ def saveMe():
             if a.get()==1: out+=z+","
         out+="|||"
         out+=text
-        with open(local_dir+"data/autosave.txt","w") as pp:  # write to temporary file
+        tmpFile = os.path.join(local_dir, "data", "autosave.txt")
+        with open(tmpFile,"w") as pp:  # write to temporary file
             pp.write(out)
 
         # Set the mode so that other users in the AWIPS group can write to the file later.
-        os.chmod(local_dir + "data/autosave.txt", 0o664)
+        try:
+            os.chmod(tmpFile, 0o664)
+        except:
+            logging.exception("(nonfatal) Could not change mode for file {0}".format(tmpFile))
     except:
-        logging.error("saveMe Failed")
+        logging.exception("saveMe Failed")
 
 def closeMe():
     saveMe()
@@ -2175,11 +2223,15 @@ def clearTrack():
     destroyBoxes()
     try:
         combo_issued=[]
-        with open(local_dir+"data/last_issued.txt","w") as pp:  # create and write to temporary file
+        tmpFile = os.path.join(local_dir, "data", "last_issued.txt")
+        with open(tmpFile, "w") as pp:  # create and write to temporary file
             pp.write("")
 
         # Set the mode so that other users in the AWIPS group can write to the file later.
-        os.chmod(local_dir + "data/last_issued.txt", 0o664)
+        try:
+            os.chmod(tmpFile, 0o664)
+        except:
+            logging.exception("(nonfatal) Could not change mode for file {0}".format(tmpFile))
 
         bg="#eee"
         alertframe=Toplevel()
@@ -2346,11 +2398,15 @@ def sendtoRadio():
         alertframe1=Toplevel()
         alertframe1.title('Complete!')
         alertframe1.option_add('*Font', ('Arial',12))
-        with open(local_dir+"data/tsradio.txt","w") as pp:  # write to temporary file
+        tmpFile = os.path.join(local_dir, "data", "tsradio.txt")
+        with open(tmpFile, "w") as pp:  # write to temporary file
             pp.write(crsout)
 
         # Set the mode so that other users in the AWIPS group can write to the file later.
-        os.chmod(local_dir + "data/tsradio.txt", 0o664)
+        try:
+            os.chmod(tmpFile, 0o664)
+        except:
+            logging.exception("(nonfatal) Could not change mode for file {0}".format(tmpFile))
 
     # Time to send away!
         cmd=""
@@ -2359,7 +2415,10 @@ def sendtoRadio():
             if pending=="no": cmd=nwrsend+" -a "+local_dir+"data/tsradio.txt" # -a automatically transfer, -d pending directory
             else: cmd=nwrsend+" -d "+local_dir+"data/tsradio.txt" # -a automatically transfer, -d pending directory
         ret=0
-        ret=os.system(cmd) # Launch Initiated.
+        if nwrsend == "":      #  SEND TO RADIO DISABLED! Don't try to make system call.
+            ret = 127
+        else:
+            ret=os.system(cmd) # Launch Initiated.
     except: flagMeBasic("Send to radio function failed. Statement likely did not make it to the radio. Code:sendtoRadioONE")
     try:
     # Some book keeping
@@ -2407,7 +2466,7 @@ def sendtoRadio():
             with open(local_dir+"data/last_issued.txt","w") as pp:   # create and write to temporary file
                 pp.write(out)
 
-    # Display to user
+        # Display to user
         if len(still_need)>0:
             if recentflg=="": alertframe1.geometry(windowXgeo()) # we're going to need a bigger box
             else: alertframe1.geometry(windowXgeo()) # we're going to need a bigger box
@@ -2465,7 +2524,11 @@ def sendtoRadio():
             bg="#fac"
             alertframe1.configure(bg=bg)
             msg="Practice is complete, but something went strangely.\nCode:nwrTransfer"
-            if modeme=="live": msg="There was an Error. "+active.capitalize().replace("_","+")+" Product not sent to BMH.\nCode:nwrTransfer "
+            if modeme=="live":
+                if nwrsend == "":
+                    msg = "SEND TO RADIO is disabled - please set 'nwrsend' parameter in etc/config_tsu.py file.\nCode:nwrTransfer "
+                else:
+                    msg="There was an error. "+active.capitalize().replace("_","+")+" Product not sent to BMH.\nCode:nwrTransfer "
             Label(alertframe1,text=msg+str(ret),bg=bg,fg="#000").grid(row=0,column=0,padx=gp,pady=gp)  # error 32512, check nwrsend command
             Button(alertframe1,text="   OK   ",command=alertframe1.destroy,bg="#000",fg="#fff").grid(row=1,column=0,padx=gp,pady=gp)
     except: flagMeBasic("There was an error. Statement likely sent to radio (please verify), but an error occurred after. Code:sendtoRadioTWO")

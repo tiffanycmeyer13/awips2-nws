@@ -1,0 +1,78 @@
+{{!--
+    Variables:
+        header.wmoId           - TTAAii part of WMO heading
+        header.category        - Product category, i.e., TCA
+        header.basin           - 2-character product basin, AT/EP/CP
+        header.binNummber      - AWIPS bin number, 1 to 5
+        header.wfo             - WFO id of primary office, i.e., KNHC/PHFO/KWNH 
+        header.advClass        - Storm category, i.e, Hurricane
+        header.advName         - Storm name for this advisory, i.e., IRMA
+        header.advNumber       - Advisory number
+        header.backup          - Flag to indicate if an backup office is issuing the advisory.
+        header.issuedBy        - Primary office's address
+        header.stormId         - Storm ID, i.e., AL112017
+        header.issusedByBackup - Backup office's address
+        header.timeZone        - Time zone, UTC for TCA.
+        nextAdvTime            - ForecastTime to issue next routine advisory.
+        
+        tau3Fcst               - IcaoForecast at tau 3 (or the special tau).
+        interpFcst             - List of IcaoForecast interpolated at tau 9, 15, 21, 27.
+        
+        Each IcaoForecast has:
+            time               - ForecastTime (UTC)
+            movement           - Storm's movement direction and speed
+            intensityChange    - Storm's intensity change tendency
+            mslp               - Storm's minimum sea level pressure 
+            lat                - Forecast latitude positions in minutes (i.e. N3654)
+            lon               - Forecast longitude positions in minutes (i.e. W07546)
+            maxWind              - Forecast maximum winds in knots (i.e. 045)
+
+    Handlebars helpers:
+       ~       - Remove up to the first handlebar's expression or non-whitespace character on a side.
+       right   - Justify text to the right
+                 The 'pad' parameter specifies a character that will pad the justified text on the left
+       if/else - Present the context if the condition is true. It leaves a blank line if condition
+                 is false and no "else" clause.
+       each    - Loop
+       with    - Present the context if the context is defined (non-empty, not 0, not false, not null).
+       unless  - Reverse of if.
+       blank   - A custom empty string for indentation, no real meaning.       
+--}}
+{{header.wmoId}} {{header.wfo}} 000000
+{{header.category}}{{header.basin}}{{header.binNumber}}
+
+{{header.advClass}} {{header.advName}} {{header.advNumPhrase}} {{right header.advNumber size=3 pad=" "}}
+{{header.issuedBy}}       {{header.stormId}}
+{{#if header.issuedByBackup}}
+    {{~break}}{{header.issuedByBackup}}
+{{/if}}
+{{#with tau3Fcst.time}}{{advTime}}{{/with}}
+
+TC ADVISORY
+DTG:                      {{tau3Fcst.time.ymdh}}00Z
+TCAC:                     {{issueCenter}}
+TC:                       {{header.advName}}
+ADVISORY NR:              {{tau3Fcst.time.year}}/{{right header.advNumber size=3 pad="0"}}
+OBS PSN:                  {{tau3Fcst.time.ddHH}}00Z {{tau3Fcst.lat}} {{tau3Fcst.lon}}
+MOV:                      {{tau3Fcst.movement}}KT
+INTST CHANGE:             {{tau3Fcst.intensityChange}}
+C:                        {{tau3Fcst.mslp}}HPA
+MAX WIND:                 {{tau3Fcst..maxWind}}KT
+{{#each interpFcst}}
+    {{~break}}FCST PSN + {{time.plusHour}} HR:         {{time.ddHH}}00Z {{lat}} {{lon}}
+    {{~newLine}}FCST MAX WIND + {{time.plusHour}} HR:    {{maxWind}}KT
+{{/each}}
+RMK:                      THE FORECAST POSITION INFORMATION IN
+                          THIS PRODUCT IS INTERPOLATED FROM
+                          OFFICIAL FORECAST DATA VALID AT 0000...
+                          0600...1200...AND 1800Z.
+{{#if header.finalAdv}}
+    {{~break}}NXT MSG:                  NO MSG EXP
+{{else}}
+    {{~break}}NXT MSG:                  {{nextAdvTime.ymdh}}00Z
+{{/if}}
+
+$$
+
+NNNN
+

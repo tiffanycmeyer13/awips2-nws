@@ -20,9 +20,10 @@ import org.eclipse.swt.widgets.Text;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.TurbLlwsConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.TurbLlwsNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -33,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -80,10 +82,10 @@ public class TurbLlwsComp extends AbstractCWAComp {
     private Button noUpdateChk;
 
     /** frequency items */
-    private static final String freqItems[] = { " OCNL", " FQT", " CONS" };
+    private static final String[] freqItems = { " OCNL", " FQT", " CONS" };
 
     /** intensity items */
-    private static final String intstyItems[] = { "MOD", "MOD ISOL SEV",
+    private static final String[] intstyItems = { "MOD", "MOD ISOL SEV",
             "MOD OCNL SEV", "MOD/SEV", "SEV", "EXTRM" };
 
     /**
@@ -126,12 +128,12 @@ public class TurbLlwsComp extends AbstractCWAComp {
 
         flightFromCbo = new Combo(flightComp, SWT.READ_ONLY);
         flightFromCbo.add("SFC");
-        for (int i = 10; i <= 440;) {
+        for (int i = 10; i <= 440; i += 10) {
             flightFromCbo.add(String.format("%03d", i));
-            i += 10;
         }
         flightFromCbo.select(0);
         flightFromCbo.addSelectionListener(new SelectionAdapter() {
+            @Override
             public void widgetSelected(SelectionEvent e) {
                 updateToFlightCbo();
             }
@@ -142,9 +144,8 @@ public class TurbLlwsComp extends AbstractCWAComp {
         toFlightLbl.setText("To:");
 
         flightToCbo = new Combo(flightComp, SWT.READ_ONLY);
-        for (int i = 10; i <= 450;) {
+        for (int i = 10; i <= 450; i += 10) {
             flightToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         flightToCbo.select(0);
 
@@ -196,9 +197,8 @@ public class TurbLlwsComp extends AbstractCWAComp {
         int flightToLevel = Integer.parseInt(flightToCbo.getText());
 
         flightToCbo.removeAll();
-        for (int i = initLevel; i <= 450;) {
+        for (int i = initLevel; i <= 450; i += 10) {
             flightToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         if (flightToLevel < initLevel) {
             flightToCbo.select(0);
@@ -223,7 +223,8 @@ public class TurbLlwsComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
         String endDateTime = getEndTime();
 
         String frmLVL = "BLW ";
@@ -283,8 +284,8 @@ public class TurbLlwsComp extends AbstractCWAComp {
         return output.toString();
     }
 
-    public AbstractCWAConfig getConfig() {
-        TurbLlwsConfig config = new TurbLlwsConfig();
+    public AbstractCWANewConfig getConfig() {
+        TurbLlwsNewConfig config = new TurbLlwsNewConfig();
         if (this.addnlInfoChk.getSelection()) {
             config.setAddnlInfo(addnlInfoTxt.getText());
         } else {
@@ -297,7 +298,7 @@ public class TurbLlwsComp extends AbstractCWAComp {
                 flightFromCbo.getItem(flightFromCbo.getSelectionIndex()));
         config.setFlightTo(
                 flightToCbo.getItem(flightToCbo.getSelectionIndex()));
-        config.setFreq(freqCbo.getItem(freqCbo.getSelectionIndex()));
+        config.setFreq(freqCbo.getText());
         config.setImpr(imprRdo.getSelection());
         config.setIntsty(intstyCbo.getItem(intstyCbo.getSelectionIndex()));
         config.setLlwsChk(llwsChk.getSelection());
@@ -307,16 +308,16 @@ public class TurbLlwsComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse Turbllws time.");
         }
-        if (!(config instanceof TurbLlwsConfig)) {
+        if (!(config instanceof TurbLlwsNewConfig)) {
             return;
         }
-        TurbLlwsConfig tlc = (TurbLlwsConfig) config;
+        TurbLlwsNewConfig tlc = (TurbLlwsNewConfig) config;
         int index = freqCbo.indexOf(tlc.getFreq());
         if (index >= 0) {
             freqCbo.select(index);

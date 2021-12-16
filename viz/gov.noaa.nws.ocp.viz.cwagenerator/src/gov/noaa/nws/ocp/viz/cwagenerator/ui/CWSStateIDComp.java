@@ -13,14 +13,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Spinner;
-import org.eclipse.swt.widgets.Text;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.CWSConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.CWSNewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -34,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 1, 2020  7767       wkwock      Initial creation
+ * Sep 10, 2021 28802      wkwock      Use new configuration format
  *
  * </pre>
  *
@@ -63,18 +64,13 @@ public class CWSStateIDComp extends AbstractCWAComp {
     private Combo topsToCbo;
 
     /** type items */
-    private static final String typeItems[] = { "SHRA/TSRA", "TSRA", "TS" };
+    private static final String[] typeItems = { "SHRA/TSRA", "TSRA", "TS" };
 
     /** intensity items */
-    private static final String intstItems[] = { "---", "MOD", "MOD TO HVY",
+    private static final String[] intstItems = { "---", "MOD", "MOD TO HVY",
             "HVY", "HVY TO EXTRM", "EXTRM" };
 
     private Spinner afterSpinner;
-
-    private Text stateIDTxt;
-
-    /** CWA generator configurations */
-    private CWAGeneratorConfig cwaConfigs;
 
     /**
      * constructor
@@ -120,9 +116,8 @@ public class CWSStateIDComp extends AbstractCWAComp {
 
         dirCbo = new Combo(windComp, SWT.READ_ONLY);
         dirCbo.add("---");
-        for (int i = 10; i <= 360;) {
+        for (int i = 10; i <= 360; i += 10) {
             dirCbo.add(String.format("%03d", i));
-            i += 10;
         }
         dirCbo.select(0);
 
@@ -131,9 +126,8 @@ public class CWSStateIDComp extends AbstractCWAComp {
 
         spdCbo = new Combo(windComp, SWT.READ_ONLY);
         spdCbo.add(MOV_LTL);
-        for (int i = 5; i <= 60;) {
+        for (int i = 5; i <= 60; i += 5) {
             spdCbo.add(String.format("%03d", i));
-            i += 5;
         }
         spdCbo.select(0);
 
@@ -143,9 +137,8 @@ public class CWSStateIDComp extends AbstractCWAComp {
 
         topsFromCbo = new Combo(windComp, SWT.READ_ONLY);
         topsFromCbo.add("---");
-        for (int i = 180; i <= 550;) {
+        for (int i = 180; i <= 550; i += 10) {
             topsFromCbo.add(String.format("%03d", i));
-            i += 10;
         }
         topsFromCbo.select(0);
 
@@ -153,9 +146,8 @@ public class CWSStateIDComp extends AbstractCWAComp {
         slash2Lbl.setText("/");
 
         topsToCbo = new Combo(windComp, SWT.READ_ONLY);
-        for (int i = 250; i <= 600;) {
+        for (int i = 250; i <= 600; i += 10) {
             topsToCbo.add(String.format("%03d", i));
-            i += 10;
         }
         topsToCbo.select(0);
 
@@ -173,13 +165,13 @@ public class CWSStateIDComp extends AbstractCWAComp {
         afterSpinner.setSelection(1);
         Label zLbl = new Label(reportComp, SWT.NONE);
         zLbl.setText("Z");
-
     }
 
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
         int topsTo = Integer.parseInt(topsToCbo.getText());
         int topsFrom = 0;
         if (topsFromCbo.getSelectionIndex() > 0) {
@@ -268,32 +260,31 @@ public class CWSStateIDComp extends AbstractCWAComp {
     }
 
     @Override
-    public AbstractCWAConfig getConfig() {
-        CWSConfig config = new CWSConfig();
+    public AbstractCWANewConfig getConfig() {
+        CWSNewConfig config = new CWSNewConfig();
         config.setType(typeCbo.getText());
         config.setIntst(intstCbo.getText());
         config.setDir(dirCbo.getText());
         config.setSpd(spdCbo.getText());
         config.setTopsFrom(topsFromCbo.getText());
         config.setTopsTo(topsToCbo.getText());
-        config.setStateID(stateIDTxt.getText());
         config.setContAfter(afterSpinner.getSelection());
         return config;
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse CWS product time.");
         }
 
-        if (!(config instanceof CWSConfig)) {
+        if (!(config instanceof CWSNewConfig)) {
             return;
         }
 
-        CWSConfig cc = (CWSConfig) config;
+        CWSNewConfig cc = (CWSNewConfig) config;
         int index = typeCbo.indexOf(cc.getType());
         if (index >= 0) {
             typeCbo.select(index);
@@ -342,7 +333,6 @@ public class CWSStateIDComp extends AbstractCWAComp {
             logger.warn("Invalid tops from setting: " + cc.getTopsFrom());
         }
 
-        stateIDTxt.setText(cc.getStateID());
         afterSpinner.setSelection(cc.getContAfter());
     }
 

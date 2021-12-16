@@ -1,0 +1,83 @@
+This file contains the fix types and sites that are designated as 
+research or experimental fixes.
+This is also the objective best track input file.  It contains options for
+curve fitting to data and  overrides for the fix weights.  By specifying 
+a particular fix type, site name and average fix error you override the generic
+weights assigned to fixes of that type.
+
+This file format is as follows:
+------------------------------------------------------------------------------------
+track_fitting_algorithm:  "least_squares" or "weighted_avg"  (deprecated for now, set in GUI)
+int___fitting_algorithm:  "least_squares" or "weighted_avg"  (deprecated for now, set in GUI)
+rad___fitting_algorithm:  "least_squares" or "weighted_avg"  (deprecated for now, set in GUI)
+fix type - DVTS - subjective Dvorak                  4 char.
+           DVTO - objective Dvorak
+           SSMI - Special Sensor Microwave Imager
+           QSCT - QuikSCAT
+           ERS2 - European Remote Sensing System scatterometer
+           SEAW - SeaWinds  scatterometer
+           TRMI - Tropical Rainfall Measuring Mission microwave and vis/ir imager 
+           ALTG - geosat altimeter
+           AMSU - Advanced Microwave Sounding Unit
+           SATC - Variable weighting SATCON of CIMS AMSU, CIRA AMSU and CIMS DVTO
+           RDRC - conventional radar
+           RDRD - doppler radar
+           RDRT - TRMM radar
+           SYNP - synoptic
+           AIRC - aircraft
+           ANAL - analysis
+           DRPS - dropsonde
+           UNKN - unknown
+fix site - The specific site from which the fix comes (maximum of 50)
+fix error(3) - avg position error (nm), intensity error (kt), wind radii error (nm)
+             posit          intensity      wind radii
+        good fair poor   good fair poor   good fair poor 
+------------------------------------------------------------------------------------
+           
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+track_fitting_algorithm: least_squares  (deprecated for now, set in GUI)
+int___fitting_algorithm: least_squares  (deprecated for now, set in GUI)
+rad___fitting_algorithm: least_squares  (deprecated for now, set in GUI)
+type_site posit_weights  intens_weights  radii_weights  research_fix
+DVTS PGTW  15  30  45      3   7  10     999 999 999     0
+DVTS KGWC  20  35  50     20  30  40     999 999 999     0
+DVTS KNES  20  35  50     20  30  40     999 999 999     0
+DVTS PHFO  15  30  45    999 999 999     999 999 999     0
+AIRC KNHC   1   2   3    999 999 999     999 999 999     0
+DVTS TAFB  15  25  35      3   7  10     999 999 999     0
+DVTS RJTD  15  25  35     15  20  30     999 999 999     0
+DVTS DEMS  50  75 100    999 999 999     999 999 999     0
+DVTS FMEE  15  30  45    999 999 999     999 999 999     0
+DVTS NFFN  15  30  45    999 999 999     999 999 999     0
+DVTS APRF  20  40  60    999 999 999     999 999 999     0
+DVTS ADRM  10  20  30    999 999 999     999 999 999     0
+DVTS ABRF  15  30  45    999 999 999     999 999 999     0
+DVTS NZKL  25  45  65    999 999 999     999 999 999     0
+DVTO CIMS 999 999 999    999 999 999     999 999 999     0
+SATC CIMS  15  25  35     10  15  20     999 999 999     0
+AMSU PGTW  25  45  65    999 999 999     999 999 999     0
+MMHS PGTW  25  45  65    999 999 999     999 999 999     0
+SSMI PGTW  20  35  50    999 999 999     999 999 999     0
+SSMS PGTW  20  35  50    999 999 999     999 999 999     0
+TRMM PGTW  14  26  38    999 999 999     999 999 999     0
+WIND PGTW  13  25  37    999 999 999     999 999 999     0
+AMSR PGTW  15  28  41    999 999 999     999 999 999     0
+QSCT PGTW  30  60  90    999 999 999     999 999 999     0
+AMSU CIMS 999 999 999     15  20  30      10  10  10     0
+AMSU CIRA 999 999 999     15  20  30      10  10  10     0
+ATMS NSOF 999 999 999     10  15  20      10  10  10     0
+ANAL CIRA 999 999 999     10  15  20      10  10  10     0
+ANAL NSOF 999 999 999     10  15  20      10  10  10     0
+ANAL CIRW 999 999 999    999 999 999      10  10  10     0
+ANAL  SAB 999 999 999    999 999 999      10  10  10     0
+ANAL TAFB 999 999 999    999 999 999      10  10  10     0
+ANAL PGTW 999 999 999    999 999 999      10  10  10     0
+ANAL KNES 999 999 999    999 999 999      10  10  10     0
+ANAL AVN0 999 999 999    999 999 999      10  10  10     0
+ANAL HWR0 999 999 999    999 999 999      10  10  10     0
+ANAL GFD0 999 999 999    999 999 999      10  10  10     0
+ANAL JTUP  20  40  60    999 999 999     999 999 999     1
+ANAL JTPA  20  40  60    999 999 999     999 999 999     1
+QSCT NRLM 999 999 999    999 999 999      40  50  60     1

@@ -15,9 +15,10 @@ import org.eclipse.swt.widgets.Label;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
-import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWAConfig;
-import gov.noaa.nws.ocp.viz.cwagenerator.config.BlduBlsaConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.AbstractCWANewConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.BlduBlsaNewConfig;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
+import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
 import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
 
 /**
@@ -28,6 +29,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
+ * 09/10/2021  28802    wkwock      Use new configuration format
  * 
  * </pre>
  * 
@@ -80,7 +82,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         coverageLbl.setText("Coverage:");
 
         coverageCbo = new Combo(coverageComp, SWT.READ_ONLY);
-        String coverageItems[] = { "", "OCNL", "SCT", "WDSPRD" };
+        String[] coverageItems = { "", "OCNL", "SCT", "WDSPRD" };
         coverageCbo.setItems(coverageItems);
         coverageCbo.select(0);
 
@@ -92,7 +94,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         typeLbl.setLayoutData(typeGd);
 
         typeCbo = new Combo(coverageComp, SWT.READ_ONLY);
-        String typeItems[] = { "BLDU", "BLSA" };
+        String[] typeItems = { "BLDU", "BLSA" };
         typeCbo.setItems(typeItems);
         typeCbo.select(0);
 
@@ -102,9 +104,8 @@ public class BlduBlsaComp extends AbstractCWAComp {
         windLbl.setText("Wind Dir:");
 
         dirCbo = new Combo(windComp, SWT.READ_ONLY);
-        for (int i = 10; i <= 360;) {
+        for (int i = 10; i <= 360; i += 10) {
             dirCbo.add(String.format("%03d", i));
-            i += 10;
         }
         dirCbo.select(0);
 
@@ -115,7 +116,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         gustLbl.setLayoutData(gustGd);
 
         gustCbo = new Combo(windComp, SWT.READ_ONLY);
-        String gustItems[] = { "20-30 KTS", "30-40 KTS", "40-50 KTS",
+        String[] gustItems = { "20-30 KTS", "30-40 KTS", "40-50 KTS",
                 "50-60 KTS" };
         gustCbo.setItems(gustItems);
         gustCbo.select(0);
@@ -127,7 +128,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         vsbyLbl.setText("VSBY:");
 
         vsbyFromCbo = new Combo(vsbyComp, SWT.READ_ONLY);
-        String vsbyFromItems[] = { "AOB", "LOCLY AOB", "1/4", "1/2", "3/4" };
+        String[] vsbyFromItems = { "AOB", "LOCLY AOB", "1/4", "1/2", "3/4" };
         vsbyFromCbo.setItems(vsbyFromItems);
         vsbyFromCbo.select(0);
 
@@ -135,7 +136,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         slash2Lbl.setText("/");
 
         vsbyToCbo = new Combo(vsbyComp, SWT.READ_ONLY);
-        String vsbyToItems[] = { "1/2", "3/4", "1", "1 1/2", "3", "5" };
+        String[] vsbyToItems = { "1/2", "3/4", "1", "1 1/2", "3", "5" };
         vsbyToCbo.setItems(vsbyToItems);
         vsbyToCbo.select(0);
 
@@ -146,12 +147,12 @@ public class BlduBlsaComp extends AbstractCWAComp {
         condLbl.setLayoutData(condGd);
 
         condFromCbo = new Combo(vsbyComp, SWT.READ_ONLY);
-        String condFromItems[] = { "", "SPRDG", "???" };
+        String[] condFromItems = { "", "SPRDG", "???" };
         condFromCbo.setItems(condFromItems);
         condFromCbo.select(0);
 
         condToCbo = new Combo(vsbyComp, SWT.READ_ONLY);
-        String condToItems[] = { "NWD", "NEWD", "EWD", "SEWD", "SWD", "SWWD",
+        String[] condToItems = { "NWD", "NEWD", "EWD", "SEWD", "SWD", "SWWD",
                 "WWD", "NWWD" };
         condToCbo.setItems(condToItems);
         condToCbo.select(0);
@@ -172,7 +173,8 @@ public class BlduBlsaComp extends AbstractCWAComp {
     @Override
     public String createText(String wmoId, String header, String fromline,
             String body, String cwsuId, String productId, boolean isCor,
-            boolean isOperational, String type, double width, String stateIDs) {
+            boolean isOperational, DrawingType type, double width,
+            String stateIDs) {
         String endDateTime = getEndTime();
 
         // get next series ID
@@ -221,9 +223,9 @@ public class BlduBlsaComp extends AbstractCWAComp {
         return output.toString();
     }
 
-    public AbstractCWAConfig getConfig() {
+    public AbstractCWANewConfig getConfig() {
 
-        BlduBlsaConfig config = new BlduBlsaConfig();
+        BlduBlsaNewConfig config = new BlduBlsaNewConfig();
         config.setCoverage(
                 coverageCbo.getItem(coverageCbo.getSelectionIndex()));
         config.setType(typeCbo.getItem(typeCbo.getSelectionIndex()));
@@ -240,18 +242,18 @@ public class BlduBlsaComp extends AbstractCWAComp {
     }
 
     @Override
-    public void updateProductConfig(AbstractCWAConfig config) {
+    public void updateProductConfig(AbstractCWANewConfig config) {
         try {
             super.updateProductConfig(config);
         } catch (ParseException e) {
             logger.error("Failed to parse BlduBlsa time.");
         }
 
-        if (!(config instanceof BlduBlsaConfig)) {
+        if (!(config instanceof BlduBlsaNewConfig)) {
             return;
         }
 
-        BlduBlsaConfig bbc = (BlduBlsaConfig) config;
+        BlduBlsaNewConfig bbc = (BlduBlsaNewConfig) config;
         int index = coverageCbo.indexOf(bbc.getCoverage());
         if (index >= 0) {
             coverageCbo.select(index);

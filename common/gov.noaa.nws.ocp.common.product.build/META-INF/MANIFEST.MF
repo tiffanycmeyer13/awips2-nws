@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Text Product Template Formatting Plug-in
+Bundle-SymbolicName: gov.noaa.nws.ocp.common.product.build
+Bundle-Version: 1.21.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: com.fasterxml.jackson,
+ com.google.gson,
+ com.github.jknack.handlebars,
+ org.apache.commons.io,
+ com.raytheon.uf.common.localization,
+ com.raytheon.uf.common.status
+Export-Package: gov.noaa.nws.ocp.common.product.build.text
