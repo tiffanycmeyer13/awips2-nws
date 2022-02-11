@@ -19,7 +19,7 @@
 
    <requires>
       <import feature="com.raytheon.uf.edex.common.core.feature" version="1.0.0.qualifier"/>
-      <import feature="com.raytheon.uf.edex.cots.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.edex.foss.feature" version="1.0.0.qualifier"/>
       <import feature="com.raytheon.uf.edex.satellite.feature" version="1.0.0.qualifier"/>
    </requires>
 
