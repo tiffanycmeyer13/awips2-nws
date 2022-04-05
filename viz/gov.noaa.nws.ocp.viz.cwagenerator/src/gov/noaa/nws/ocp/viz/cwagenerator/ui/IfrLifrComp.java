@@ -34,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 09/10/2021  28802    wkwock      Use new configuration format
+ * 04/05/2022  22989    wkwock      Update additional info text
  * 
  * </pre>
  * 
@@ -396,7 +397,7 @@ public class IfrLifrComp extends AbstractCWAComp {
         CWAProduct cwaProduct = new CWAProduct(productId, cwsuId, isOperational,
                 weatherType);
         int seriesId = cwaProduct.getNextSeriesId(isCor,
-                cwaConfigs.getLocalTimeZone());
+                cwaConfigs.getLocalTimeZone(), isResetIssuance());
 
         StringBuilder output = new StringBuilder();
         output.append(getHeaderLines(wmoId, header, isCor));
@@ -428,7 +429,7 @@ public class IfrLifrComp extends AbstractCWAComp {
             output.append(" RPRTD BY AIRCRAFT.");
         }
         if (this.addnlInfoChk.getSelection()) {
-            output.append(" THIS IS ADDN INFO TO CNVTV SIGMET ");
+            output.append(" THIS IS ADDN INFO TO AIRMET SIERRA ");
             output.append(addnlInfoTxt.getText().trim());
         }
 
