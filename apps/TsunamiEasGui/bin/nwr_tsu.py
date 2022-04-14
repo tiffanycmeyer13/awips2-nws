@@ -4,12 +4,13 @@
 # Ryan Kittell
 # WFO Los Angeles/Oxnard (LOX)
 # 805.988.6618 (unlisted)
-Version="20210915"
+Version="20220331"
 
 #"BIG COMMAND search for 'nwrsend'. Comment nwrsend line in config to hard turn off"
 
-# MODIFICATION HISTORY:
-# =====================================================================================
+# 20220331 - Ryan
+#  
+#  Fixed small bug in daylight savings time function (started one day too late)
 # 20211013 - J. Buchman
 #  Also get the time that the bulletin was added to the AWIPS Text database, and log it.
 # 20211006 - J. Buchman
@@ -277,7 +278,7 @@ def daylightMe(dt):
             if count>=target_sunday:
                 target=int(str(b.year)+str(b.month).zfill(2)+str(b.day).zfill(2)) #hit!
                 break
-    if m==3 and compare>target: return 1
+    if m==3 and compare>=target: return 1 #Mar2022 (change > to >=)
     if m==11 and compare<target: return 1
     return 0
 
@@ -682,7 +683,7 @@ def autoFill(combowhat=""):
         else: out=out.replace("EEEEEE.","").replace("EEEEEE","") # not available, skip
         # Area Desciption
         local=localphrase # from
-        if wwa in breakpoints and breakpoints[wwa]!="": local=breakpoints[wwa]
+        if wwa in breakpoints and breakpoints[wwa]!="": local="following locations, "+breakpoints[wwa] #Mar2022
         out=out.replace("AAAAAA","for the "+local)
         # Call to Action
         if hazdef!="": out=out.replace("NNNNNN",hazdef)
@@ -721,7 +722,7 @@ def autoFill(combowhat=""):
         eq=""
         if "eseg" in info: eq=info["eseg"]
         out+="The National Weather Service has issued a tsunami "+wwa1+" for the "+break1+" and a tsunami \
-  "+wwa2+" for the "+break2+"."
+  "+wwa2+" for the following locations, "+break2+"." #Mar2022
         out+=hazdef
         out+="\n\n"+eq
         # Arrival Section
@@ -740,7 +741,7 @@ def autoFill(combowhat=""):
         if arrive!="": out+="\n\nEstimated arrival times for the first in the series of tsunami waves are as follows in "+tz2+arrive+"."
         # Final warning
         out+="\n\nOnce again, The National Weather Service has issued a tsunami "+wwa1+" for the "+break1+" and a \
-  tsunami "+wwa2+" for the "+break2+"."
+  tsunami "+wwa2+" for the following locations, "+break2+"." #Mar2022
         out+=hazdef+" "+local_actions
         out=out.replace(" .",".") # fix potential quirk
         radiotext.insert(0.0,out.upper().strip())
@@ -795,8 +796,8 @@ def statementMake(wwa,directory="",what="",withwhat=""):
     if what!="":
         # Area Description
         if what=="AAAAAA" or what=="XXXXXX":
-            if withwhat!="": out=out.replace("AAAAAA","for the "+withwhat)
-            else: out=out.replace("AAAAAA","for the XXXXXX") # don't ignore if ""
+            if withwhat!="": out=out.replace("AAAAAA","for the following locations, "+withwhat) #Mar2022
+            else: out=out.replace("AAAAAA","for the following locations, XXXXXX") # don't ignore if "" #Mar2022
         # Call to Action
         if what=="NNNNNN" or what=="XXXXXX":
             out=out.replace("NNNNNN",hazDefMe(wwa))
@@ -1487,15 +1488,15 @@ def changeZone():
         text=radiotext.get(0.0,END)
         text=text.strip()
         #print text
-        findme="TSUNAMI "+active.upper()+" FOR THE"
+        findme="TSUNAMI "+active.upper()+" FOR THE FOLLOWING LOCATIONS," #Mar2022
         #findme=" FOR THE "
         #if text.find("TEST TSUNAMI")!=-1: findme=findme.replace("TSUNAMI","TEST TSUNAMI")
         a=text.split(findme) # Isolate findme phrase. Looking for one hit to use to replace phrase
         #print len(a),findme,replacewith
         if len(a)>1:  #a[0]before phrase, b[0]phrase
             b=a[1].split(".") # 20180919 fix.  There was an issue with just using "." in 20150312.
-            replaceme="FOR THE"+b[0]
-            replacewith="FOR THE"+" "+(replacewith.strip())
+            replaceme="FOR THE FOLLOWING LOCATIONS,"+b[0] #Mar2022
+            replacewith="FOR THE FOLLOWING LOCATIONS,"+" "+(replacewith.strip()) #Mar2022
             #print "A",replaceme,"B",replacewith
             text=text.replace(replaceme,replacewith)
             radiotext.delete(0.0,END)
