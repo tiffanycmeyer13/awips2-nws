@@ -35,6 +35,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 09/10/2021  28802    wkwock      Use new configuration format
+ * 04/05/2022  22989    wkwock      Update flight level text
  * 
  * </pre>
  * 
@@ -227,21 +228,28 @@ public class TurbLlwsComp extends AbstractCWAComp {
             String stateIDs) {
         String endDateTime = getEndTime();
 
-        String frmLVL = "BLW ";
+        String frmLvl = "BLW ";
         if (flightFromCbo.getSelectionIndex() != 0) {
             int flightFrom = Integer.parseInt(flightFromCbo.getText());
             if (flightFrom < 180) {
-                frmLVL = flightFromCbo.getText() + "-";
+                frmLvl = flightFromCbo.getText() + "-";
             } else {
-                frmLVL = "FL" + flightFromCbo.getText() + "-";
+                frmLvl = "FL" + flightFromCbo.getText() + "-";
             }
         }
+
+        String toLvl = "";
+        int flightTo = Integer.parseInt(flightToCbo.getText());
+        if (flightTo >= 180) {
+            toLvl = "FL";
+        }
+        toLvl += flightToCbo.getText();
 
         // get next series ID
         CWAProduct cwaProduct = new CWAProduct(productId, cwsuId, isOperational,
                 weatherType);
         int seriesId = cwaProduct.getNextSeriesId(isCor,
-                cwaConfigs.getLocalTimeZone());
+                cwaConfigs.getLocalTimeZone(), isResetIssuance());
 
         StringBuilder output = new StringBuilder();
         output.append(getHeaderLines(wmoId, header, isCor));
@@ -250,7 +258,7 @@ public class TurbLlwsComp extends AbstractCWAComp {
         output.append(body);
         output.append(freqCbo.getText()).append(" ").append(intstyCbo.getText())
                 .append(" TURB ");
-        output.append(frmLVL).append("FL").append(flightToCbo.getText());
+        output.append(frmLvl).append(toLvl);
         if (llwsChk.getSelection()) {
             output.append(" AND LLWS");
         }

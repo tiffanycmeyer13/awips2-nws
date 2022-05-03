@@ -34,6 +34,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * 02/02/2016  17469    wkwock      Initial creation
  * 06/27/2021  92561    wkwock      Correct end time calculation and remove 'Z' from the 'until' line
  * 09/10/2021  28802    wkwock      Use new configuration format
+ * 04/05/2022  22989    wkwock      Add issuance# reset button
  * 
  * </pre>
  * 
@@ -54,6 +55,9 @@ public abstract class AbstractCWAComp extends Composite {
     private HourMinuteComp startTime;
 
     private HourMinuteComp endTime;
+
+    /** button to reset issuance number */
+    private Button resetBttn;
 
     /** horizontal indent */
     protected static final int HORIZONTAL_INDENT = 20;
@@ -125,6 +129,8 @@ public abstract class AbstractCWAComp extends Composite {
         Label z2Lbl = new Label(timeComp, SWT.NONE);
         z2Lbl.setText("Z");
 
+        resetBttn = new Button(timeComp, SWT.CHECK);
+        resetBttn.setText("Reset Issuance# to 1");
     }
 
     /**
@@ -261,5 +267,9 @@ public abstract class AbstractCWAComp extends Composite {
         Date d = sdf.parse(config.getEndTime().substring(2, 6));
 
         endTime.setTime(d);
+    }
+
+    public boolean isResetIssuance() {
+        return resetBttn.getSelection();
     }
 }
