@@ -14,6 +14,7 @@ package gov.noaa.nws.ocp.edex.metartoclimate.dao.data;
  * ------------ ---------- ----------- --------------------------
  * 07 FEB 2017  28609      amoore      Initial creation
  * 22 FEB 2017  28609      amoore      Address unused field TODOs.
+ * 22 APR 2022  21456      pwang       Fix missing wx from RMK
  * </pre>
  *
  * @author amoore
@@ -925,6 +926,17 @@ public class SurfaceObs {
      */
     public void setPresentWx(String[] presentWx) {
         this.presentWx = presentWx;
+    }
+
+    /**
+     * 
+     * @param index
+     * @param wx
+     */
+    public void setOnePresentWx(int index, String wx) {
+        if (index >= 0 && index < this.presentWx.length) {
+            this.presentWx[index] = wx;
+        }
     }
 
     /**

@@ -33,6 +33,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
  * 07 SEP 2017  37754      amoore      Initial creation.
  * 27 OCT 2017  40123      amoore      Simply time nominalization logic.
  * 26 APR 2019  DR 21195   dfriedman   Fix "precip not available" processing.
+ * 22 APR 2022  21456      pwang       Fix missing Wx from RMK
  * </pre>
  * 
  * @author amoore
@@ -49,26 +50,32 @@ public final class MetarDecoderUtil {
      * Missing data value. From hmPED_WMO.h.
      */
     protected static final int MISSING_DATA = 9999;
+
     /**
      * METAR cloud cover value scale.
      */
     protected static final int METAR_CLOUD_COVER_SCALE = 10;
+
     /**
      * Meters to 100s of feet. From check_METAR_quality.c.
      */
     protected static final float M_TO_100S_OF_FT = 0.0328f;
+
     /**
      * Tornado int value. From hmPED_WMO.h.
      */
     protected static final int TORNADO_VALUE = 1;
+
     /**
      * Funnel cloud int value. From hmPED_WMO.h.
      */
     protected static final int FUNNEL_CLOUD_VALUE = 2;
+
     /**
      * Water spout int value. From hmPED_WMO.h.
      */
     protected static final int WATER_SPOUT_VALUE = 3;
+
     /**
      * Automated indicators. According to documentation it seems these should be
      * A, then 0 (zero), and then 1 or 2 per examples. However in practice and
@@ -79,18 +86,22 @@ public final class MetarDecoderUtil {
      * Automated indicator 2 String numerical.
      */
     protected static final String A02_INDICATOR_STRING_NUM = "A02";
+
     /**
      * Automated indicator 1 String, numerical.
      */
     protected static final String A01_INDICATOR_STRING_NUM = "A01";
+
     /**
      * Automated indicator 2 String.
      */
     protected static final String A02_INDICATOR_STRING = "AO2";
+
     /**
      * Automated indicator 1 String.
      */
     protected static final String A01_INDICATOR_STRING = "AO1";
+
     /**
      * METAR horizontal visibility value scale. For data validation. From
      * check_METAR_quality.c.
@@ -99,256 +110,318 @@ public final class MetarDecoderUtil {
      * other scale.
      */
     protected static final int METAR_HORIZ_VISIB_VALIDITY_SCALE = 16;
+
     /**
      * Kilometers abbreviation.
      */
     protected static final String KILOMETERS_ABBR = "KM";
+
     /**
      * Statute miles abbreviation.
      */
     protected static final String STATUTE_MILES_ABBR = "SM";
+
     /**
      * Visibility is greater than 6 statute miles indicator.
      */
     protected static final String VISIBILITY_GREATER_6_SM = "P6SM";
+
     /**
      * Visibility is less than a quarter of a statute mile indicator.
      */
     protected static final String VISIBILITY_LESS_QUARTER_SM = "M1/4SM";
+
     /**
      * Runway visual range prefix.
      */
     protected static final String RUNWAY_VISUAL_RANGE_PREFIX = "R";
+
     /**
      * Altimeter reading in mercury units prefix.
      */
     protected static final String ALTIMETER_HG_PREFIX = "A";
+
     /**
      * Remarks abbreviation.
      */
     protected static final String REMARKS_ABBR = "RMK";
+
     /**
      * Maintenance indicator string.
      */
     protected static final String MAINTENANCE_INDICATOR = "$";
+
     /**
      * No secondary ceiling height indicator string.
      */
     protected static final String NO_SECONDARY_CEILING_HEIGHT_INDICATOR = "CHINO";
+
     /**
      * No secondary visuals indicator string.
      */
     protected static final String NO_SECONDARY_VISUALS_INDICATOR = "VISNO";
+
     /**
      * No lightning indicator string.
      */
     protected static final String NO_LIGHTNING_INDICATOR = "TSNO";
+
     /**
      * No freezing rain indicator string.
      */
     protected static final String NO_FREEZING_RAIN_INDICATOR = "FZRANO";
+
     /**
      * No rain indicator string.
      */
     protected static final String NO_RAIN_INDICATOR = "PNO";
+
     /**
      * No peak wind indicator string.
      */
     protected static final String NO_PEAK_WIND_INDICATOR = "PWINO";
+
     /**
      * No runway visual range indicator string.
      */
     protected static final String NO_RUNWAY_VISUAL_RANGE_INDICATOR = "RVRNO";
+
     /**
      * Temperature and dewpoint prefix.
      */
     protected static final String TEMP_AND_DEW_PREFIX = "T";
+
     /**
      * Water equivalent prefix.
      */
     protected static final String WATER_EQUIV_PREFIX = "933";
+
     /**
      * Snow depth prefix.
      */
     protected static final String SNOW_DEPTH_PREFIX = "4/";
+
     /**
      * 24-hour precip prefix.
      */
     protected static final String PRECIP_24_HOUR_PREFIX = "7";
+
     /**
      * For some METAR data, a series of slashes signifies missing data.
      */
     protected static final String MISSING_VALUE_SLASHES = "////";
+
     /**
      * 3- or 6-hourly precip prefix.
      */
     protected static final String PRECIP_6_OR_3_HOURLY_PREFIX = "6";
+
     /**
      * Hourly precip prefix.
      */
     protected static final String HOURLY_PRECIP_PREFIX = "P";
+
     /**
      * Last indicator string.
      */
     protected static final String LAST_INDICATOR = "LAST";
+
     /**
      * First indicator string.
      */
     protected static final String FIRST_INDICATOR = "FIRST";
+
     /**
      * Snow increasing rapidly abbreviation.
      */
     protected static final String SNOW_INCREASING_RAPIDLY_ABBR = "SNINCR";
+
     /**
      * No special report indicator string.
      */
     protected static final String NO_SPECIAL_REPORT_INDICATOR = "NOSPECI";
+
     /**
      * Sea level pressure prefix.
      */
     protected static final String SEA_LEVEL_PRESSURE_PREFIX = "SLP";
+
     /**
      * No sea level pressure indicator string.
      */
     protected static final String NO_SEA_LEVEL_PRESSURE_INDICATOR = SEA_LEVEL_PRESSURE_PREFIX
             + "NO";
+
     /**
      * Pressure rising rapidly indicator string.
      */
     protected static final String PRESSURE_RISING_RAPIDLY_INDICATOR = "PRESRR";
+
     /**
      * Pressure falling rapidly indicator string.
      */
     protected static final String PRESSURE_FALLING_RAPIDLY_INDICATOR = "PRESFR";
+
     /**
      * Aurora borealis indicator string.
      */
     protected static final String AURORA_BOREALIS_INDICATOR = "AURBO";
+
     /**
      * ROTOR CLD suffix.
      */
     protected static final String ROTOR_CLD_SUFFIX = "CLD";
+
     /**
      * ROTOR CLD prefix.
      */
     protected static final String ROTOR_CLD_PREFIX = "ROTOR";
+
     /**
      * ROTOR CLD string.
      */
     protected static final String ROTOR_CLD_STRING = ROTOR_CLD_PREFIX + " "
             + ROTOR_CLD_SUFFIX;
+
     /**
      * Fog RGD indicator string.
      */
     protected static final String FOG_RGD_INDICATOR = "RGD";
+
     /**
      * Ceiling height abbreviation.
      */
     protected static final String CEILING_HEIGHT_ABBR = "CIG";
+
     /**
      * VIRGA string.
      */
     protected static final String VIRGA_STRING = "VIRGA";
+
     /**
      * Hail minimum size value. 1/8 inch.
      */
     protected static final float HAIL_MINIMUM_SIZE_VALUE = 0.125f;
+
     /**
      * Hail minimum size string. Less than 0.25 inches.
      */
     protected static final String HAIL_MINIMUM_SIZE_STRING = "M1/4";
+
     /**
      * Hail abbreviation.
      */
     protected static final String HAIL_ABBR = "GR";
+
     /**
      * Thunderstorm prefix.
      */
     protected static final String THUNDERSTORM_PREFIX = "TS";
+
     /**
      * Lightning type prefix.
      */
     protected static final String LIGHTNING_TYPE_PREFIX = "LTG";
+
     /**
      * Constant lightning string.
      */
     protected static final String CONSTANT_LIGHTNING_STRING = "CONS";
+
     /**
      * Frequent lightning string.
      */
     protected static final String FREQUENT_LIGHTNING_STRING = "FRQ";
+
     /**
      * Occasional lightning string.
      */
     protected static final String OCCASIONAL_LIGHTNING_STRING = "OCNL";
+
     /**
      * Feet string.
      */
     protected static final String FEET_STRING = "FT";
+
     /**
      * Dispatch visual range string.
      */
     protected static final String DISPATCH_VISUAL_RANGE_STRING = "DVR";
+
     /**
      * Dispatch visual range prefix.
      */
     protected static final String DISPATCH_VISUAL_RANGE_PREFIX = DISPATCH_VISUAL_RANGE_STRING
             + "/";
+
     /**
      * Dispatch visual range minus prefix.
      */
     protected static final String DISPATCH_VISUAL_RANGE_MINUS_PREFIX = DISPATCH_VISUAL_RANGE_PREFIX
             + "M";
+
     /**
      * Dispatch visual range plus prefix.
      */
     protected static final String DISPATCH_VISUAL_RANGE_PLUS_PREFIX = DISPATCH_VISUAL_RANGE_PREFIX
             + "P";
+
     /**
      * Runway "RWY" string used in METAR documentation for locations.
      */
     protected static final String RUNWAY_RWY_STRING = "RWY";
+
     /**
      * Runway 'RY' string used in Legacy for locations.
      */
     protected static final String RUNWAY_RY_STRING = "RY";
+
     /**
      * Slash divider in METAR report. Divides fractions and some multi-part data
      * groups.
      */
     protected static final String SLASH_DIVIDER = "/";
+
     /**
      * Variable data flag in METAR report. 'V'.
      */
     protected static final String VARIABLE_DATA_FLAG = "V";
+
     /**
      * Surface visibility prefix.
      */
     protected static final String SURFACE_VISIBILITY_PREFIX = "SFC";
+
     /**
      * Visibility prefix.
      */
     protected static final String VISIBILITY_PREFIX = "VIS";
+
     /**
      * Tower visibility prefix.
      */
     protected static final String TOWER_PREFIX = "TWR";
+
     /**
      * Wind shift string.
      */
     protected static final String WIND_SHIFT_STRING = "WSHFT";
+
     /**
      * Peak wind remarks suffix.
      */
     protected static final String PEAK_WIND_SUFFIX = "WND";
+
     /**
      * Peak wind remarks prefix.
      */
     protected static final String PEAKWIND_PREFIX = "PK";
+
     /**
      * QC/validity error source status flag.
      */
     protected static final int QC_ERROR_SOURCE_STATUS = 2;
+
     /**
      * All valid WX Symbols (without +- intensity symbol). From
      * hmPED_Obscuration.c.
@@ -361,6 +434,7 @@ public final class MetarDecoderUtil {
             "SHGS", "SHGR", "RA", "SN", "SG", "SQ", "SA", "SS", "VCTS", "TS",
             "VA", "VCFG", "VCFC", "VCSH", "VCPO", "VCBLDU", "PE", "PL", "PO",
             "DU", "FG", "FC", "NSW", "UP");
+
     /**
      * All valid Recent WX Symbols. From hmPED_RecentWX.c and supplemented both
      * from testing and comparing with listing in
@@ -379,6 +453,7 @@ public final class MetarDecoderUtil {
             "BLSA", "HZ", "BLPY", "BLSN", "+BLSN", "VCBLSN", "BLSA", "+BLSA",
             "VCBLSA", "+BLDU", "VCBLDU", "PO", "VCPO", "SQ", "FC", "+FC",
             "VCFC", "SS", "+SS", "VCSS", "DS", "+DS", "VCDS", "UP");
+
     /**
      * Recent weather events regex. Created from analysis of hmPED_RecentWX.c
      * documentation:
@@ -402,19 +477,23 @@ public final class MetarDecoderUtil {
      * UPE1250SNB05E35B43
      */
     protected static final String RECENT_WX_REGEX = "^((\\+|-)?[A-Z]{2,6}?((B|E)([0-9]{2,4}))+)+$";
+
     /**
      * Recent weather individual event regex.
      */
     protected static final String SINGLE_RECENT_WX_REGEX = "((\\+|-)?[A-Z]{2,6}?((B|E)([0-9]{2,4}))+)";
+
     /**
      * Recent weather individual time regex.
      */
     protected static final String SINGLE_RECENT_WX_TIME_REGEX = "(B|E)([0-9]{2,4})";
+
     /**
      * All valid relative location symbols, from hmPED_validloc.c.
      */
     protected static final List<String> VALID_LOC_SYMBOLS = Arrays
             .asList("DSNT", "VC", "VCY", "DSTN", "VCNTY");
+
     /**
      * All valid relative direction symbols, originally from hmPED_validdir.c.
      * Enhanced due to obvious use of an expanded set of directions in present
@@ -426,151 +505,186 @@ public final class MetarDecoderUtil {
     protected static final List<String> VALID_CARDINAL_DIR = Arrays.asList("N",
             "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW",
             "WSW", "W", "WNW", "NW", "NNW");
+
     /**
      * Cardinal direction separator.
      */
     protected static final String DIR_SEPARATOR = "-";
+
     /**
      * Other direction symbols, valid on their own.
      */
     protected static final List<String> VALID_DIR_SYMBOLS = Arrays
             .asList("ALQDS", "OHD", "BLDG", "OVHD");
+
     /**
      * Valid dissipation flags for SIG.
      */
     protected static final List<String> VALID_DISS_SYMBOLS = Arrays
             .asList("DSIPT", "DSIPTD", "DSIPTG", "DSIPTN", "DSIPTS");
+
     /**
      * All valid relative movement symbols, from hmPED_validmov.c.
      */
     protected static final List<String> VALID_MOV_SYMBOLS = Arrays.asList("MOV",
             "MOVG");
+
     /**
      * All valid SIG (significant cloud) types, from hmPED_SigClouds.c.
      */
     protected static final List<String> VALID_SIG_TYPES = Arrays.asList("CB",
             "CBMAM", "CU", "TCU", "ACC", "ACCAS", "SCSL", "ACSL", "CCSL",
             ROTOR_CLD_PREFIX);
+
     /**
      * Kilometers to statute miles.
      */
     protected static final float KM_TO_SM = 0.621371f;
+
     /**
      * Meter to foot.
      */
     protected static final float M_TO_FT = 3.28084f;
+
     /**
      * Millibar to inches of mercury.
      */
     protected static final float MB_TO_HG = 0.02953f;
+
     /**
      * Station ID regex. 4 alphanumeric characters.
      */
     protected static final String STATION_ID_REGEX = "^[a-zA-Z0-9]{4}$";
+
     /**
      * Any alphanumeric pattern regex.
      */
     protected static final String ALPHANUMERIC_REGEX = "^[0-9a-zA-Z]+$";
+
     /**
      * Datetime regex. 6 numbers followed by Z.
      */
     protected static final String DATETIME_REGEX = "^[0-9]{6}Z$";
+
     /**
      * Numeric-only regex.
      */
     protected static final String NUM_ONLY_REGEX = "^[0-9]+$";
+
     /**
      * Variable wind direction regex.
      */
     protected static final String VAR_WIND_DIR_REGEX = "^[0-9]{3}V[0-9]{3}$";
+
     /**
      * Ceiling height (CIG) variability regex.
      */
     protected static final String CIG_VAR_REGEX = "^[0-9]{3}V[0-9]{3}$";
+
     /**
      * Obscuration sky cover regex.
      */
     protected static final String OBSCUR_SKY_COVER_REGEX = "^(FEW|SCT|BKN|OVC)[0-9]{3}$";
+
     /**
      * Basic single or double digit visibility regex.
      */
     protected static final String SINGLE_OR_DOUBLE_DIGIT_VISIB_REGEX = "^[0-9]{1,2}(SM|KM)$";
+
     /**
      * Improperly formatted fractional visibility regex, where the whole number
      * was not separated from the fraction.
      */
     protected static final String BAD_FRACTIONAL_VISIB_REGEX = "^[0-9]{2,3}\\/[0-9]{1,2}(SM|KM)$";
+
     /**
      * Unitless improperly formatted fractional visibility regex, where the
      * whole number was not separated from the fraction.
      */
     protected static final String UNITLESS_BAD_FRACTIONAL_VISIB_REGEX = "^[0-9]{2,3}\\/[0-9]{1,2}$";
+
     /**
      * Fractional visibility regex.
      */
     protected static final String FRACTIONAL_VISIB_REGEX = "^[0-9]\\/[0-9]{1,2}(SM|KM)$";
+
     /**
      * Unitless fractional visibility regex.
      */
     protected static final String UNITLESS_FRACTIONAL_VISIB_REGEX = "^[0-9]\\/[0-9]{1,2}$";
+
     /**
      * Improperly formatted temp and dew regex, where some invalid parts may
      * have taken the place of the dew values. The first part of the temp/dew
      * regex only.
      */
     protected static final String STARTING_TEMP_AND_DEW_REGEX = "^M?[0-9]{2,3}\\/";
+
     /**
      * Temperature and dewpoint regex.
      */
     protected static final String TEMP_AND_DEW_REGEX = "^M?[0-9]{2,3}\\/M?[0-9]{2,3}$";
+
     /**
      * Altimeter regex.
      */
     protected static final String ALTIMETER_REGEX = "^(A|Q)[0-9]{4}$";
+
     /**
      * Peak wind regex.
      */
     protected static final String PEAK_WIND_REGEX = "^[0-9]{3}[0-9]{2,3}\\/[0-9]{2}([0-9]{2})?$";
+
     /**
      * Fraction regex.
      */
     protected static final String FRACTION_REGEX = "^[0-9]+\\/[0-9]+$";
+
     /**
      * Synoptic cloud types prefix.
      */
     protected static final String SYNOP_CLOUD_TYPES_PREFIX = "8/";
+
     /**
      * Synoptic cloud types regex.
      */
     protected static final String SYNOP_CLOUD_TYPES_REGEX = "^8\\/([0-9]|\\/){3}$";
+
     /**
      * Sunshine duration prefix.
      */
     protected static final String SUNSHINE_PREFIX = "98";
+
     /**
      * Sunshine duration regex.
      */
     protected static final String SUNSHINE_REGEX = "^98([0-9]{3}|\\/{3})$";
+
     /**
      * 6-hourly max temp regex.
      */
     protected static final String MAX_TEMP_6_HOUR_REGEX = "^1(0|1)[0-9]{3}$";
+
     /**
      * 6-hourly min temp regex.
      */
     protected static final String MIN_TEMP_6_HOUR_REGEX = "^2(0|1)[0-9]{3}$";
+
     /**
      * 24-hour max and min temp prefix.
      */
     protected static final String MAX_MIN_TEMPS_24_HOUR_PREFIX = "4";
+
     /**
      * 3-hourly pressure tendency prefix.
      */
     protected static final String PRESS_TEND_3_HOUR_PREFIX = "5";
+
     /**
      * 3-hourly pressure tendency regex.
      */
     protected static final String PRESS_TEND_3_HOUR_REGEX = "^5[0-8][0-9]{3}$";
+
     /**
      * Runway visual range regex.
      * 
@@ -583,82 +697,102 @@ public final class MetarDecoderUtil {
      * R07/4500VP6000FT
      */
     protected static final String RVR_REGEX = "^R[0-9]{2}(R|L|C)?\\/(((M|P)?[0-9]{3,4})(V(M|P)?[0-9]{3,4})?)(FT)?(\\/(U|D|N))?$";
+
     /**
      * Core variable visibility regex.
      */
     protected static final String CORE_VARIABLE_VISIBILITY_REGEX = "^[0-9]+(\\/[0-9]+)?V[0-9]+(\\/[0-9]+)?$";
+
     /**
      * Overcast clouds string.
      */
     protected static final String OVERCAST_CLOUDS_STRING = "OVC";
+
     /**
      * Clear skies string.
      */
     protected static final String CLEAR_SKY_STRING = "CLR";
+
     /**
      * Skies clear string.
      */
     protected static final String SKY_CLEAR_STRING = "SKC";
+
     /**
      * Broken clouds string.
      */
     protected static final String BROKEN_CLOUDS_STRING = "BKN";
+
     /**
      * Scattered clouds string.
      */
     protected static final String SCATTERED_CLOUDS_STRING = "SCT";
+
     /**
      * Few clouds string.
      */
     protected static final String FEW_CLOUDS_STRING = "FEW";
+
     /**
      * Funnel cloud string.
      */
     protected static final String FUNNEL_CLOUD_STRING = "FUNNEL CLOUD";
+
     /**
      * Cloud string.
      */
     protected static final String CLOUD_STRING = "CLOUD";
+
     /**
      * Funnel string.
      */
     protected static final String FUNNEL_STRING = "FUNNEL";
+
     /**
      * Waterspout string.
      */
     protected static final String WATERSPOUT_STRING = "WATERSPOUT";
+
     /**
      * Tornado string.
      */
     protected static final String TORNADO_STRING = "TORNADO";
+
     /**
      * METAR vertical visibility prefix for cloud parsing.
      */
     protected static final String VERTICAL_VISIBILITY_PREFIX = "VV";
+
     /**
      * Knots string.
      */
     protected static final String KT_STRING = "KT";
+
     /**
      * Kilometers per hour string.
      */
     protected static final String KMH_STRING = "KMH";
+
     /**
      * Meters per second string.
      */
     protected static final String MPS_STRING = "MPS";
+
     /**
      * Decoding error METAR status flag.
      */
     protected static final int DECODING_ERROR_METAR_STATUS = 2;
+
     /**
      * Decoding error source status flag.
      */
     protected static final int DECODER_ERROR_SOURCE_STATUS = 1;
+
     /**
      * Meters per second to knots. From metardecoderP.C.
      */
     protected static final float MPS_PER_KTS = 3600f / 1852;
+
     /**
      * Kilometers per hour to knots. From metardecoderP.C.
      */
@@ -1455,8 +1589,10 @@ public final class MetarDecoderUtil {
                 && (i < decodedMetar.getCmnData().getWxObstruct().length)
                 && (!decodedMetar.getCmnData().getWxObstruct()[i]
                         .isEmpty()); i++) {
-            surfaceObs.getPresentWx()[i] = decodedMetar.getCmnData()
-                    .getWxObstruct()[i];
+            logger.debug(" Present Wx from METAR (" + i + "): "
+                    + decodedMetar.getCmnData().getWxObstruct()[i]);
+            surfaceObs.setOnePresentWx(i,
+                    decodedMetar.getCmnData().getWxObstruct()[i]);
         }
 
         /* horizontal visibility */
@@ -1873,9 +2009,9 @@ public final class MetarDecoderUtil {
 
         qcMetar.setLayer6CloudTypeDqd(checkDiscreteElement(
                 surfaceObs.getLayer6CloudType(), MetarUtils.METAR_CLOUD_TYPE));
-                /*
-                 * end clouds
-                 */
+        /*
+         * end clouds
+         */
 
         /* Check the validity of the horizontal visibility. */
         qcMetar.setVsbyDqd(checkDiscreteElement(surfaceObs.getVisibility(),
@@ -2149,12 +2285,10 @@ public final class MetarDecoderUtil {
                                 + query.toString() + "]");
                 return QCMetar.FAILED_VALIDITY_CHECK;
             } else if (count == 0) {
-                logger.warn(
-                        "Invalid discrete value: ["
-                                + (int) (value.floatValue()
-                                        * scale.floatValue())
-                                + "] for element ID: [" + elementID
-                                + "]. QC Query: [" + query.toString() + "].");
+                logger.warn("Invalid discrete value: ["
+                        + (int) (value.floatValue() * scale.floatValue())
+                        + "] for element ID: [" + elementID + "]. QC Query: ["
+                        + query.toString() + "].");
                 return QCMetar.FAILED_VALIDITY_CHECK;
             }
 

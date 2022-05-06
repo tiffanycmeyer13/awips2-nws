@@ -14,6 +14,7 @@ package gov.noaa.nws.ocp.edex.metartoclimate.dao.data;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 01 FEB 2017  28609      amoore      Initial creation
+ * 22 APR 2022  21456      pwang       Fix missing wx from RMK
  * </pre>
  *
  * @author amoore
@@ -105,6 +106,19 @@ public class PedCmn {
      */
     public void setWxObstruct(String[] wxObstruct) {
         this.wxObstruct = wxObstruct;
+    }
+
+    /**
+     * 
+     * @param wx
+     */
+    public void setOneWxObstruct(String wx) {
+        for (int i = 0; i < this.wxObstruct.length; i++) {
+            if (this.wxObstruct[i] == null || this.wxObstruct[i].isEmpty()) {
+                this.wxObstruct[i] = wx;
+                break;
+            }
+        }
     }
 
     /**
