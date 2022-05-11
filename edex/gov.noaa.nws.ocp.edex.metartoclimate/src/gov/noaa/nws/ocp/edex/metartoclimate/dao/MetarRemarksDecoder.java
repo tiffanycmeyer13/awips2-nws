@@ -48,6 +48,7 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SignificantCloud;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07 SEP 2017  37754      amoore      Initial creation.
+ * 22 APR 2022  21456      pwang       Fix missing Wx from RMK
  * </pre>
  * 
  * @author amoore
@@ -80,8 +81,8 @@ public final class MetarRemarksDecoder {
      */
     protected static void decodeMetarRemarks(DecodedMetar decodedMetar,
             String[] reportArray, int startIndex)
-                    throws ArrayIndexOutOfBoundsException,
-                    NumberFormatException, ClimateMetarDecodingException {
+            throws ArrayIndexOutOfBoundsException, NumberFormatException,
+            ClimateMetarDecodingException {
         logger.debug("Decoding METAR remarks section.");
         /*
          * Loop through remaining report portions. If a valid section is found,
@@ -1840,10 +1841,8 @@ public final class MetarRemarksDecoder {
                 } else if (currReportSection
                         .matches(MetarDecoderUtil.FRACTION_REGEX)) {
                     /* check for a fraction for hail diameter */
-                    decodedMetar
-                            .setHailSize(Float
-                                    .parseFloat(currReportSection.substring(0,
-                                            slashIndex))
+                    decodedMetar.setHailSize(Float.parseFloat(
+                            currReportSection.substring(0, slashIndex))
                             / Float.parseFloat(currReportSection
                                     .substring(slashIndex + 1)));
                     decodedMetar.setHail(true);
@@ -2167,6 +2166,11 @@ public final class MetarRemarksDecoder {
             }
 
             logger.debug("Got weather type: [" + weatherType + "]");
+
+            /*
+             * Insert the wx type into the decordedMetar
+             */
+            decodedMetar.getCmnData().setOneWxObstruct(weatherType);
 
             /*
              * now handle all times for this weather type. Track the index of
