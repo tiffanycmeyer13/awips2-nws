@@ -3,6 +3,6 @@
         This is the configuration file for the AWIPS Reference System.
     -->
 <awipsRefConfiguration>
-    <serverLocation>https://vlab.ncep.noaa.gov/web/guest/awips-reference</serverLocation>
+    <serverLocation>https://vlab.noaa.gov/web/guest/awips-reference</serverLocation>
     <browserPath>/usr/bin/firefox</browserPath>
 </awipsRefConfiguration>
