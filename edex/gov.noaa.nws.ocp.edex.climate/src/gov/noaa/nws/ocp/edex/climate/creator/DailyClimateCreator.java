@@ -90,6 +90,7 @@ import gov.noaa.nws.ocp.edex.common.climate.util.SunLib;
  *                                     Also wrong values set in resultX and resultY fields.
  * 29 MAY 2019  DR 21099   wpaintsil   Display snowfall based on a ClimateGlobal field.
  * 02 JUL 2019  DR21423    wpaintsil   Snowfall values for IM, PM should be missing.
+ * 26 MAY 2021  DR22662    alockleigh  Update to force reading of snow depth from 12Z.
  * </pre>
  * 
  * @author amoore
@@ -131,6 +132,11 @@ public final class DailyClimateCreator {
 
     private static final int SCD_10_HOURS = SCD_RETRIEVAL_WINDOW
             * TimeUtil.MINUTES_PER_HOUR;
+
+    /**
+     * Snow depth is expected to be reported at 12Z.
+     */
+    private static final int SNOW_DEPTH_HOUR = 12;
 
     private final ClimateDailyNormDAO climateDailyNormDao = new ClimateDailyNormDAO();
 
@@ -3426,37 +3432,17 @@ public final class DailyClimateCreator {
 
         int endHour = window.getEndTime().getHour();
 
-        /*
-         * Set the hour for which we'll look for a snow depth report. For a
-         * morning report, we'll always look at the 12Z report.
-         */
-        int depthHour;
-        if ((PeriodType.MORN_RAD.equals(itype)
-                || PeriodType.MORN_NWWS.equals(itype))
-                || ((window.getEndTime().getHour() >= 12)
-                        && (window.getEndTime().getHour() < 18))) {
-            depthHour = 12;
-        } else if (window.getEndTime().getHour() < 6) {
-            depthHour = 0;
-        } else if (window.getEndTime().getHour() < 12) {
-            depthHour = 6;
-        } else if (window.getEndTime().getHour() < 24) {
-            depthHour = 18;
-        } else {
-            depthHour = ParameterFormatClimate.MISSING;
-        }
-
         /* Find the ticks for the hour previously determined */
         long depthMilliTicks;
         if ((PeriodType.MORN_RAD.equals(itype)
                 || PeriodType.MORN_NWWS.equals(itype))
-                && (window.getEndTime().getHour() < depthHour)) {
+                && (window.getEndTime().getHour() < SNOW_DEPTH_HOUR)) {
             depthMilliTicks = endBaseMilliTicks
                     - (((TimeUtil.HOURS_PER_DAY + window.getEndTime().getHour())
-                            - depthHour) * TimeUtil.MILLIS_PER_HOUR);
+                            - SNOW_DEPTH_HOUR) * TimeUtil.MILLIS_PER_HOUR);
         } else {
             depthMilliTicks = endBaseMilliTicks
-                    - ((window.getEndTime().getHour() - depthHour)
+                    - ((window.getEndTime().getHour() - SNOW_DEPTH_HOUR)
                             * TimeUtil.MILLIS_PER_HOUR);
         }
 
@@ -3580,21 +3566,12 @@ public final class DailyClimateCreator {
                                         nominalTimeCal);
                         data.setSnowGround((float) result.getValue());
                     } catch (ClimateQueryException e) {
-                        logger.error(
-                                "The " + nominalTimeString
-                                        + "Z METAR snow depth observation query encountered an error and will be recorded as missing.",
+                        logger.error("The " + nominalTimeString
+                                + "Z METAR snow depth observation query encountered an error and will be recorded as missing.",
                                 e);
                         data.setSnowGround(0);
                     }
-                    /*
-                     * Set this to -1 for 0Z report, since "Entered Manually"
-                     * already uses 0
-                     */
-                    if (depthHour == 0) {
-                        data.getDataMethods().setDepthQc(QCValues.DEPTH_00Z);
-                    } else {
-                        data.getDataMethods().setDepthQc(depthHour);
-                    }
+                    data.getDataMethods().setDepthQc(SNOW_DEPTH_HOUR);
                 } else {
                     /* The report is auto .... log a message stating so. */
                     logger.info("The " + nominalTimeString
@@ -3602,68 +3579,6 @@ public final class DailyClimateCreator {
                 }
             } catch (ClimateQueryException e) {
                 logger.error("Error querying for METAR observation.", e);
-            }
-        }
-
-        if ((data.getSnowGround() == ParameterFormatClimate.MISSING_SNOW)
-                && (depthHour != 12) && (depthHour != 0)) {
-            /*
-             * Couldn't find a 6Z or 18Z snow depth, so we'll try the 0Z or 12Z
-             * report.
-             */
-            depthMilliTicks -= ClimateUtilities.MILLISECONDS_IN_SIX_HOURS;
-            depthHour -= 6;
-
-            /*
-             * Only want to check when it occurs within the begin and end hours
-             * though.
-             */
-            if (depthMilliTicks >= beginBaseMilliTicks) {
-                Calendar nominalTimeCal = TimeUtil.newCalendar();
-                nominalTimeCal.setTimeInMillis(depthMilliTicks);
-                String nominalTimeString = ClimateDate.getFullDateTimeFormat()
-                        .format(nominalTimeCal.getTime());
-
-                try {
-                    String correction = climateCreatorDAO
-                            .getCorrection(data.getInformId(), nominalTimeCal);
-                    if (correction == null) {
-                        logger.warn(
-                                "No METAR observation found for station ID: ["
-                                        + data.getInformId() + "] and time: ["
-                                        + nominalTimeString + "]");
-                    } else if (!correction.equals("A")) {
-                        try {
-                            FSSReportResult result = climateCreatorDAO
-                                    .getMetarConreal(data.getInformId(),
-                                            MetarUtils.METAR_SNOW_DEPTH,
-                                            nominalTimeCal);
-                            data.setSnowGround((float) result.getValue());
-                        } catch (ClimateQueryException e) {
-                            logger.error(
-                                    "The " + nominalTimeString
-                                            + "Z METAR snow depth observation query encountered an error and will be recorded as missing.",
-                                    e);
-                            data.setSnowGround(0);
-                        }
-                        /*
-                         * Set this to -1 for 0Z report, since
-                         * "Entered Manually" already uses 0
-                         */
-                        if (depthHour == 0) {
-                            data.getDataMethods()
-                                    .setDepthQc(QCValues.DEPTH_00Z);
-                        } else {
-                            data.getDataMethods().setDepthQc(depthHour);
-                        }
-                    } else {
-                        /* The report is auto .... log a message stating so. */
-                        logger.info("The " + nominalTimeString
-                                + "Z METAR observation is an auto, meaning snow depth is being recorded as missing.");
-                    }
-                } catch (ClimateQueryException e) {
-                    logger.error("Error querying for METAR observation.", e);
-                }
             }
         }
     }

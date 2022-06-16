@@ -30,6 +30,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 09/10/2021  28802    wkwock      Use new configuration format
+ * 04/05/2022  22989    wkwock      Add issuance# reset
  * 
  * </pre>
  * 
@@ -181,7 +182,7 @@ public class BlduBlsaComp extends AbstractCWAComp {
         CWAProduct cwaProduct = new CWAProduct(productId, cwsuId, isOperational,
                 weatherType);
         int seriesId = cwaProduct.getNextSeriesId(isCor,
-                cwaConfigs.getLocalTimeZone());
+                cwaConfigs.getLocalTimeZone(), isResetIssuance());
 
         // Check for isolated cell over VOR. Length would be 3 if it
         // is true.

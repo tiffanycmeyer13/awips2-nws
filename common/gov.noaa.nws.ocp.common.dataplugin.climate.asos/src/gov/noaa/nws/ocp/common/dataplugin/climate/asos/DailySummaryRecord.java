@@ -29,6 +29,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateDate;
  * 31 OCT 2017    40231      amoore      Clean up of MSM/DSM parsing and records. Better
  *                                       logging. Get rid of serialization tags.
  * 11 APR 2019    DR 21229   dfriedman   Store valid time in table.
+ * 24 AUG 2021    DR 21943   aghanava    Added year as an argument to the ClimateDate that
+ *                                       is constructed in getDayOfYear(). 
  * </pre>
  * 
  * @author pwang
@@ -719,7 +721,7 @@ public class DailySummaryRecord extends ClimateASOSMessageRecord {
      * @return String
      */
     public String getDayOfYear() {
-        return new ClimateDate(day, month).toMonthDayDateString();
+        return new ClimateDate(day, month, year).toMonthDayDateString();
     }
 
     @Override

@@ -44,6 +44,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * ----------- -------- ----------- --------------------------
  * 12/02/2016  17469    wkwock      Initial creation
  * 06/27/2021  92561    wkwock      Fix local time zone issue
+ * 04/05/2022  22989    wkwock      Update issuance# algorithm
  * 
  * </pre>
  * 
@@ -291,7 +292,8 @@ public class CWAProduct {
      * @param isCor
      * @return next series ID
      */
-    public int getNextSeriesId(boolean isCor, String localTimeZone) {
+    public int getNextSeriesId(boolean isCor, String localTimeZone,
+            boolean isResetIssuance) {
         // get the Phenomenon Number
         int phenomenonNum = 0;
         String phenomenonNumStr = productId.substring(productId.length() - 1);
@@ -300,24 +302,35 @@ public class CWAProduct {
         }
 
         // get the sequential issuance number
-        int issuanceNum = getNextIssuanceNumber(phenomenonNum, localTimeZone);
+        int issuanceNum = getNextIssuanceNumber(localTimeZone,
+                isResetIssuance);
 
         // include the Phenomenon Number
         int seriesId = phenomenonNum * 100 + issuanceNum;
         return seriesId;
     }
 
-    public int getNextIssuanceNumber(int phenomenonNum,
-            String localTimeZoneId) {
+    /**
+     * get the next issuance number
+     * 
+     * @param phenomenonNum
+     * @param localTimeZoneId
+     * @param isResetIssuance
+     * @return issuance number
+     */
+    public int getNextIssuanceNumber(String localTimeZoneId,
+            boolean isResetIssuance) {
         // 1. The issuance number should be 01 to 99 only
-        // 2. The issuance number should start with 01 each local day
-        // 3. The issuance number should be 01 if a cycle is completed.
-        // A cycle means that CWAXX1 to CWAXX6 in the main GUI have used.
-        // It's also expected that operation starts with CWAXX1 to CWAXX6
-        // 4. Cancel product always increase issuance number to next one
+        // 2. The issuance number should be 01 if isResetIssuance is true
+        // 3. Cancel product increase issuance number to next one unless 1. or
+        // 2.
+        // 4. Other issuance number should start with 01 each local day
 
-        if (insertTime == null) {
-            // no product in DB
+        if (insertTime == null || isResetIssuance) {
+            // no product in DB or isResetIssuance is true
+            logger.info("Issuance number rest to 1. isResetIssuance="
+                    + isResetIssuance);
+            isIssuanceNumReset = true;
             return 1;
         }
         // get current issuance number
@@ -336,6 +349,8 @@ public class CWAProduct {
         if (currentIssuanceNum == 99) {
             issuanceNum = 1;
             isIssuanceNumReset = true;
+            logger.info(
+                    "Issuance number reset to 1 due to the last one was 99.");
         }
 
         // Cancel product always go to the next one
@@ -360,26 +375,8 @@ public class CWAProduct {
             // be 1.
             issuanceNum = 1;
             isIssuanceNumReset = true;
-        } else {
-
-            // Check if a new cycle started
-            int tmpPhenomenonNum = 6;
-            if (phenomenonNum == 6) {
-                tmpPhenomenonNum = 1;
-            }
-
-            String tmpProductId = this.productId.substring(0, 8);
-            tmpProductId += tmpPhenomenonNum;
-            CWAProduct cwaProduct = new CWAProduct(tmpProductId, "",
-                    isOperational, null);
-            cwaProduct.getProductTxt();
-            ZonedDateTime lastInsertTime = cwaProduct.getInsertTime();
-
-            if (lastInsertTime != null
-                    && lastInsertTime.isAfter(tmpInsertTime)) {
-                issuanceNum = 1;
-                isIssuanceNumReset = true;
-            }
+            logger.info(
+                    "Issuance number reset to 1 due to it's the 1st local time.");
         }
         return issuanceNum;
     }

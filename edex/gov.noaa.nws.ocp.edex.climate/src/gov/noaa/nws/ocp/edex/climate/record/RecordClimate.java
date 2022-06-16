@@ -36,10 +36,10 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
  * Migration of RecordClimate legacy adapt project. Provides functionality to
  * create text products notifying about record-breaking weather (ex. highest
  * temperature) for a station.
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 28 NOV 2016  21100      amoore      Initial creation
@@ -53,12 +53,13 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateAlertUtils;
  * 11 OCT 2017  39212      amoore      Better logging of TimeZone defaulting.
  * 11 OCT 2017  39238      amoore      Shortened and correct DST-dependent timezones in
  *                                     Formatted and RER headers.
- * 16 OCT 2017  39138      wpaintsil   Use same "National Weather Service" header 
+ * 16 OCT 2017  39138      wpaintsil   Use same "National Weather Service" header
  *                                     logic as Formatter.
  * 03 APR 2019  DR 21222   dfriedman   Use time zone in MND header time format.
  * 09 FEB 2019  DCS 22156  wpaintsil   Add AlertViz alert to indicate a new Record.
+ * 29 DEC 2021  DR 22158   zalberts    Add unit to RER wording.
  * </pre>
- * 
+ *
  * @author amoore
  *
  */
@@ -83,7 +84,7 @@ public final class RecordClimate {
 
     /**
      * Run RecordClimate and create and store the RER products.
-     * 
+     *
      * @param rawDatas
      *            record-breaking/tying data to report. In Legacy this data was
      *            created by Format Climate and stored in
@@ -111,7 +112,7 @@ public final class RecordClimate {
     /**
      * Write record reports to the text database, and provide notification of
      * each record.
-     * 
+     *
      * @param recordReports
      *            generated reports to store.
      * @param disseminate
@@ -212,10 +213,10 @@ public final class RecordClimate {
 
     /**
      * Create the record-breaking/tying product reports. Example product text:
-     * 
+     *
      * <pre>
      * RERDCA
-     * 
+     *
      * Record Event Report
      * National Weather Service Baltimore Md/Washington Dc
      * 123 AM EDT Thu Sep 15 2016
@@ -227,11 +228,11 @@ public final class RecordClimate {
      * A record high temperature of 95 degrees was set at Reagan National
      * Airport near Washington DC yesterday. This breaks the old record of
      * 94 set in 1981, 1980 and 1915.
-     * 
+     *
      * $$
      * </pre>
-     * 
-     * 
+     *
+     *
      * Legacy comments: For every afosid in the stationinfo file, there will be
      * a separate RER product formatted, notified on, and stored. We store these
      * internally in the list container recordReports_ as structures of PIL and
@@ -240,7 +241,7 @@ public final class RecordClimate {
      * that product, so we need to keep track of whether or not to store/notify
      * on a particular afosid by determining whether there is a record for one
      * of its stations in the RecordClimateRawData container.
-     * 
+     *
      * @param rawDatas
      *            record-breaking/tying data to report.
      * @param stationInfoMap
@@ -316,7 +317,7 @@ public final class RecordClimate {
 
             /*
              * Legacy comments:
-             * 
+             *
              * Walk thru all the stations/record values and find those for
              * stations under this afosid. There could more than one record for
              * a given station in this afosid. There could also be records for
@@ -335,21 +336,31 @@ public final class RecordClimate {
                     if (stationInfo.getStationID()
                             .equals(rawData.getStationID())) {
 
+                        /**
+                         * With the addition of the unit string, it's possible
+                         * for lines to go over 69 characters if the length of
+                         * the current line is not tracked and checked.
+                         * newLineStartPos keeps track of the last newline
+                         * character in recordBuilder.
+                         */
+                        int newLineStartPos = 0;
+
                         haveRecord = true;
 
                         /*
                          * Legacy comments:
-                         * 
+                         *
                          * create record reports. if the format or text of the
                          * RER is what you want to change this is the function
                          * to modify.
-                         * 
+                         *
                          * NOTE: no line can be over 69 chars. A limitation set
                          * by the textWindow for teletype machines- this forces
                          * the derived requirement that all applications
                          * creating products worry about line length. textWindow
                          * could easily do this for all applications.
                          */
+
                         recordBuilder.append("\n\n");
                         recordBuilder.append("...RECORD ");
 
@@ -359,16 +370,28 @@ public final class RecordClimate {
                         recordBuilder.append(stationInfo.getStationNameTextual()
                                 .toUpperCase());
                         recordBuilder.append("...\n\n");
+                        newLineStartPos = recordBuilder.length();
 
                         recordBuilder.append("A record ");
                         recordBuilder.append(
                                 rawData.getRecordElementReportShortenedText());
                         recordBuilder.append(" of ");
                         recordBuilder.append(rawData.getNewRecord());
-                        recordBuilder.append(" was set at ");
-                        recordBuilder
-                                .append(stationInfo.getStationNameTextual());
-                        recordBuilder.append(" ");
+
+                        String recordUnitString = getRecordUnitString(
+                                rawData.getRecordElement(),
+                                rawData.getNewRecord());
+
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder, recordUnitString,
+                                newLineStartPos);
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder, " was set at ", newLineStartPos);
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder,
+                                stationInfo.getStationNameTextual(),
+                                newLineStartPos);
+
                         /*
                          * Legacy checked in the Climate tmp directory to see if
                          * AM files existed. If so, printed "yesterday". If not,
@@ -384,10 +407,23 @@ public final class RecordClimate {
                         } else {
                             day = "today";
                         }
-                        recordBuilder.append(day);
-                        recordBuilder.append(".\n");
-                        recordBuilder.append("This ");
 
+                        // avoid ending a line with a space
+                        if (recordBuilder.length() - newLineStartPos + 2
+                                + day.length() > 69) {
+                            recordBuilder.append("\n");
+                            recordBuilder.append(day);
+                            recordBuilder.append(".");
+                        } else {
+                            recordBuilder.append(" ");
+                            recordBuilder.append(day);
+                            recordBuilder.append(".");
+                        }
+
+                        recordBuilder.append("\n");
+                        newLineStartPos = recordBuilder.length();
+
+                        recordBuilder.append("This ");
                         String breaksOrTies;
                         if (rawData.getNewRecord()
                                 .equals(rawData.getOldRecord())) {
@@ -396,22 +432,38 @@ public final class RecordClimate {
                             breaksOrTies = "breaks ";
                         }
                         recordBuilder.append(breaksOrTies);
+
                         recordBuilder.append("the old record of ");
+
                         recordBuilder.append(rawData.getOldRecord());
-                        recordBuilder.append(" set in ");
-                        recordBuilder.append(rawData.getOldRecordDate());
-                        recordBuilder.append(".\n");
+
+                        recordUnitString = getRecordUnitString(
+                                rawData.getRecordElement(),
+                                rawData.getOldRecord());
+
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder, recordUnitString,
+                                newLineStartPos);
+
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder, " set in ", newLineStartPos);
+
+                        newLineStartPos = addStringToRecordBuilder(
+                                recordBuilder, rawData.getOldRecordDate() + ".",
+                                newLineStartPos);
+
+                        recordBuilder.append("\n");
                     }
                 } // end stations
             } // end data
 
             /*
              * Legacy comments:
-             * 
+             *
              * The next newly added segment of code will take care of adding
              * double dollar signs ($$) at the end of the RER product. Coder:
              * Mohammed Sikder, RSIS JULY, 2003
-             * 
+             *
              * Legacy DR 16184 "Climate: RER adding extra $$" fixed. $$ was
              * being added after every full cycling of station was completed,
              * but should only be added after all loops are done and all data
@@ -434,11 +486,11 @@ public final class RecordClimate {
                  * Legacy command: rer.afosid.replace(3, 3, "RER"); ie, take the
                  * AFOS ID text and, starting at index 3, remove 3 characters
                  * and insert "RER".
-                 * 
+                 *
                  * PIL is in the format of SSSRERMMM, where SSS is the first 3
                  * characters of the AFOS ID, RER is constant, and MMM is
                  * 7th-9th characters of the AFOS ID.
-                 * 
+                 *
                  * Formatter already places RER in the center of the AFOS ID.
                  * Simply verify that this has been done.
                  */
@@ -471,11 +523,11 @@ public final class RecordClimate {
 
     /**
      * Datetime formats for Record Climate.
-     * 
+     *
      * Legacy comments: For product text; e.g. 0237 PM EST THU JUL 16 2004
-     * 
+     *
      * Fixed hour format for OB2, needs to be 12-h clock
-     * 
+     *
      * Split into two formats, with intention of shortened timezone names (with
      * logic of DST included) being placed in between.
      */
@@ -487,5 +539,63 @@ public final class RecordClimate {
             sdf.setTimeZone(tz);
         }
         return formats;
+    }
+
+    /**
+     * Generates a unit string for the RER.
+     *
+     * @param recordElement
+     *            type of record
+     * @param recordValue
+     *            value of the record being referenced
+     * @return appropriate unit string for the RER
+     */
+    private static String getRecordUnitString(String recordElement,
+            String recordValue) {
+        if (RecordClimateRawData.TEMP_MAX_RAW_TEXT
+                .equalsIgnoreCase(recordElement)
+                || RecordClimateRawData.TEMP_MIN_RAW_TEXT
+                        .equalsIgnoreCase(recordElement)) {
+            if ("1".equals(recordValue) || "-1".equals(recordValue)) {
+                return " degree";
+            }
+            return " degrees";
+        } else if (RecordClimateRawData.PRECIP_MAX_RAW_TEXT
+                .equalsIgnoreCase(recordElement)
+                || RecordClimateRawData.SNOW_MAX_RAW_TEXT
+                        .equalsIgnoreCase(recordElement)) {
+            if ("1".equals(recordValue) || "-1".equals(recordValue)) {
+                return " inch";
+            }
+            return " inches";
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * Adds a newline if the string being added would cause the current line to
+     * exceed 69 characters.
+     *
+     * @param recordBuilder
+     *
+     * @param stringToAdd
+     *
+     * @param newLineStartPos
+     *
+     * @return updated newLineStartPos
+     */
+    private static int addStringToRecordBuilder(StringBuilder recordBuilder,
+            String stringToAdd, int newLineStartPos) {
+        if ((recordBuilder.length() - newLineStartPos
+                + stringToAdd.length()) > 69) {
+            String newString = "\n";
+            newLineStartPos += recordBuilder.length() + 1;
+            newString += stringToAdd;
+            recordBuilder.append(newString);
+        } else {
+            recordBuilder.append(stringToAdd);
+        }
+        return newLineStartPos;
     }
 }

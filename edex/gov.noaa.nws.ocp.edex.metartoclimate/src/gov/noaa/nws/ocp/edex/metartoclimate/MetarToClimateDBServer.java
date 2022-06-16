@@ -24,12 +24,11 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SurfaceObs;
 
 /**
  * Stores MetarRecords as ClimateReport in Climate database
- * 
- * This plugin is a copy of MetarToHMDBSrv, which redirect metar data to rpt
- * table in the climate database
- * 
- * TODO: When hmdb retired, MetarToHMDBSrv plugin should be cleanup
- * 
+ *
+ * This plugin is a copy of MetarToHMDBSrv plugin 
+ * (Legacy plugin removed 2022), which redirect
+ * metar data to rpt table in the climate database
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -64,7 +63,7 @@ public class MetarToClimateDBServer {
 
     /**
      * Construct an instance of this transformer.
-     * 
+     *
      * @param reportDAO
      * @param fssInsertionDAO
      */
@@ -76,7 +75,7 @@ public class MetarToClimateDBServer {
     }
 
     /**
-     * 
+     *
      * @param objects
      */
     public void process(PluginDataObject[] objects, Headers headers) {
@@ -159,7 +158,8 @@ public class MetarToClimateDBServer {
              * So save time and do the station check first.
              */
             // get station ID
-            Integer stationIDResult = reportDAO.getStationIDByCode(rpt.getIcao_loc_id());
+            Integer stationIDResult = reportDAO
+                    .getStationIDByCode(rpt.getIcao_loc_id());
             if (stationIDResult == null) {
                 return;
             }

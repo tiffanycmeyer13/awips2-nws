@@ -48,7 +48,7 @@ import gov.noaa.nws.ocp.common.dataplugin.atcf.SandboxForecastTrackRecord;
 import gov.noaa.nws.ocp.common.dataplugin.atcf.Storm;
 import gov.noaa.nws.ocp.common.dataplugin.atcf.exception.AtcfDataAccessException;
 import gov.noaa.nws.ocp.common.dataplugin.atcf.exception.AtcfException;
-import net.sf.cglib.beans.BeanMap;
+import org.springframework.cglib.beans.BeanMap;
 
 /**
  * Data access object that primarily supports client requests to edit ATCF data.
@@ -77,10 +77,10 @@ import net.sf.cglib.beans.BeanMap;
  * Aug 10, 2020 79571      wpaintsil   Revise promoteGenesisToStorm() query to include storm name.
  * Nov 09, 2020 84705      jwu         Fix deleteStorm().
  * Jun 25, 2021 92918      dfriedman   Refactor data classes.
+ * Apr 21, 2022 8709       tjensen     Remove net.sf.cglib
  * </pre>
  *
  * @author pwang
- * @version 1.0
  */
 
 public class AtcfProcessDao extends CoreDao {
