@@ -29,13 +29,13 @@ import com.raytheon.uf.common.status.UFStatus;
 import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
 
 /**
- * 
+ *
  * Read and write preferences to file globalDay.properties.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Mar 21, 2016 20639      xzhang      Initial creation
@@ -63,7 +63,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 13 MAY 2019  DR 21151   dfriedman   Do not cause EDEX to fail to start if Climate config is bad.
  * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
  * </pre>
- * 
+ *
  * @author xzhang
  * @version 1.0
  */
@@ -93,8 +93,7 @@ public class ClimateGlobalConfiguration {
      * Localization levels to try to load, in order
      */
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
-            LocalizationLevel.SITE, LocalizationLevel.REGION,
-            LocalizationLevel.BASE };
+            LocalizationLevel.SITE, LocalizationLevel.BASE };
 
     /**
      * Name of placeholder property for site time zone in Spring XML files.
@@ -126,13 +125,16 @@ public class ClimateGlobalConfiguration {
 
                 resGlobal.setUseValidIm(
                         "T".equals(prop.getProperty("climate.useValidIm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setUseValidPm(
                         "T".equals(prop.getProperty("climate.useValidPm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoAsterisk(
                         "T".equals(prop.getProperty("climate.noAsterisk"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoColon(
                         "T".equals(prop.getProperty("climate.noColon")) ? true
                                 : false);
@@ -141,7 +143,8 @@ public class ClimateGlobalConfiguration {
                                 : false);
                 resGlobal.setNoSmallLetters(
                         "T".equals(prop.getProperty("climate.noSmallLetters"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setValidIm(prop.getProperty("climate.intermediate"));
                 resGlobal.setValidPm(prop.getProperty("climate.evening"));
                 resGlobal.setT1(
@@ -231,7 +234,7 @@ public class ClimateGlobalConfiguration {
 
     /**
      * Save the given global day settings to SITE.
-     * 
+     *
      * @param global
      *            settings to save
      * @return status indicator
@@ -388,7 +391,8 @@ public class ClimateGlobalConfiguration {
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY,
                     globalConfig.getTimezone());
         } else {
-            logger.error("Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
+            logger.error(
+                    "Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, "GMT");
         }
         return props;

@@ -27,10 +27,10 @@ import gov.noaa.nws.ocp.edex.climate.prodgen.qc.checker.MonthlyClimateDataQualit
 
 /**
  * SiteDefinedDataQualityCheck
- * 
+ *
  * Part of auto ClimateProdGenerateSession, used by session to check site
  * defined QC parameters before move on after Climate data is generated.
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
@@ -83,8 +83,7 @@ public class DefinedDataQualityCheck {
      * Localization levels to try to load, in order
      */
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
-            LocalizationLevel.SITE, LocalizationLevel.REGION,
-            LocalizationLevel.BASE };
+            LocalizationLevel.SITE, LocalizationLevel.BASE };
 
     private boolean check = false;
 
@@ -94,7 +93,7 @@ public class DefinedDataQualityCheck {
 
     /**
      * Constructor
-     * 
+     *
      * @param pType
      */
     public DefinedDataQualityCheck(PeriodType pType) {
@@ -161,7 +160,7 @@ public class DefinedDataQualityCheck {
 
     /**
      * populateQCTriples
-     * 
+     *
      * @param props
      */
     private void populateQCTriples(Properties props) {
@@ -200,7 +199,7 @@ public class DefinedDataQualityCheck {
      * check Based on given parameters and conditions for checking, perform
      * following checking: 1) simply check missing value(s) 2) check if a value
      * of given parameter exceed the range ( >, < )
-     * 
+     *
      * @return false: if any checking parameter meet the criteria true (pass):
      *         if everything is fine defined checking parameters.
      */
