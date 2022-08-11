@@ -10,21 +10,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.geotools.data.DataUtilities;
 import org.geotools.data.memory.MemoryFeatureCollection;
-import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.NameImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.util.URLs;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.Name;
 
 import com.raytheon.uf.common.json.JsonException;
 import com.raytheon.uf.common.json.geo.IGeoJsonService;
-import com.raytheon.uf.common.json.geo.MixedFeatureCollection;
 import com.raytheon.uf.common.json.geo.SimpleGeoJsonService;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
@@ -108,7 +103,7 @@ public class GeoJSONFile {
      * @param url
      */
     public GeoJSONFile(URL url) {
-        this.file = DataUtilities.urlToFile(url);
+        this.file = URLs.urlToFile(url);
         if (init(file)) {
             initFileInfo(file);
         }
