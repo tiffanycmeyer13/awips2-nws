@@ -1,0 +1,18 @@
+# Add this to your local model definitions. Make sure you don't have a Climo database already defined.
+serverConfig.modelDict['Climo'] = {
+            'DB': ('Climo', 'GRID', '', 1, 0, 1, 72),
+            'Parms': [([MaxT], MaxTTC),
+                     ([MinT], MinTTC),
+                     ]
+            }
+
+
+# This is needed for non WR sites and WR site pre NIC v12.1.
+serverConfig.modelDict['PrismHiRes'] ={
+            'DB': ('PrismHiRes', GRID, '', NO, NO, 1, 0),
+            'D2DMODELS':'PrismHiRes'
+            }
+
+
+# Remove the line below if it appears in your localConfig. It will be replaced by PrismHiRes.
+serverConfig.NETCDFDIRS.append(('/awips2/apps/HeatRiskIndex/data/PRISM800m'))

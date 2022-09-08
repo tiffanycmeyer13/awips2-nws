@@ -1,0 +1,111 @@
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+#
+# HeatRisk_PointPlot.py
+#
+# Author: Paul Iniguez, PSR SOO
+# Version: 2.0
+#
+# Will create a quick plot for any grid point within the GFE domain of HeatRisk levels.
+#
+# ----------------------------------------------------------------------------
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+# ##
+
+MenuItems = [None]
+import datetime, numpy as np, matplotlib.pyplot as plt
+import MyDialog
+import SmartScript
+
+VariableList = [
+                ("Lat", 40.0, "numeric"),
+                ("Lon", -100.0, "numeric"),
+                ('Parms', [], "check", ['MaxT','MinT']),
+]
+
+class Procedure (SmartScript.SmartScript):
+    def __init__(self, dbss):
+        SmartScript.SmartScript.__init__(self, dbss)
+
+    def execute(self, varDict):
+        
+        # Throw a status to say what is going on
+        dialog = MyDialog.MyDialog("Status",'Pulling Data...')
+        
+        # Location of point
+        lat, lon = varDict['Lat'], varDict['Lon']
+        x, y = self.getGridCell(lat,lon)
+        
+        # Initialize empty values
+        redMaxT, orangeMaxT, yellowMaxT, normalMaxT = [], [], [], []
+        redMinT, orangeMinT, yellowMinT, normalMinT = [], [], [], []
+        
+        # The Yellow is static, so grab those values
+        yellowMaxT = np.ones(366)*np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmax.npy')[y][x]
+        yellowMinT = np.ones(366)*np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmin.npy')[y][x]
+                
+        # Cycle through full year
+        dt = datetime.datetime(2016,1,1)
+        while dt <= datetime.datetime(2016,12,31):
+            if 'MaxT' in varDict['Parms']:
+                normalMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMaxT%s.npy'%dt.strftime('%m%d'))[y][x] )
+                redMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmax%s.npy'%dt.strftime('%m%d'))[y][x] )
+                orangeMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmax%s.npy'%dt.strftime('%m%d'))[y][x] )
+            if 'MinT' in varDict['Parms']:
+                normalMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMinT%s.npy'%dt.strftime('%m%d'))[y][x] )
+                redMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmin%s.npy'%dt.strftime('%m%d'))[y][x] )
+                orangeMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmin%s.npy'%dt.strftime('%m%d'))[y][x] )
+            dt += datetime.timedelta(days=1)
+        
+        redMaxT = np.array(redMaxT)
+        redMinT = np.array(redMinT)
+        orangeMaxT = np.array(orangeMaxT)
+        orangeMinT = np.array(orangeMinT)
+        normalMaxT = np.array(normalMaxT)
+        normalMinT = np.array(normalMinT)
+        
+        # Ready to draw, destroy dialog
+        dialog.destroy()
+        
+        # Plot
+        plt.ioff()
+        plt.figure(figsize=(15,10))
+        plt.title('HeatRisk v2 Levels for %0.2f, %0.2f' % (lat,lon), fontsize=22)
+        
+        if 'MaxT' in varDict['Parms']:
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], redMaxT, linewidth=2, color='red', label='Red MaxT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], orangeMaxT, linewidth=2, color='orange', label='Orange MaxT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], yellowMaxT, linewidth=2, color='yellow', label='Yellow MaxT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], normalMaxT, linewidth=2, color='black', label='Normal MaxT')
+        if 'MinT' in varDict['Parms']:
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], redMinT, linewidth=2, color='red', linestyle='dashed', label='Red MinT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], orangeMinT, linewidth=2, color='orange', linestyle='dashed', label='Orange MinT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], yellowMinT, linewidth=2, color='yellow', linestyle='dashed', label='Yellow MinT')
+            plt.plot([datetime.datetime(2016,1,1)+datetime.timedelta(days=x) for x in range(366)], normalMinT, linewidth=2, color='black', linestyle='dashed', label='Normal MinT')
+
+        if 'MaxT' in varDict['Parms'] and 'MinT' in varDict['Parms']:
+            plt.yticks(np.arange(-100,200,5))
+            #plt.ylim(normalMinT.min()//10*10-5,redMaxT.max()//10*10+10)
+            plt.ylim(normalMinT.min()//10*10, np.ceil(redMaxT.max()/10+1)*10)
+        elif 'MaxT' in varDict['Parms']:
+            plt.yticks(np.arange(-100,200,5))
+            #plt.ylim(normalMaxT.min()//10*10-5,redMaxT.max()//10*10+10)
+            plt.ylim(normalMaxT.min()//10*10, np.ceil(redMaxT.max()/10+1)*10)
+        else:
+            plt.yticks(np.arange(-100,200,5))
+            #plt.ylim(normalMinT.min()//10*10-5,redMinT.max()//10*10+10)
+            plt.ylim(normalMinT.min()//10*10, np.ceil(redMinT.max()/10+1)*10)
+        
+        plt.xticks([datetime.datetime(2016,x,1) for x in range(1,13)], [datetime.datetime(2016,x,1).strftime('%b 1') for x in range(1,13)], fontsize=12)
+        plt.grid(linewidth=0.5, color='gray', zorder=-1000)
+        plt.legend(loc=8, ncol=2, fontsize=12)
+        plt.ylabel('Degrees F', fontsize=16)
+        plt.show()

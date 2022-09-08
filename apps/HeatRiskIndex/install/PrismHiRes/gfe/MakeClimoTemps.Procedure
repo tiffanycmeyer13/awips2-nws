@@ -1,0 +1,329 @@
+# SVN: $Rev: 32232 $ $Date: 2022-05-11 19:13:02 +0000 (Wed, 11 May 2022) $
+#      $URL: https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/PrismHiRes/tags/latest_stable/gfe/MakeClimoTemps.Procedure $
+#
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+# ----------------------------------------------------------------------------
+#
+#    MakeClimoTemps Version - 4.0
+#
+# This procedure creates daily MaxT and MinT normal temperatures from monthly PRISM data. The
+# underlying data are of 800 m resolution (which GFE upscales to its resolution). A cubic spline
+# interpolation method is used to interpolate between the monthly data, which are plotted at the
+# mid-point of the month.
+# Where applicable, this procedure will SERP point normals (from NCEI) into their appropriate grid
+# point using the serpClimoTemps smartTool. However, the SERP process induces artifacts into
+# surrounding grids. This procedure applies a correction which forces daily normals to rise or
+# remain steady as they approach each grid point's peak normal value, then remain the same or fall
+# as the days move away from the grid point's peak. Points are then forced to their normals, if
+# applicable.
+#
+# Once this process is complete, the daily files are exported/stored as numpy arrays in the
+# /awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data directory. A second procedure,
+# PopulateClimoTemps, should be run daily on a cron.  It populates the Climo database
+# with the necessary normals using the stored npy files.
+#
+# Ported to A2 by Darren Van Cleave - WFO Missoula, MT
+# March 2016 for Version 3.0 of HIL - William Rasch, STO and Paul Iniquez, PSR
+# 04/27/16 - Mark Loeffelbein WRHQ - Removed HIL portion to just create MaxT/MinT climo grids.
+# 03/01/17 - Mark Loeffelbein WRHQ and Paul Iniguez PSR - overhauled procedure, simplified,
+#    store files as npy (instead of pck, results in much faster performance), removed fluttering
+#    artifact imparted from SERP process.
+# 03/14/2018 - 2.1 Changed np.load to pickle.load to be compatible with OB 17.3.1.
+# 04/25/2018 - 2.2 Removed scipy algorithm and replaced with numpy to work with OB 17.3.1.
+# 12/09/2020 - 3.0 Python 3 Conversion
+# 09/28/2021 - 3.1 Update for Python 2 compatibility
+# 05/10/2022 - 4.0 Code rewrite and the addition of 1991-2020 Prism dataset.
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+##
+
+#
+#    Configuration
+#
+#
+MenuItems = [None]
+#
+# Set to where the point data text files reside and npy files generated at the end will reside.
+#
+DataLocation = "/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/"
+#
+#  Stations to exclude. Add the USC code to the list.
+#  Ex. stationsToReject=["USC00268186","USC00222186"]
+#
+stationsToReject = ["USC00268186", "USW00046168", "USW00004134", "USW00093243","USC00202395","USC00416499","USC00046168","USW00093193","USC00040449","USC00040343","USW00093010","USC00246238"]
+
+#
+#  Stations to change the location of. Should be fairly rare, but it has been needed.
+#  stationsToChange{"USC00222186":[45.34,-119.23]}
+#
+stationsToChange={"USC00026471":[36.1066, -112.0947]}
+#
+# If you want temporary grids populated at the end to see what they look like, set to True.
+# Otherwise set to False.
+#
+showgrids = False
+import numpy as np
+import SmartScript 
+import datetime
+import time 
+import scipy.interpolate
+import TimeRange
+import AbsTime
+import ObjAnal
+
+class Procedure (SmartScript.SmartScript):
+    
+    def __init__(self, dbss):
+        self._dbss = dbss;
+        SmartScript.SmartScript.__init__(self, dbss)
+    # This main method retrieves the climatology grids, assigns
+    # appropriate times to each and calls the _cubicSpline method
+    # to calculate the grid values in between the given climatology grids.
+    def execute(self, timeRange, varDict):
+        #
+        # Initialize OA for serping
+        #
+        self.OA = ObjAnal.ObjAnal(self._dbss)
+        #
+        # Loop through MaxT and MinT
+        #
+        for parmName in ['MaxT', 'MinT']:
+
+            #
+            # Get the current climate grid times to know if we are missing grids or not
+            #
+            climoTimes = self._getWEInventory("Climo", parmName)
+            #
+            # Get the corresponding weName for the PRISM data
+            #
+            if parmName == "MaxT":
+                weName = "mxt"
+            if parmName == "MinT":
+                weName = "mnt"
+            #
+            # Initialize array to hold timeranges to interpolate daily values to.
+            #
+            gridTimes = []
+            #
+            # Obtain information on start time and duration of MaxT and MinT grids,
+            # which can vary from office to office.
+            #
+            tr = self.createTimeRange(0, 240)
+            times = self.getGridInfo('Fcst', parmName, 'SFC', tr)
+            startTime = times[0].gridTime().startTime().hour
+            duration = times[0].gridTime().duration()/60./60.
+            #
+            # Populate arrays with timerange objects for every day of 2020. We use
+            # 2020 because it has a leap day in it.
+            #
+            now = datetime.datetime.now()
+            hoursBack = (datetime.datetime.now()-datetime.datetime(2020, 1, 1)).days * 24
+            for x in range(366):
+                tr = self.createTimeRange(-hoursBack+x*24+startTime, -hoursBack+x*24+startTime+duration, 'Fcst')
+                gridTimes.append(tr)
+            #
+            # Initialize additional database parameters
+            #
+            siteID = self.getSiteID()
+            dbName = siteID + "_D2D_PrismHiRes"
+            #
+            # Get the PRISM grid inventory.
+            #
+            trList = self._getWEInventory(dbName, weName)
+            #
+            # If you don't have PRISM data, then this will fail.
+            #
+            if not trList:
+                self.statusBarMsg("No PRISM grids available for " + parmName, "S")
+                return   # can't go on
+            #
+            # Initialize arrays to hold PRISM grids.
+            #
+            gridList = []
+            #
+            # Fetch the PRISM grids from the climo database, but warp the times
+            # to 2020 (a year with a leap day).
+            #
+            for tr in trList:
+                grid = self.getGrids(dbName, weName, "SFC", tr)
+                gridList.append(grid)
+            #
+            # Convert to numpy array
+            #
+            gridList = np.array(gridList)
+            #
+            # Append six months on each side to capture the full annual cycle twice.
+            #
+            gridList = np.concatenate((gridList[6:,:,:], gridList, gridList[:6,:,:]), axis=0)
+            #
+            # Get grid dimensions
+            #
+            yy, xx = np.meshgrid(np.arange(gridList.shape[1]), np.arange(gridList.shape[2]))
+            #
+            # Get days of the year where the 15th of each month lies
+            xs = np.array([(datetime.datetime(2020,1,1)+datetime.timedelta(days=x)).timetuple().tm_yday for x in range(366) if (datetime.datetime(2020,1,1)+datetime.timedelta(days=x)).day == 15])
+            xs = np.concatenate([xs[6:]-366, xs, xs[:6]+366])
+            #
+            # Loop through each grid point and interpolate
+            #
+            newGrids = np.zeros((366, gridList.shape[1], gridList.shape[2]))
+            for j, i in zip(yy.ravel(), xx.ravel()):
+                f = scipy.interpolate.InterpolatedUnivariateSpline(xs, gridList[:, j, i])
+                newGrids[:, j, i] = f(np.linspace(xs[0],xs[-1],703))[169:535]
+            gridList = newGrids.copy()
+            del newGrids
+            #
+            # Convert to F
+            #
+            gridList = ((gridList - 273.15) * 9)/5 + 32
+            #
+            # Obtain parameter information
+            #
+            parm = self.getParm("Fcst", parmName, "SFC")
+            gridParmInfo = parm.getGridInfo()
+            maxLimit = gridParmInfo.getMaxValue()
+            minLimit = gridParmInfo.getMinValue()
+            precision = gridParmInfo.getPrecision()
+            #
+            # Loop over the grids from the created timeRanges
+            #
+            for i in range(gridList.shape[0]):
+                #
+                # Generate a file string
+                #
+                MMDD = (datetime.datetime(2020,1,1)+datetime.timedelta(days=i)).strftime("%m%d")
+                #
+                # Open data and serp point normals into grid, replace in list
+                #
+                pointData = open("{}/Normals.{}.txt".format(DataLocation,MMDD),'r').readlines()
+                valuelist = self.getDataLocations(pointData,parmName)
+                gridList[i] = self.OA.ObjectiveAnalysis(valuelist, gridList[i], "serp", elevfactor=36)
+                #
+                # Give some output if someone is following
+                print('Made initial array for', parmName, MMDD)
+            #
+            # The serp process introduces a lot of artifacts and noise, which
+            # we want to remove by doing a 7-day moving window smooth.
+            #
+            # Obtain shape, make indicies
+            #
+            yy, xx = np.meshgrid(np.arange(gridList.shape[1]), np.arange(gridList.shape[2]))
+            #
+            # Extend grids to two full annual cycles
+            #
+            gridList = np.concatenate([gridList[183:,:,:], gridList, gridList[:183,:,:]], axis=0)
+            #
+            # Loop through each grid point and filter it
+            #
+            weights = np.hamming(7) # Weights for a 7-day smoothing window
+            for j, i in zip(yy.ravel(), xx.ravel()):
+                gridList[:, j, i] = np.convolve(weights/weights.sum(), gridList[:, j, i], mode='same')
+            #
+            # Retain central single annual cycle
+            #
+            gridList = gridList[183:-183,:,:]
+            #
+            # Round and clip the values
+            gridList = np.clip(np.round(gridList+0.005), minLimit, maxLimit)
+            #
+            # Now go day by day and make sure point values match the point normals
+            #
+            d = datetime.datetime(2020, 1, 1)
+            for z in range(366):
+                #
+                # Get values
+                #
+                MMDD = (datetime.datetime(2020,1,1)+datetime.timedelta(days=z)).strftime("%m%d")
+                pointData = open("{}/Normals.{}.txt".format(DataLocation,MMDD),'r').readlines()
+                valuelist = self.getDataLocations(pointData, parmName)
+                #
+                # Go through each one and set the value
+                for loc in valuelist:
+                    #
+                    # Get the values and set it
+                    value, x, y = int(round(loc[4]+0.005)), int(loc[1]), int(loc[2])
+                    gridList[z, y, x] = value
+                #
+                # Dump file
+                #
+                np.round(gridList[z]+0.005).astype(np.int16).dump("{}daily{}{}.npy".format(DataLocation, parmName, MMDD))
+                #
+                # output grids if requested.
+                if showgrids:
+                    self.createGrid('Climo', parm, "SCALAR", grids[z], gridTimes[z])
+                #
+                # Give some output if someone is following
+                print('Made final array for', parmName, d.strftime('%m%d'))
+                #
+                # Advance the day
+                d += datetime.timedelta(days=1)
+            #
+            # If output grids, save them
+            if showgrids:
+                self.saveElements([parm])
+
+    # Returns a list of timeRanges that make up the inventory for the
+    # specified weather element, either MinT or MaxT
+    def _getWEInventory(self, dbName, WEName, timeRange=None):
+        # set up a timeRange if it is None
+        if timeRange is None:
+            timeRange = TimeRange.TimeRange(AbsTime.AbsTime(0), AbsTime.maxFutureTime())
+        print("In the getInventory part", WEName, timeRange)
+        gridInfo = self.getGridInfo(dbName, WEName, "SFC", timeRange)
+        if gridInfo == []:
+            print("gridInfo is empty for weather element", WEName)
+        trList = []
+        for g in gridInfo:
+            start = g.gridTime().startTime().unixTime()
+            end = g.gridTime().endTime().unixTime()
+            tr = TimeRange.TimeRange(AbsTime.AbsTime(start), AbsTime.AbsTime(end))
+            trList.append(tr)
+        return trList
+  
+    def getDataLocations(self, datalines, paramName):
+        #
+        Topo = self.getTopo()
+        valuelist=[]
+        #
+        for line in datalines:
+            #
+            # Get values
+            #
+
+            id, lat, lon, maxvalue, minvalue = line.strip().split(",")
+            if paramName == "MaxT":
+                value = maxvalue
+            else:
+                value = minvalue
+            latf, lonf, valuef = float(lat), float(lon), float(value)
+            x, y = self.getGridCell(latf, lonf)
+            #
+            # If the ID is in domain and in reject list, reject it
+            #
+            if id in stationsToReject and x is not None and y is not None:
+                print("Found a requested station to be skipped:", id)
+                continue
+            #
+            # If station is in domain and requested to be moved, move it
+            #
+            if id in stationsToChange and x is not None and y is not None:
+                print("Found a station that was requested to be moved:", id)
+                latf = float(stationsToChange[id][0])
+                lonf = float(stationsToChange[id][1])
+                x, y = self.getGridCell(latf, lonf)
+            #
+            # Finally, add it to the list
+            #
+            if x is not None and y is not None:
+                valuelist.append((id, x, y, Topo[y, x], valuef))
+        #
+        return valuelist
+
