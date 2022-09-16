@@ -1,0 +1,73 @@
+# SVN: $Rev: 31875 $ $Date: 2022-04-11 20:25:27 +0000 (Mon, 11 Apr 2022) $
+#      $URL: https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/PrismHiRes/tags/latest_stable/gfe/LoadClimoTemps.Procedure $
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+#
+# LoadClimoTemps Version - 4.0 
+#
+# Author: Paul Iniguez (PSR SOO) and Mark Loeffelbein (WR/STID)
+#
+# 03/14/2018 - 2.1 Changed np.load to pickle.load to be compatible with OB 17.3.1.
+# 04/25/2018 - 2.2 Incrementing to be the same as MakeClimoTemps
+# 12/09/2020 - 3.0 Python 3 converstion
+# 09/28/2021 - 3.1 Fix for Python 2 compatibility.
+#
+# Procedure should run on a cron, once per day, to populate Climo database with
+# appropriate MaxT and MinT grids.
+#
+# ----------------------------------------------------------------------------
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+##
+
+MenuItems = ["None"]
+import LogStream
+import time,sys
+import AbsTime
+import SmartScript
+import datetime
+import numpy as np
+import pickle
+
+from math import *
+
+class Procedure (SmartScript.SmartScript):
+    def __init__(self, dbss):
+        SmartScript.SmartScript.__init__(self, dbss)
+
+    def execute(self):
+
+        for parm in ['MaxT', 'MinT']:
+
+            # Obtain start time and duration of parm grid...
+            fcstID = self.findDatabase('Fcst')
+            tr = self.createTimeRange(0, 240, fcstID)
+            times = self.getGridInfo('Fcst', parm, 'SFC', tr)
+            startTime = times[0].gridTime().startTime().hour
+            duration = times[0].gridTime().duration()/60./60.
+
+            # Initialize today's date...
+            now = datetime.datetime.now()-datetime.timedelta(days=1)
+
+            # Loop through the next 10 days...
+            for d in range(-1, 10):
+
+                # Create timerange...
+                tr = self.createTimeRange(startTime+24*d, startTime+24*d+duration, fcstID)
+
+                # Load data...
+                fn = 'daily'+parm+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                tmp = np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/%s'%fn,allow_pickle=True,fix_imports=True,encoding='latin1')
+
+                # Create Grid
+                self.createGrid("Climo", parm, "SCALAR", tmp, tr)
+
+                # Move date Forward
+                now += datetime.timedelta(days=1)

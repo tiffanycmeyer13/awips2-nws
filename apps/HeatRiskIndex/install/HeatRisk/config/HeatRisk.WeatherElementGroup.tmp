@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<WEGroup name="HeatRisk">
+    <WEItem parmID="HeatImpactLevelsMaxT_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="HeatImpactLevelsMinT_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="MinT_SFC:XXX_GRID__Climo_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="MaxT_SFC:XXX_GRID__Climo_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="HeatRisk_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="HeatRiskWWA_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="HeatRiskWWAbyZone_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="MaxT_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+    <WEItem parmID="MinT_SFC:XXX_GRID__Fcst_00000000_0000" relativeCycleNumber="-1"/>
+</WEGroup>
