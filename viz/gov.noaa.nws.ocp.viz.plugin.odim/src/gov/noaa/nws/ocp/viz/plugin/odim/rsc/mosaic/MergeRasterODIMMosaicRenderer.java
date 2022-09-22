@@ -10,11 +10,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.measure.IncommensurableException;
+import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
 
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.units.UnitConv;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;
 import com.raytheon.uf.viz.core.drawables.ResourcePair;
@@ -161,12 +162,13 @@ public class MergeRasterODIMMosaicRenderer implements IRadarMosaicRenderer {
 
             Unit<?> unit1 = ODIMVizDataUtil.getRecordDataUnit(rr1);
             Unit<?> unit2 = ODIMVizDataUtil.getRecordDataUnit(rr2);
-            if (!unit2.isCompatible(unit1)) {
+            UnitConverter converter;
+            try {
+                converter = unit2.getConverterToAny(unit1);
+            } catch (IncommensurableException | UnconvertibleException e) { // NOSONAR
                 // No joining can occur
                 continue;
             }
-            UnitConverter converter = UnitConv.getConverterToUnchecked(unit2,
-                    unit1);
 
             int ratio = rr2.getGateResolution() / rr1.getGateResolution();
             int nx = rr1.getNumBins() / ratio;
