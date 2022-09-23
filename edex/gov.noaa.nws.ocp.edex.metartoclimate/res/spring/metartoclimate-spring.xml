@@ -28,7 +28,7 @@
         xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
 
         <endpoint id="metarClimatePurgeCron"
-            uri="clusteredquartz://metartoclimate/climatepurge/?cron=${metartoclimatepurge.cron}" />
+            uri="quartz://metartoclimate/climatepurge/?cron=${metartoclimatepurge.cron}" />
 
         <!-- purge climate DB rpt table -->
         <route id="metarClimatePurgeWork">
