@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="gov.noaa.nws.ocp.viz.odim.feature"
+      label="ODIM Feature"
+      version="1.0.0.qualifier"
+      provider-name="NWS">
+
+   <description url="http://www.example.com/description">
+      [Enter Feature Description here.]
+   </description>
+
+   <copyright url="http://www.example.com/copyright">
+      [Enter Copyright Description here.]
+   </copyright>
+
+   <license url="http://www.example.com/license">
+      [Enter License Description here.]
+   </license>
+
+   <requires>
+      <import feature="com.raytheon.uf.viz.cots.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.common.core.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.d2d.core.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.uf.viz.core.feature" version="1.0.0.qualifier"/>
+      <import feature="com.raytheon.viz.radar.feature" version="1.0.0.qualifier"/>
+   </requires>
+
+   <plugin
+         id="gov.noaa.nws.ocp.common.dataplugin.odim"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="gov.noaa.nws.ocp.viz.plugin.odim"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

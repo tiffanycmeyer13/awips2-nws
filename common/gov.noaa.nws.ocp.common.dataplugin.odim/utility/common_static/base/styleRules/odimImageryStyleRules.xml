@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<!-- 
+    This is an incremental override file, indicating that the files
+    at different localization levels will be combined. 
+-->
+<styleRuleset>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>WRADH</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>kts</displayUnits>
+            <defaultColormap>Radar/Spectrum Width</defaultColormap>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="0" label="" pixelValue="2"/>
+                <entry displayValue="0.00001" label="0" pixelValue="16"/>
+                <entry displayValue="4" pixelValue="32"/>
+                <entry displayValue="8" pixelValue="48"/>
+                <entry displayValue="12" pixelValue="64"/>
+                <entry displayValue="16" pixelValue="80"/>
+                <entry displayValue="20" pixelValue="96"/>
+                <entry displayValue="35" pixelValue="112"/>
+                <entry displayValue="80" label="" pixelValue="127"/>
+                <entry label="RF" pixelValue="136"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>DBZH</parameter>
+            <parameter>TH</parameter>
+            <parameter>TV</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>dBZ</displayUnits>
+            <defaultColormap>Radar/Storm Clear Reflectivity</defaultColormap>
+            <dataMapping>
+                <entry displayValue="-32.5" label="" pixelValue="16"/>
+                <entry displayValue="-20.0" pixelValue="33"/>
+                <entry displayValue="-10.0"/>
+                <entry displayValue="  0.0"/>
+                <entry displayValue=" 10.0"/>
+                <entry displayValue=" 20.0"/>
+                <entry displayValue=" 30.0"/>
+                <entry displayValue=" 40.0"/>
+                <entry displayValue=" 50.0"/>
+                <entry displayValue=" 60.0"/>
+                <entry displayValue=" 70.0"/>
+                <entry displayValue=" 75.0" label="" pixelValue="240"/>
+                <entry displayValue=" 94.5" label="" pixelValue="255"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>VRADH</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>kts</displayUnits>
+            <defaultColormap>Radar/8 bit Vel</defaultColormap>
+            <dataMapping>
+                <entry label="RF" pixelValue="1" sample="RF"/>
+                <entry displayValue="-247.0" label="" pixelValue="2"/>
+                <entry displayValue="-100.0" pixelValue="26"/>
+                <entry displayValue=" -80.0"/>
+                <entry displayValue=" -60.0"/>
+                <entry displayValue=" -45.0"/>
+                <entry displayValue=" -20.0"/>
+                <entry displayValue="   0.0"/>
+                <entry displayValue="  20.0"/>
+                <entry displayValue="  45.0"/>
+                <entry displayValue="  60.0"/>
+                <entry displayValue="  80.0"/>
+                <entry displayValue=" 100.0" pixelValue="232"/>
+                <entry displayValue=" 245.0" label="" pixelValue="255"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>VRADH</parameter>
+            <creatingEntity>SRM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>kts</displayUnits>
+            <defaultColormap>Radar/8 bit Vel</defaultColormap>
+            <dataMapping>
+                <entry label="RF" pixelValue="1" sample="RF"/>
+                <entry displayValue="-247.0" label="" pixelValue="2"/>
+                <entry displayValue="-100.0" pixelValue="26"/>
+                <entry displayValue=" -80.0"/>
+                <entry displayValue=" -60.0"/>
+                <entry displayValue=" -45.0"/>
+                <entry displayValue=" -20.0"/>
+                <entry displayValue="   0.0"/>
+                <entry displayValue="  20.0"/>
+                <entry displayValue="  45.0"/>
+                <entry displayValue="  60.0"/>
+                <entry displayValue="  80.0"/>
+                <entry displayValue=" 100.0" pixelValue="232"/>
+                <entry displayValue=" 245.0" label="" pixelValue="255"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>ZDR</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>dB</displayUnits>
+            <numericFormat>
+                <!-- Number of decimal places to format the sample string to -->
+                <pattern>0.00</pattern>
+            </numericFormat>
+            <defaultColormap>Radar/DualPol/Differential Refl</defaultColormap>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="-4" pixelValue="16"/>
+                <entry displayValue="-2" pixelValue="32"/>
+                <entry displayValue="-0.5" pixelValue="48"/>
+                <entry displayValue="0.0" pixelValue="64"/>
+                <entry displayValue="0.25" pixelValue="80"/>
+                <entry displayValue="0.5" pixelValue="96"/>
+                <entry displayValue="1.0" pixelValue="112"/>
+                <entry displayValue="1.5" pixelValue="128"/>
+                <entry displayValue="2.0" pixelValue="144"/>
+                <entry displayValue="2.5" pixelValue="160"/>
+                <entry displayValue="3.0" pixelValue="176"/>
+                <entry displayValue="4.0" pixelValue="192"/>
+                <entry displayValue="5.0" pixelValue="208"/>
+                <entry displayValue="6.0" pixelValue="224"/>
+                <entry displayValue="8.0" label="" pixelValue="240"/>
+                <entry label="RF" pixelValue="248"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>RHOHV</parameter>
+            <parameter>URHOHV</parameter>
+            <parameter>SQIV</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>*1</displayUnits>
+            <defaultColormap>Radar/DualPol/Correlation Coeff</defaultColormap>
+            <numericFormat>
+                <!-- Number of decimal places to format the sample string to -->
+                <pattern>0.0000</pattern>
+            </numericFormat>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="0.20" pixelValue="16"/>
+                <entry displayValue="0.45" pixelValue="32"/>
+                <entry displayValue="0.65" pixelValue="48"/>
+                <entry displayValue="0.75" pixelValue="64"/>
+                <entry displayValue="0.80" pixelValue="80"/>
+                <entry displayValue="0.85" pixelValue="96"/>
+                <entry displayValue="0.90" pixelValue="112"/>
+                <entry displayValue="0.93" pixelValue="128"/>
+                <entry displayValue="0.95" pixelValue="144"/>
+                <entry displayValue="0.96" pixelValue="160"/>
+                <entry displayValue="0.97" pixelValue="176"/>
+                <entry displayValue="0.98" pixelValue="192"/>
+                <entry displayValue="0.99" pixelValue="208"/>
+                <entry displayValue="1.0" pixelValue="224"/>
+                <entry displayValue="1.05" label="" pixelValue="240"/>
+                <entry label="RF" pixelValue="248"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>SQIH</parameter>
+            <parameter>USQIH</parameter>
+            <parameter>USQIV</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>*1</displayUnits>
+            <defaultColormap>Radar/DualPol/Correlation Coeff</defaultColormap>
+            <numericFormat>
+                <!-- Number of decimal places to format the sample string to -->
+                <pattern>0.0000</pattern>
+            </numericFormat>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="0.00" pixelValue="16"/>
+                <entry displayValue="1.0" pixelValue="224"/>
+                <entry displayValue="1.05" label="" pixelValue="240"/>
+                <entry label="NO DATA" pixelValue="248"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>KDP</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>deg/km</displayUnits>
+            <numericFormat>
+                <!-- Number of decimal places to format the sample string to -->
+                <pattern>0.00</pattern>
+            </numericFormat>
+            <defaultColormap>Radar/DualPol/Spec Differential Phase</defaultColormap>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="-2" pixelValue="16"/>
+                <entry displayValue="-1" pixelValue="32"/>
+                <entry displayValue="-0.5" pixelValue="48"/>
+                <entry displayValue="0.0" pixelValue="64"/>
+                <entry displayValue="0.25" pixelValue="80"/>
+                <entry displayValue="0.5" pixelValue="96"/>
+                <entry displayValue="1.0" pixelValue="112"/>
+                <entry displayValue="1.5" pixelValue="128"/>
+                <entry displayValue="2.0" pixelValue="144"/>
+                <entry displayValue="2.5" pixelValue="160"/>
+                <entry displayValue="3.0" pixelValue="176"/>
+                <entry displayValue="4.0" pixelValue="192"/>
+                <entry displayValue="5.0" pixelValue="208"/>
+                <entry displayValue="7.0" pixelValue="224"/>
+                <entry displayValue="10.0" label="" pixelValue="240"/>
+                <entry label="RF" pixelValue="248"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+    <styleRule>
+        <paramLevelMatches>
+            <parameter>PHIDP</parameter>
+            <parameter>UPHIDP</parameter>
+            <creatingEntity>ODIM</creatingEntity>
+        </paramLevelMatches>
+        <imageStyle>
+            <displayUnits>deg</displayUnits>
+            <numericFormat>
+                <!-- Number of decimal places to format the sample string to -->
+                <pattern>0.00</pattern>
+            </numericFormat>
+            <defaultColormap>Radar/DualPol/phiDP</defaultColormap>
+            <dataMapping>
+                <entry label="" pixelValue="1" sample="RF"/>
+                <entry displayValue="30" pixelValue="16"/>
+                <entry displayValue="60" pixelValue="32"/>
+                <entry displayValue="90"/>
+                <entry displayValue="120"/>
+                <entry displayValue="150"/>
+                <entry displayValue="180"/>
+                <entry displayValue="210"/>
+                <entry displayValue="240"/>
+                <entry displayValue="270"/>
+                <entry displayValue="300"/>
+                <entry displayValue="330"/>
+                <entry displayValue="360" pixelValue="240"/>
+                <entry label="RF" pixelValue="248"/>
+            </dataMapping>
+        </imageStyle>
+    </styleRule>
+</styleRuleset>

@@ -1,0 +1,298 @@
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+#
+# HeatRisk_Review Version 2.0
+#
+# Authors:
+#    Paul Iniguez, PSR SOO
+#
+# This procedure will pull observation grids from a given date and calculate
+# the corresponding HeatRisk values.
+#
+# 12/09/2020 - Python 3 conversion
+#
+# ----------------------------------------------------------------------------
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+##
+
+MenuItems = [None]
+import SmartScript
+import BOIVerifyUtility
+
+import datetime
+import numpy as np
+import datetime
+import calendar
+import pickle
+
+import TimeRange
+import AbsTime
+
+from dateutil.parser import parse
+
+# Define the observation model
+model = 'Obs'
+
+# Define a mask name (edit area name), if you like, otherwise leave as None.
+mask_name = None
+
+# Variables for GUI
+VariableList = [
+                #("Highly Recommended This Is Run In **PRACTICE** Mode!",'','label'),
+                ("Start Date (yyyy-mm-dd)",
+                 (datetime.datetime.now()-datetime.timedelta(days=7)).strftime('%Y-%m-%d'),
+                 "alphaNumeric"),
+                ("End Date (yyyy-mm-dd)",
+                 datetime.datetime.now().strftime('%Y-%m-%d'),
+                 "alphaNumeric"),
+]
+
+class Procedure (SmartScript.SmartScript):
+    def __init__(self, dbss):
+        self._dbss = dbss
+        SmartScript.SmartScript.__init__(self, dbss)
+
+    def execute(self, varDict):
+        #
+        # Initialize BoiVER
+        self.VU = BOIVerifyUtility.BOIVerifyUtility(self._dbss, None)
+        #
+        # Clear out parms
+        loadedParms = self.loadedParms()
+        for parm in loadedParms:
+            self.unloadWE('Fcst', parm[0], 'SFC')
+        del loadedParms, parm
+        #
+        #############################################################################################
+        #
+        # Set definitions
+        #
+        #############################################################################################
+        #
+        # Initialize empty arrays
+        Grids = {'ObsMaxT': [],
+                 'ObsMinT': [],
+                 'RedMaxT': [],
+                 'RedMinT': [],
+                 'OrangeMaxT': [],
+                 'OrangeMinT': [],
+                 'YellowMaxT': [],
+                 'YellowMinT': [],
+                 'NormalMaxT': [],
+                 'NormalMinT': [],
+                 }
+        #
+        # Get MaxT/MinT Limits
+        tr = self.createTimeRange(0, 168, "Z", 'Fcst')
+        maxMaxLimit = self.getGridInfo('Fcst', 'MaxT', "SFC", tr)[0].maxLimit()
+        maxMinLimit = self.getGridInfo('Fcst', 'MaxT', "SFC", tr)[0].minLimit()
+        minMaxLimit = self.getGridInfo('Fcst', 'MinT', "SFC", tr)[0].maxLimit()
+        minMinLimit = self.getGridInfo('Fcst', 'MinT', "SFC", tr)[0].minLimit()
+        #
+        # Load where Diurnal Range Modifier needs to be used (created during install process)
+        #
+        DRM = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/DRM.npy')
+        #
+        # Want a mask?
+        #
+        if mask_name is None:
+            mask = np.ones(self.getGridShape())
+        else:
+            ea = self.getEditArea(mask_name)
+            mask = self.encodeEditArea(ea)
+        #
+        # Pull start/end dates given in GUI. Adjust date back a few for
+        # proper HeatRisk calculations.
+        #
+        startDate = parse(varDict["Start Date (yyyy-mm-dd)"])
+        endDate = parse(varDict["End Date (yyyy-mm-dd)"])
+        startDate -= datetime.timedelta(days=2)
+        #
+        #############################################################################################
+        #
+        # Obtain Necessary Grids
+        #
+        #############################################################################################
+        #
+        for parm in ['MaxT', 'MinT']:
+            #
+            # Find out when the parm grid starts/ends
+            #
+            tr = self.createTimeRange(0, 168, "Z", 'Fcst')
+            startTime = self.getGridInfo('Fcst', parm, "SFC", tr)[0].gridTime().startTime().hour
+            endTime = self.getGridInfo('Fcst', parm, "SFC", tr)[0].gridTime().endTime().hour
+            #
+            # Set the start date.
+            #
+            start = calendar.timegm((startDate.year, startDate.month, startDate.day, startTime, 0, 0, 0, 0, 0))
+            #
+            # Adjust the date of the ending for MaxT/MinT if it rolls onto the next Z day
+            #
+            if endTime < startTime:
+                end = endDate + datetime.timedelta(days=1)
+                duration = endTime + 24 - startTime
+            else:
+                end = endDate
+                duration = endTime - startTime
+            #
+            # Set the end date using the MinT (which will be later)
+            #
+            end = calendar.timegm((end.year, end.month, end.day, endTime, 0, 0, 0, 0,))
+            #
+            # Now get all the grids
+            #
+            pt = startDate
+            while start < end:
+                #
+                # Create timeRange
+                #
+                tr = TimeRange.TimeRange(AbsTime.AbsTime(start), AbsTime.AbsTime(start+duration*60*60))
+                #
+                # Get obs, HIL, and Normal grids
+                #
+                if parm == 'MaxT':
+                    #
+                    ob = self.VU.getVerGrids(model, start, parm, start, start+86400)
+                    red = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmax'+pt.strftime('%m%d')+'.npy')
+                    orange = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmax'+pt.strftime('%m%d')+'.npy')
+                    normal = np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/daily'+parm+pt.strftime('%m%d')+'.npy')
+                    Grids['Obs'+parm].append([tr, ob])
+                    Grids['Red'+parm].append([tr, red])
+                    Grids['Orange'+parm].append([tr, orange])
+                    Grids['Normal'+parm].append([tr, normal])
+                    Grids['Yellow'+parm].append([tr, np.ones(ob.shape)*70])
+                else:
+                    #
+                    ob = self.VU.getVerGrids(model, start, parm, start, start+86400)
+                    red = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmin'+pt.strftime('%m%d')+'.npy')
+                    orange = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmin'+pt.strftime('%m%d')+'.npy')
+                    normal = np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/daily'+parm+pt.strftime('%m%d')+'.npy')
+                    Grids['Obs'+parm].append([tr, ob])
+                    Grids['Red'+parm].append([tr, red])
+                    Grids['Orange'+parm].append([tr, orange])
+                    Grids['Normal'+parm].append([tr, normal])
+                    Grids['Yellow'+parm].append([tr, np.ones(ob.shape)*70])
+                #
+                # Advance one day
+                #
+                start += 86400
+                pt += datetime.timedelta(days=1)
+        #
+        #
+        #############################################################################################
+        #
+        # Create temp grids
+        #
+        #############################################################################################
+        #
+        for k in Grids:
+            #
+            for g in Grids[k]:
+                #
+                grid = np.round(g[1]+0.005, 0)
+                self.createGrid("Fcst", k, "SCALAR", np.where(mask, grid, 0).astype('float32'), g[0])
+        #
+        #
+        #############################################################################################
+        #
+        # Calculate HeatRisk
+        #
+        #############################################################################################
+        #
+        # Create HIL grids
+        #
+        for parm in ['MaxT', 'MinT']:
+            #
+            for g in Grids['Obs'+parm]:
+                #
+                # Load the MaxT/MinT Obs grids
+                if parm == 'MaxT':
+                    self.createGrid("Fcst", parm+'Obs', "SCALAR", g[1].astype('float32'), g[0],
+                                    defaultColorTable='GFE/Gridded Data', minAllowedValue=maxMinLimit, maxAllowedValue=maxMaxLimit)
+                else:
+                    self.createGrid("Fcst", parm+'Obs', "SCALAR", g[1].astype('float32'), g[0],
+                                    defaultColorTable='GFE/Gridded Data', minAllowedValue=minMinLimit, maxAllowedValue=minMaxLimit)
+                #
+                red = self.getGrids("Fcst", 'Red'+parm, "SFC", g[0], noDataError=0)
+                orange = self.getGrids("Fcst", 'Orange'+parm, "SFC", g[0], noDataError=0)
+                yellow = self.getGrids("Fcst", 'Yellow'+parm, "SFC", g[0], noDataError=0)
+                #
+                HIL = red * 0
+                HIL = np.where(g[1]>=yellow, 1, 0)
+                HIL[g[1]>=orange] = 2
+                HIL[g[1]>=red] = 3
+                #
+                # Round the HIL output
+                #
+                HIL = np.round(HIL+0.005, 0)
+                #
+                # Create the grid
+                #
+                self.createGrid("Fcst", "ObsHeatImpactLevels"+parm, "SCALAR", np.where(mask, HIL.astype('float32'), 0), g[0],
+                                defaultColorTable='HeatImpactLevels', minAllowedValue=0, maxAllowedValue=4)
+        #
+        # Calculate the HeatRisk
+        #
+        # Empty array for HeatRisk timeranges
+        #
+        trs = []
+        #
+        for g in range(len(Grids['ObsMaxT'])-1):
+            #
+            # Grab the necessary grids to calculate
+            #
+            HILMaxT = self.getGrids("Fcst", 'ObsHeatImpactLevelsMaxT', "SFC", Grids['ObsMaxT'][g][0], noDataError=0)
+            HILMinT1 = self.getGrids("Fcst", 'ObsHeatImpactLevelsMinT', "SFC", Grids['ObsMinT'][g][0], noDataError=0)
+            HILMinT2 = self.getGrids("Fcst", 'ObsHeatImpactLevelsMinT', "SFC", Grids['ObsMinT'][g+1][0], noDataError=0)
+            #
+            # Calculate
+            #
+            HeatRisk = np.where(DRM, (2*HILMaxT + 0.5*HILMinT1 + 1.5*HILMinT2)/4,
+                                (2*HILMaxT + 0.25*HILMinT1 + 0.75*HILMinT2)/3)
+            #
+            # Create a full day timerange
+            #
+            a = datetime.datetime(Grids['ObsMaxT'][g][0].startTime().year, Grids['ObsMaxT'][g][0].startTime().month, Grids['ObsMaxT'][g][0].startTime().day, 6)
+            a = calendar.timegm((a.year, a.month, a.day, a.hour, 0, 0, 0, 0, 0))
+            b = a + 24*60*60
+            tr = TimeRange.TimeRange(AbsTime.AbsTime(a), AbsTime.AbsTime(b))
+            trs.append(tr)
+            #
+            # Now create grid
+            #
+            self.createGrid('Fcst', 'ObsHeatRisk', 'SCALAR', HeatRisk.astype('float32'), tr,
+                            minAllowedValue=0, maxAllowedValue=4,
+                            defaultColorTable='GFE/HeatImpactLevels')
+
+        #
+        # Now go back through HeatRisk and where yesterday is red and today is red, set it to 4/magenta.
+        #
+        for t in range(1, len(trs)):
+            #
+            # Pull previous day's HeatRisk
+            #
+            HeatRisk1 = self.getGrids("Fcst", 'ObsHeatRisk', "SFC", trs[t-1], noDataError=0)
+            #
+            # Pull current day's HeatRisk
+            #
+            HeatRisk2 = self.getGrids("Fcst", 'ObsHeatRisk', "SFC", trs[t], noDataError=0)
+            #
+            # Where yesterday and today are 3/red, set it to 4/magenta
+            #
+            HeatRisk2[(HeatRisk1>=3)&(HeatRisk2>=3)] = 4
+            #
+            # Create final grid and save it
+            #
+            HeatRisk2 = np.round(HeatRisk2, 0).astype('int')
+            self.createGrid('Fcst', 'ObsHeatRisk', 'SCALAR', HeatRisk2.astype('float32'), trs[t],
+                            minAllowedValue=0, maxAllowedValue=4,
+                            defaultColorTable='GFE/HeatImpactLevels')
+

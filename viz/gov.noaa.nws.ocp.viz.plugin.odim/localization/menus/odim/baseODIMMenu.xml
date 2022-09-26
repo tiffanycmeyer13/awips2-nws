@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="subMenu" menuText="${node}">
+        <contribute xsi:type="subinclude"
+            fileName="menus/odim/baseODIMZSRM.xml" />
+        <contribute xsi:type="separator" id="${node}BestResZV" />
+        <contribute xsi:type="subinclude"
+            fileName="menus/odim/baseODIMZV.xml" />
+        <contribute xsi:type="separator"
+            id="${node}4PanelZSRM_ZDRV_KDP_HC_CCSW" />
+        <contribute xsi:type="subinclude"
+            fileName="menus/odim/baseODIMFourPanel.xml" />
+        <contribute xsi:type="separator" id="${node}Base" />
+        <contribute xsi:type="subinclude"
+            fileName="menus/odim/baseODIMBase.xml" />
+        <contribute xsi:type="subinclude" subMenu="${node} four panel"
+            fileName="menus/odim/baseODIMFourPanelTilts.xml" />
+        <contribute xsi:type="subinclude" subMenu="${node} Data Quality"
+            fileName="menus/odim/baseODIMDataQuality.xml" />
+    </contribute>
+</menuTemplate>
