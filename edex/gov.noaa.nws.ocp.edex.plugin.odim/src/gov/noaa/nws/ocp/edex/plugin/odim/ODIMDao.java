@@ -27,6 +27,7 @@ import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMStoredData;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Sep 27, 2022 8928       lsingh      Update populateDataStore to return boolean
  * </pre>
  *
  * @author dfriedman
@@ -42,10 +43,13 @@ public class ODIMDao extends PluginDao {
     }
 
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
+    protected boolean populateDataStore(IDataStore dataStore,
             IPersistable obj) throws Exception {
         ODIMRecord pdo = (ODIMRecord) obj;
         StorageProperties sp = null;
+        
+        boolean hasRecords = false;
+        
         String compression = PluginRegistry.getInstance()
                 .getRegisteredObject(pluginName).getCompression();
         if (compression != null) {
@@ -61,6 +65,7 @@ public class ODIMDao extends PluginDao {
                     new long[] { pdo.getNumBins(), pdo.getNumRadials() });
             rec.setCorrelationObject(pdo);
             dataStore.addDataRecord(rec, metaId, sp);
+            hasRecords = true;
         }
         if (pdo.getRawShortData() != null) {
             IDataRecord rec = new ShortDataRecord(ODIMStoredData.SHORT_DATA_ID,
@@ -68,6 +73,7 @@ public class ODIMDao extends PluginDao {
                     new long[] { pdo.getNumBins(), pdo.getNumRadials() });
             rec.setCorrelationObject(pdo);
             dataStore.addDataRecord(rec, metaId, sp);
+            hasRecords = true;
         }
         if (pdo.getAngleData() != null) {
             IDataRecord rec = new FloatDataRecord(ODIMStoredData.ANGLE_DATA_ID,
@@ -75,9 +81,10 @@ public class ODIMDao extends PluginDao {
                     new long[] { pdo.getNumRadials() });
             rec.setCorrelationObject(pdo);
             dataStore.addDataRecord(rec, metaId, sp);
+            hasRecords = true;
         }
 
-        return dataStore;
+        return hasRecords;
     }
 
 }
