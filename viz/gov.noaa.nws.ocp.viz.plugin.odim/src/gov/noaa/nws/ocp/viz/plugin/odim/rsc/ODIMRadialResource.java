@@ -20,7 +20,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.measure.IncommensurableException;
 import javax.measure.Quantity;
+import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import javax.measure.quantity.Length;
@@ -55,7 +57,6 @@ import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.common.style.StyleException;
 import com.raytheon.uf.common.style.image.ColorMapParameterFactory;
 import com.raytheon.uf.common.time.DataTime;
-import com.raytheon.uf.common.units.UnitConv;
 import com.raytheon.uf.viz.core.DrawableImage;
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.IMesh;
@@ -885,7 +886,7 @@ public class ODIMRadialResource
                 && dataMap.get(key) != null;
     }
 
-    // Copied from AbstractRadarResource.
+    // Copied from AbstractRadarResource and modified.
     /**
      * Converts the measure to the desired output unit (if provided) and then
      * returns a formatted string using the converted measure value and unit
@@ -907,9 +908,11 @@ public class ODIMRadialResource
      *            of the measure and the unit String, in that order. This must
      *            be non null.
      * @return The formatted output.
+     * @throws VizException
+     *             if units are unconvertible.
      */
     protected String formatQuantity(Quantity<?> quantity, Unit<?> outputUnit,
-            String format) {
+            String format) throws VizException {
         if (quantity == null || quantity.getValue() == null || format == null) {
             return null;
         }
@@ -927,8 +930,12 @@ public class ODIMRadialResource
         double value = quantity.getValue().doubleValue();
         if (quantity.getUnit() != outputUnit && quantity.getUnit() != null
                 && outputUnit != null && !outputUnit.equals(AbstractUnit.ONE)) {
-            UnitConverter toOutputUnit = UnitConv
-                    .getConverterToUnchecked(quantity.getUnit(), outputUnit);
+            UnitConverter toOutputUnit;
+            try {
+                toOutputUnit = quantity.getUnit().getConverterToAny(outputUnit);
+            } catch (IncommensurableException | UnconvertibleException e) {
+                throw new VizException(e);
+            }
             value = toOutputUnit.convert(value);
             unitString = SimpleUnitFormat
                     .getInstance(SimpleUnitFormat.Flavor.ASCII)
@@ -1003,12 +1010,13 @@ public class ODIMRadialResource
         }
     }
 
-    // Copied from AbstractRadarResource.
-    public String inspect(DataTime dataTime, InterrogateMap dataMap) {
+    // Copied from AbstractRadarResource and modified to throw VizException.
+    public String inspect(DataTime dataTime, InterrogateMap dataMap)
+            throws VizException {
         return inspect(dataTime, defaultInspectLabels, dataMap);
     }
 
-    // Copied from AbstractRadarResource.
+    // Copied from AbstractRadarResource and modified to throw VizException.
     /**
      * Given the map of data values, return the inspection string
      *
@@ -1016,7 +1024,7 @@ public class ODIMRadialResource
      * @return
      */
     public String inspect(DataTime dataTime, Set<InterrogationKey<?>> keys,
-            InterrogateMap dataMap) {
+            InterrogateMap dataMap) throws VizException {
         if (dataMap == null) {
             return "NO DATA";
         }
