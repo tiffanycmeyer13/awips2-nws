@@ -23,7 +23,7 @@ import com.raytheon.uf.common.dataplugin.radar.util.RadarUtil;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.units.PiecewisePixel;
-import com.raytheon.uf.common.units.UnitConv;
+import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.radar.util.DataUtilities;
 
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
@@ -247,23 +247,28 @@ public class ODIMVizDataUtil {
      * @param radarRecord
      * @param params
      * @return
+     * @throws VizException
+     *             if units are unconvertible.
      */
     public static UnitConverter getConverter(ODIMRecord rec,
-            RadarRecord radarRecord, ColorMapParameters params) {
+            RadarRecord radarRecord, ColorMapParameters params)
+            throws VizException {
         UnitConverter dataToImage = null;
         Unit<?> dataUnit = getRecordDataUnit(rec);
 
         if (dataUnit != null && !dataUnit.equals(params.getDataUnit())) {
-            Unit<?> imageUnit = params.getImageUnit();
-            if (imageUnit != null && dataUnit.isCompatible(imageUnit)) {
-                dataToImage = UnitConv.getConverterToUnchecked(dataUnit,
-                        imageUnit);
-            } else if (imageUnit != null) {
-                dataUnit = DataUtilities.getDataUnit(radarRecord, "");
-                if (dataUnit.isCompatible(imageUnit)) {
-                    dataToImage = UnitConv.getConverterToUnchecked(dataUnit,
-                            imageUnit);
+            Unit<?> imageUnit = params.getColorMapUnit();
+            try {
+                if (imageUnit != null && dataUnit.isCompatible(imageUnit)) {
+                    dataToImage = dataUnit.getConverterToAny(imageUnit);
+                } else if (imageUnit != null) {
+                    dataUnit = DataUtilities.getDataUnit(radarRecord, "");
+                    if (dataUnit.isCompatible(imageUnit)) {
+                        dataToImage = dataUnit.getConverterToAny(imageUnit);
+                    }
                 }
+            } catch (IncommensurableException | UnconvertibleException e) {
+                throw new VizException(e);
             }
         } else {
             dataToImage = params.getDataToImageConverter();
