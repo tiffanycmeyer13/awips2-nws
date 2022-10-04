@@ -1,16 +1,20 @@
 package gov.noaa.nws.ost.dataplugin.stq;
 
 import java.util.Calendar;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Index;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.xml.bind.annotation.XmlAttribute;
+
+import org.locationtech.jts.geom.Geometry;
 
 import com.raytheon.uf.common.dataplugin.PluginDataObject;
 import com.raytheon.uf.common.dataplugin.annotations.DataURI;
@@ -21,38 +25,36 @@ import com.raytheon.uf.common.pointdata.PointDataView;
 import com.raytheon.uf.common.pointdata.spatial.SurfaceObsLocation;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
-import org.locationtech.jts.geom.Geometry;
 
 /**
  * SpotRequestRecord is the Data Access component for Spot Forecast Request
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date           Ticket#    Engineer    Description
  * -------------- ---------- ----------- --------------------------
  * July 17, 2015             Pwang       Initial creation for STQ: Spot Request
  *                                       Data plugin
  * Jan  21, 2016  18524      pwang       Added the setter to avoid Archiver error
- * 
+ * Aug 08, 2022   8892       tjensen     Update indexes for Hibernate 5
+ *
  * Nov 22, 2021   22245      jrohwein    change projectname column length to 120
  * </pre>
- * 
+ *
  * @author pwang
- * @version 1.0
  */
 
 @Entity
 @SequenceGenerator(initialValue = 1, name = PluginDataObject.ID_GEN, sequenceName = "stqseq")
-@Table(name = "stq", uniqueConstraints = { @UniqueConstraint(columnNames = { "dataURI" }) })
-/*
- * Both refTime and forecastTime are included in the refTimeIndex since
- * forecastTime is unlikely to be used.
- */
+@Table(name = "stq", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "dataURI" }) }, indexes = {
+                @Index(name = "%TABLE%_stationIndex", columnList = "stationId") })
+
 @DynamicSerialize
-public class SpotRequestRecord extends PersistablePluginDataObject implements
-        ISpatialEnabled, IPointData {
+public class SpotRequestRecord extends PersistablePluginDataObject
+        implements ISpatialEnabled, IPointData {
 
     private static final long serialVersionUID = 1L;
 
@@ -60,10 +62,10 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     private static final String stqDispSymbol = "S";
 
-    /* 
-     * Project key, such as FGOWB, which can be used for identify the STQ requests
-     * Extract from ofile, 2nd segment, such as
-     * FGOWB from 20150530.FGOWV.01
+    /*
+     * Project key, such as FGOWB, which can be used for identify the STQ
+     * requests Extract from ofile, 2nd segment, such as FGOWB from
+     * 20150530.FGOWV.01
      */
     @DataURI(position = 1)
     @Column(nullable = false)
@@ -111,7 +113,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     @DynamicSerializeElement
     private String emPhone;
 
-    //Time Zone
+    // Time Zone
     @Transient
     @DynamicSerializeElement
     private String timeZone;
@@ -142,7 +144,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     private String stqSymbol = stqDispSymbol;
 
     /**
-     * 
+     *
      */
     public SpotRequestRecord() {
     }
@@ -150,7 +152,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     /**
      * Constructor for DataURI construction through base class. This is used by
      * the notification service.
-     * 
+     *
      * @param uri
      *            A data uri applicable to this class.
      * @param tableDef
@@ -170,6 +172,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get OFile Key
+     *
      * @return
      */
     public String getOfileKey() {
@@ -178,6 +181,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set OFile Key
+     *
      * @param ofileKey
      */
     public void setOfileKey(String ofileKey) {
@@ -186,6 +190,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get OFile Version
+     *
      * @return
      */
     public String getOfileVersion() {
@@ -194,6 +199,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set OFile Version
+     *
      * @param ofileVersion
      */
     public void setOfileVersion(String ofileVersion) {
@@ -202,6 +208,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Site
+     *
      * @return
      */
     public String getSite() {
@@ -210,6 +217,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Site
+     *
      * @param site
      */
     public void setSite(String site) {
@@ -218,6 +226,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get SpatialObject: SurfaceObsLocation
+     *
      * @return
      */
     @Override
@@ -227,6 +236,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get location
+     *
      * @return
      */
     public SurfaceObsLocation getLocation() {
@@ -235,7 +245,9 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Location
-     * @param location: SurfaceObsLocation
+     *
+     * @param location:
+     *            SurfaceObsLocation
      */
     public void setLocation(SurfaceObsLocation location) {
         this.location = location;
@@ -243,7 +255,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get this observation's geometry.
-     * 
+     *
      * @return The geometry for this observation.
      */
     public Geometry getGeometry() {
@@ -252,7 +264,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get the geometry latitude.
-     * 
+     *
      * @return The geometry latitude.
      */
     public double getLatitude() {
@@ -261,7 +273,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get the geometry longitude.
-     * 
+     *
      * @return The geometry longitude.
      */
     public double getLongitude() {
@@ -270,6 +282,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set latitude
+     *
      * @param latitude
      */
     public void setLatitude(float latitude) {
@@ -278,6 +291,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set longitude
+     *
      * @param longitude
      */
     public void setLongitude(float longitude) {
@@ -285,7 +299,8 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
     }
 
     /**
-     * Get Project Name 
+     * Get Project Name
+     *
      * @return
      */
     public String getProjectName() {
@@ -294,6 +309,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Project name
+     *
      * @param projectName
      */
     public void setProjectName(String projectName) {
@@ -302,6 +318,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get PointDataView
+     *
      * @return PointDataView
      */
     @Override
@@ -316,6 +333,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get WMO Header
+     *
      * @return
      */
     public String getWmoHeader() {
@@ -324,6 +342,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set WMO Header
+     *
      * @param wmoHeader
      */
     public void setWmoHeader(String wmoHeader) {
@@ -332,6 +351,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get TimeZone
+     *
      * @return
      */
     public String getTimeZone() {
@@ -340,6 +360,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set TimeZone
+     *
      * @param timeZone
      */
     public void setTimeZone(String timeZone) {
@@ -352,6 +373,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set State
+     *
      * @param state
      */
     public void setState(String state) {
@@ -360,6 +382,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Bottom Elevation
+     *
      * @return
      */
     public int getBottomElevation() {
@@ -368,6 +391,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Bottom Elevation
+     *
      * @param bottomElevation
      */
     public void setBottomElevation(int bottomElevation) {
@@ -376,6 +400,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Top Elevation
+     *
      * @return
      */
     public int getTopElevation() {
@@ -384,6 +409,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Top Elevation
+     *
      * @param topElevation
      */
     public void setTopElevation(int topElevation) {
@@ -392,6 +418,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Size of Spot
+     *
      * @return
      */
     public int getSizeAcres() {
@@ -404,7 +431,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get the station identifier for this observation.
-     * 
+     *
      * @return the stationId
      */
     public String getStationId() {
@@ -413,7 +440,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get the elevation, in meters, of the observing platform or location.
-     * 
+     *
      * @return The observation elevation, in meters.
      */
     public Integer getElevation() {
@@ -422,7 +449,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get whether the location for this observation is defined.
-     * 
+     *
      * @return Is this location defined.
      */
     public Boolean getLocationDefined() {
@@ -441,7 +468,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set the data uri for this observation.
-     * 
+     *
      * @param dataURI
      */
     @Override
@@ -452,6 +479,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Request Official Name
+     *
      * @return
      */
     public String getReqOfficial() {
@@ -460,6 +488,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Request Official Name
+     *
      * @param reqOfficial
      */
     public void setReqOfficial(String reqOfficial) {
@@ -468,6 +497,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Requester's Emergency Phone Number
+     *
      * @return
      */
     public String getEmPhone() {
@@ -476,6 +506,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Set Requester's Emergency Phone Number
+     *
      * @param emPhone
      */
     public void setEmPhone(String emPhone) {
@@ -484,15 +515,16 @@ public class SpotRequestRecord extends PersistablePluginDataObject implements
 
     /**
      * Get Symbol
+     *
      * @return
      */
     public String getStqSymbol() {
         return stqSymbol;
     }
-    
+
     /**
      * setStqSymbol (only for serialization / archive)
-     * 
+     *
      * @param stqSymbol
      */
     public void setStqSymbol(String stqSymbol) {

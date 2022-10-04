@@ -29,6 +29,7 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord;
  * Apr 05, 2021  8374     randerso   Renamed IDataRecord.get/setProperties to
  *                                   get/setProps
  * Sep 23, 2021  8608     mapeters   Pass metadata ids to datastore
+ * Jun 22, 2022  8865     mapeters   Update populateDataStore to return boolean
  *
  * </pre>
  *
@@ -41,14 +42,14 @@ public class PshDataDAO extends PluginDao {
     }
 
     @Override
-    protected IDataStore populateDataStore(IDataStore dataStore,
-            IPersistable obj) throws Exception {
+    protected boolean populateDataStore(IDataStore dataStore, IPersistable obj)
+            throws Exception {
 
-        AbstractStorageRecord storageRecord = null;
         StormDataRecord record = (StormDataRecord) obj;
 
-        storageRecord = new StringDataRecord(StormDataRecord.STORMDATA_XML,
-                record.getDataURI(), new String[] { record.getStormDataXML() });
+        AbstractStorageRecord storageRecord = new StringDataRecord(
+                StormDataRecord.STORMDATA_XML, record.getDataURI(),
+                new String[] { record.getStormDataXML() });
 
         StorageProperties props = new StorageProperties();
 
@@ -57,7 +58,7 @@ public class PshDataDAO extends PluginDao {
         dataStore.addDataRecord(storageRecord,
                 new DataUriMetadataIdentifier(record));
 
-        return dataStore;
+        return true;
     }
 
 }

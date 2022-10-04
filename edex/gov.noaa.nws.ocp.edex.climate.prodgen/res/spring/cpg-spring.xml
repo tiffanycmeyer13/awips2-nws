@@ -17,10 +17,10 @@
         xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
 
         <endpoint id="climateCPGPurgeCron"
-            uri="clusteredquartz://cpg/cpgSessionPurger/?cron=${cpg.purger.cron}"/>
+            uri="quartz://cpg/cpgSessionPurger/?cron=${cpg.purger.cron}"/>
             
         <endpoint id="climateSendRecordPurgeCron"
-            uri="clusteredquartz://cpg/sentRecordPurger/?cron=${record.purger.cron}" />
+            uri="quartz://cpg/sentRecordPurger/?cron=${record.purger.cron}" />
 
         <!-- purge CPG sessions table -->
         <route id="climateCPGPurgeWork">

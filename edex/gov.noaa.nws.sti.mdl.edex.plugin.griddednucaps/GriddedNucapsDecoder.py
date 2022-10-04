@@ -1,83 +1,55 @@
-#
-# Python based Decoder for Gridding NUCAPS Sounding data. The decoder gets a list of sounding files
+##
+# Python based Decoder for Gridded NUCAPS Sounding data. The decoder gets a list of sounding files
 # to process. It loads the soundings from hdf files, and vertically interpolates the data to standard levels,
-# then it horizontally interpolates the data using nearest neighbor. Finally, it masks the data outside the 
+# then it horizontally interpolates the data using nearest neighbor. Finally, it masks the data outside the
 # area where data is available. Output is an array of GridRecords containing the gridded NUCAPS data.
-# The grids are global in coverage and have variables such as temperature, ozone, water vapor, RH, total ozone, 
+# The grids are global in coverage and have variables such as temperature, ozone, water vapor, RH, total ozone,
 # Ozone anomaly, and tropopause height. This software was adapted from work by Nadia Smith and Emily Berndt.
-#     SOFTWARE HISTORY
-#    
-#    Date            Ticket#       Engineer       Description
-#    ------------    ----------    -----------    --------------------------
-#    Oct 4, 2018     DCS-18691     jburks         Initial creation
-#    Mar 15,2019     VLab-61425    jburks         Fixed calc issue with lowest pressure level water vapor
-#    
 #
-from __future__ import print_function
+# SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer  Description
+# ------------- -------- --------- --------------------------------------------
+# Oct 04, 2018  18691    jburks    Initial creation
+# Mar 15, 2019  61425    jburks    Fixed calc issue with lowest pressure level
+#                                  water vapor
+# Mar 01, 2022  8795     randerso  Change type of surface level arrays to int
+#
+##
 
-import calendar
-import sys, os, time, re, getopt
-
-from ufpy import TimeUtil
- 
-from com.raytheon.uf.common.wmo import WMOTimeParser
-from com.raytheon.uf.edex.decodertools.time import TimeTools
-import LogStream
-from com.raytheon.uf.common.dataplugin.grid import GridRecord, GridInfoRecord
-from java.util import GregorianCalendar
-from java.util import Date
-
-from com.raytheon.uf.common.time import DataTime
-from com.raytheon.uf.common.time import TimeRange
-
-from com.raytheon.uf.common.dataplugin.grid import GridRecord
-
-from com.raytheon.uf.common.gridcoverage import LambertConformalGridCoverage
-from com.raytheon.uf.common.gridcoverage import LatLonGridCoverage
-from com.raytheon.uf.common.gridcoverage import MercatorGridCoverage
-from com.raytheon.uf.common.gridcoverage import PolarStereoGridCoverage
-from com.raytheon.uf.common.gridcoverage.lookup import GridCoverageLookup
-from com.raytheon.uf.common.gridcoverage import Corner
-
-from com.raytheon.uf.common.grib import GribModelLookup
-from com.raytheon.uf.common.grib.tables import GribTableLookup
-
-from com.raytheon.uf.common.dataplugin.level.mapping import LevelMapper
-from com.raytheon.uf.common.dataplugin.level import Level
-from com.raytheon.uf.common.dataplugin.level import LevelFactory
-
-from com.raytheon.edex.plugin.grib.spatial import GribSpatialCache
-from com.raytheon.uf.common.util import GridUtil
-
-
-from com.raytheon.edex.util.grib import GribParamTranslator
-
-from com.raytheon.uf.common.parameter import Parameter;
-from com.raytheon.uf.common.parameter.mapping import ParameterMapper
-import UFStatusHandler
-import logging
-import re
 from datetime import datetime
-import pytz
-
-import h5py
-import numpy as np
-import scipy.interpolate
+import logging
 import math
 
-# #Number of nx and ny points for the grid. 720 nx, 360 ny creates .5 degree grid.
+import h5py
+import pytz
+import scipy.interpolate
+
+import UFStatusHandler
+from com.raytheon.uf.common.dataplugin.grid import GridRecord
+from com.raytheon.uf.common.dataplugin.level import LevelFactory
+from com.raytheon.uf.common.gridcoverage import Corner
+from com.raytheon.uf.common.gridcoverage import LatLonGridCoverage
+from com.raytheon.uf.common.gridcoverage.lookup import GridCoverageLookup
+from com.raytheon.uf.common.parameter import Parameter
+from com.raytheon.uf.common.time import DataTime
+from java.util import Date
+import numpy as np
+
+# Number of nx and ny points for the grid. 720 nx, 360 ny creates .5 degree grid.
 nx = 720
 ny = 360
 nx_dim = 720j
 ny_dim = 360j
 dist = 1.0
-# #Coverage for the global grid.
+
+# Coverage for the global grid.
 regionCoverage = [-179.9999999749438 , -89.9999999874719 , 179.9999999749438 , 89.9999999874719]
 
 F32_GRID_FILL_VALUE = np.nan
 FILL_VAL = np.nan
 
-# #Standard Pressure levels to output the data
+# Standard Pressure levels to output the data
 stdplev = [100., 125. , 150. , 175. , 200. , 225. , 250. , 275. , 300. , 325. , 350., \
            375. , 400. , 425. , 450. , 475. , 500. , 525. , 550. , 575. , 600., \
            625. , 650. , 675. , 700. , 725. , 750. , 775. , 800. , 825. , 850, \
@@ -87,10 +59,11 @@ low = 800
 mid = 500
 high = 300
 
-levlow = 88;
-levmid = 74;
+levlow = 88
+levmid = 74
 levhigh = 62
-# #Define some constants
+
+# Define some constants
 navog = 6.02214199e+23  # NIST Avogadro's number (molecules/mole)
 nloschmidt = 2.6867775e+19  # NIST Loschmidt's molec/cm^3 per atm @ stdP
 t_std = 273.15  # standard temperature [K]
@@ -111,7 +84,8 @@ logHandler = UFStatusHandler.UFStatusHandler("gov.noaa.nws.sti.mdl.edex.plugin.g
 
 
 class GriddedNucapsDecoder():
-    # Constructor setup intial data arrays, and process the files
+
+    # Constructor setup initial data arrays, and process the files
     #
     def __init__(self, text=None, files=None, command=None):
         self.log = logging.getLogger("GriddedNucapsDecoder")
@@ -137,16 +111,16 @@ class GriddedNucapsDecoder():
 
             for fileToProcess in files:
                 self.__processFile__(fileToProcess)
-            # #Detect the times used in the products
+            # Detect the times used in the products
             self.maxtime = int(np.max(self.times))
             self.mintime = int(np.min(self.times))
-            # #Load Ozone Climate data
+            # Load Ozone Climate data
             self.loadOzoneClimoData()
 
-    # #Loads data arrays for observations from hdf files.
-    def __processFile__(self, file):
-        #         self.log.info("Processing file: "+str(file))
-        rootgrp = h5py.File(file, "r")
+    # Loads data arrays for observations from hdf files.
+    def __processFile__(self, f):
+        #         self.log.info("Processing file: "+str(f))
+        rootgrp = h5py.File(f, "r")
         self.attributes = rootgrp.attrs
         self.satelliteId = self.attributes["satellite_name"]
         self.latitude = np.append(self.latitude, np.array(rootgrp["Latitude@NUCAPS_EDR"][:], copy=True))
@@ -162,34 +136,15 @@ class GriddedNucapsDecoder():
         self.times = np.append(self.times, np.array(rootgrp["Time@NUCAPS_EDR"], copy=True), axis=0)
         rootgrp.close()
 
-    # #Find the surface within a sounding
+    # Find the surface within a sounding
     def findSurface(self, pres, surfpres):
         pres = np.array(pres)
         diff = surfpres - (pres + 5.0)
         return np.count_nonzero(diff > 0.0)
 
-
-    # #Calculate the 2m parameters such as temperature at 2m
-    def calc_2m_param(self):
-        nobs = np.shape(self.latitude)[0]
-        botlevel = np.full(nobs, FILL_VAL, dtype=np.float)
-        pres = self.pressure[0]
-        surfpres = self.surface_pressure
-        temp2 = np.full(nobs, FILL_VAL, dtype=np.float)
-
-        for iobs in range(0, nobs):
-            surflev = self.findSurface(pres, surfpres[iobs])
-            num = surfpres[iobs] - pres[surflev - 1]
-            denom = pres[surflev] - pres[surflev - 1]
-            blmult = num / denom
-            t_diff = self.temperature[iobs, surflev] - self.temperature[iobs, surflev - 1]
-            temp2[iobs] = self.temperature[iobs, surflev - 1] + blmult * t_diff
-            botlevel[iobs] = surflev
-        return botlevel, temp2
-
-    # #Interpolate the temperature vertically
+    # Interpolate the temperature vertically
     def interpolate_temperature(self, botlevel, blmult):
-        pres = self.pressure[0, :]
+        pres = self.pressure[0,:]
         nlev = np.shape(pres)[0]
         nlev_std = len(stdplev)
         nobs = len(self.latitude)
@@ -199,12 +154,12 @@ class GriddedNucapsDecoder():
 
             if sfc + 1 <= nlev:
                 self.temperature[iobs, sfc + 1:nlev ] = FILL_VAL
-            stdT[iobs, :] = scipy.interpolate.griddata(pres, self.temperature[iobs, :], stdplev, method='linear')
+            stdT[iobs,:] = scipy.interpolate.griddata(pres, self.temperature[iobs,:], stdplev, method='linear')
         return stdT
 
     # Interpolating the gases vertically
     def interpolate_gases(self, wvcd, botlevel):
-        pres = self.pressure[0, :]
+        pres = self.pressure[0,:]
         nlev = np.shape(pres)[0]
         nlev_std = len(stdplev)
         nobs = len(self.latitude)
@@ -226,11 +181,11 @@ class GriddedNucapsDecoder():
             # interpol(alog_wv, alog_retp, alog_stdp, / NaN)
             logwvcd = scipy.interpolate.griddata(alog_retp, alog_wv, alog_stdp, method='linear')
 
-            stdwv[iobs, :] = 10 ** logwvcd
+            stdwv[iobs,:] = 10 ** logwvcd
 
         return stdwv
 
-    # #Perform restructuring of the data points so the structure is easier to use.
+    # Perform restructuring of the data points so the structure is easier to use.
     def restructurePoints(self, lats, lons):
         length = np.shape(lats)[0]
         points = np.zeros((length, 2))
@@ -239,13 +194,13 @@ class GriddedNucapsDecoder():
             points[i, 1] = lats[i]
         return points
 
-    # #Horizontally interpolate the data using the nearest neighbor method
+    # Horizontally interpolate the data using the nearest neighbor method
     def horizontallyInter(self, points, variable, X, Y, mask):
         gridOut = scipy.interpolate.griddata(points, variable, (X, Y), method='nearest')
         gridOut[mask == 0] = np.nan
         return gridOut
 
-    # #Generate a mask to mask out data not in the area of soundings.
+    # Generate a mask to mask out data not in the area of soundings.
     def generateMask(self, points, X, Y, threshold=1):
         mask = np.zeros((np.shape(X)))
         for point in points:
@@ -256,9 +211,9 @@ class GriddedNucapsDecoder():
             mask[np.where(distance <= threshold)] = 1
         return mask
 
-    # #Calculate the Boundary Layer Parameters.
+    # Calculate the Boundary Layer Parameters.
     def get_BL_params(self, pres, psurf, nobs):
-        botlev = np.zeros((nobs), dtype=float)
+        botlev = np.zeros((nobs), dtype=int)
         blmult = np.zeros((nobs), dtype=float)
 
         for i in range(nobs):
@@ -269,10 +224,9 @@ class GriddedNucapsDecoder():
             botlev[i] = surflev
         return blmult, botlev
 
-    # #Find the 2m Parameters such as temperature and water vapor
+    # Find the 2m Parameters such as temperature and water vapor
     def get_2m_param(self, sfcpres, temp, wvcd, botlev, blmult):
         shapes = np.shape(temp)
-        nlev = shapes[1]
         nobs = shapes[0]
         temp_2m = np.full((nobs), FILL_VAL, dtype=float)
         wv_2m = np.full((nobs), FILL_VAL, dtype=float)
@@ -303,7 +257,7 @@ class GriddedNucapsDecoder():
 
     # Convert mixing ratio to concentration
     def convert_mr2cd(self, botlev):
-        pres = self.pressure[0, :]
+        pres = self.pressure[0,:]
         nlev = len(pres)
         nobs = len(self.latitude)
         wvcd = np.full((nobs, nlev), FILL_VAL, dtype=float)
@@ -312,8 +266,8 @@ class GriddedNucapsDecoder():
         delta_p[0] = pres[0]
         delta_p[1:nlev] = pres[1:nlev ] - pres[0: nlev - 1]
         for i in range(nobs):
-            wvmr = self.h2o_mr[i, :]
-            ozmr = self.O3_MR[i, :]
+            wvmr = self.h2o_mr[i,:]
+            ozmr = self.O3_MR[i,:]
             ozmr = ozmr * 1.0e-09 * oz_eps
             plev = nlev
             for j in range(plev):
@@ -321,8 +275,7 @@ class GriddedNucapsDecoder():
                 ozcd[i, j] = ozmr[j] * ((cdair * delta_p[j] / p_std) / oz_eps)
         return wvcd, ozcd
 
-        # #Calculate total ozone and water vapor in the column
-
+    # Calculate total ozone and water vapor in the column
     def calc_tot(self, wvcd, ozcd, botlev, blmult):
         shape = np.shape(wvcd)
         nlev = shape[1]
@@ -398,6 +351,7 @@ class GriddedNucapsDecoder():
 
     # Load the Ozone Climate data. Data is from Emily Berndt at NASA SPoRT
     def loadOzoneClimoData(self):
+        # TOOD: should this be loaded from a file that is updated periodically
         self.monthlyData = [
             [311, 350, 352, 340, 324, 297, 269, 253, 243, 246, 267, 279],
             [314, 363, 361, 359, 330, 300, 269, 252, 244, 251, 270, 281],
@@ -436,15 +390,15 @@ class GriddedNucapsDecoder():
             [258, 252, 246, 237, 238, 237, 225, 202, 134, 147, 190, 256],
             [252, 246, 237, 230, 237, 236, 225, 204, 135, 142, 187, 252]
         ]
-        # #Given a datetime extract the month
 
+    # Given a datetime extract the month
     def getMonth(self, time):
         timeofObservation = datetime.fromtimestamp(time / 1000., gmt)
         return int(timeofObservation.month) - 1
 
-    # #Get the ozone climate value given a month and latitude
+    # Get the ozone climate value given a month and latitude
     def getOzoneClimoValue(self, monthIndex, latitude):
-        # #Calculate the correct latitude bin
+        # Calculate the correct latitude bin
         index = -1 * int(latitude / 5) + 17
         if index < 0:
             index = 0
@@ -452,7 +406,7 @@ class GriddedNucapsDecoder():
             index = 35
         return self.monthlyData[index][monthIndex]
 
-    # #Find Ozone anomaly based on totalOzone and latitude of the observation points
+    # Find Ozone anomaly based on totalOzone and latitude of the observation points
     def calculateOzoneAnomaly(self, totalOzone):
         nobs = len(self.latitude)
         ozanom = np.full((nobs), FILL_VAL, dtype=float)
@@ -462,10 +416,10 @@ class GriddedNucapsDecoder():
             ozanom[i] = (totalOzone[i] / climoValue) * 100.0
         return ozanom
 
-    # #Calculate Tropopause level
+    # Calculate Tropopause level
     def calculateTropLevel(self):
         nobs = len(self.latitude)
-        nlev = len(self.pressure[0, :])
+        nlev = len(self.pressure[0,:])
 
         troplevel = np.full((nobs), FILL_VAL, dtype=float)
         for i in range(nobs):
@@ -475,13 +429,12 @@ class GriddedNucapsDecoder():
                 if self.O3_MR[i, k] != FILL_VAL:
                     if self.O3_MR[i, k] >= ozthresh:
                         troplevel[i] = self.pressure[i, k]
-                    else:
-                        troplevel[i] = troplevel[i]
                 else:
                     troplevel[i] = FILL_VAL
 
         return troplevel
-     # #Create coverage for the output grid
+
+    # Create coverage for the output grid
     def createCoverage(self):
         lo1 = regionCoverage[0]
         la1 = regionCoverage[1]
@@ -494,7 +447,7 @@ class GriddedNucapsDecoder():
         gridCoverage.setLo1(lo1)
         gridCoverage.setLa2(la2)
         gridCoverage.setLo2(lo2)
-        gridCoverage.setSpacingUnit("degree");
+        gridCoverage.setSpacingUnit("degree")
         dx = abs(lo1 - lo2) / nx
         dy = abs(la1 - la2) / ny
         gridCoverage.setDx(dx)
@@ -504,11 +457,11 @@ class GriddedNucapsDecoder():
         gridCoverage = GridCoverageLookup.getInstance().getCoverage(gridCoverage, True)
         return gridCoverage
 
-    # #Create Grid Record    
+    # Create Grid Record
     def createRecord(self, array, level, parameter, coverage, dataTime):
         record = GridRecord()
 
-        # #Reshape the array
+        # Reshape the array
         shape = np.shape(array)
         nx = shape[1]
         ny = shape[0]
@@ -524,33 +477,32 @@ class GriddedNucapsDecoder():
         record.setSecondaryId(self.satelliteId)
 
         return record
-    
-    def grossBoundsChecking(self, min, max, grid):
+
+    def grossBoundsChecking(self, minimum, maximum, grid):
         # Set missing value if the values outside the bounds.
-        grid[grid > max] = F32_GRID_FILL_VALUE
-        grid[grid < min] = F32_GRID_FILL_VALUE
+        grid[grid > maximum] = F32_GRID_FILL_VALUE
+        grid[grid < minimum] = F32_GRID_FILL_VALUE
         return grid
-        
-    # #Decode the data 
+
+    # Decode the data
     def decode(self):
 #         self.log.info('Decoding GriddedNucaps File : "%s"' % (self.files))
         records = []
         if self.toProcess == False:
             return records
-        # #Turn off the numpy error temporarily
+        # Turn off the numpy error temporarily
         npstderr = np.seterr(all='ignore')
         try:
-            
-            # ##Calculate the time of the image
-            dataTime = DataTime(Date(self.mintime)) 
+
+            # Calculate the time of the image
+            dataTime = DataTime(Date(self.mintime))
             coverage = self.createCoverage()
             points = self.restructurePoints(self.latitude, self.longitude)
             nlev = len(stdplev)
             psurf = self.surface_pressure
             nobs = len(self.latitude)
-            temp = self.temperature
 
-            plev = self.pressure[1, :]
+            plev = self.pressure[1,:]
             blmult, botlev = self.get_BL_params(plev, psurf, nobs)
             wvcd, ozcd = self.convert_mr2cd(botlev)
 
@@ -571,7 +523,7 @@ class GriddedNucapsDecoder():
                 deltap = psurf[i] - stdplev[int(botlev[i]) - 1]
                 wvmr2m = self.convert_cd2mr_simple(wvcd2m[i], deltap)
                 rh2m[i] = self.convert_mr2rh_single(wvmr2m, psurf[i], t2m[i])
-            
+
             rh2m[np.where(rh2m > 100)] = 100.
 
             for i in range(nobs - 1):
@@ -586,10 +538,10 @@ class GriddedNucapsDecoder():
             stdwvmr = self.convert_cd2mr(stdwv, np.asarray(stdplev, dtype=np.float), psurf, botlev)
 
             for i in range(nobs - 1):
-                stdrelhum[i, :] = self.convert_mr2rh(stdwvmr[i, :], stdplev, stdT[i, :])
+                stdrelhum[i,:] = self.convert_mr2rh(stdwvmr[i,:], stdplev, stdT[i,:])
 
             Y, X = np.mgrid[regionCoverage[3]:regionCoverage[1]:ny_dim, regionCoverage[0]:regionCoverage[2]:nx_dim]
-            
+
             mask = self.generateMask(points, X, Y, threshold=dist)
 
             level = LevelFactory.getInstance().getLevel("FHAG", 2, -999999., "m")
@@ -608,19 +560,19 @@ class GriddedNucapsDecoder():
             pwlowGrid = self.horizontallyInter(points, pwlow, X, Y, mask)
             pwlowGrid = self.grossBoundsChecking(0, 1000, pwlowGrid)
             records.append(self.createRecord(pwlowGrid, level, parameter, coverage, dataTime))
-            
+
             level = LevelFactory.getInstance().getLevel("MB", low, mid, "hPa")
             parameter = Parameter("PWAT", "Integrated Total Precipitable Water", "cm")
             pwmidGrid = self.horizontallyInter(points, pwmid, X, Y, mask)
             pwmidGrid = self.grossBoundsChecking(0, 1000, pwmidGrid)
             records.append(self.createRecord(pwmidGrid, level, parameter, coverage, dataTime))
-            
+
             level = LevelFactory.getInstance().getLevel("MB", mid, high, "hPa")
             parameter = Parameter("PWAT", "Integrated Total Precipitable Water", "cm")
             pwhighGrid = self.horizontallyInter(points, pwhigh, X, Y, mask)
             pwhighGrid = self.grossBoundsChecking(0, 1000, pwhighGrid)
             records.append(self.createRecord(pwhighGrid, level, parameter, coverage, dataTime))
-            
+
             level = LevelFactory.getInstance().getLevel("EA", 0, -999999., "")
             parameter = Parameter("PWAT", "Integrated Total Precipitable Water", "cm")
             totwatGrid = self.horizontallyInter(points, totwat, X, Y, mask)
@@ -632,23 +584,27 @@ class GriddedNucapsDecoder():
             totozGrid = self.grossBoundsChecking(100, 600, totozGrid)
             records.append(self.createRecord(totozGrid, level, parameter, coverage, dataTime))
 
-            # #Calculate Ozone Anomaly
+            # Calculate Ozone Anomaly
 
             o3anom = self.calculateOzoneAnomaly(totDU)
-            # #Grid Ozone Anomaly
+
+            # Grid Ozone Anomaly
             ozAnomalyGrid = self.horizontallyInter(points, o3anom, X, Y, mask)
             ozAnomalyGrid = self.grossBoundsChecking(0, 200, ozAnomalyGrid)
-            # #Create Record with Ozone Anomaly
+
+            # Create Record with Ozone Anomaly
             level = LevelFactory.getInstance().getLevel("EA", 0, -999999., "")
             parameter = Parameter("OZA", "Ozone Anomaly", "%")
             records.append(self.createRecord(ozAnomalyGrid, level, parameter, coverage, dataTime))
 
-            # #Calculate Tropopause Height
+            # Calculate Tropopause Height
             tropLevel = self.calculateTropLevel()
-            # #Grid the Tropopause Height
+
+            # Grid the Tropopause Height
             tropLevelGrid = self.horizontallyInter(points, tropLevel, X, Y, mask)
             tropLevelGrid = self.grossBoundsChecking(100, 600, tropLevelGrid)
-            # #Create Record with Tropopause Height
+
+            # Create Record with Tropopause Height
             parameter = Parameter("TPH", "Tropopause Level", "mb")
             records.append(self.createRecord(tropLevelGrid, level, parameter, coverage, dataTime))
 
@@ -659,7 +615,7 @@ class GriddedNucapsDecoder():
             for levelIndex in range(0, len(stdplev)):
                 # self.log.info("Working on Level: "+str(stdplev[levelIndex])+"mb")
                 level = LevelFactory.getInstance().getLevel("MB", stdplev[levelIndex], -999999. , "hPa")
-                parameter = param = Parameter("T", "Temperature", "K")
+                parameter = Parameter("T", "Temperature", "K")
                 tempGrid = self.horizontallyInter(points, stdT[:, levelIndex], X, Y, mask)
                 tempGrid = self.grossBoundsChecking(-400, 400, tempGrid)
                 records.append(self.createRecord(tempGrid, level, parameter, coverage, dataTime))
@@ -670,7 +626,7 @@ class GriddedNucapsDecoder():
                 records.append(self.createRecord(rhGrid, level, parameter, coverage, dataTime))
 
         except ValueError as e:
-            self.log.info('Issue GriddedNUCAPs: "%s"' % e)
+            self.log.info('Issue GriddedNUCAPs: "%s"', e)
         np.seterr(**npstderr)
         # self.log.info('done Decoding GriddedNUCAPs: "%s"' % (self.files))
         return records

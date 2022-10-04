@@ -1,0 +1,8 @@
+#
+# Controls which Canadian radars are displayed in the D-2D menu.
+#
+# Example:
+#   topevel : casbe
+#   local : casbe casfw cassu
+toplevel :
+local :

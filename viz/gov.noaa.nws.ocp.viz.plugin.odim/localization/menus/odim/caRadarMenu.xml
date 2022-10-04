@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="subinclude" subMenu="Local Canadian Radars"
+        id="localCARadar" fileName="menus/odim/caLocalRadars.xml">
+    </contribute>
+    <contribute xsi:type="subinclude" subMenu="All Canadian Radars"
+        id="allCARadar" fileName="menus/odim/caAllRadars.xml">
+    </contribute>
+</menuTemplate>

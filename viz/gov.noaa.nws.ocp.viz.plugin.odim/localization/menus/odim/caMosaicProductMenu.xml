@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.5 Reflectivity" id="Radar05Reflectivity">
+        <substitute key="quantity" value="DBZH" />
+        <substitute key="elevation" value="0.4" />
+        <substitute key="name" value="0.4 Reflectivity" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.5 Long Range Refl" id="longRang05Reflectivity">
+        <substitute key="quantity" value="DBZH" />
+        <substitute key="elevation" value="0.3" />
+        <substitute key="name" value="0.3 Long Range Refl" />
+    </contribute>
+</menuTemplate>

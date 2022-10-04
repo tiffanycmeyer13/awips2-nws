@@ -50,6 +50,7 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
+import com.raytheon.viz.ui.dialogs.ICloseCallback;
 
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
 
@@ -64,6 +65,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
  * 06/02/2020   75767       wkwock      Migrated from PGEN to NWS
  * 06/27/2021   92561       wkwock      Added local time zone validations
  * 09/10/2021   28802       wkwock      Remove unnecessary exception catch
+ * 04/05/2022   22989       wkwock      Add job cancel to product and time refresh
  * 
  * </pre>
  * 
@@ -178,6 +180,12 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     private CWAToolTip toolTip = null;
 
+    /** time label job */
+    private UIJob timeLblJob;
+
+    /** product status job */
+    private UIJob productStatusJob;
+
     /**
      * constructor for this class.
      * 
@@ -190,6 +198,11 @@ public class CWAProductDlg extends CaveSWTDialog {
         cwaButtons = new Button[MAX_CWA];
 
         cwaTexts = new Text[MAX_CWA];
+
+        addCloseCallback((Object returnValue) -> {
+            timeLblJob.cancel();
+            productStatusJob.cancel();
+        });
     }
 
     @Override
@@ -716,6 +729,7 @@ public class CWAProductDlg extends CaveSWTDialog {
      */
     private void createTimeControl() {
         timeLbl = new Label(top, SWT.CENTER);
+        this.disposed();
         GridData timeGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
         GC gc = new GC(timeLbl);
         timeGd.widthHint = (int) (gc.getFontMetrics().getAverageCharacterWidth()
@@ -724,7 +738,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         updateTimeLbl();
         gc.dispose();
 
-        UIJob timeLblJob = new UIJob(this.getDisplay(), "time label") {
+        timeLblJob = new UIJob(this.getDisplay(), "time label") {
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateTimeLbl();
                 schedule(1000);
@@ -735,8 +749,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         timeLblJob.setPriority(Job.INTERACTIVE);
         timeLblJob.schedule();
 
-        UIJob productStatusJob = new UIJob(this.getDisplay(),
-                "product status") {
+        productStatusJob = new UIJob(this.getDisplay(), "product status") {
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateProductStatus();
                 schedule(updateInterval.toMillis());
@@ -782,5 +795,4 @@ public class CWAProductDlg extends CaveSWTDialog {
         misTxt.setForeground(cwaProduct.getColor());
 
     }
-
 }
