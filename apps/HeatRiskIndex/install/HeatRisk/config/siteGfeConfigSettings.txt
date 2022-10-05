@@ -1,0 +1,8 @@
+HeatRisk_defaultColorTable="HeatRisk"
+HeatImpactLevelsMaxT_defaultColorTable="HeatRisk"
+HeatImpactLevelsMinT_defaultColorTable="HeatRisk"
+HeatRiskWWA_defaultColorTable="HeatRiskWWA"
+HeatRiskWWAbyZone_defaultColorTable="HeatRiskWWA"
+# Substitute these color table settings for sites using Recommended. See instructions for which sites should use this.
+HeatRiskWWA_defaultColorTable="HeatRiskWWA_Rec"
+HeatRiskWWAbyZone_defaultColorTable="HeatRiskWWA_Rec"

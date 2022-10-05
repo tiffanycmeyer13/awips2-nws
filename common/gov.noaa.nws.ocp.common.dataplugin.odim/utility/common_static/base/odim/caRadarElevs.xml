@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<elevs>
+    <vcp code="caN" label="Normal"
+        elevs="0.4 0.8 1.2 1.6 2.0 2.8 3.6 4.4 5.2 6.8 8.4 10.0 11.6 14.8 18.0 21.2 24.4" />
+    <vcp code="caS" label="Summer"
+        elevs="0.3 0.4 1.0 1.6 2.2 2.8 3.6 4.4 5.2 6.8 8.4 10.0 11.6 14.8 18.0 21.2 24.4" />
+    <vcp code="caM" label="Mountain"
+        elevs="-0.3 0.4 1.0 1.6 2.2 2.8 3.6 4.4 5.2 6.8 8.4 10.0 11.6 14.8 18.0 21.2 24.4" />
+    <radar vcp="caN"
+        radars="casag casbe casbi casbv cascm cascv casdr caset casft casfw casgo caskr casrf cassf cassu caswl" />
+    <radar vcp="caS"
+        radars="cascl cashr casla casmr casra cassm cassr casvd" />
+    <radar vcp="caM"
+        radars="casvd" />
+    <group primary="0.3" angles="-0.3 0.3" />
+    <group primary="1.0" angles="0.8 1.0" />
+    <group primary="2.0" angles="2.0 2.2" />
+</elevs>

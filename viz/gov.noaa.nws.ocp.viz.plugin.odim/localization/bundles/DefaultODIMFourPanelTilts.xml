@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<!-- blends two sets of up to 4 radar products displaying only the best res
+     ones on each side in four panels, each panel is a different elevation
+
+     substitution keys:
+         quantity1   the quantity (product type) to load on the left
+         quantity2   the quantity (product type) to load on the right
+         mode1       the special mode for the resource on the left, most of the time an empty string
+         mode2       the special mode for the resource on the right, most of the time an empty string
+         node        the radar site
+         elevation1  the elevation to load in the upper left panel
+         elevation2  the elevation to load in the upper right panel
+         elevation3  the elevation to load in the lower right panel
+         elevation4  the elevation to load in the lower left panel
+ -->
+<bundle>
+    <displayList>
+        <displays xsi:type="d2DMapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true">
+                        <capabilities>
+                            <capability xsi:type="imagingCapability"
+                                interpolationState="false" brightness="1.0"
+                                contrast="1.0" alpha="1.0" />
+                            <capability xsi:type="rangeRingsOverlayCapability" />
+                        </capabilities>
+                    </loadProperties>
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true">
+                    </properties>
+                    <resourceData xsi:type="blendedResourceData">
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode1}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity1"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation1}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode2}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity2"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation1}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+        <displays xsi:type="d2DMapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true">
+                        <capabilities>
+                            <capability xsi:type="imagingCapability"
+                                interpolationState="false" brightness="1.0"
+                                contrast="1.0" alpha="1.0" />
+                            <capability xsi:type="rangeRingsOverlayCapability" />
+                        </capabilities>
+                    </loadProperties>
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true">
+                    </properties>
+                    <resourceData xsi:type="blendedResourceData">
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode1}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity1"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation2}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode2}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity2"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation2}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+        <displays xsi:type="d2DMapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true">
+                        <capabilities>
+                            <capability xsi:type="imagingCapability"
+                                interpolationState="false" brightness="1.0"
+                                contrast="1.0" alpha="1.0" />
+                            <capability xsi:type="rangeRingsOverlayCapability" />
+                        </capabilities>
+                    </loadProperties>
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true">
+                    </properties>
+                    <resourceData xsi:type="blendedResourceData">
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode1}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity1"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation4}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode2}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity2"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation4}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+        <displays xsi:type="d2DMapRenderableDisplay"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <descriptor xsi:type="mapDescriptor">
+                <resource>
+                    <loadProperties loadWithoutData="true">
+                        <capabilities>
+                            <capability xsi:type="imagingCapability"
+                                interpolationState="false" brightness="1.0"
+                                contrast="1.0" alpha="1.0" />
+                            <capability xsi:type="rangeRingsOverlayCapability" />
+                        </capabilities>
+                    </loadProperties>
+                    <properties isSystemResource="false"
+                        isBlinking="false" isMapLayer="false" isHoverOn="false"
+                        isVisible="true">
+                    </properties>
+                    <resourceData xsi:type="blendedResourceData">
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode1}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity1"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation3}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                        <resource>
+                            <loadProperties
+                                loadWithoutData="true">
+                                <capabilities>
+                                    <capability xsi:type="imagingCapability"
+                                        interpolationState="false"
+                                        brightness="1.0" contrast="1.0"
+                                        alpha="1.0" />
+                                    <capability
+                                        xsi:type="rangeRingsOverlayCapability" />
+                                </capabilities>
+                            </loadProperties>
+                            <properties isSystemResource="false"
+                                isBlinking="false" isMapLayer="false"
+                                isHoverOn="false" isVisible="true">
+                            </properties>
+                            <resourceData xsi:type="odimResourceData"
+                                mode="${mode2}"
+                                isUpdatingOnMetadataOnly="false"
+                                isRequeryNecessaryOnTimeMatch="true">
+                                <metadataMap>
+                                    <mapping key="quantity">
+                                        <constraint
+                                            constraintValue="quantity2"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="node">
+                                        <constraint
+                                            constraintValue="${node}"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="pluginName">
+                                        <constraint
+                                            constraintValue="odim"
+                                            constraintType="EQUALS" />
+                                    </mapping>
+                                    <mapping key="primaryElevationAngle">
+                                        <constraint
+                                            constraintValue="${elevation3}"
+                                            constraintType="IN" />
+                                    </mapping>
+                                </metadataMap>
+                            </resourceData>
+                        </resource>
+                    </resourceData>
+                </resource>
+            </descriptor>
+        </displays>
+    </displayList>
+</bundle>
