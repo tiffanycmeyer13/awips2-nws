@@ -62,6 +62,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 23 OCT 2018  DR 20919   dfriedman   Make properties available to Spring.
  * 13 MAY 2019  DR 21151   dfriedman   Do not cause EDEX to fail to start if Climate config is bad.
  * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
+ * 12 SEP 2022           srcarter@ucar Remove REGION level.
  * </pre>
  * 
  * @author xzhang
@@ -93,8 +94,7 @@ public class ClimateGlobalConfiguration {
      * Localization levels to try to load, in order
      */
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
-            LocalizationLevel.SITE, LocalizationLevel.REGION,
-            LocalizationLevel.BASE };
+            LocalizationLevel.SITE, LocalizationLevel.BASE };
 
     /**
      * Name of placeholder property for site time zone in Spring XML files.
@@ -102,7 +102,7 @@ public class ClimateGlobalConfiguration {
     private static final String CPG_CRON_TIMEZONE_SPRING_PROPERTY = "climate.cpg.cron.timezone";
 
     /**
-     * @return global configuration values from SITE-REGION-BASE in that
+     * @return global configuration values from SITE-BASE in that
      *         preference order; can be null on error.
      */
     public static ClimateGlobal getGlobal() {
