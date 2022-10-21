@@ -47,6 +47,8 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDisplay;
  * ------------ ---------- ----------- --------------------------
  * Feb 07, 2017 18784      wkwock      Initial creation
  * Apr 25, 2022 8791       mapeters    Update determination of editor type to load to
+ * Oct 19, 2022 8956       mapeters    Handle UiUtil.createOrOpenEditor signature
+ *                                     change
  *
  * </pre>
  *
@@ -162,7 +164,7 @@ public class FirewxInputHandler extends InputAdapter {
         display.getDescriptor().getResourceList().add(pair);
         String editorId = DescriptorMap.getEditorId(display);
         EditorTypeInfo editorTypeInfo = new EditorTypeInfo(editorId, false);
-        AbstractEditor editor = UiUtil.createOrOpenEditor(editorTypeInfo,
+        AbstractEditor editor = UiUtil.createOrOpenEditor(editorTypeInfo, true,
                 display.cloneDisplay());
         Bundle b = new Bundle();
         b.setDisplays(new AbstractRenderableDisplay[] { display });
