@@ -38,6 +38,7 @@ import gov.noaa.nws.ocp.edex.climate.prodgen.qc.checker.MonthlyClimateDataQualit
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Nov 7, 2017  35729      pwang       Initial creation
+ * Sep 12, 2022          srcarter@ucar Remove REGION level
  *
  * </pre>
  *
@@ -83,8 +84,7 @@ public class DefinedDataQualityCheck {
      * Localization levels to try to load, in order
      */
     private static final LocalizationLevel[] LOCALIZATIONS_TO_TRY = new LocalizationLevel[] {
-            LocalizationLevel.SITE, LocalizationLevel.REGION,
-            LocalizationLevel.BASE };
+            LocalizationLevel.SITE, LocalizationLevel.BASE };
 
     private boolean check = false;
 
