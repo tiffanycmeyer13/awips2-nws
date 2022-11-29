@@ -4,6 +4,7 @@
 
 package gov.noaa.nws.ocp.viz.atcf.fixes.enterfixdata;
 
+import java.time.DateTimeException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -48,6 +49,7 @@ import gov.noaa.nws.ocp.viz.atcf.AtcfVizUtil;
  * Oct 20, 2019 68738      dmanzella  implemented edit functionality
  * Apr 01, 2021 87786      wpaintsil  Revise UI.
  * Jun 24, 2021 91759      wpaintsil  Replace default 999999 with whitespace.
+ * Oct 28, 2022 109503     jwu        Fix exception reported in DR23333.
  * </pre>
  *
  * @author wpaintsil
@@ -140,7 +142,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
 
     /**
      * Constructor
-     * 
+     *
      * @param parent
      * @param dtgSelectionList
      */
@@ -156,7 +158,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
         this.fixDataMap = fixData;
         shell = getShell();
         currDate = new Date();
-        selectedRecords = new ArrayList<FDeckRecord>();
+        selectedRecords = new ArrayList<>();
         typeEntry = AtcfConfigurationManager.getInstance().getFixTypes()
                 .getFixType("ANAL");
         if (typeEntry != null) {
@@ -318,7 +320,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
                 new GridData(SWT.DEFAULT, SWT.DEFAULT, true, false));
 
         Label centerIntensityLbl = new Label(topComp, SWT.NONE);
-        centerIntensityLbl.setText("Center/Intensity ");
+        centerIntensityLbl.setText("* Center/Intensity ");
 
         Composite centerWindComp = new Composite(topComp, SWT.NONE);
         GridLayout centerWindLayout = new GridLayout(3, false);
@@ -410,7 +412,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
 
     /**
      * Create a Composite containing various wind data fields.
-     * 
+     *
      * @param parent
      */
     private void createWindComp(Composite parent) {
@@ -582,7 +584,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
 
     /**
      * Create the remaining fields including "Comments" and "Initials".
-     * 
+     *
      * @param parent
      */
     private void createCommentComp(Composite parent) {
@@ -648,7 +650,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
      * Finds and returns the FDeckRecords based off of the current DTG, FixSite,
      * Tab, and Sat Type. Returns false if no record based off of that
      * combination exists.
-     * 
+     *
      * @return Current FDeckRecord
      */
     @Override
@@ -667,6 +669,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
     /**
      * Reset all fields for a new entry
      */
+    @Override
     protected void clearFields() {
         fixSiteCombo.setText("");
         centerFixChk.setSelection(false);
@@ -703,10 +706,11 @@ public class AnalysisSynopticTab extends EditFixesTab {
     /**
      * When in edit mode, and a new record is selected, fill in fields from the
      * record's data
-     * 
+     *
      * @param fDeckRecord
      *            The record to get the data from
      */
+    @Override
     protected void setFields(ArrayList<FDeckRecord> fDeckRecords) {
         FDeckRecord fDeckRecord = fDeckRecords.get(0);
 
@@ -744,17 +748,8 @@ public class AnalysisSynopticTab extends EditFixesTab {
             }
         }
 
-        try {
-            startText.setText(TabUtility.formatDtg(fDeckRecord.getStartTime()));
-        } catch (RuntimeException e) {
-            logger.warn(PARSE_WARNING, e);
-        }
-
-        try {
-            endText.setText(TabUtility.formatDtg(fDeckRecord.getEndTime()));
-        } catch (RuntimeException e) {
-            logger.warn(PARSE_WARNING, e);
-        }
+        setTimeField(startText, fDeckRecord.getStartTime());
+        setTimeField(endText, fDeckRecord.getEndTime());
 
         commentText.setText(fDeckRecord.getComments());
         initialsText.setText(fDeckRecord.getInitials());
@@ -762,11 +757,33 @@ public class AnalysisSynopticTab extends EditFixesTab {
     }
 
     /**
+     * Set time string in a Text field. If date is not valid, the text will be
+     * blank.
+     *
+     * @param text
+     *            Text widget to set time.
+     * @param date
+     *            Date
+     */
+    private void setTimeField(Text text, Date date) {
+        text.setText("");
+        if (date != null) {
+            try {
+                String tm = TabUtility.formatDtg(date);
+                text.setText(tm);
+            } catch (DateTimeException e) {
+                logger.warn(PARSE_WARNING, e);
+            }
+        }
+    }
+
+    /**
      * Saves the current values of the editable fields to the provided
      * FDeckRecord
-     * 
+     *
      * @param fDeckRecord
      */
+    @Override
     protected void saveFieldsToRec(FDeckRecord fDeckRecord) {
         fDeckRecord.setCenterOrIntensity(centerInts);
         fDeckRecord.setClon(AtcfVizUtil.getStringAsFloat(lonText.getText(),
@@ -788,24 +805,16 @@ public class AnalysisSynopticTab extends EditFixesTab {
         fDeckRecord.setComments(commentText.getText());
         fDeckRecord.setFixSite(fixSiteCombo.getText());
 
-        Date startTime = new Date();
-        String startString = startText.getText();
-        try {
-            startTime = TabUtility.parseDtg(startString);
-        } catch (RuntimeException e) {
-            logger.warn(PARSE_WARNING, e);
+        // Set start and end time if the inputs are valid.
+        Date startTime = TabUtility.checkDtg(startText.getText());
+        if (!TabUtility.DEFAULTDATE.equals(startTime)) {
+            fDeckRecord.setStartTime(startTime);
         }
 
-        Date endTime = new Date();
-        String endString = endText.getText();
-        try {
-            endTime = TabUtility.parseDtg(endString);
-        } catch (RuntimeException e) {
-            logger.warn(PARSE_WARNING, e);
+        Date endTime = TabUtility.checkDtg(endText.getText());
+        if (!TabUtility.DEFAULTDATE.equals(endTime)) {
+            fDeckRecord.setEndTime(endTime);
         }
-
-        fDeckRecord.setEndTime(endTime);
-        fDeckRecord.setStartTime(startTime);
 
         fDeckRecord.setRadiusOfMaximumWind(AtcfVizUtil
                 .getStringAsFloat(windRadText.getText(), false, false, 0));
@@ -813,7 +822,8 @@ public class AnalysisSynopticTab extends EditFixesTab {
                 .getStringAsFloat(eyeDiaText.getText(), false, false, 0));
         fDeckRecord.setDistanceToNearestDataNM(AtcfVizUtil
                 .getStringAsFloat(nearDataText.getText(), false, false, 0));
-        fDeckRecord.setWindMax(Float.parseFloat(windEstText.getText()));
+        fDeckRecord.setWindMax(AtcfVizUtil
+                .getStringAsFloat(windEstText.getText(), false, false, 0));
         fDeckRecord.setMslp(AtcfVizUtil
                 .getStringAsFloat(seaPressureText.getText(), false, false, 0));
 
@@ -821,7 +831,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
 
     /**
      * Enum representing the Observation Sources in the Analysis tab
-     * 
+     *
      * TODO Replace this with data from analobsources.dat
      */
     enum ObservationSources {
@@ -840,7 +850,7 @@ public class AnalysisSynopticTab extends EditFixesTab {
 
         private String value;
 
-        private ObservationSources(String value) {
+        ObservationSources(String value) {
             this.value = value;
         }
 
