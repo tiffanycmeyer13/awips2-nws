@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.raytheon.uf.common.localization.ILocalizationFile;
+import com.raytheon.uf.common.localization.LocalizationContext;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
+import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.LocalizationUtil;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.menus.xml.CommonAbstractMenuContribution;
@@ -31,6 +35,7 @@ import com.raytheon.uf.edex.menus.AbstractMenuUtil;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Nov  4, 2022 DR  23341  dfriedman   Handle empty custom radar lists.
  * </pre>
  *
  * @author dfriedman
@@ -56,6 +61,7 @@ public class ODIMMenuUtilImpl extends AbstractMenuUtil {
     }
 
     private void createToplevelMenus(ODIMMenus menus) {
+        String menuPath = getMenuPath("index.xml").getPath();
         CommonMenuContributionFile menuContributionFile = new CommonMenuContributionFile();
         List<CommonIncludeMenuItem> items = new ArrayList<>();
         CommonIncludeMenuItem includeMenuItem = null;
@@ -70,28 +76,27 @@ public class ODIMMenuUtilImpl extends AbstractMenuUtil {
                 includeMenuItem = createCanadianRadarMenuInclude(radar);
                 items.add(includeMenuItem);
             }
+            for (CommonIncludeMenuItem item : items) {
+                item.visibleOnActionSet = new String[] {
+                        "com.raytheon.uf.viz.d2d.ui.D2DActionSet" };
+                item.installationLocation = "menu:org.eclipse.ui.main.menu?after=satellite";
+            }
+            /*
+             * Reverse the order of the items so that inserting to
+             * menu:...?after=satellite results in the items being in the same
+             * order as in the menu config file.
+             */
+            Collections.reverse(items);
+            menuContributionFile.contribution = items
+                    .toArray(CommonIncludeMenuItem[]::new);
+            toXml(menuContributionFile, menuPath);
         } else {
-            includeMenuItem = new CommonIncludeMenuItem();
-            includeMenuItem.fileName = new File("");
-            items.add(includeMenuItem);
+            removeFile(menuPath);
         }
-        for (CommonIncludeMenuItem item : items) {
-            item.visibleOnActionSet = new String[] {
-                    "com.raytheon.uf.viz.d2d.ui.D2DActionSet" };
-            item.installationLocation = "menu:org.eclipse.ui.main.menu?after=satellite";
-        }
-        /*
-         * Reverse the order of the items so that inserting to
-         * menu:...?after=satellite results in the items being in the same order
-         * as in the menu config file.
-         */
-        Collections.reverse(items);
-        menuContributionFile.contribution = items
-                .toArray(CommonIncludeMenuItem[]::new);
-        toXml(menuContributionFile, getMenuPath("index.xml").getPath());
     }
 
     private void createLocalMenus(ODIMMenus menus) {
+        String menuPath = getMenuPath("caLocalRadars.xml").getPath();
         MenuTemplateFile menuTemplateFile = new MenuTemplateFile();
         List<CommonIncludeMenuContribution> subMenus = new ArrayList<>();
         CommonIncludeMenuContribution subMenu = null;
@@ -107,49 +112,48 @@ public class ODIMMenuUtilImpl extends AbstractMenuUtil {
                 subMenu = createCanadianRadarMenuContribution(radar);
                 subMenus.add(subMenu);
             }
-        } else {
-            subMenu = new CommonIncludeMenuContribution();
-            subMenu.fileName = new File("");
-            subMenus.add(subMenu);
-        }
 
-        /*
-         * If there are more than 12 menu items, split into submenus of up to 12
-         * items each.
-         */
-        CommonAbstractMenuContribution[] contributions;
-        if (subMenus.size() > 12) {
-            List<CommonAbstractMenuContribution> groups = new ArrayList<>();
+            /*
+             * If there are more than 12 menu items, split into submenus of up
+             * to 12 items each.
+             */
+            CommonAbstractMenuContribution[] contributions;
+            if (subMenus.size() > 12) {
+                List<CommonAbstractMenuContribution> groups = new ArrayList<>();
 
-            int i = 0;
-            while (i < subMenus.size()) {
-                int j = Math.min(i + 12, subMenus.size());
-                if (j - i > 1) {
-                    List<CommonIncludeMenuContribution> subItems = subMenus
-                            .subList(i, j);
-                    CommonSubmenuContribution group = new CommonSubmenuContribution();
-                    group.menuText = subItems.get(0).substitutions[0].value
-                            + "-" + subItems.get(
-                                    subItems.size() - 1).substitutions[0].value;
-                    group.contributions = subItems
-                            .toArray(CommonAbstractMenuContribution[]::new);
-                    groups.add(group);
-                } else {
-                    // Do not create a submenu for a single leftover item.
-                    groups.add(subMenus.get(i));
+                int i = 0;
+                while (i < subMenus.size()) {
+                    int j = Math.min(i + 12, subMenus.size());
+                    if (j - i > 1) {
+                        List<CommonIncludeMenuContribution> subItems = subMenus
+                                .subList(i, j);
+                        CommonSubmenuContribution group = new CommonSubmenuContribution();
+                        group.menuText = subItems.get(0).substitutions[0].value
+                                + "-" + subItems.get(subItems.size()
+                                        - 1).substitutions[0].value;
+                        group.contributions = subItems
+                                .toArray(CommonAbstractMenuContribution[]::new);
+                        groups.add(group);
+                    } else {
+                        // Do not create a submenu for a single leftover item.
+                        groups.add(subMenus.get(i));
+                    }
+                    i = j;
                 }
-                i = j;
+
+                contributions = groups
+                        .toArray(CommonAbstractMenuContribution[]::new);
+            } else {
+                contributions = subMenus
+                        .toArray(CommonAbstractMenuContribution[]::new);
             }
 
-            contributions = groups
-                    .toArray(CommonAbstractMenuContribution[]::new);
+            menuTemplateFile.contributions = contributions;
+            toXml(menuTemplateFile, menuPath);
         } else {
-            contributions = subMenus
-                    .toArray(CommonAbstractMenuContribution[]::new);
+            removeFile(menuPath);
         }
 
-        menuTemplateFile.contributions = contributions;
-        toXml(menuTemplateFile, getMenuPath("caLocalRadars.xml").getPath());
     }
 
     private Pair<File, VariableSubstitution[]> createCanadianRadarMenu(
@@ -190,6 +194,18 @@ public class ODIMMenuUtilImpl extends AbstractMenuUtil {
     protected boolean checkCreated() {
         return super.checkCreated("odimMenus.txt", "odim")
                 && super.checkCreated("caRadarElevs.txt", "odim");
+    }
+
+    private void removeFile(String menuPath) {
+        LocalizationContext context = pm.getContext(
+                LocalizationType.COMMON_STATIC, LocalizationLevel.CONFIGURED);
+        context.setContextName(getSite());
+        ILocalizationFile file = pm.getLocalizationFile(context, menuPath);
+        try {
+            file.delete();
+        } catch (LocalizationException e) {
+            handler.handle(Priority.PROBLEM, e.getLocalizedMessage(), e);
+        }
     }
 
 }
