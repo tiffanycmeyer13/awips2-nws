@@ -27,9 +27,10 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.radar.util.DataUtilities;
 
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
-import tec.uom.se.AbstractConverter;
-import tec.uom.se.AbstractUnit;
-import tec.uom.se.format.SimpleUnitFormat;
+
+import tech.units.indriya.AbstractUnit;
+import tech.units.indriya.format.SimpleUnitFormat;
+import tech.units.indriya.function.AbstractConverter;
 
 /**
  * Provides data calculation and conversion methods for the ODIM plugin.

@@ -102,8 +102,8 @@ import gov.noaa.nws.ocp.common.dataplugin.odim.util.ODIMDataRetriever;
 import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMResourceData.Mode;
 import si.uom.NonSI;
 import systems.uom.common.USCustomary;
-import tec.uom.se.AbstractUnit;
-import tec.uom.se.format.SimpleUnitFormat;
+import tech.units.indriya.AbstractUnit;
+import tech.units.indriya.format.SimpleUnitFormat;
 
 /**
  * Main resource for the display of ODIM data.

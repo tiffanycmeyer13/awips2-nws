@@ -43,7 +43,7 @@ import gov.noaa.nws.ocp.viz.atcf.advisory.AdvisoryBuilder;
  * Oct 22, 2019 68738      dmanzella   Initial creation.
  * Apr 01, 2021 87786      wpaintsil   Revise UI.
  * Apr 27, 2021 91322      wpaintsil   Fix date-time formatting error.
- *
+ * Oct 28, 2022 109503     jwu         Fix exception reported in DR23333.
  * </pre>
  *
  * @author dmanzella
@@ -58,11 +58,13 @@ public class TabUtility {
 
     public static final int DEFAULT = (int) AbstractAtcfRecord.RMISSD;
 
-    private static final DateTimeFormatter DTG_FORMAT = DateTimeFormatter
-            .ofPattern("yyyyMMddHHmm");
+    private static final String DTG_PATTERN = "yyyyMMddHHmm";
 
-    private static final Date DEFAULTDATE = TimeUtil.newGmtCalendar(1000, 1, 1)
-            .getTime();
+    private static final DateTimeFormatter DTG_FORMAT = DateTimeFormatter
+            .ofPattern(DTG_PATTERN);
+
+    protected static final Date DEFAULTDATE = TimeUtil
+            .newGmtCalendar(1000, 1, 1).getTime();
 
     /**
      * Date time group parse error message
@@ -77,7 +79,7 @@ public class TabUtility {
 
     /**
      * Saves the latitude
-     * 
+     *
      * @param lat
      * @param northButton
      * @param southButton
@@ -103,7 +105,7 @@ public class TabUtility {
 
     /**
      * Saves the longitude
-     * 
+     *
      * @param lon
      * @param eastButton
      * @param westButton
@@ -125,7 +127,7 @@ public class TabUtility {
 
     /**
      * Sets the Center Intensity
-     * 
+     *
      * @param c
      * @param i
      * @param r
@@ -156,10 +158,10 @@ public class TabUtility {
 
     /**
      * Saves the Center Intensity
-     * 
+     *
      * All dialogs have at least the first two buttons, only have to check the
      * latter two for null
-     * 
+     *
      * @param center
      * @param centerFixChk
      * @param maxWindFixChk
@@ -226,7 +228,7 @@ public class TabUtility {
     /**
      * Get a default dtg string for the dtg text box based on the latest b-deck
      * data for the current storm.
-     * 
+     *
      * @param storm
      * @return
      */
@@ -249,7 +251,7 @@ public class TabUtility {
 
     /**
      * Flags the selected record
-     * 
+     *
      * @param selectedRecords
      * @param sandBoxID
      */
@@ -266,7 +268,7 @@ public class TabUtility {
 
     /**
      * Sets Good, Fair, Poor settings based on confidence
-     * 
+     *
      * @param conf
      * @param good
      * @param fair
@@ -291,7 +293,7 @@ public class TabUtility {
 
     /**
      * Saves the confidence
-     * 
+     *
      * @param good
      * @param fair
      * @param poor
@@ -311,24 +313,28 @@ public class TabUtility {
     }
 
     /**
-     * Checks the validity of the selected DTG
-     * 
+     * Checks the validity of the DTG field.
+     *
      * @param date
      * @return
      */
     static final Date checkDtg(String date) {
-        try {
-            return Date.from(LocalDateTime.parse(date, DTG_FORMAT)
-                    .toInstant(ZoneOffset.UTC));
-        } catch (RuntimeException e) {
-            logger.warn("TabUtility" + DTG_ERROR_STRING, e);
-            return DEFAULTDATE;
+        Date dt = DEFAULTDATE;
+        if (date != null & date.length() == DTG_PATTERN.length()) {
+            try {
+                dt = Date.from(LocalDateTime.parse(date, DTG_FORMAT)
+                        .toInstant(ZoneOffset.UTC));
+            } catch (RuntimeException e) {
+                logger.warn("TabUtility" + DTG_ERROR_STRING, e);
+            }
         }
+
+        return dt;
     }
 
     /**
      * Saves the sensor type
-     * 
+     *
      * @param visualButton
      * @param infraButton
      * @param microButton
@@ -336,23 +342,23 @@ public class TabUtility {
      */
     static final String saveSensorType(Button visualButton, Button infraButton,
             Button microButton) {
-        String sensorType = "";
+        StringBuilder sensorType = new StringBuilder();
 
         if (visualButton.getSelection()) {
-            sensorType += "V";
+            sensorType.append("V");
         }
         if (infraButton.getSelection()) {
-            sensorType += "I";
+            sensorType.append("I");
         }
         if (microButton.getSelection()) {
-            sensorType += "M";
+            sensorType.append("M");
         }
-        return sensorType;
+        return sensorType.toString();
     }
 
     /**
      * Sets the Sensor type data
-     * 
+     *
      * @param sensorType
      */
     static final void setSensorType(String sensorType, Button visualButton,
@@ -364,7 +370,7 @@ public class TabUtility {
 
     /**
      * Sets the tropics
-     * 
+     *
      * @param trop
      * @param tropicalButton
      * @param subTropButton
@@ -390,7 +396,7 @@ public class TabUtility {
 
     /**
      * Saves the tropics
-     * 
+     *
      * @param tropicalButton
      * @param subTropButton
      * @param extraTropButton
@@ -412,7 +418,7 @@ public class TabUtility {
     /**
      * Used for populating combos with passed in Doubles, by a passed in
      * increment
-     * 
+     *
      * @param combo
      *            the combo to fill
      * @param start
@@ -432,7 +438,7 @@ public class TabUtility {
     /**
      * Used for populating combos with passed in Integers, by a passed in
      * increment.
-     * 
+     *
      * @param combo
      *            the combo to fill
      * @param start
@@ -451,7 +457,7 @@ public class TabUtility {
 
     /**
      * Creates the error dialog text
-     * 
+     *
      * @param dtgValid
      * @param dtgUnique
      * @param latValid
@@ -466,7 +472,7 @@ public class TabUtility {
      * @param sondValid
      * @param startDtgValid
      * @param endDtgValid
-     * 
+     *
      * @return The error dialog text
      */
     static final String buildConfirmationText(boolean dtgValid,
@@ -506,7 +512,7 @@ public class TabUtility {
 
     /**
      * Validates all of the necessary editable fields
-     * 
+     *
      * @param lat
      * @param lon
      * @param north
@@ -524,7 +530,7 @@ public class TabUtility {
      * @param sceneValid
      * @param ciValid
      * @param wmoValid
-     * 
+     *
      * @return
      */
     static final boolean isRecordValid(String lat, String lon, Button north,

@@ -25,6 +25,7 @@
 -- Aug 10, 2020 #79571     wpaintsil   Fix syntax errors in genesis_to_TC.
 -- Sep 23, 2020 #82622     pwang       Add functions to support storm management
 -- Jun 25, 2021 #92918     dfriedman   Update for data class refactoring.
+-- Oct 27, 2022 #109204    jwu         Add checks for region/cyclone number in update_storm.
 --
 -- Create function to check out adeck data to a sandbox
 --
@@ -3042,6 +3043,14 @@ BEGIN
     END IF;--
 
     -- if any field is NaN or -1, set to old value
+    IF (_new_region = 'NaN') THEN
+      SELECT _old_region INTO _new_region;--
+    END IF;--
+
+    IF (_new_cyclonenum <= 0) THEN
+      SELECT _old_cyclonenum INTO _new_cyclonenum;--
+    END IF;--
+
     IF (_new_storm_name = 'NaN') THEN
       SELECT _old_storm_name INTO _new_storm_name;--
     END IF;--

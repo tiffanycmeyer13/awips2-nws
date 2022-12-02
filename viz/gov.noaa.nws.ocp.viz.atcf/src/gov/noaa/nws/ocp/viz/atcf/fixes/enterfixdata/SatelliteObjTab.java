@@ -47,6 +47,7 @@ import gov.noaa.nws.ocp.viz.atcf.AtcfVizUtil;
  * Oct 20, 2019 68738      dmanzella  implemented edit functionality
  * Apr 01, 2021 87786      wpaintsil  Revise UI.
  * Jun 24, 2021 91759      wpaintsil  Remove unnecessary parameters.
+ * Nov 09, 2022 109847     jwu        Fix "Sat Type" validation issue in DR23333.
  * </pre>
  *
  * @author wpaintsil
@@ -143,7 +144,7 @@ public class SatelliteObjTab extends EditFixesTab {
 
     /**
      * Constructor
-     * 
+     *
      * @param parent
      * @param dtgSelectionList
      */
@@ -158,7 +159,7 @@ public class SatelliteObjTab extends EditFixesTab {
         this.storm = storm;
         this.fixDataMap = fixData;
         shell = getShell();
-        selectedRecords = new ArrayList<FDeckRecord>();
+        selectedRecords = new ArrayList<>();
         currDate = new Date();
         typeEntry = AtcfConfigurationManager.getInstance().getFixTypes()
                 .getFixType("DVTO");
@@ -447,7 +448,7 @@ public class SatelliteObjTab extends EditFixesTab {
 
     /**
      * Create the set of fields from "CI Number" up to "Algorithm."
-     * 
+     *
      * @param parent
      */
     private void createCINumberComp(Composite parent) {
@@ -565,7 +566,7 @@ public class SatelliteObjTab extends EditFixesTab {
     /**
      * Create the remaining fields at the bottom of the tab up to the "Initials"
      * field.
-     * 
+     *
      * @param parent
      */
     private void createCommentComp(Composite parent) {
@@ -640,8 +641,9 @@ public class SatelliteObjTab extends EditFixesTab {
         if (TabUtility.isRecordValid(latText.getText(), lonText.getText(),
                 northButton, westButton, !(centerInts.isEmpty()),
                 !(findCurrentRec()), currDate, shell,
-                satTypeCombo.getText().isEmpty(), sensorText.isEmpty(), true,
-                true, !(NONE.equals(cNumCombo.getText())),
+                !(satTypeCombo.getText().isEmpty()), !(sensorText.isEmpty()),
+                !(fixSiteCombo.getText().isEmpty()), true,
+                !(NONE.equals(cNumCombo.getText())),
                 !(altSceneCombo.getText().isEmpty()), true)) {
 
             FDeckRecord fDeckRecord = new FDeckRecord();
@@ -669,7 +671,7 @@ public class SatelliteObjTab extends EditFixesTab {
      * Finds and returns the FDeckRecords based off of the current DTG, FixSite,
      * Tab, and Sat Type. Returns false if no record based off of that
      * combination exists.
-     * 
+     *
      * @return Current FDeckRecord
      */
     @Override
@@ -689,10 +691,11 @@ public class SatelliteObjTab extends EditFixesTab {
     /**
      * When in edit mode, and a new record is selected, fill in fields from the
      * record's data
-     * 
+     *
      * @param fDeckRecord
      *            The record to get the data from
      */
+    @Override
     protected void setFields(ArrayList<FDeckRecord> fDeckRecords) {
         FDeckRecord fDeckRecord = fDeckRecords.get(0);
 
@@ -738,6 +741,7 @@ public class SatelliteObjTab extends EditFixesTab {
     /**
      * Reset all fields for a new entry
      */
+    @Override
     protected void clearFields() {
         fixSiteCombo.setText("");
         satTypeCombo.setText("");
@@ -775,9 +779,10 @@ public class SatelliteObjTab extends EditFixesTab {
     /**
      * Saves the current values of the editable fields to the provided
      * FDeckRecord
-     * 
+     *
      * @param fDeckRecord
      */
+    @Override
     protected void saveFieldsToRec(FDeckRecord fDeckRecord) {
         fDeckRecord.setCenterOrIntensity(centerInts);
         fDeckRecord.setClon(AtcfVizUtil.getStringAsFloat(lonText.getText(),
@@ -833,7 +838,7 @@ public class SatelliteObjTab extends EditFixesTab {
 
     /**
      * Enum representing the SceneType in the Satellite Obj Dvorak tab
-     * 
+     *
      * TODO Replace this with data from scenetypes.dat
      */
     enum SceneType {
@@ -845,7 +850,7 @@ public class SatelliteObjTab extends EditFixesTab {
 
         private String value;
 
-        private SceneType(String value) {
+        SceneType(String value) {
             this.value = value;
         }
 
