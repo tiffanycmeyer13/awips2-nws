@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim.rsc;
+package gov.noaa.nws.ocp.viz.odim.rsc;
 
 import java.awt.Rectangle;
 import java.io.File;
@@ -99,7 +99,7 @@ import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMProductUtil;
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMStoredData;
 import gov.noaa.nws.ocp.common.dataplugin.odim.util.ODIMDataRetriever;
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMResourceData.Mode;
+import gov.noaa.nws.ocp.viz.odim.rsc.ODIMResourceData.Mode;
 import si.uom.NonSI;
 import systems.uom.common.USCustomary;
 import tech.units.indriya.AbstractUnit;

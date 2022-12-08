@@ -33,10 +33,9 @@
          unpack="false"/>
 
    <plugin
-         id="gov.noaa.nws.ocp.viz.plugin.odim"
+         id="gov.noaa.nws.ocp.viz.odim"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
 </feature>

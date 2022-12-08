@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://www.springframework.org/schema/beans
     http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="odimDataCubeAdapter" class="gov.noaa.nws.ocp.viz.plugin.odim.ODIMDataCubeAdapter" />
+    <bean id="odimDataCubeAdapter" class="gov.noaa.nws.ocp.viz.odim.ODIMDataCubeAdapter" />
 
     <bean id="odimDataCubeAdapterRegistered"
         factory-bean="dataCubeAdapterRegistry"

@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim;
+package gov.noaa.nws.ocp.viz.odim;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
 import com.raytheon.uf.viz.core.rsc.AbstractResourceData;
 import com.raytheon.uf.viz.productbrowser.datalisting.DataListingProductBrowserDefinition;
 
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMResourceData;
+import gov.noaa.nws.ocp.viz.odim.rsc.ODIMResourceData;
 
 /**
  * Product Browser data definition for ODIM plugin
