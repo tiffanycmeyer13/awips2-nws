@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim.rsc.mosaic;
+package gov.noaa.nws.ocp.viz.odim.rsc.mosaic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,9 +52,9 @@ import com.raytheon.uf.viz.core.rsc.interrogation.Interrogator;
 import com.raytheon.viz.radar.rsc.MosaicPaintProperties;
 
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMRadialResource;
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMRadialResource.AugmentedRecord;
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.mosaic.ODIMMosaicRendererFactory.IRadarMosaicRenderer;
+import gov.noaa.nws.ocp.viz.odim.rsc.ODIMRadialResource;
+import gov.noaa.nws.ocp.viz.odim.rsc.ODIMRadialResource.AugmentedRecord;
+import gov.noaa.nws.ocp.viz.odim.rsc.mosaic.ODIMMosaicRendererFactory.IRadarMosaicRenderer;
 import tech.units.indriya.format.SimpleUnitFormat;
 
 /**

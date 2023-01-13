@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim.rsc.mosaic;
+package gov.noaa.nws.ocp.viz.odim.rsc.mosaic;
 
 import com.raytheon.uf.viz.core.IGraphicsTarget;
 import com.raytheon.uf.viz.core.drawables.PaintProperties;

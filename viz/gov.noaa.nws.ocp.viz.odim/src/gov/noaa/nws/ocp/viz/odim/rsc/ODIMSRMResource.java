@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim.rsc;
+package gov.noaa.nws.ocp.viz.odim.rsc;
 
 import java.awt.Rectangle;
 import java.io.IOException;
@@ -35,7 +35,7 @@ import com.raytheon.viz.radar.ui.RadarDisplayControls;
 import com.raytheon.viz.radar.ui.RadarDisplayManager;
 
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
-import gov.noaa.nws.ocp.viz.plugin.odim.rsc.ODIMVizDataUtil.SRMValues;
+import gov.noaa.nws.ocp.viz.odim.rsc.ODIMVizDataUtil.SRMValues;
 
 /**
  * SRM display for ODIM plugin

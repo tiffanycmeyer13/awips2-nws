@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim;
+package gov.noaa.nws.ocp.viz.odim;
 
 import java.util.ArrayList;
 import java.util.Collection;
