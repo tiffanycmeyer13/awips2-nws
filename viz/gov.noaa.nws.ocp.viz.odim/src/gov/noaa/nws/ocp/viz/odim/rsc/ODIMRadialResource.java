@@ -118,6 +118,7 @@ import tech.units.indriya.format.SimpleUnitFormat;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Jan 27, 2023 DR 23420   dfriedman   Fix SRM sampling
  * </pre>
  *
  * @author dfriedman
@@ -145,7 +146,7 @@ public class ODIMRadialResource
 
     protected Map<Float, IWireframeShape> rangeCircleMap = new HashMap<>();
 
-    // Copied from AbstractRadarRecord to support sampling/interrogation.
+    // Copied from AbstractRadarResource to support sampling/interrogation.
     private static final Set<InterrogationKey<?>> defaultInspectLabels = new HashSet<>(
             Arrays.asList(Interrogator.VALUE,
                     RadarDefaultInterrogator.VALUE_STRING,
@@ -610,7 +611,12 @@ public class ODIMRadialResource
     protected CompatibilityVizRadarRecord getCompatibilityRadarRecord(
             DataTime time) {
         AugmentedRecord arec = getAugmentedRecord(time);
-        return arec != null ? new CompatibilityVizRadarRecord(arec) : null;
+        if (arec != null) {
+            prepareCompatibilityRecord(arec, arec.compatibilityRecord);
+            return arec.compatibilityRecord;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -707,10 +713,13 @@ public class ODIMRadialResource
         // Supports mosaics and range rings
         protected ProjectedCRS crs;
 
+        protected CompatibilityVizRadarRecord compatibilityRecord;
+
         public AugmentedRecord(ODIMRecord rec) {
             this.rec = rec;
             cacheObject = CacheObject.newCacheObject(rec,
                     new ODIMStoredDataRetriever());
+            compatibilityRecord = new CompatibilityVizRadarRecord(this);
         }
 
         public ODIMRecord getODIMRecord() {
@@ -1202,6 +1211,8 @@ public class ODIMRadialResource
 
         protected transient AugmentedRecord rec;
 
+        protected transient RadarStoredData compatibilityStoredData;
+
         public CompatibilityVizRadarRecord(AugmentedRecord rec) {
             super(createRadarRecordNoStoredData(rec));
             this.rec = rec;
@@ -1209,12 +1220,23 @@ public class ODIMRadialResource
 
         @Override
         public RadarStoredData getStoredData() {
-            return convertToRadarStoredData(rec.getStoredData());
+            if (compatibilityStoredData == null) {
+                compatibilityStoredData = convertToRadarStoredData(
+                        rec.getStoredData());
+            }
+            return compatibilityStoredData;
         }
 
         @Override
         public RadarStoredData getStoredDataAsync() {
-            return convertToRadarStoredData(rec.getStoredDataAsync());
+            if (compatibilityStoredData == null) {
+                ODIMStoredData odimStoredData = rec.getStoredDataAsync();
+                if (odimStoredData != null) {
+                    compatibilityStoredData = convertToRadarStoredData(
+                            odimStoredData);
+                }
+            }
+            return compatibilityStoredData;
         }
 
         @Override
@@ -1231,6 +1253,11 @@ public class ODIMRadialResource
         result.setRawData(storedData.getRawData());
         result.setRawShortData(storedData.getRawShortData());
         return result;
+    }
+
+    protected void prepareCompatibilityRecord(AugmentedRecord arec,
+            CompatibilityVizRadarRecord compatibilityRecord) {
+        // Base class implementation does nothing.
     }
 
 }
