@@ -226,4 +226,18 @@ public class ODIMSRMResource extends ODIMRadialResource
 
     }
 
+    @Override
+    protected void prepareCompatibilityRecord(AugmentedRecord arec,
+            CompatibilityVizRadarRecord compatibilityRecord) {
+        super.prepareCompatibilityRecord(arec, compatibilityRecord);
+        if (compatibilityRecord.srmData == null) {
+            SRMValues srmValues = srmValuesMap.get(arec.rec.getDataTime());
+            if (srmValues != null) {
+                compatibilityRecord.srmData = ODIMVizDataUtil
+                        .calculateSRM(arec.rec, srmValues);
+            }
+        }
+
+    }
+
 }
