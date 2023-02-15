@@ -1,7 +1,7 @@
 /**
  * This software was developed and / or modified by NOAA/NWS/OCP/ASDT
  */
-package gov.noaa.nws.ocp.viz.plugin.odim.rsc;
+package gov.noaa.nws.ocp.viz.odim.rsc;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -14,7 +14,7 @@ import javax.measure.IncommensurableException;
 import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
-import javax.measure.format.ParserException;
+import javax.measure.format.MeasurementParseException;
 
 import com.raytheon.uf.common.colormap.prefs.ColorMapParameters;
 import com.raytheon.uf.common.colormap.prefs.DataMappingPreferences.DataMappingEntry;
@@ -27,7 +27,6 @@ import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.radar.util.DataUtilities;
 
 import gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord;
-
 import tech.units.indriya.AbstractUnit;
 import tech.units.indriya.format.SimpleUnitFormat;
 import tech.units.indriya.function.AbstractConverter;
@@ -40,6 +39,7 @@ import tech.units.indriya.function.AbstractConverter;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Jan 27, 2023 DR 23420   dfriedman   Fix for new geotools
  * </pre>
  *
  * @author dfriedman
@@ -211,7 +211,7 @@ public class ODIMVizDataUtil {
      * Determine colormapped image values to use for "missing" and "no data"
      * values of the given ODIM record.
      *
-     * "missing" is always mapped to zero. "no data" is mapped to the color map
+     * "Missing" is always mapped to zero. "No data" is mapped to the color map
      * index that is labeled "RF" or "NO DATA" if present. Otherwise, it is
      * mapped to zero.
      *
@@ -347,7 +347,7 @@ public class ODIMVizDataUtil {
                 retVal = SimpleUnitFormat
                         .getInstance(SimpleUnitFormat.Flavor.ASCII)
                         .parseProductUnit(unit, new ParsePosition(0));
-            } catch (IllegalArgumentException | ParserException e) {
+            } catch (IllegalArgumentException | MeasurementParseException e) {
                 // Unable to parse unit string
                 statusHandler.warn(String.format(
                         "Unable to parse unit string: \"%s\". Treating as unitless.",
@@ -376,12 +376,12 @@ public class ODIMVizDataUtil {
      */
     public static byte[] calculateSRM(ODIMRecord rec, SRMValues srmValues) {
         byte[] srmData = null;
-        if (rec.getRawData() != null) {
+        byte[] radialData = rec.getRawData();
+        if (radialData != null) {
             int deltaInt = 0;
-            byte[] radialData = rec.getRawData();
 
             // Need to make copy
-            srmData = new byte[rec.getRawData().length];
+            srmData = new byte[radialData.length];
 
             int currBinPtr = 0;
             int maxBin = 0;
@@ -513,7 +513,8 @@ public class ODIMVizDataUtil {
                                         colorMapParameters.getDisplayUnit())
                                 .convert(value);
                     } catch (IncommensurableException // NOSONAR
-                            | UnconvertibleException e) {
+                            | UnconvertibleException
+                            | NumberFormatException e) {
                         return imageFlagValues[1];
                     }
 
@@ -521,7 +522,12 @@ public class ODIMVizDataUtil {
                             .getColorMapToDisplayConverter();
                     int ret = imageFlagValues[1];
                     for (int j = 0; j < 256; j++) {
-                        double disp = imageToDisplayConverter.convert(j);
+                        double disp;
+                        try {
+                            disp = imageToDisplayConverter.convert(j);
+                        } catch (NumberFormatException e) {
+                            continue;
+                        }
                         if (Double.isNaN(disp)) {
                             continue;
                         }
