@@ -8,7 +8,6 @@ Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
  org.eclipse.core.runtime,
  com.raytheon.uf.edex.core,
  com.raytheon.uf.edex.ohd,
- com.raytheon.uf.common.velocity,
  com.raytheon.uf.edex.plugin.text,
  org.opensaml,
  com.raytheon.uf.common.wmo,
@@ -19,7 +18,8 @@ Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
  com.raytheon.uf.common.site,
  org.apache.commons.lang,
  com.raytheon.uf.common.auth,
- com.raytheon.uf.common.dissemination
+ com.raytheon.uf.common.dissemination,
+ org.apache.velocity
 Bundle-Vendor: ERT
 Export-Package: gov.noaa.nws.ocp.edex.climate.creator,
  gov.noaa.nws.ocp.edex.climate.f6builder,
