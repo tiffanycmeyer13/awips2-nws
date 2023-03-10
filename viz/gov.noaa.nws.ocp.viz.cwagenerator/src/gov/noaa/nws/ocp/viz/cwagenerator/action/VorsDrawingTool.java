@@ -24,6 +24,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.PointLatLon;
  * ------------ ---------- ----------- --------------------------
  * Jun 2, 2020  75767      wkwock      Initial creation
  * Sep 10, 2021 28802      wkwock      Remove PGEN from CWA
+ * Mar 03, 2023 23449      wkwock      Fixed the exception when mouse point outside map
  *
  * </pre>
  *
@@ -67,8 +68,8 @@ public class VorsDrawingTool extends AbstractModalTool {
 
         @Override
         public boolean handleMouseDown(int x, int y, int button) {
-            if (button == 1) {
-                Coordinate loc = mapEditor.translateClick(x, y);
+            Coordinate loc = mapEditor.translateClick(x, y);
+            if (button == 1 && loc != null) {
                 PointLatLon point = new PointLatLon(loc.x, loc.y);
                 drawingLayer.addPoint(point, false);
             }
@@ -79,8 +80,11 @@ public class VorsDrawingTool extends AbstractModalTool {
         @Override
         public boolean handleMouseMove(int x, int y) {
             Coordinate loc = mapEditor.translateClick(x, y);
-            PointLatLon point = new PointLatLon(loc.x, loc.y);
-            drawingLayer.addPoint(point, true);
+            if (loc != null) {
+                // loc is null when mouse point outside of map
+                PointLatLon point = new PointLatLon(loc.x, loc.y);
+                drawingLayer.addPoint(point, true);
+            }
             return false;
         }
     }
