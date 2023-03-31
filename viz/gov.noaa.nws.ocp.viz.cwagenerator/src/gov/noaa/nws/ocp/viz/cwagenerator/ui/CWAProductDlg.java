@@ -24,16 +24,16 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.progress.UIJob;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.MessageBox;
 
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext;
@@ -50,13 +50,12 @@ import com.raytheon.uf.common.status.UFStatus;
 import com.raytheon.uf.common.time.util.TimeUtil;
 import com.raytheon.uf.viz.core.exception.VizException;
 import com.raytheon.viz.ui.dialogs.CaveSWTDialog;
-import com.raytheon.viz.ui.dialogs.ICloseCallback;
 
 import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
 
 /**
  * The class for CWA generator dialog
- * 
+ *
  * <pre>
  * SOFTWARE HISTORY
  * Date         Ticket#     Engineer    Description
@@ -66,9 +65,10 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
  * 06/27/2021   92561       wkwock      Added local time zone validations
  * 09/10/2021   28802       wkwock      Remove unnecessary exception catch
  * 04/05/2022   22989       wkwock      Add job cancel to product and time refresh
- * 
+ * 03/23/2023   2033489     wkwock      Cancel timer jobs before close
+ *
  * </pre>
- * 
+ *
  * @author wkwock
  */
 
@@ -188,7 +188,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * constructor for this class.
-     * 
+     *
      * @param Shell:
      *            parent Shell of this dialog.
      * @throws VizException
@@ -198,11 +198,6 @@ public class CWAProductDlg extends CaveSWTDialog {
         cwaButtons = new Button[MAX_CWA];
 
         cwaTexts = new Text[MAX_CWA];
-
-        addCloseCallback((Object returnValue) -> {
-            timeLblJob.cancel();
-            productStatusJob.cancel();
-        });
     }
 
     @Override
@@ -277,7 +272,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * Open CWA formatter dialog
-     * 
+     *
      * @param productId
      */
     private void openCWAFormatterDlg(String productId) {
@@ -310,7 +305,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * make a quick view on a product
-     * 
+     *
      * @param product
      */
     private void quickViewProduct(MouseEvent e) {
@@ -408,7 +403,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * Change color and button names base on the mode
-     * 
+     *
      */
     private void changeModeGui() {
         Color bgColor = praticeBgColor;
@@ -564,7 +559,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * Open CSIG dialog
-     * 
+     *
      * @param productId
      */
     private void openCSIGDlg(String productId) {
@@ -627,7 +622,7 @@ public class CWAProductDlg extends CaveSWTDialog {
 
     /**
      * Open report dialog
-     * 
+     *
      */
     private void openReportDlg() {
         if (reportDlg != null && !reportDlg.isDisposed()) {
@@ -643,16 +638,16 @@ public class CWAProductDlg extends CaveSWTDialog {
      * Get CWA product configurations
      */
     private void getCWAConfigs() {
-        LocalizationLevel[] levels = new LocalizationLevel[] {
-                LocalizationLevel.USER, LocalizationLevel.SITE,
-                LocalizationLevel.REGION, LocalizationLevel.BASE };
+        LocalizationLevel[] levels = { LocalizationLevel.USER,
+                LocalizationLevel.SITE, LocalizationLevel.REGION,
+                LocalizationLevel.BASE };
 
         IPathManager pm = PathManagerFactory.getPathManager();
         LocalizationFile configFile = null;
 
-        for (int i = 0; i < levels.length; i++) {
+        for (LocalizationLevel level : levels) {
             LocalizationContext lc = pm
-                    .getContext(LocalizationType.COMMON_STATIC, levels[i]);
+                    .getContext(LocalizationType.COMMON_STATIC, level);
 
             configFile = pm.getLocalizationFile(lc, CONFIG_FILE);
             if (configFile.exists()) {
@@ -692,8 +687,8 @@ public class CWAProductDlg extends CaveSWTDialog {
             }
         }
 
-        if (found && !cwaConfigs.getKcwsuId()
-                .equalsIgnoreCase("K" + originalCwsuID)) {
+        if (found && !("K" + originalCwsuID)
+                .equalsIgnoreCase(cwaConfigs.getKcwsuId())) {
             found = false;
             badID = cwaConfigs.getKcwsuId();
         }
@@ -729,7 +724,6 @@ public class CWAProductDlg extends CaveSWTDialog {
      */
     private void createTimeControl() {
         timeLbl = new Label(top, SWT.CENTER);
-        this.disposed();
         GridData timeGd = new GridData(SWT.CENTER, SWT.CENTER, false, false);
         GC gc = new GC(timeLbl);
         timeGd.widthHint = (int) (gc.getFontMetrics().getAverageCharacterWidth()
@@ -739,6 +733,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         gc.dispose();
 
         timeLblJob = new UIJob(this.getDisplay(), "time label") {
+            @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateTimeLbl();
                 schedule(1000);
@@ -750,6 +745,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         timeLblJob.schedule();
 
         productStatusJob = new UIJob(this.getDisplay(), "product status") {
+            @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateProductStatus();
                 schedule(updateInterval.toMillis());
@@ -795,4 +791,11 @@ public class CWAProductDlg extends CaveSWTDialog {
         misTxt.setForeground(cwaProduct.getColor());
 
     }
+
+    @Override
+    protected void disposed() {
+        timeLblJob.cancel();
+        productStatusJob.cancel();
+    }
+
 }
