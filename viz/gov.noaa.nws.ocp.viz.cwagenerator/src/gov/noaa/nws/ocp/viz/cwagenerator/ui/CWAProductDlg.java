@@ -64,6 +64,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.CWAGeneratorConfig;
  * 06/02/2020   75767       wkwock      Migrated from PGEN to NWS
  * 06/27/2021   92561       wkwock      Added local time zone validations
  * 09/10/2021   28802       wkwock      Remove unnecessary exception catch
+ * 03/23/2023   2033489     wkwock      Cancel timer jobs before close
  * 
  * </pre>
  * 
@@ -177,6 +178,12 @@ public class CWAProductDlg extends CaveSWTDialog {
     private String originalCwsuID = null;
 
     private CWAToolTip toolTip = null;
+
+    /** job for time label */
+    private UIJob timeLblJob;
+
+    /** job for status */
+    private UIJob productStatusJob;
 
     /**
      * constructor for this class.
@@ -724,7 +731,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         updateTimeLbl();
         gc.dispose();
 
-        UIJob timeLblJob = new UIJob(this.getDisplay(), "time label") {
+        timeLblJob = new UIJob(this.getDisplay(), "time label") {
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateTimeLbl();
                 schedule(1000);
@@ -735,8 +742,7 @@ public class CWAProductDlg extends CaveSWTDialog {
         timeLblJob.setPriority(Job.INTERACTIVE);
         timeLblJob.schedule();
 
-        UIJob productStatusJob = new UIJob(this.getDisplay(),
-                "product status") {
+        productStatusJob = new UIJob(this.getDisplay(), "product status") {
             public IStatus runInUIThread(IProgressMonitor monitor) {
                 updateProductStatus();
                 schedule(updateInterval.toMillis());
@@ -781,6 +787,12 @@ public class CWAProductDlg extends CaveSWTDialog {
                 cwaProduct.getSeries() + "      " + cwaProduct.getExpire());
         misTxt.setForeground(cwaProduct.getColor());
 
+    }
+
+    @Override
+    protected void disposed() {
+        timeLblJob.cancel();
+        productStatusJob.cancel();
     }
 
 }
