@@ -1,7 +1,5 @@
 package gov.noaa.nws.ocp.common.geojson.datastore;
 
-import gov.noaa.nws.ocp.common.geojson.datastore.util.GeoJSONFile;
-
 import java.awt.RenderingHints.Key;
 import java.io.File;
 import java.io.IOException;
@@ -11,24 +9,32 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.geotools.data.AbstractDataStoreFactory;
 import org.geotools.data.DataStore;
-import org.geotools.data.DataUtilities;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFactorySpi;
+import org.geotools.data.Query;
 import org.geotools.data.directory.DirectoryDataStore;
 import org.geotools.data.directory.FileStoreFactory;
+import org.geotools.data.store.ContentDataStore;
+import org.geotools.data.store.ContentEntry;
+import org.geotools.data.store.ContentFeatureSource;
+import org.geotools.feature.NameImpl;
 import org.geotools.util.KVP;
+import org.geotools.util.URLs;
+import org.opengis.feature.type.Name;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
+import gov.noaa.nws.ocp.common.geojson.datastore.util.GeoJSONFile;
+
 /**
  * GeoJSONDataStoreFactory
  * 
- * Concrete class implemented AbstractDataStoreFactory
+ * Concrete class implemented ContentDataStore
  * 
  * <pre>
  *
@@ -37,13 +43,15 @@ import com.raytheon.uf.common.status.UFStatus;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 30, 2016  17912     pwang       Initial creation
+ * Aug 08, 2022  8858      lsingh      Updated class to use ContentDataStore
+ *                                     as part of the Geotools 26.4 upgrade.
+ *                                     Added methods: createNameTypes() and
+ *                                     createFeatureSource()
  *
  * </pre>
  *
- * @author pwang
- * @version 1.0
  */
-public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
+public class GeoJSONDataStoreFactory extends ContentDataStore
         implements FileDataStoreFactorySpi {
 
     private IUFStatusHandler logger = UFStatus
@@ -102,6 +110,8 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
             "enable spatial index", Boolean.class,
             "enable/disable the use of spatial index for local geojson file",
             false, true, new KVP(Param.LEVEL, "advanced"));
+    
+    private GeoJSONFile gjsonFile;
 
     public String getDisplayName() {
         return "GeoJSON";
@@ -132,7 +142,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
      * @return Map
      */
     public Map<Key, ?> getImplementationHints() {
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     /**
@@ -142,19 +152,19 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
      *            (connection parameters)
      * @return DataStore (GeoJSONDataStore)
      */
-    public DataStore createDataStore(Map<String, Serializable> params)
+    public DataStore createDataStore(Map<String, ?> params)
             throws IOException {
         URL url = lookup(URLP, params, URL.class);
         Boolean isMemoryMapped = lookup(MEMORY_MAPPED, params, Boolean.class);
         URI namespace = lookup(NAMESPACEP, params, URI.class);
 
         // Check if creating a directory of GeoJSON store, or a single file
-        File dir = DataUtilities.urlToFile(url);
+        File dir = URLs.urlToFile(url);
         if (dir != null && dir.isDirectory()) {
-            return new DirectoryDataStore(DataUtilities.urlToFile(url),
+            return new DirectoryDataStore(URLs.urlToFile(url),
                     new GeoJSONFileStoreFactory(this, params));
         } else {
-            GeoJSONFile gjsonFile = new GeoJSONFile(url);
+            gjsonFile = new GeoJSONFile(url);
 
             boolean isLocal = gjsonFile.isLocal();
             boolean useMemoryMappedBuffer = isLocal
@@ -177,7 +187,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
      *            (connection parameters)
      * @return DataStore (GeoJSONDataStore)
      */
-    public DataStore createNewDataStore(Map<String, Serializable> params)
+    public DataStore createNewDataStore(Map<String, ?> params)
             throws IOException {
         return createDataStore(params);
     }
@@ -193,7 +203,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
      * @return
      * @throws IOException
      */
-    public <T> T lookup(Param param, Map<String, Serializable> params,
+    public <T> T lookup(Param param, Map<String, ?> params,
             Class<T> target) throws IOException {
         T result = (T) param.lookUp(params);
         if (result == null) {
@@ -203,33 +213,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
         }
 
     }
-
-    /**
-     * canProcess
-     * 
-     * @param Map
-     * @return
-     */
-    @Override
-    public boolean canProcess(Map params) {
-        if (!super.canProcess(params)) {
-            return false; // fail basic param check
-        }
-        try {
-            URL url = (URL) URLP.lookUp(params);
-            if (canProcess(url)) {
-                return true;
-            } else {
-                File dir = DataUtilities.urlToFile(url);
-                // check for null fileType for backwards compatibility
-                return dir.isDirectory();
-            }
-        } catch (IOException e) {
-            logger.error("Failed to get URL or convert the URL to file.", e);
-            return false;
-        }
-    }
-
+    
     /**
      * canProcess
      * 
@@ -256,7 +240,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
         }
 
         public DataStore getDataStore(File file) throws IOException {
-            final URL url = DataUtilities.fileToURL(file);
+            final URL url = URLs.fileToUrl(file);
             if (gjsonFactory.canProcess(url)) {
                 Map<String, Serializable> params = new HashMap<String, Serializable>(
                         originalParams);
@@ -291,7 +275,7 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
         params.put(URLP.key, url);
 
         boolean isLocal = url.getProtocol().equalsIgnoreCase("file");
-        File file = DataUtilities.urlToFile(url);
+        File file = URLs.urlToFile(url);
         if (file != null && file.isDirectory()) {
             return null;
         } else {
@@ -316,5 +300,19 @@ public class GeoJSONDataStoreFactory extends AbstractDataStoreFactory
         ds.dispose();
         return ((names == null || names.length == 0) ? null : names[0]);
     }
+
+
+    @Override
+    protected List<Name> createTypeNames() throws IOException {
+        Name typeName = new NameImpl(this.gjsonFile.getName());
+        return Collections.singletonList(typeName);
+    }
+
+    @Override
+    protected ContentFeatureSource createFeatureSource(ContentEntry entry)
+            throws IOException {
+        return new GeoJSONFeatureSource(entry, Query.ALL);
+    }
+
 
 }

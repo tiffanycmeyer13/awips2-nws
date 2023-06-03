@@ -11,6 +11,10 @@ function lookupWA_RPM()
                 export RPM_SPECIFICATION="${2}/Installer.TsunamiEasGui"
                 return 0
         fi
+        if [ "${1}" = "awips2-heatriskindex" ]; then
+                export RPM_SPECIFICATION="${2}/Installer.HeatRiskIndex"
+                return 0
+        fi
 
         return 1
 }
