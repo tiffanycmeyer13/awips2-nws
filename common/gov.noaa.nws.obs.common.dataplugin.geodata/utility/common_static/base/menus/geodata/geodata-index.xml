@@ -18,6 +18,8 @@
         Matt Comerford
     -->
 <menuContributionFile>
-    <include installTo="menu:satellite?before=GROUP5" fileName="menus/geodata/baseGeoData.xml">
+<!-- 
+    <include installTo="menu:satellite?before=GROUP6" fileName="menus/geodata/baseGeoData.xml">
     </include>
+-->
 </menuContributionFile>
