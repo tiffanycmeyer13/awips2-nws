@@ -39,8 +39,8 @@ mkdir --parents ${APP_DIR}
 mkdir --parents ${APP_DIR}/data
 mkdir --parents ${APP_DIR}/install
 mkdir --parents ${APP_DIR}/runtime
-mkdir --parent ${APP_DIR}/install/HeatRisk/logs
 mkdir --parent ${APP_DIR}/install/PrismHiRes/logs
+mkdir --parent ${APP_DIR}/install/HeatRisk/logs
 SRC_DIR="%{_baseline_workspace}/apps/HeatRiskIndex"
 rsync --archive ${SRC_DIR}/ ${APP_DIR}/
 
@@ -49,9 +49,11 @@ rm --recursive --force %{_build_root}
 
 %files
 %defattr(644,awips,fxalpha,755)
-%dir /awips2/apps/HeatRiskIndex 
+%dir /awips2/apps/HeatRiskIndex
 %dir /awips2/apps/HeatRiskIndex/install
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk
+%dir /awips2/apps/HeatRiskIndex/install/HeatRisk/bin
+/awips2/apps/HeatRiskIndex/install/HeatRisk/bin/*
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk/config
 /awips2/apps/HeatRiskIndex/install/HeatRisk/config/*
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk/data
@@ -62,20 +64,23 @@ rm --recursive --force %{_build_root}
 /awips2/apps/HeatRiskIndex/install/HeatRisk/gfe/*
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk/install
 /awips2/apps/HeatRiskIndex/install/HeatRisk/install/*
-%dir /awips2/apps/HeatRiskIndex/install/HeatRisk/logs
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes
+%dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/bin
+/awips2/apps/HeatRiskIndex/install/PrismHiRes/bin/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/etc
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/etc/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/gfe
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/gfe/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/install
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/*
-%dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/logs
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/install.sh
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/install.sh
 %dir /awips2/apps/HeatRiskIndex/runtime
 %defattr(644,root,root,-)
 
 %changelog
-* Fri Sep 9 2022 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov> 
+* Wed Aug 2 2023 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
+- Added HeatRisk bin directories.
+
+* Fri Sep 9 2022 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
 - Initial package creation.
