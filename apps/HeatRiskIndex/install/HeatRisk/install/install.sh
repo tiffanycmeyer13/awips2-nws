@@ -68,7 +68,10 @@ dataDir="/awips2/apps/HeatRiskIndex/data"
 if [[ ! -a $dataDir/deltas.tar.bz2 ]]
 then
     logecho ""
-    redecho "Delta file not staged correctly!!! Missing $dataDir/deltas.tar.bz2"
+    redecho "ERROR: delta file not found. Missing $dataDir/deltas.tar.bz2"
+    redecho "Copy the missing data by running the following command:"
+    redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/deltas.tar.bz2 $dataDir/deltas.tar.bz2"
+    redecho "Installation STOPPED! Exiting..."
     exit 1
 fi
 
@@ -104,7 +107,7 @@ then
   if [ ! -f $GFEDIR/bin/ifpServerText ]
   then
       echo "ERROR: Could not find GFE in /awips2/GFESuite"
-      echo "       Set environmental variable GFEDIR to GFE installation then try again."
+      echo "Set environmental variable GFEDIR to GFE installation then try again."
       exit 1
   fi
 fi
@@ -114,8 +117,8 @@ fi
 
 if [[ ! -a /awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMaxT0101.npy ]];then
     logecho ""
-    redecho "PrismHiRes must be at version 4.0 or later. Install version 4.0."
-    redecho "Installation STOPPED!!! Exiting"
+    redecho "ERROR: PrismHiRes must be at version 4.0 or later. Install version 4.0."
+    redecho "Installation STOPPED! Exiting..."
     exit 1
 fi
 
@@ -130,10 +133,11 @@ rundate=`date +%Y%m%d%H%M`
 logFile="$logDir/install_${rundate}.log"
 
 if [[ ! -d $binDir || ! -d $gfeDir || ! -d $configDir ]]; then
-   redecho "ERROR:  Ensure you have downloaded the following directories using svn from repository"
+   redecho "ERROR:  Ensure the following directories were created during the installation:"
    redecho $binDir
    redecho $gfeDir
    redecho $configDir
+   redecho "Installation STOPPED! Exiting..."
    exit 1
 fi
 
@@ -189,7 +193,10 @@ logecho ""
 
 if [[ ! -a $dataDir/datafiles.tar.bz2 ]]
 then
-    redecho "datafiles.tar.bz2 not staged correctly!!! Missing $dataDir/datafiles.tar.bz2"
+    redecho "ERROR: datafiles.tar.bz2 not found. Missing $dataDir/datafiles.tar.bz2"
+    redecho "Copy the missing data by running the following command:"
+    redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/datafiles.tar.bz2 $dataDir/datafiles.tar.bz2"
+    redecho "Installation STOPPED! Exiting..."
     exit 1
 fi
 
@@ -216,16 +223,16 @@ sleep 1
 for file in $filelist;do
    logecho "Copying over $file to ${Climodir}/bin/$file"
    logecho ""
-   cp $binDir/${file}.tmp ${Climodir}/bin/${file}
+   cp $binDir/${file} ${Climodir}/bin/${file}
 done
 
 logecho "Installing ${Climodir}/env.sh"
-sed "s/XXX/$site/g" $binDir/env.sh.tmp > ${Climodir}/bin/env.sh
+sed "s/XXX/$site/g" $binDir/env.sh > ${Climodir}/bin/env.sh
 
 logecho ""
 
 logecho "Setting site in WeatherElementGroup"
-sed "s/XXX/$site/g" $configDir/HeatRisk.WeatherElementGroup.tmp > $configDir/HeatRisk.WeatherElementGroup
+sed "s/XXX/$site/g" $configDir/HeatRisk.WeatherElementGroup > $configDir/HeatRisk.WeatherElementGroup
 
 logecho ""
 
