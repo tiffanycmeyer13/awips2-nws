@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
 <menuTemplate>
-    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subMenu" menuText="casag-casgo">
+    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subMenu" menuText="casag-casfw">
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casag"/>
         </contribute>
@@ -30,16 +30,22 @@
             <substitute key="node" value="caset"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="casfm"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casft"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casfw"/>
         </contribute>
+    </contribute>
+    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subMenu" menuText="casgo-casrf">
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casgo"/>
         </contribute>
-    </contribute>
-    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subMenu" menuText="cashr-casvd">
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="cashp"/>
+        </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="cashr"/>
         </contribute>
@@ -50,7 +56,19 @@
             <substitute key="node" value="casla"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="casma"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="casmb"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="casmm"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casmr"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="caspg"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casra"/>
@@ -58,6 +76,8 @@
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casrf"/>
         </contribute>
+    </contribute>
+    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subMenu" menuText="cassf-caswl">
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="cassf"/>
         </contribute>
@@ -65,19 +85,25 @@
             <substitute key="node" value="cassm"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="cassn"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="cassr"/>
+        </contribute>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="casss"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="cassu"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
-            <substitute key="node" value="casvd"/>
+            <substitute key="node" value="casts"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
             <substitute key="node" value="casvd"/>
         </contribute>
-    </contribute>
-    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
-        <substitute key="node" value="caswl"/>
+        <contribute xsi:type="subinclude" fileName="menus/odim/baseODIMMenu.xml">
+            <substitute key="node" value="caswl"/>
+        </contribute>
     </contribute>
 </menuTemplate>

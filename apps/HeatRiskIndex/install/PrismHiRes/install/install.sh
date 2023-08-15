@@ -102,7 +102,8 @@ then
   if [ ! -f $GFEDIR/bin/ifpServerText ]
   then
       redecho "ERROR: Could not find GFE in /awips2/GFESuite"
-      redecho "       Set environmental variable GFEDIR to GFE installation then try again."
+      redecho "Set environmental variable GFEDIR to GFE installation then try again."
+      redecho "Installation STOPPED! Exiting..."
       exit 1
   fi
 fi
@@ -124,9 +125,10 @@ logFile="$logDir/install_${rundate}.log"
 
 
 if [[ ! -d $binDir || ! -d $gfeDir ]]; then
-   redecho "ERROR:  Ensure you have downloaded the following directories using svn from repository"
+   redecho "ERROR:  Ensure the following directories were created during the installation:"
    redecho $binDir
    redecho $gfeDir
+   redecho "Installation STOPPED! Exiting..."
    exit 1
 fi
 
@@ -179,10 +181,12 @@ logecho ""
 
 if [[ ! -a ${Climodir}/data/Normals.MaxT.0101.txt ]];then
 
-    # Check to make sure NECI data is staged correctly
+    # Check to make sure NCEI data is staged correctly
     if [[ ! -e ${DataDir}/Normals.tar.bz2 ]]; then
-      redecho "ERROR: PRISM data not found. Missing ${DataDir}/Normals.tar.bz2"
-      redecho "Copy PRISM data from scp to ${DataDir}/Normals.tar.bz2"
+      redecho "ERROR: NCEI data not found. Missing ${DataDir}/Normals.tar.bz2"
+      redecho "Copy NCEI data by running the following command:"
+      redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/PrismHiRes/tags/data/Normals.tar.bz2 ${DataDir}/Normals.tar.bz2"
+      redecho "Installation STOPPED! Exiting..."
       exit 1
     fi
 
@@ -220,10 +224,10 @@ mkdir -p "${Climodir}/bin"
 for file in $filelist;do
    if [[ ! -a $Climodir/bin/$file ]]; then
      logecho "Installing ${Climodir}/bin/$file"
-     cp $binDir/$file.tmp ${Climodir}/bin/$file
+     cp $binDir/$file ${Climodir}/bin/$file
      let num=num+1 
    else
-      cp $binDir/$file.tmp ${Climodir}/bin/$file.new
+      cp $binDir/$file ${Climodir}/bin/$file.new
       test=`diff --brief ${Climodir}/bin/$file.new $Climodir/bin/$file`
       if [ -n "$test" ]; then
          logecho "Updating ${Climodir}/bin/$file"
@@ -240,7 +244,9 @@ done
     # Check to make sure PRISM800mUS data is staged correctly
 if [[ ! -e ${DataDir}/PRISM_conus_30yr_normal_800m.grib2.bz2 ]]; then
   redecho "ERROR: PRISM data not found. Missing ${DataDir}/PRISM_conus_30yr_normal_800m.grib2.bz2"
-  redecho "Copy PRISM data from https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/PrismHiRes/tags/data/PRISM_conus_30yr_normal_800m.grib2.bz2 to ${DataDir}/PRISM_conus_30yr_normal_800m.grib2.bz2"
+  redecho "Copy PRISM data by running the following command:"
+  redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/PrismHiRes/tags/data/PRISM_conus_30yr_normal_800m.grib2.bz2 ${DataDir}/PRISM_conus_30yr_normal_800m.grib2.bz2"
+  redecho "Installation STOPPED! Exiting..."
   exit 1
 fi
 logecho "Unziping ${DataDir}/PRISM_conus_30yr_normal_800m.grib2.bz2 in place"
