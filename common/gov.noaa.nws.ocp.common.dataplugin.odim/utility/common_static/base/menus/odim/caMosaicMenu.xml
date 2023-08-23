@@ -3,6 +3,6 @@
     <contribute xsi:type="subinclude" subMenu="Canadian Mosaic"
         id="caMosaicMenu" fileName="menus/odim/caMosaicProductMenu.xml">
         <substitute key="mosaicNodeList"
-            value="casag,casbe,casbi,casbv,cascl,cascm,cascv,casdr,caset,casft,casfw,casgo,cashr,caskr,casla,casmr,casra,casrf,cassf,cassm,cassr,cassu,casvd,caswl" />
+            value="casag,casbe,casbi,casbv,cascl,cascm,cascv,casdr,caset,casfm,casft,casfw,casgo,cashp,cashr,caskr,casla,casma,casmb,casmm,casmr,caspg,casra,casrf,cassf,cassm,cassn,cassr,casss,cassu,casts,casvd,caswl" />
     </contribute>
 </menuTemplate>

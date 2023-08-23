@@ -12,11 +12,11 @@
     <vcp code="caM" label="Mountain"
         elevs="-0.3 0.4 1.0 1.6 2.2 2.8 3.6 4.4 5.2 6.8 8.4 10.0 11.6 14.8 18.0 21.2 24.4" />
     <radar vcp="caN"
-        radars="casag casbe casbi casbv cascm cascv casdr caset casft casfw casgo caskr casrf cassf cassu caswl" />
+        radars="casag casbe casbi casbv cascl cascm cascv casdr caset casfm casft casfw casgo cashp cashr caskr casla casma casmb casmm casmr caspg casra casrf cassf cassm cassn cassr cassu casts caswl" />
     <radar vcp="caS"
-        radars="cascl cashr casla casmr casra cassm cassr casvd" />
+        radars="" />
     <radar vcp="caM"
-        radars="casvd" />
+        radars="casss casvd" />
     <group primary="0.3" angles="-0.3 0.3" />
     <group primary="1.0" angles="0.8 1.0" />
     <group primary="2.0" angles="2.0 2.2" />

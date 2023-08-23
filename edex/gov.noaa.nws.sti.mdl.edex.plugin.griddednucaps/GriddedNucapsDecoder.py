@@ -14,6 +14,8 @@
 # Mar 15, 2019  61425    jburks    Fixed calc issue with lowest pressure level
 #                                  water vapor
 # Mar 01, 2022  8795     randerso  Change type of surface level arrays to int
+# Jun 15, 2023  2034194  lsingh    Fix for satellite id that is sometimes encoded
+#                                  as bytes
 #
 ##
 
@@ -122,7 +124,12 @@ class GriddedNucapsDecoder():
         #         self.log.info("Processing file: "+str(f))
         rootgrp = h5py.File(f, "r")
         self.attributes = rootgrp.attrs
-        self.satelliteId = self.attributes["satellite_name"]
+        # DR 2034194 - strip satellite id of byte characters that appears in some cases. 
+        # Possibly due to an issue with HDF5, H5PY or Numpy.
+        if isinstance(self.attributes["satellite_name"], bytes):
+            self.satelliteId = self.attributes["satellite_name"].decode("utf-8")
+        else:
+            self.satelliteId = self.attributes["satellite_name"]
         self.latitude = np.append(self.latitude, np.array(rootgrp["Latitude@NUCAPS_EDR"][:], copy=True))
         self.longitude = np.append(self.longitude, np.array(rootgrp["Longitude@NUCAPS_EDR"][:], copy=True))
         self.temperature = np.append(self.temperature, np.array(rootgrp["Temperature@NUCAPS_EDR"], copy=True), axis=0)
