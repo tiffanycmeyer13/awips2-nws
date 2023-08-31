@@ -24,6 +24,14 @@
 #
 # Original version by Jim Buchman, 8/29/2023, based on Betty Tai's Python script.
 #
+# SOFTWARE HISTORY
+# Date         Ticket#    Engineer     Description
+# ------------ ---------- -----------  --------------------------
+# 08302023     2036132    Jim.Buchman    Initial creation
+#
+# Author: Jim Buchman
+# ----------------------------------------------------------------------------
+#
 readonly TSUGUI_HOME=/awips2/apps/TsunamiEasGui
 readonly DEST_DIR=/awips2/edex/data/share/TsunamiEasGui/etc
 
@@ -32,28 +40,25 @@ echo "Tsunami EAS GUI application - DIRECTORY REPAIR SCRIPT for 21.4.1"
 echo "Run this script only once, as user awips, on each of the LX workstations."
 echo
 
-if [ \! `whoami` = root -a \! `whoami` = awips ]
-then
-	echo "You must run this script as user awips or root."
-	exit 1
+if [ \! $(whoami) = root -a \! $(whoami) = awips ]; then
+    echo "You must run this script as user awips or root."
+    exit 1
 fi
 
-if [ ! -d ${TSUGUI_HOME} ]
-then
-	echo "ERROR - GUI home directory $TSUGUI_HOME does not exist - exiting."
-	exit 1
+if [ ! -d ${TSUGUI_HOME} ]; then
+    echo "ERROR - GUI home directory $TSUGUI_HOME does not exist - exiting."
+    exit 1
 fi
 
 #
 # Create the data/ subdirectory, if it does not already exist.
 # Set the file owner and group, and make it writeable to all AWIPS users.
 #
-if [ -d ${TSUGUI_HOME}/data ]
-then
-	echo "Note: temporary file directory ${TSUGUI_HOME}/data already exists."
+if [ -d ${TSUGUI_HOME}/data ]; then
+    echo "Note: temporary file directory ${TSUGUI_HOME}/data already exists."
 else
-	echo "Creating directory ${TSUGUI_HOME}/data with group WRITE permission ..."
-	mkdir ${TSUGUI_HOME}/data
+    echo "Creating directory ${TSUGUI_HOME}/data with group WRITE permission ..."
+    mkdir ${TSUGUI_HOME}/data
 fi
 
 chown awips:fxalpha ${TSUGUI_HOME}/data
@@ -64,25 +69,23 @@ chmod 775 ${TSUGUI_HOME}/log
 # Create the new "etc" directory on the NFS shared area. (It might already
 # have been created by this script, run from another LX).
 #
-if [ -d ${DEST_DIR} ]
-then
-	echo "Note: shared config directory ${DEST_DIR} already exists."
+if [ -d ${DEST_DIR} ]; then
+    echo "Note: shared config directory ${DEST_DIR} already exists."
 else
-	echo "Creating config file directory ${DEST_DIR} ..."
-	mkdir -p ${DEST_DIR}
-	chown awips:fxalpha ${DEST_DIR}
-	chmod 775 ${DEST_DIR}
+    echo "Creating config file directory ${DEST_DIR} ..."
+    mkdir -p ${DEST_DIR}
+    chown awips:fxalpha ${DEST_DIR}
+    chmod 775 ${DEST_DIR}
 fi
 
 #
 # Check whether this script has already been run on this LX.
 #
-if [ -h ${TSUGUI_HOME}/etc -a -d ${DEST_DIR} ]
-then
-	echo "WARNING - it looks like this script has already been run:"
-	echo "  ${TSUGUI_HOME}/etc exists and is a symbolic link"
-	echo "  Exiting ..."
-	exit 0
+if [ -h ${TSUGUI_HOME}/etc -a -d ${DEST_DIR} ]; then
+    echo "WARNING - it looks like this script has already been run:"
+    echo "  ${TSUGUI_HOME}/etc exists and is a symbolic link"
+    echo "  Exiting ..."
+    exit 0
 fi
 
 #
@@ -95,39 +98,34 @@ fi
 #		the local file. If they match, do not copy.
 #	- If they don't match, copy it, with a suffix indicating the LX it came from.
 #
-if [ ! -d ${TSUGUI_HOME}/etc ]
-then
-	echo "WARNING - directory ${TSUGUI_HOME}/etc does not exist (unexpected)." 
-	echo "  Not an error, but no files will be copied to ${DEST_DIR}"
+if [ ! -d ${TSUGUI_HOME}/etc ]; then
+    echo "WARNING - directory ${TSUGUI_HOME}/etc does not exist (unexpected)."
+    echo "  Not an error, but no files will be copied to ${DEST_DIR}"
 
-elif [ \! "$(ls -A ${TSUGUI_HOME}/etc)" ]
-then
-	echo "Note: there are no files in ${TSUGUI_HOME}/etc to copy (normal)"
+elif [ \! "$(ls -A ${TSUGUI_HOME}/etc)" ]; then
+    echo "Note: there are no files in ${TSUGUI_HOME}/etc to copy (normal)"
 
-elif [ \! "$(ls -A ${DEST_DIR})" -o \! -f ${DEST_DIR}/config_tsu.py ]
-then
+elif [ \! "$(ls -A ${DEST_DIR})" -o \! -f ${DEST_DIR}/config_tsu.py ]; then
 
-	# Destination directory is empty *or* config_tsu.py is not present.
-	echo "Moving files from ${TSUGUI_HOME}/etc to ${DEST_DIR} ..."
-	mv -f ${TSUGUI_HOME}/etc/* ${DEST_DIR}
+    # Destination directory is empty *or* config_tsu.py is not present.
+    echo "Moving files from ${TSUGUI_HOME}/etc to ${DEST_DIR} ..."
+    mv -f ${TSUGUI_HOME}/etc/* ${DEST_DIR}
 
 else
-	# If there are any template files, move them first.
-	if [ "$(ls -A ${TSUGUI_HOME}/etc/template*)" ]
-	then
-		echo "Moving template files to ${DEST_DIR} ..."
-		mv -f ${TSUGUI_HOME}/etc/template* ${DEST_DIR}
-	fi
+    # If there are any template files, move them first.
+    if [ "$(ls -A ${TSUGUI_HOME}/etc/template*)" ]; then
+        echo "Moving template files to ${DEST_DIR} ..."
+        mv -f ${TSUGUI_HOME}/etc/template* ${DEST_DIR}
+    fi
 
-	sfx=`hostname |cut -f 1 -d -`
-	if [ "$(diff -w ${TSUGUI_HOME}/etc/config_tsu.py ${DEST_DIR}/config_tsu.py)" ]
-	then
-		echo "WARNING: config_tsu.py in ${TSUGUI_HOME}/etc differs from the one in ${DEST_DIR}!"
-		echo "    This file will be copied as config_tsu.py.${sfx}"
-		mv -f ${TSUGUI_HOME}/etc/config_tsu.py ${DEST_DIR}/config_tsu.py.${sfx}
-	else
-		echo "config_tsu.py in ${TSUGUI_HOME}/etc is the same as the one in ${DEST_DIR}; not copied."
-	fi
+    sfx=$(hostname | cut -f 1 -d -)
+    if [ "$(diff -w ${TSUGUI_HOME}/etc/config_tsu.py ${DEST_DIR}/config_tsu.py)" ]; then
+        echo "WARNING: config_tsu.py in ${TSUGUI_HOME}/etc differs from the one in ${DEST_DIR}!"
+        echo "    This file will be copied as config_tsu.py.${sfx}"
+        mv -f ${TSUGUI_HOME}/etc/config_tsu.py ${DEST_DIR}/config_tsu.py.${sfx}
+    else
+        echo "config_tsu.py in ${TSUGUI_HOME}/etc is the same as the one in ${DEST_DIR}; not copied."
+    fi
 fi
 
 #
@@ -138,7 +136,7 @@ echo "Removing local directory ${TSUGUI_HOME}/etc ..."
 rm -rf ${TSUGUI_HOME}/etc
 
 echo "Creating symbolic link to directory ${DEST_DIR} ..."
-ln -s  ${DEST_DIR} ${TSUGUI_HOME}/etc
+ln -s ${DEST_DIR} ${TSUGUI_HOME}/etc
 chown awips:fxalpha ${TSUGUI_HOME}/etc
 
 echo
@@ -146,7 +144,7 @@ echo "Contents of directory ${DEST_DIR}:"
 ls -l ${DEST_DIR}
 echo
 
-echo `date` " - Tsunami EAS GUI directory structure has been updated!"
+echo $(date) " - Tsunami EAS GUI directory structure has been updated!"
 echo
 
 exit 0
