@@ -64,6 +64,7 @@ rm --recursive --force %{_build_root}
 %dir /awips2/apps/TsunamiEasGui 
 %dir /awips2/apps/TsunamiEasGui/bin
 %attr(755,awips,fxalpha) /awips2/apps/TsunamiEasGui/bin/copyTsunamiGui.sh
+%attr(755,awips,fxalpha) /awips2/apps/TsunamiEasGui/bin/fixTsuGuiDirs.sh
 %attr(755,awips,fxalpha) /awips2/apps/TsunamiEasGui/bin/modecheck.sh
 %attr(755,awips,fxalpha) /awips2/apps/TsunamiEasGui/bin/nwrsend.sh
 %attr(755,awips,fxalpha) /awips2/apps/TsunamiEasGui/bin/nwr_tsu.py
