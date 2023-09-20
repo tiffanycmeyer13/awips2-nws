@@ -32,6 +32,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.DrawingType;
  * Date        Ticket#  Engineer    Description
  * ----------- -------- ----------- --------------------------
  * 08/30/2021  28802    wkwock      Initial creation
+ * 09/01/2023  2036158  wkwock      Change width to width/diam and allow change of width all time 
  * 
  * </pre>
  * 
@@ -84,10 +85,9 @@ public class VorDrawingComp extends Composite {
         isolatedBttn.setText("Isolated  ");
 
         Label widthLbl = new Label(topComp, SWT.LEFT);
-        widthLbl.setText("Width: ");
+        widthLbl.setText("Width/Diam: ");
         widthTxt = new Text(topComp, SWT.SINGLE | SWT.BORDER);
         widthTxt.setText(WIDTH);
-        widthTxt.setEnabled(false);
         widthTxt.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent arg0) {
@@ -104,7 +104,6 @@ public class VorDrawingComp extends Composite {
         });
 
         areaBttn.addListener(SWT.Selection, (Event e) -> {
-            widthTxt.setEnabled(false);
             if (DrawingType.AREA != drawingType) {
                 ownerFormatter.clearDrawings();
                 drawingType = DrawingType.AREA;
@@ -113,7 +112,6 @@ public class VorDrawingComp extends Composite {
         });
 
         lineBttn.addListener(SWT.Selection, (Event e) -> {
-            widthTxt.setEnabled(true);
             if (DrawingType.LINE != drawingType) {
                 ownerFormatter.clearDrawings();
                 drawingType = DrawingType.LINE;
@@ -122,7 +120,6 @@ public class VorDrawingComp extends Composite {
         });
 
         isolatedBttn.addListener(SWT.Selection, (Event e) -> {
-            widthTxt.setEnabled(false);
             if (DrawingType.ISOLATED != drawingType) {
                 ownerFormatter.clearDrawings();
                 drawingType = DrawingType.ISOLATED;
