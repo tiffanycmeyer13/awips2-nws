@@ -38,6 +38,7 @@ import gov.noaa.nws.ocp.viz.cwagenerator.config.WeatherType;
  * 06/02/2020  75767    wkwock      Migrated from PGEN to NWS
  * 09/10/2021  28802    wkwock      Use new configuration format
  * 04/05/2022  22989    wkwock      Add issuance# reset
+ * 10/06/2023  2036283  wkwock      Change LINE for AREA when width > 20 instead of >=20
  * 
  * </pre>
  * 
@@ -320,7 +321,7 @@ public class ThunderstormComp extends AbstractCWAComp {
         }
 
         if ((drawTytpe == DrawingType.AREA)
-                || (drawTytpe == DrawingType.LINE && drawWidth >= 20.0)) {
+                || (drawTytpe == DrawingType.LINE && drawWidth > 20.0)) {
             output.append("AREA ");
         } else if (drawTytpe == DrawingType.ISOLATED) {
             output.append("ISOL ");
