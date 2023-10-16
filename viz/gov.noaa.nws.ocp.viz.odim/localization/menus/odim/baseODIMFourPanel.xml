@@ -15,7 +15,7 @@
         <substitute key="elevation" value="0.4--0.4" />
     </contribute>
     <contribute xsi:type="bundleItem"
-        file="bundles/DefaultODIMDualPolBaseData.xml" menuText="1.0 base data"
+        file="bundles/DefaultODIMDualPolBaseData.xml" menuText="0.8 base data"
         id="${node}10basedata">
         <substitute key="node" value="${node}" />
         <substitute key="elevation" value="1.0--1.0" />
@@ -28,7 +28,7 @@
     </contribute>
     <contribute xsi:type="bundleItem"
         file="bundles/DefaultODIMDualPolBaseData.xml" menuText="All Tilts base data"
-        id="${node}AllTiltsbasedata">
+        id="${node}00-3600basedata">
         <substitute key="node" value="${node}" />
         <substitute key="elevation" value="0.0--360.0" />
     </contribute>
@@ -46,19 +46,19 @@
             <substitute key="elevation" value="1.2--1.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="2.0 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="2.1 base data"
             id="${node}20basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="2.0--2.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="2.8 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="2.7 base data"
             id="${node}28basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="2.8--2.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="3.6 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="3.5 base data"
             id="${node}36basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="3.6--3.6" />
@@ -70,49 +70,49 @@
             <substitute key="elevation" value="4.4--4.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="5.2 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="5.3 base data"
             id="${node}52basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="5.2--5.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="6.8 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="6.4 base data"
             id="${node}68basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="6.8--6.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="8.4 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="7.7 base data"
             id="${node}84basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="8.4--8.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="10.0 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="9.4 base data"
             id="${node}100basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="10.0--10.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="11.6 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="11.3 base data"
             id="${node}116basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="11.6--11.6" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="14.8 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="13.7 base data"
             id="${node}148basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="14.8--14.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="18.0 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="16.6 base data"
             id="${node}180basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="18.0--18.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="21.2 base data"
+            file="bundles/DefaultODIMDualPolBaseData.xml" menuText="20.2 base data"
             id="${node}212basedata">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="21.2--21.2" />
@@ -134,7 +134,7 @@
         <substitute key="elevation" value="0.4--0.4" />
     </contribute>
     <contribute xsi:type="bundleItem"
-        file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="1.0 dual pol analysis"
+        file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="0.8 dual pol analysis"
         id="${node}10dualpolanalysis">
         <substitute key="node" value="${node}" />
         <substitute key="elevation" value="1.0--1.0" />
@@ -147,7 +147,7 @@
     </contribute>
     <contribute xsi:type="bundleItem"
         file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="All Tilts dual pol analysis"
-        id="${node}AllTiltsdualpolanalysis">
+        id="${node}00-3600dualpolanalysis">
         <substitute key="node" value="${node}" />
         <substitute key="elevation" value="0.0--360.0" />
     </contribute>
@@ -165,19 +165,19 @@
             <substitute key="elevation" value="1.2--1.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="2.0 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="2.1 dual pol analysis"
             id="${node}20dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="2.0--2.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="2.8 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="2.7 dual pol analysis"
             id="${node}28dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="2.8--2.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="3.6 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="3.5 dual pol analysis"
             id="${node}36dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="3.6--3.6" />
@@ -189,49 +189,49 @@
             <substitute key="elevation" value="4.4--4.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="5.2 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="5.3 dual pol analysis"
             id="${node}52dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="5.2--5.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="6.8 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="6.4 dual pol analysis"
             id="${node}68dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="6.8--6.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="8.4 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="7.7 dual pol analysis"
             id="${node}84dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="8.4--8.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="10.0 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="9.4 dual pol analysis"
             id="${node}100dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="10.0--10.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="11.6 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="11.3 dual pol analysis"
             id="${node}116dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="11.6--11.6" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="14.8 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="13.7 dual pol analysis"
             id="${node}148dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="14.8--14.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="18.0 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="16.6 dual pol analysis"
             id="${node}180dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="18.0--18.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="21.2 dual pol analysis"
+            file="bundles/DefaultODIMDualPolAnalysis.xml" menuText="20.2 dual pol analysis"
             id="${node}212dualpolanalysis">
             <substitute key="node" value="${node}" />
             <substitute key="elevation" value="21.2--21.2" />
