@@ -21,7 +21,7 @@
 # applicable.
 #
 # Once this process is complete, the daily files are exported/stored as numpy arrays in the
-# /awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data directory. A second procedure,
+# /awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/ directory. A second procedure,
 # PopulateClimoTemps, should be run daily on a cron.  It populates the Climo database
 # with the necessary normals using the stored npy files.
 #
@@ -53,7 +53,7 @@ MenuItems = [None]
 #
 # Set to where the point data text files reside and npy files generated at the end will reside.
 #
-DataLocation = "/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/"
+DataLocation = "/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/"
 #
 #  Stations to exclude. Add the USC code to the list.
 #  Ex. stationsToReject=["USC00268186","USC00222186"]

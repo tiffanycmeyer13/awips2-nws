@@ -37,6 +37,8 @@ class Procedure (SmartScript.SmartScript):
 
     def execute(self, varDict):
         
+        PRISM_DATA = '/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/'
+        HEATRISK_DATA_DIR_LEVELS = '/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/levels/'
         # Throw a status to say what is going on
         dialog = MyDialog.MyDialog("Status",'Pulling Data...')
         
@@ -49,20 +51,33 @@ class Procedure (SmartScript.SmartScript):
         redMinT, orangeMinT, yellowMinT, normalMinT = [], [], [], []
         
         # The Yellow is static, so grab those values
-        yellowMaxT = np.ones(366)*np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmax.npy')[y][x]
-        yellowMinT = np.ones(366)*np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmin.npy')[y][x]
+        fn = HEATRISK_DATA_DIR_LEVELS + 'yellowLineTmax.npy'
+        yellowMaxT = np.ones(366)*np.load(fn)[y][x]
+
+        fn = HEATRISK_DATA_DIR_LEVELS + 'yellowLineTmin.npy'
+        yellowMinT = np.ones(366)*np.load(fn)[y][x]
                 
         # Cycle through full year
         dt = datetime.datetime(2016,1,1)
         while dt <= datetime.datetime(2016,12,31):
             if 'MaxT' in varDict['Parms']:
-                normalMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMaxT%s.npy'%dt.strftime('%m%d'))[y][x] )
-                redMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmax%s.npy'%dt.strftime('%m%d'))[y][x] )
-                orangeMaxT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmax%s.npy'%dt.strftime('%m%d'))[y][x] )
+                fn = PRISM_DATA + 'dailyMaxT%s.npy'%dt.strftime('%m%d')
+                normalMaxT.append( np.load(fn)[y][x] )
+
+                fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmax%s.npy'%dt.strftime('%m%d')
+                redMaxT.append( np.load(fn)[y][x] )
+
+                fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmax%s.npy'%dt.strftime('%m%d')
+                orangeMaxT.append( np.load(fn)[y][x] )
             if 'MinT' in varDict['Parms']:
-                normalMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMinT%s.npy'%dt.strftime('%m%d'))[y][x] )
-                redMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmin%s.npy'%dt.strftime('%m%d'))[y][x] )
-                orangeMinT.append( np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmin%s.npy'%dt.strftime('%m%d'))[y][x] )
+                fn = PRISM_DATA + 'dailyMinT%s.npy'%dt.strftime('%m%d')
+                normalMinT.append( np.load(fn)[y][x] )
+
+                fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmin%s.npy'%dt.strftime('%m%d')
+                redMinT.append( np.load(fn)[y][x] )
+
+                fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmin%s.npy'%dt.strftime('%m%d')
+                orangeMinT.append( np.load(fn))[y][x] )
             dt += datetime.timedelta(days=1)
         
         redMaxT = np.array(redMaxT)

@@ -44,6 +44,23 @@ mkdir --parent ${APP_DIR}/install/HeatRisk/logs
 SRC_DIR="%{_baseline_workspace}/apps/HeatRiskIndex"
 rsync --archive ${SRC_DIR}/ ${APP_DIR}/
 
+COMMON_DIR="%{_build_root}/awips2/edex/data/share/HeatRiskIndex"
+mkdir --parents ${COMMON_DIR}
+mkdir --parents ${COMMON_DIR}/data
+mkdir --parents ${COMMON_DIR}/data/stage
+mkdir --parents ${COMMON_DIR}/data/stage/PrismHiRes
+mkdir --parents ${COMMON_DIR}/data/stage/HeatRisk
+mkdir --parents ${COMMON_DIR}/data/climo
+mkdir --parents ${COMMON_DIR}/data/climo/PrismHiRes
+mkdir --parents ${COMMON_DIR}/data/climo/HeatRisk
+mkdir --parents ${COMMON_DIR}/data/runtime
+mkdir --parents ${COMMON_DIR}/data/runtime/PrismHiRes
+mkdir --parents ${COMMON_DIR}/data/runtime/HeatRisk
+mkdir --parents ${COMMON_DIR}/scripts
+mkdir --parents ${COMMON_DIR}/scripts/PrismHiRes
+mkdir --parents ${COMMON_DIR}/scripts/HeatRisk
+cp ${APP_DIR}/install/PrismHiRes/install/makeYearClimoTemps.sh ${COMMON_DIR}/scripts/PrismHiRes/.
+
 %clean
 rm --recursive --force %{_build_root}
 
@@ -63,7 +80,6 @@ rm --recursive --force %{_build_root}
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk/gfe
 /awips2/apps/HeatRiskIndex/install/HeatRisk/gfe/*
 %dir /awips2/apps/HeatRiskIndex/install/HeatRisk/install
-/awips2/apps/HeatRiskIndex/install/HeatRisk/install/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/bin
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/bin/*
@@ -72,15 +88,36 @@ rm --recursive --force %{_build_root}
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/gfe
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/gfe/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/install
-/awips2/apps/HeatRiskIndex/install/PrismHiRes/install/*
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/install.sh
+%attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/stageData_HeatRisk.sh
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/install.sh
+%attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/stageData_PrismHiRes.sh
+%attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/makeYearClimoTemps.sh
 %dir /awips2/apps/HeatRiskIndex/runtime
+
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/stage
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/stage/PrismHiRes
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/stage/HeatRisk
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/climo
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/climo/PrismHiRes
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/runtime
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/runtime/PrismHiRes
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/data/runtime/HeatRisk
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/scripts
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/scripts/PrismHiRes
+%attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/scripts/HeatRisk
+%attr(775,awips,fxalpha) /awips2/edex/data/share/HeatRiskIndex/scripts/PrismHiRes/makeYearClimoTemps.sh
 %defattr(644,root,root,-)
 
 %changelog
-* Wed Aug 2 2023 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
+* Tue Oct 17 2023 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
+- Added share directories
+
+* Wed Aug  2 2023 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
 - Added HeatRisk bin directories.
 
-* Fri Sep 9 2022 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
+* Fri Sep  9 2022 Michael Gamazaychikov <michael.gamazaychikov@noaa.gov>
 - Initial package creation.
