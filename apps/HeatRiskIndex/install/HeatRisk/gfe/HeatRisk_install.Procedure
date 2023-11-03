@@ -37,8 +37,8 @@
 ###
 ###
 ###    !!! NOTE !!! HeatRisk requires install of 2022 version of climo grids.
-ClimoDirectory = "/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/"
-HeatRiskDir = "/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/"
+ClimoDirectory = "/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/"
+HeatRiskDir = "/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/"
 ###
 ### Change the menu below to run from GFE
 MenuItems = [None]

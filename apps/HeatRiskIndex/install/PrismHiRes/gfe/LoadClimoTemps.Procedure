@@ -43,6 +43,7 @@ class Procedure (SmartScript.SmartScript):
         SmartScript.SmartScript.__init__(self, dbss)
 
     def execute(self):
+        DATA_DIR='/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/'
 
         for parm in ['MaxT', 'MinT']:
 
@@ -63,8 +64,8 @@ class Procedure (SmartScript.SmartScript):
                 tr = self.createTimeRange(startTime+24*d, startTime+24*d+duration, fcstID)
 
                 # Load data...
-                fn = 'daily'+parm+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
-                tmp = np.load('/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/%s'%fn,allow_pickle=True,fix_imports=True,encoding='latin1')
+                fn = DATA_DIR+'daily'+parm+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                tmp = np.load(fn,allow_pickle=True,fix_imports=True,encoding='latin1')
 
                 # Create Grid
                 self.createGrid("Climo", parm, "SCALAR", tmp, tr)

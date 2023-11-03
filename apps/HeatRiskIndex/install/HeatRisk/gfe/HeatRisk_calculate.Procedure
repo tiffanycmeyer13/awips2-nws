@@ -46,6 +46,8 @@ class Procedure (SmartScript.SmartScript):
         #
         ##################################################
         #
+        HEATRISK_DATA_DIR = '/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/'
+        HEATRISK_DATA_DIR_LEVELS = HEATRISK_DATA_DIR +'levels/'
         dbID = self.findDatabase('Fcst')
         for p in ['MaxT', 'MinT', 'Hazards', 'HeatImpactLevelsMaxT', 'HeatImpactLevelsMinT', 'HeatRisk', 'HeatRiskWWA', 'HeatRiskWWAbyZone']:
             self.loadParm(dbID, p, 'SFC')
@@ -113,11 +115,13 @@ class Procedure (SmartScript.SmartScript):
         # Get list of zones and those where no advisory is to be issued
         #
  
-        noAdvisory = pickle.load( open('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/noAdvisory.pck', 'rb'))
+        fn = HEATRISK_DATA_DIR + 'noAdvisory.pck'
+        noAdvisory = pickle.load( open(fn, 'rb'))
         #
         # Load Diurnal Range Modifier needs to be used (created during install process)
         #
-        DRM = pickle.load( open('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/DRM.npy', 'rb'))
+        fn = HEATRISK_DATA_DIR + 'DRM.npy'
+        DRM = pickle.load( open(fn, 'rb'))
         #
         # Load array of grid point lon values
         #
@@ -125,17 +129,24 @@ class Procedure (SmartScript.SmartScript):
         #
         # Load the 99.9th percentile grid
         #
-        p9999 = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/p9999.npy')
+        fn = HEATRISK_DATA_DIR + 'p9999.npy'
+        p9999 = np.load(fn)
         #
         # Load the maximum MaxT Normal
         #
-        MaxMaxTNormal = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/MaxMaxT.npy')
+        fn = HEATRISK_DATA_DIR + 'MaxMaxT.npy'
+        MaxMaxTNormal = np.load(fn)
         #
         # Load the red/orange base values
         #
-        redBaseMaxT    = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmax0101.npy')
-        orangeBaseMaxT = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmax0101.npy')
-        redBaseMinT    = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmin0101.npy')
+        fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmax0101.npy'
+        redBaseMaxT    = np.load(fn)
+
+        fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmax0101.npy'
+        orangeBaseMaxT = np.load(fn)
+
+        fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmin0101.npy'
+        redBaseMinT    = np.load(fn)
 
         #
         # Initiate dict to hold daily temperature, HIL, and HR arrays
@@ -212,13 +223,23 @@ class Procedure (SmartScript.SmartScript):
                 # Pull the levels for the corresponding timerange
                 #
                 if parm == 'MaxT':
-                    red = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmax{}.npy'.format(tr.startTime().strftime('%m%d')))
-                    orange = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmax{}.npy'.format(tr.startTime().strftime('%m%d')))
-                    yellow = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmax.npy')
+                    fn = HEATRISK_DIR_LEVELS+'redLineTmax{}.npy'.format(tr.startTime().strftime('%m%d')))
+                    red = np.load(fn)
+
+                    fn = HEATRISK_DIR_LEVELS+'orangeLineTmax{}.npy'.format(tr.startTime().strftime('%m%d'))
+                    orange = np.load(fn)
+
+                    fn = HEATRISK_DIR_LEVELS+'yellowLineTmax.npy'
+                    yellow = np.load(fn)
                 else:
-                    red = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/redLineTmin{}.npy'.format(tr.endTime().strftime('%m%d')))
-                    orange = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/orangeLineTmin{}.npy'.format(tr.endTime().strftime('%m%d')))
-                    yellow = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLineTmin.npy')
+                    fn = HEATRISK_DIR_LEVELS+'redLineTmin{}.npy'.format(tr.endTime().strftime('%m%d'))
+                    red = np.load(fn)
+
+                    fn = HEATRISK_DIR_LEVELS+'orangeLineTmin{}.npy'.format(tr.endTime().strftime('%m%d'))
+                    orange = np.load(fn)
+
+                    fn = HEATRISK_DIR_LEVELS+'yellowLineTmin.npy'
+                    yellow = np.load(fn)
                 #
                 # Add to Grids array for later use
                 #
@@ -574,7 +595,7 @@ class Procedure (SmartScript.SmartScript):
         #
         valuelist=[]
         
-        pointFile = '/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/Normals.0101.txt'
+        pointFile = '/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/Normals.0101.txt'
         if os.path.exists(pointFile):
             datalines = open(pointFile).readlines()
         else:
