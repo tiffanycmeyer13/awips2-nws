@@ -88,6 +88,8 @@ import com.raytheon.uf.viz.core.rsc.interrogation.InterrogationKey;
 import com.raytheon.uf.viz.core.rsc.interrogation.Interrogator;
 import com.raytheon.uf.viz.core.rsc.interrogation.StringInterrogationKey;
 import com.raytheon.uf.viz.d2d.core.sampling.ID2DSamplingResource;
+import com.raytheon.viz.awipstools.capabilities.RangeRingsOverlayCapability;
+import com.raytheon.viz.awipstools.capabilityInterfaces.IRangeableResource;
 import com.raytheon.viz.radar.VizRadarRecord;
 import com.raytheon.viz.radar.interrogators.IRadarInterrogator;
 import com.raytheon.viz.radar.interrogators.RadarDefaultInterrogator;
@@ -104,6 +106,7 @@ import si.uom.NonSI;
 import systems.uom.common.USCustomary;
 import tech.units.indriya.AbstractUnit;
 import tech.units.indriya.format.SimpleUnitFormat;
+import tech.units.indriya.quantity.Quantities;
 
 /**
  * Main resource for the display of ODIM data.
@@ -119,14 +122,16 @@ import tech.units.indriya.format.SimpleUnitFormat;
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
  * Jan 27, 2023 DR 23420   dfriedman   Fix SRM sampling
+ * Oct 31, 2023 DR 2036439 dfriedman   Support range rings
  * </pre>
  *
  * @author dfriedman
  */
 //
 public class ODIMRadialResource
-        extends AbstractVizResource<ODIMResourceData, MapDescriptor> implements
-        Interrogatable, IExtraTextGeneratingResource, IResourceDataChanged {
+        extends AbstractVizResource<ODIMResourceData, MapDescriptor>
+        implements Interrogatable, IExtraTextGeneratingResource,
+        IResourceDataChanged, IRangeableResource {
 
     private static final IUFStatusHandler statusHandler = UFStatus
             .getHandler(ODIMRadialResource.class);
@@ -254,6 +259,11 @@ public class ODIMRadialResource
                         paintProps.getAlpha());
             }
         }
+
+        RangeRingsOverlayCapability cap = getCapability(
+                RangeRingsOverlayCapability.class);
+        cap.setRangeableResource(this);
+        cap.paint(target, paintProps);
     }
 
     @Override
@@ -1258,6 +1268,34 @@ public class ODIMRadialResource
     protected void prepareCompatibilityRecord(AugmentedRecord arec,
             CompatibilityVizRadarRecord compatibilityRecord) {
         // Base class implementation does nothing.
+    }
+
+    @Override
+    public Quantity<Length> getElevation() {
+        ODIMRecord rec = getRecord(displayedDate);
+        if (rec != null) {
+            return Quantities.getQuantity(rec.getElevation(),
+                    USCustomary.METER);
+        }
+        return Quantities.getQuantity(0.0, USCustomary.METER);
+    }
+
+    @Override
+    public Coordinate getCenter() {
+        ODIMRecord rec = getRecord(displayedDate);
+        if (rec != null) {
+            return new Coordinate(rec.getLongitude(), rec.getLatitude());
+        }
+        return new Coordinate();
+    }
+
+    @Override
+    public double getTilt() {
+        ODIMRecord rec = getRecord(displayedDate);
+        if (rec != null) {
+            return rec.getTrueElevationAngle();
+        }
+        return 0;
     }
 
 }

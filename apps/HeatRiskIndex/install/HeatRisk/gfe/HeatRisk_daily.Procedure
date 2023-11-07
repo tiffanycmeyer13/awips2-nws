@@ -43,6 +43,7 @@ class Procedure (SmartScript.SmartScript):
         SmartScript.SmartScript.__init__(self, dbss)
 
     def execute(self):
+        DATA_DIR='/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/levels/'
         varNames = {}
         varNames['MaxT'] = 'Tmax'
         varNames['MinT'] = 'Tmin'
@@ -83,10 +84,10 @@ class Procedure (SmartScript.SmartScript):
 
                     # load data
                     if parm == 'MaxT':
-                        fn = L+'LineTmax'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                        fn = DATA_DIR+L+'LineTmax'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
                     if parm == 'MinT':
-                        fn = L+'LineTmin'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
-                    tmp = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/%s'%fn,allow_pickle=True,fix_imports=True,encoding='latin1')
+                        fn = DATA_DIR+L+'LineTmin'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                    tmp = np.load(fn,allow_pickle=True,fix_imports=True,encoding='latin1')
                     heatName = L+'Line'+parm
                     lineLimit = lineLimits[heatName]
                     tmp[np.isnan(tmp)] = lineLimit
@@ -97,7 +98,8 @@ class Procedure (SmartScript.SmartScript):
 
                 # Create flat yellow level
                 varName = varNames[parm]
-                tmp = np.load('/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/levels/yellowLine%s.npy'%varName,allow_pickle=True,fix_imports=True,encoding='latin1')
+                fn = DATA_DIR+'yellowLine'+varName+'.npy'
+                tmp = np.load(fn,allow_pickle=True,fix_imports=True,encoding='latin1')
                 heatName = 'yellowLine'+parm
                 lineLimit = lineLimits[heatName]
                 tmp[np.isnan(tmp)] = lineLimit
