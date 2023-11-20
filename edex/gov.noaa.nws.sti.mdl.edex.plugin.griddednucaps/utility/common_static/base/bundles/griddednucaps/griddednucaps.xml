@@ -2,6 +2,7 @@
     This is a generic bundle used to load one grib resource filtering by parameter,
     level, and model.  Loads resource as an image. 
      -->
+<!-- L. Byerle 10/21/2020 updated to add binOffset-->
 <bundle>
     <displayList>
         <displays xsi:type="mapRenderableDisplay"
@@ -11,7 +12,7 @@
                     <loadProperties xsi:type="gridLoadProperties" displayType="IMAGE" loadWithoutData="false">
                         <capabilities>
                             <capability xsi:type="colorMapCapability">
-                                <colorMapParameters colorMapName="Grid/gridded data"/>
+                                <colorMapParameters colorMapName="${colormap}"/>
                             </capability>
                             <capability xsi:type="imagingCapability" alpha="1.0" interpolationState="${interpolate;false}" brightness="1.0" contrast="1.0"/>
                         </capabilities>
@@ -19,6 +20,7 @@
                     </loadProperties>
                     <properties isSystemResource="false" isBlinking="false" isMapLayer="false" isHoverOn="false" isVisible="true"/>
                     <resourceData xsi:type="gridResourceData" sampling="false" spatial="false" isRequeryNecessaryOnTimeMatch="true" isUpdatingOnMetadataOnly="false" retrieveData="true">
+                    <binOffset posOffset="1800" negOffset="0" />
                         <metadataMap>
                             <mapping key="info.parameter.abbreviation">
                                 <constraint constraintType="EQUALS" constraintValue="${param}"/>

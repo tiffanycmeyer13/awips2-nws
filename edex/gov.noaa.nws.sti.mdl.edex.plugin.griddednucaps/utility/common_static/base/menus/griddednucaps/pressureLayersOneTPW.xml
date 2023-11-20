@@ -1,0 +1,9 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Total Atmosphere" id="TotAtmos">
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="levelTwo" value="-999999.0" />
+        <substitute key="colormap" value="${colorvar}" />
+    </contribute>
+</menuTemplate>

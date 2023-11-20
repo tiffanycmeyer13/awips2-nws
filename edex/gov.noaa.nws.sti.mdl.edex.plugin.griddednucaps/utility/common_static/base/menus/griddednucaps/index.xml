@@ -1,0 +1,3 @@
+<menuContributionFile>
+    <include installTo="menu:satellite?after=GROUP3" fileName="menus/griddednucaps/baseGriddedNUCAPS.xml"></include>
+</menuContributionFile>

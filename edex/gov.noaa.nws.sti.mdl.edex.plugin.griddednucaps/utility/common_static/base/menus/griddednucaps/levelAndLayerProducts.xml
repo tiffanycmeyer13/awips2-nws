@@ -2,53 +2,61 @@
     <contribute xsi:type="subMenu" menuText="Temperature" id="Tempid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
             <substitute key="param" value="T"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Dewpoint Temperature" id="dpTempid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
             <substitute key="param" value="DpT"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Dewpoint Depression" id="DpDid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
             <substitute key="param" value="DpD"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Relative Humidity" id="rhid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
             <substitute key="param" value="RH"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
-            <substitute key="param" value="T"/>
+            <substitute key="param" value="RH"/>
+            <!--<substitute key="param" value="T"/> -->
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Lapse Rate" id="lapseRateid">
-        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
-            <substitute key="param" value="gamma"/>
-        </contribute>
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
-            <substitute key="param" value="T"/>
+            <substitute key="param" value="gamma"/>
+            <!--<substitute key="param" value="T"/> -->
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Theta-E" id="Thetaeid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
             <substitute key="param" value="ThetaE"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
-            <substitute key="param" value="T"/>
+            <substitute key="param" value="ThetaE"/>
+            <!--<substitute key="param" value="T"/> -->
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Theta-E Lapse Rate" id="theta3lapseid">
-        <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLevels.xml">
-            <substitute key="param" value="gammaE"/>
-        </contribute>
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayers.xml">
-            <substitute key="param" value="T"/>
+            <substitute key="param" value="gammaE"/>
+            <!--<substitute key="param" value="T"/> -->
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     <contribute xsi:type="subMenu" menuText="Precipitable Water" id="pwid">
         <contribute xsi:type="subinclude" fileName="menus/griddednucaps/pressureLayersTPW.xml">
             <substitute key="param" value="PWAT"/>
+            <substitute key="colorvar" value="Grid/gridded data"/>
         </contribute>
     </contribute>
     
