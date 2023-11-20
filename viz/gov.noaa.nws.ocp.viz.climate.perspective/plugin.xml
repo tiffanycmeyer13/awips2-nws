@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.ui.perspectives">
-      <perspective
-            class="gov.noaa.nws.ocp.viz.climate.perspective.ClimatePerspective"
-            icon="icons/cli_persp.png"
-            id="gov.noaa.nws.ocp.viz.climate.perspective.ClimatePerspective"
-            name="Climate">
-      </perspective>
-   </extension>
  <extension
        point="org.eclipse.core.expressions.definitions">
     <definition
@@ -247,12 +238,6 @@
  </extension>
  <extension
        point="org.eclipse.ui.perspectiveExtensions">
-    <perspectiveExtension
-          targetID="*">
-       <perspectiveShortcut
-             id="gov.noaa.nws.ocp.viz.climate.perspective.ClimatePerspective">
-       </perspectiveShortcut>
-    </perspectiveExtension>
     <perspectiveExtension
           targetID="gov.noaa.nws.ocp.viz.climate.perspective.ClimatePerspective">
        <actionSet
