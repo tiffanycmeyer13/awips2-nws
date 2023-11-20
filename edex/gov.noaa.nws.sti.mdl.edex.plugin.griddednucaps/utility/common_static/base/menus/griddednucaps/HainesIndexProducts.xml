@@ -1,0 +1,25 @@
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Haines Index Low (950-850 mb)" id="griddednucapsproduct">
+        <substitute key="param" value="HILow" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="colormap" value="Grid/gridded data" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Haines Index Middle (850-700 mb)" id="griddednucapsproduct">
+        <substitute key="param" value="HIMiddle" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="colormap" value="Grid/gridded data" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
+        menuText="Haines Index High (700-500 mb)" id="griddednucapsproduct">
+        <substitute key="param" value="HIHigh" />
+        <substitute key="level" value="EA" />
+        <substitute key="levelOne" value="0.0" />
+        <substitute key="colormap" value="Grid/gridded data" />
+    </contribute>
+    
+</menuTemplate>

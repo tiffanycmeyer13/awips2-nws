@@ -1,26 +1,30 @@
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
-        menuText="850-500 MB" id="850500MB">
+        menuText="850-500 MB" id="850500Mb">
         <substitute key="level" value="MB" />
         <substitute key="levelOne" value="850.0" />
         <substitute key="levelTwo" value="500.0" />
+        <substitute key="colormap" value="${colorvar}" />
     </contribute>
     <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
         menuText="850-300 MB" id="850300Mb">
         <substitute key="level" value="MB" />
         <substitute key="levelOne" value="850.0" />
         <substitute key="levelTwo" value="300.0" />
+        <substitute key="colormap" value="${colorvar}" />
     </contribute>
     <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
         menuText="700-500 MB" id="700500Mb">
         <substitute key="level" value="MB" />
         <substitute key="levelOne" value="700.0" />
         <substitute key="levelTwo" value="500.0" />
+        <substitute key="colormap" value="${colorvar}" />
     </contribute>
     <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
         menuText="400-200 MB" id="400200Mb">
         <substitute key="level" value="MB" />
         <substitute key="levelOne" value="400.0" />
         <substitute key="levelTwo" value="200.0" />
+        <substitute key="colormap" value="${colorvar}" />
     </contribute>
 </menuTemplate>

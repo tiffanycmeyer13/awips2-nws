@@ -1,3 +1,0 @@
-<menuContributionFile>
-    <include installTo="menu:NPPProducts?after=Soundings" fileName="menus/griddednucaps/baseGriddedNUCAPS.xml"></include>
-</menuContributionFile>
