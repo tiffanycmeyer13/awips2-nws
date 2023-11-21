@@ -14,6 +14,7 @@ NOTTY=`tty | grep -ci not`
 start=`date +%s`
 
 . /awips2/GFESuite/bin/setup.env
+
 unset DISPLAY
 
 scriptPath=`readlink -f $0`
