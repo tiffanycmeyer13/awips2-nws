@@ -37,7 +37,7 @@
                                 <constraint constraintValue="${mosaicNodeList}"
                                     constraintType="IN" />
                             </mapping>
-                            <mapping key="primaryElevationAngle">
+                            <mapping key="${elevationAngleKey;primaryElevationAngle}">
                                 <constraint constraintValue="${elevation}"
                                     constraintType="EQUALS" />
                             </mapping>
@@ -75,7 +75,7 @@
                                                 constraintValue="kxxx"
                                                 constraintType="EQUALS" />
                                         </mapping>
-                                        <mapping key="primaryElevationAngle">
+                                        <mapping key="${elevationAngleKey;primaryElevationAngle}">
                                             <constraint
                                                 constraintValue="${elevation}"
                                                 constraintType="EQUALS" />
