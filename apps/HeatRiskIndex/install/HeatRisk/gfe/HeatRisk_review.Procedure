@@ -190,7 +190,7 @@ class Procedure (SmartScript.SmartScript):
                     fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmin'+pt.strftime('%m%d')+'.npy'
                     orange = np.load(fn)
 
-                    fn = PRISM_DATA + daily'+parm+pt.strftime('%m%d')+'.npy'
+                    fn = PRISM_DATA + 'daily'+parm+pt.strftime('%m%d')+'.npy'
                     normal = np.load(fn)
 
                     Grids['Obs'+parm].append([tr, ob])

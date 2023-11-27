@@ -22,7 +22,6 @@
 
 MenuItems = [None]
 import datetime, numpy as np, matplotlib.pyplot as plt
-import MyDialog
 import SmartScript
 
 VariableList = [
@@ -40,7 +39,6 @@ class Procedure (SmartScript.SmartScript):
         PRISM_DATA = '/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/'
         HEATRISK_DATA_DIR_LEVELS = '/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/levels/'
         # Throw a status to say what is going on
-        dialog = MyDialog.MyDialog("Status",'Pulling Data...')
         
         # Location of point
         lat, lon = varDict['Lat'], varDict['Lon']
@@ -77,7 +75,7 @@ class Procedure (SmartScript.SmartScript):
                 redMinT.append( np.load(fn)[y][x] )
 
                 fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmin%s.npy'%dt.strftime('%m%d')
-                orangeMinT.append( np.load(fn))[y][x] )
+                orangeMinT.append( np.load(fn)[y][x] )
             dt += datetime.timedelta(days=1)
         
         redMaxT = np.array(redMaxT)

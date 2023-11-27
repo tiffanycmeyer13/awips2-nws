@@ -130,23 +130,23 @@ class Procedure (SmartScript.SmartScript):
         # Load the 99.9th percentile grid
         #
         fn = HEATRISK_DATA_DIR + 'p9999.npy'
-        p9999 = np.load(fn)
+        p9999 = np.load(fn, allow_pickle=True)
         #
         # Load the maximum MaxT Normal
         #
         fn = HEATRISK_DATA_DIR + 'MaxMaxT.npy'
-        MaxMaxTNormal = np.load(fn)
+        MaxMaxTNormal = np.load(fn, allow_pickle=True)
         #
         # Load the red/orange base values
         #
         fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmax0101.npy'
-        redBaseMaxT    = np.load(fn)
+        redBaseMaxT    = np.load(fn, allow_pickle=True)
 
         fn = HEATRISK_DATA_DIR_LEVELS + 'orangeLineTmax0101.npy'
-        orangeBaseMaxT = np.load(fn)
+        orangeBaseMaxT = np.load(fn, allow_pickle=True)
 
         fn = HEATRISK_DATA_DIR_LEVELS + 'redLineTmin0101.npy'
-        redBaseMinT    = np.load(fn)
+        redBaseMinT    = np.load(fn, allow_pickle=True)
 
         #
         # Initiate dict to hold daily temperature, HIL, and HR arrays
@@ -223,7 +223,7 @@ class Procedure (SmartScript.SmartScript):
                 # Pull the levels for the corresponding timerange
                 #
                 if parm == 'MaxT':
-                    fn = HEATRISK_DIR_LEVELS+'redLineTmax{}.npy'.format(tr.startTime().strftime('%m%d')))
+                    fn = HEATRISK_DIR_LEVELS+'redLineTmax{}.npy'.format(tr.startTime().strftime('%m%d'))
                     red = np.load(fn)
 
                     fn = HEATRISK_DIR_LEVELS+'orangeLineTmax{}.npy'.format(tr.startTime().strftime('%m%d'))

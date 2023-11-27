@@ -15,6 +15,8 @@ scriptPath=`readlink -f $0`
 
 version="Version: 4.0 - 03/16/2022"
 
+unset DISPLAY
+
 logecho () {
     # command to write to terminal and logfile
     echo "$@"
