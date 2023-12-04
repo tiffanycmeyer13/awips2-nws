@@ -66,6 +66,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
  * 09 JUN 2021  DCS 22324  wpaintsil   Refine saveGlobal() so that globalDay.properties formatting 
  *                                     and default comments are preserved.
+ * 04 DEC 2023  DR 2036600 pwang       Fix moderate precip
  * </pre>
  * 
  * @author xzhang
@@ -179,9 +180,7 @@ public class ClimateGlobalConfiguration {
                         prop.getProperty("climate.allowAutoSend")
                                 .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setCopyNWRTo(prop.getProperty("climate.copyNWRTo"));
-                resGlobal.setAllowDisseminate(
-                        prop.getProperty("climate.allowDisseminate")
-                                .equalsIgnoreCase("true") ? true : false);
+
                 resGlobal.setOfficeName(
                         prop.getProperty("climate.siteofficename"));
                 resGlobal.setTimezone(prop.getProperty("climate.sitetimezone"));
@@ -200,11 +199,17 @@ public class ClimateGlobalConfiguration {
                         .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
                         .equalsIgnoreCase("true") ? true : false);
+                resGlobal.setIncludeRemarkWx("true".equalsIgnoreCase(
+                        prop.getProperty("climate.include.rmk.wx")));
                 resGlobal.setStationDesignatorOverrides(
                         parseStationDesignatorOverrides(prop.getProperty(
                                 "climate.stationDesignatorOverrides")));
                 resGlobal.setSnowReportingStations(parseSnowReportingStations(
                         prop.getProperty("climate.snowReportingStations")));
+                resGlobal.setAllowDisseminate("true".equalsIgnoreCase(
+                        prop.getProperty("climate.allowDisseminate")));
+                resGlobal.setValidRmkWxList(
+                        prop.getProperty("climate.valid.rmk.wx"));
 
                 // got to end without error; use this globalDay file
                 success = true;
@@ -222,7 +227,8 @@ public class ClimateGlobalConfiguration {
                 return null;
             } catch (NullPointerException e) {
                 logger.error(
-                        "Failed to parse globals file due to some missing property. Returning null.");
+                        "Failed to parse globals file due to some missing property. Returning null.",
+                        e);
                 return null;
             }
         }
