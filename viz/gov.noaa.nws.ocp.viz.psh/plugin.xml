@@ -16,21 +16,6 @@
             name="PSH"> 
           </command>     
    </extension>
-   
-   <extension
-       point="org.eclipse.ui.menus">
-       <menuContribution locationURI="menu:tools?before=tools.Pu">
-            <command
-                commandId="gov.noaa.nws.ocp.viz.psh.ui.Psh"
-                label="PSH">
-                <visibleWhen>
-                    <reference
-                        definitionId="com.raytheon.uf.viz.d2d.ui.inD2DActionSet">
-                    </reference>
-                </visibleWhen>
-            </command>
-        </menuContribution>
-   </extension>
    <extension
          point="com.raytheon.uf.viz.localization.perspective.localizationpath">
       <path
