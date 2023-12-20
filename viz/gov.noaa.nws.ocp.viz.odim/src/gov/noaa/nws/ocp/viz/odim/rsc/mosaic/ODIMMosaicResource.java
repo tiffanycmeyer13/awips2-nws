@@ -68,6 +68,7 @@ import tech.units.indriya.format.SimpleUnitFormat;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Nov 16, 2023 DR 2036624 dfriedman   Fix NPE in sampling.
  * </pre>
  *
  * @author dfriedman
@@ -464,6 +465,9 @@ public class ODIMMosaicResource extends
                             // Everything in this try block is to only sample
                             // records within range
                             AugmentedRecord arec = rr.getAugmentedRecord(time);
+                            if (arec == null) {
+                                continue;
+                            }
                             ODIMRecord md = arec.getODIMRecord();
                             if (md == null) {
                                 continue;

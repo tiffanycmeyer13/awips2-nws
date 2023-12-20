@@ -3,9 +3,12 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.climate;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
@@ -47,6 +50,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.parameter.ParameterFormatClima
  * 06 NOV 2017  35731      pwang       Added properties for controlling if an product can be auto generated
  * 12 OCT 2018  DR 20897   dfriedman   Add stationDesignatorOverrides field.
  * 22 MAY 2019  DR 21099   wpaintsil   Add nonSnowReportingStations field.
+ * 04 DEC 2023  2036600    pwang       Fix moderate precip
  * </pre>
  * 
  * @author xzhang
@@ -267,6 +271,19 @@ public class ClimateGlobal {
      */
     @DynamicSerializeElement
     private Set<String> snowReportingStations;
+
+    /**
+     * Determine if precip wx conditions ONLY reported in METAR RMK section
+     * should be included in the daily climate reports
+     */
+    @DynamicSerializeElement
+    private boolean includeRemarkWx = false;
+
+    /**
+     * site configured wx types from RMK section of METAR messages
+     */
+    @DynamicSerializeElement
+    private List<String> validRmkWxList = new ArrayList<>();
 
     /**
      * Empty constructor.
@@ -528,6 +545,29 @@ public class ClimateGlobal {
 
     public void setAutoCLA(boolean autoCLA) {
         this.autoCLA = autoCLA;
+    }
+
+    public boolean isIncludeRemarkWx() {
+        return includeRemarkWx;
+    }
+
+    public void setIncludeRemarkWx(boolean includeRemarkWx) {
+        this.includeRemarkWx = includeRemarkWx;
+    }
+
+    public List<String> getValidRmkWxList() {
+        return validRmkWxList;
+    }
+
+    public void setValidRmkWxList(List<String> validRmkWxList) {
+        this.validRmkWxList = validRmkWxList;
+    }
+
+    public void setValidRmkWxList(String wxString) {
+        if (!wxString.isBlank()) {
+            String[] wxArray = wxString.split("\\s");
+            this.validRmkWxList = Arrays.asList(wxArray);
+        }
     }
 
     /**

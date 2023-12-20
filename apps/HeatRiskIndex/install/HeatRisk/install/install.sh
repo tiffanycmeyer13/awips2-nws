@@ -1,6 +1,7 @@
 #!/bin/bash
 # Author: Mark Loeffelbein Email: mark.loeffelbein@noaa.gov
 #         STID WRH
+# This is a installation script to install version 2.0 of HeatRisk.
 #
 #  SOFTWARE HISTORY
 #
@@ -14,15 +15,7 @@ scriptPath=`readlink -f $0`
 
 version="Version: 2.0 - 05/11/2022"
 
-Usage()
-{
-  echo "install.sh [-all] [-u user]
-      $version
-
-   where user is GFE user name (default = SITE).
-
-   This is a installation script to install version 2.0 of HeatRisk."
-}
+unset DISPLAY
 
 logecho () {
     # command to write to terminal and logfile
@@ -32,171 +25,102 @@ logecho () {
     fi
 }
 
-greenecho() {
-    # echo in green
-    logecho -e "\033[1;38;5;40m${1}\033[0m"
-}
+if [[ ! -d "/awips2/edex/data/manual" ]];then
+   echo "/awips2/edex/data/manual/ not available."
+   echo "Make sure this script is ran from pv1."
+   echo "Installation STOPPED! Exiting..."
+   exit 1
+fi
 
-redecho() {
-    # echo in red
-    logecho -e "\033[1;38;5;196m${1}\033[0m"
-}
+# Default to GFE AWIPS install
+GFEDIR=/awips2/GFESuite/bin
+if [ ! -f $GFEDIR/ifpServerText ]
+  then
+      echo "ERROR: Could not find GFE in $GFEDIR"
+      echo "Installation STOPPED! Exiting..."
+      exit 1
+fi
 
-redprompt() {
-    # prompt in red, no new line
-    logecho -en "\033[1;38;5;160m${1}\033[0m"
-}
+# Setup environment for DEFAULT_HOST
+source /awips2/fxa/bin/setup.env
 
-red() {
-  echo "\033[1;38;5;196m${1}\033[0m"
-}
-green() {
-  echo "\033[1;38;5;40m${1}\033[0m"
-}
+user=SITE
+logecho ""
+logecho "Installing files as $user"
+
+# Set SITE ID
+GFESUITE_SITEID=`echo ${SITE_IDENTIFIER} | tr a-z A-Z`
+
+site=$GFESUITE_SITEID
+logecho ""
+logecho "Using $GFESUITE_SITEID for site ID"
+
+uppersite=`echo $site |tr '[a-z]' '[A-Z]'`
 
 #Set Directories
 INSTALLDir=`dirname $scriptPath`
 BASEDir=`dirname $INSTALLDir`
-binDir="$BASEDir/bin"
-gfeDir="$BASEDir/gfe"
-configDir="$BASEDir/config"
-logDir="$BASEDir/logs"
 installDataDir="$BASEDir/data"
-Climodir="/awips2/apps/HeatRiskIndex/runtime/HeatRisk"
-dataDir="/awips2/apps/HeatRiskIndex/data"
+DataDir="/awips2/edex/data/share/HeatRiskIndex/data/stage/HeatRisk"
 
-if [[ ! -a $dataDir/deltas.tar.bz2 ]]
-then
-    logecho ""
-    redecho "ERROR: delta file not found. Missing $dataDir/deltas.tar.bz2"
-    redecho "Copy the missing data by running the following command:"
-    redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/deltas.tar.bz2 $dataDir/deltas.tar.bz2"
-    redecho "Installation STOPPED! Exiting..."
-    exit 1
+logDir="$BASEDir/logs"
+if [[ ! -d $logDir ]]; then
+   logecho ""
+   logecho "Created $logDir"
+   mkdir -p $logDir
 fi
-
-
-
-#
-#  Setup environment for DEFAULT_HOST
-#
-source /awips2/fxa/bin/setup.env
-
-allopt="no"
-user=SITE
-while  [ $# -ge 1 ]
-do
-  if [ $1 = "-all" ]
-  then
-   allopt=$1
-  elif [ $1 = "-u" ]
-  then
-    user=$2
-    shift
-  else
-    Usage
-    exit 1
-  fi
-  shift
-done
-
-if [ -z $GFEDIR ]
-then
-# Default to AWIPS install
-  GFEDIR=/awips2/GFESuite
-  if [ ! -f $GFEDIR/bin/ifpServerText ]
-  then
-      echo "ERROR: Could not find GFE in /awips2/GFESuite"
-      echo "Set environmental variable GFEDIR to GFE installation then try again."
-      exit 1
-  fi
-fi
-
-
-# Install the file dailyData to the Climodir
-
-if [[ ! -a /awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/dailyMaxT0101.npy ]];then
-    logecho ""
-    redecho "ERROR: PrismHiRes must be at version 4.0 or later. Install version 4.0."
-    redecho "Installation STOPPED! Exiting..."
-    exit 1
-fi
-
-
-read -p "Install files as user $user? (y/n): " ans
-if [ "$ans" != "y" -a "$ans" != "Y" ]
-then
-  exit 1
-fi
-
 rundate=`date +%Y%m%d%H%M`
 logFile="$logDir/install_${rundate}.log"
 
-if [[ ! -d $binDir || ! -d $gfeDir || ! -d $configDir ]]; then
-   redecho "ERROR:  Ensure the following directories were created during the installation:"
-   redecho $binDir
-   redecho $gfeDir
-   redecho $configDir
-   redecho "Installation STOPPED! Exiting..."
+binDir="$BASEDir/bin"
+gfeProcedureDir="$BASEDir/gfe"
+configDir="$BASEDir/config"
+if [[ ! -d $binDir || ! -d $gfeProcedureDir || ! -d $configDir ]]; then
+   echo "ERROR:  Ensure the following directories were created during the installation:"
+   echo $binDir
+   echo $gfeProcedureDir
+   echo $configDir
+   echo "Installation STOPPED! Exiting..."
    exit 1
 fi
 
-# Set SITE ID
-# First get site ID
-GFESUITE_SITEID=`echo ${SITE_IDENTIFIER} | tr a-z A-Z`
-
-if [ -z "$GFESUITE_SITEID" ]
-then
-  GFESUITE_SITEID="XXX"
-fi
-read -p "Use $GFESUITE_SITEID for site ID? (y/n): " ans
-if [ "$ans" = "y" -o "$ans" = "Y" ]
-then
-  site=$GFESUITE_SITEID
-else
-  site=""
-  while [ "$site" = "" ]
-  do
-    read -p "Enter your 3 letter Site ID: " site
-    site=`echo $site |tr '[a-z]' '[A-Z]'`
-    if [ "$site" = "X" ]
-    then
-      exit 1
-    fi
-
-    if [ `echo $site |grep -c '^[A-Z][A-Z][A-Z]'` -gt 0 ]
-    then
-      logecho "Using site ID = $site"
-    else
-      site=""
-      logecho "Invalid input!"
-    fi
-  done
+Climodir="/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk"
+if [[ ! -d $Climodir ]]; then
+   logecho ""
+   logecho "Created $Climodir hierarchy"
+   mkdir -p $Climodir
+   mkdir -p ${Climodir}/data
+   mkdir -p ${Climodir}/bin
+   mkdir -p ${Climodir}/log
+   mkdir -p ${Climodir}/data/levels
+   sleep 2
 fi
 
-lowsite=`echo $site |tr '[A-Z]' '[a-z]'`
-uppersite=`echo $site |tr '[a-z]' '[A-Z]'`
+# Inure the correct version of PrismHiRes has been installed
+if [[ ! -a /awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/dailyMaxT0101.npy ]];then
+    logecho ""
+    echo "ERROR: PrismHiRes must be at version 4.0 or later. Install version 4.0."
+    echo "Installation STOPPED! Exiting..."
+    exit 1
+fi
 
-# Let's make sure the directories that were supposed to already be present are
-
-mkdir -p $Climodir
-mkdir -p ${Climodir}/data
-mkdir -p ${Climodir}/bin
-mkdir -p ${Climodir}/log
-mkdir -p ${Climodir}/data/levels
-
-sleep 2
-logecho ""
-
-
-# Install the file dailyData to the Climodir
-
-if [[ ! -a $dataDir/datafiles.tar.bz2 ]]
+# Insure the deltas tar has been staged to DataDir
+if [[ ! -a $DataDir/deltas.tar.bz2 ]]
 then
-    redecho "ERROR: datafiles.tar.bz2 not found. Missing $dataDir/datafiles.tar.bz2"
-    redecho "Copy the missing data by running the following command:"
-    redecho "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/datafiles.tar.bz2 $dataDir/datafiles.tar.bz2"
-    redecho "Installation STOPPED! Exiting..."
+    echo "ERROR: delta file not found. Missing $DataDir/deltas.tar.bz2"
+    echo "Copy the missing data by running the following command:"
+    echo "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/deltas.tar.bz2 $DataDir/deltas.tar.bz2"
+    echo "Installation STOPPED! Exiting..."
+    exit 1
+fi
+
+# Insure the datafiles tar has been staged to DataDir
+if [[ ! -a $DataDir/datafiles.tar.bz2 ]]
+then
+    echo "ERROR: datafiles.tar.bz2 not found. Missing $DataDir/datafiles.tar.bz2"
+    echo "Copy the missing data by running the following command:"
+    echo "svn export https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/data/datafiles.tar.bz2 $DataDir/datafiles.tar.bz2"
+    echo "Installation STOPPED! Exiting..."
     exit 1
 fi
 
@@ -205,32 +129,29 @@ logecho ""
 
 sleep 2
 
-mv $dataDir/deltas.tar.bz2 ${Climodir}/data
+cp $DataDir/deltas.tar.bz2 ${Climodir}/data
 tar -xvf ${Climodir}/data/deltas.tar.bz2 -C ${Climodir}/data
 sleep 2
-mv $dataDir/datafiles.tar.bz2 ${Climodir}
+cp $DataDir/datafiles.tar.bz2 ${Climodir}
 tar -xvf ${Climodir}/datafiles.tar.bz2 -C ${Climodir}/data
 logecho "Copying zones.pck into place"
 if [[ ! -a $installDataDir/zones.pck ]]
 then
-    redecho "No new zones.pck available"
+    echo "No new zones.pck available"
 else
     cp $installDataDir/zones.pck ${Climodir}/data/zones.pck
 fi
 
 filelist="LoadHeatRisk.sh"
+ScriptDir="/awips2/edex/data/share/HeatRiskIndex/scripts/HeatRisk"
 sleep 1
 for file in $filelist;do
-   logecho "Copying over $file to ${Climodir}/bin/$file"
+   logecho "Copying over $file to ${ScriptDir}/$file"
    logecho ""
-   cp $binDir/${file} ${Climodir}/bin/${file}
+   cp $binDir/${file} ${ScriptDir}/${file}
 done
 
-logecho "Installing ${Climodir}/env.sh"
-sed "s/XXX/$site/g" $binDir/env.sh > ${Climodir}/bin/env.sh
-
 logecho ""
-
 logecho "Setting site in WeatherElementGroup"
 sed "s/XXX/$site/g" $configDir/HeatRisk.WeatherElementGroup > $configDir/HeatRisk.WeatherElementGroup
 
@@ -244,33 +165,30 @@ colortablelist="HeatRiskWWA HeatRisk"
 
 for file in $proclist;do
     logecho "Installing ${file} procedure "
-    $GFEDIR/bin/ifpServerText -u $user -o $site -s -n ${file} -f $gfeDir/${file}.Procedure -c Procedure
+    $GFEDIR/ifpServerText -u $user -o $site -s -n ${file} -f $gfeProcedureDir/${file}.Procedure -c Procedure
 done
 
 for file in $elementlist;do
     logecho "Installing ${file} WeatherElementGroup "
-    $GFEDIR/bin/ifpServerText -u $user -o $site -s -n ${file} -f $configDir/${file}.WeatherElementGroup -c WeatherElementGroup
+    $GFEDIR/ifpServerText -u $user -o $site -s -n ${file} -f $configDir/${file}.WeatherElementGroup -c WeatherElementGroup
 done
 
 for file in $rmcolortablelist;do
     echo "Removing ${file} ColorTable "
-    $GFEDIR/bin/ifpServerText -u $user -o $site -d -n ${file} -c ColorTable
+    $GFEDIR/ifpServerText -u $user -o $site -d -n ${file} -c ColorTable
 done
 
 for file in $colortablelist;do
     logecho "Installing ${file} ColorTable "
-    $GFEDIR/bin/ifpServerText -u $user -o $site -s -n ${file} -f $configDir/${file}.ColorTable -c ColorTable
+    $GFEDIR/ifpServerText -u $user -o $site -s -n ${file} -f $configDir/${file}.ColorTable -c ColorTable
 done
-
-
-
 
 logecho "Done installing scripts."
 
 GFEUser="SITE"
 BASEConfig="gfeConfig"
 
-PROC=$GFEDIR/bin/runProcedure
+PROC=$GFEDIR/runProcedure
 
 logecho "Creating HeatRisk grids. Monitor the log file ${logFile} if desired."
 logecho "tail -f ${logFile}"
@@ -280,7 +198,8 @@ $PROC -site $uppersite -u $GFEUser -n HeatRisk_daily -c $BASEConfig -m _Climo >>
 
 $PROC -site $uppersite -u $GFEUser -n HeatRisk_calculate -c $BASEConfig -m _Fcst >> ${logFile} 2>&1
 
-greenecho "HeatRisk installation complete!"
+logecho ""
+logecho "HeatRisk installation complete!"
+logecho ""
 
 exit
-

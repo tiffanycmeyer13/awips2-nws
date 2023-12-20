@@ -37,8 +37,8 @@
 ###
 ###
 ###    !!! NOTE !!! HeatRisk requires install of 2022 version of climo grids.
-ClimoDirectory = "/awips2/apps/HeatRiskIndex/runtime/PrismHiRes/data/"
-HeatRiskDir = "/awips2/apps/HeatRiskIndex/runtime/HeatRisk/data/"
+ClimoDirectory = "/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/"
+HeatRiskDir = "/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/"
 ###
 ### Change the menu below to run from GFE
 MenuItems = [None]
@@ -70,7 +70,7 @@ class Procedure (SmartScript.SmartScript):
         #
         ################################################################################
         try:
-            np.load('{}dailyMaxT0101.npy'.format(ClimoDirectory))            
+            np.load('{}dailyMaxT0101.npy'.format(ClimoDirectory), allow_pickle=True)            
         except:
             self.statusBarMsg('No Normals found! MakeClimoTemps v4 installation required for HeatRisk. This installation was terminated.', "U")
             if verboseOutput: print('No Normals found! MakeClimoTemps2017 installation required for HeatRisk.\n\n...Installation Terminated...')
@@ -100,7 +100,7 @@ class Procedure (SmartScript.SmartScript):
         # Loop through the entire year, loading each day into the holding arrays.
         while d <= datetime.datetime(2020, 12, 31):
             filename = "{}daily{}{:02d}{:02d}.npy".format(ClimoDirectory,'MaxT',d.month,d.day)
-            grid = np.load(filename)
+            grid = np.load(filename, allow_pickle=True)
             grids.append(grid)
             d += datetime.timedelta(days=1)
         tmp = np.array(grids)
@@ -111,7 +111,7 @@ class Procedure (SmartScript.SmartScript):
 
         while d <= datetime.datetime(2020, 12, 31):
             filename = "{}daily{}{:02d}{:02d}.npy".format(ClimoDirectory,'MinT',d.month,d.day)
-            grid = np.load(filename)
+            grid = np.load(filename, allow_pickle=True)
             grids.append(grid)
             d += datetime.timedelta(days=1)
         tmp = np.array(grids)
@@ -204,11 +204,11 @@ class Procedure (SmartScript.SmartScript):
                 # Load normal grid...
                 #
                 if parm == 'tmax':
-                    normal = np.load('%sdailyMaxT%s.npy'%(ClimoDirectory,fn))
+                    normal = np.load('%sdailyMaxT%s.npy'%(ClimoDirectory,fn), allow_pickle=True)
                     normal = np.round(normal+0.005,0)
                     nTmax.append(normal)
                 else:
-                    normal = np.load('%sdailyMinT%s.npy'%(ClimoDirectory,fn))
+                    normal = np.load('%sdailyMinT%s.npy'%(ClimoDirectory,fn), allow_pickle=True)
                     normal = np.round(normal+0.005,0)
                     nTmin.append(normal)
                 #
