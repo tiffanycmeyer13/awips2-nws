@@ -7,4 +7,5 @@
 -->
 <requestPatterns>
     <regex>^.*ODIMH5_PVOL.*</regex>
+    <regex>^SDCN01 CWAO.*</regex>
 </requestPatterns>
