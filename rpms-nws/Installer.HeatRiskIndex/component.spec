@@ -90,6 +90,7 @@ rm --recursive --force %{_build_root}
 /awips2/apps/HeatRiskIndex/install/PrismHiRes/gfe/*
 %dir /awips2/apps/HeatRiskIndex/install/PrismHiRes/install
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/install.sh
+%attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/installGrids.sh
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/install/stageData_HeatRisk.sh
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/install.sh
 %attr(755,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/install/stageData_PrismHiRes.sh
@@ -111,6 +112,9 @@ rm --recursive --force %{_build_root}
 %attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/scripts/PrismHiRes
 %attr(775,awips,fxalpha) %dir /awips2/edex/data/share/HeatRiskIndex/scripts/HeatRisk
 %attr(775,awips,fxalpha) /awips2/edex/data/share/HeatRiskIndex/scripts/PrismHiRes/makeYearClimoTemps.sh
+%attr(775,awips,fxalpha) /awips2/edex/data/share/HeatRiskIndex/scripts/HeatRisk/installGrids.sh
+%attr(775,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/PrismHiRes/bin/LoadClimateGrids.sh
+%attr(775,awips,fxalpha) /awips2/apps/HeatRiskIndex/install/HeatRisk/bin/LoadHeatRisk.sh
 %defattr(644,root,root,-)
 
 %changelog
