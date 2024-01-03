@@ -4,7 +4,14 @@
 package gov.noaa.nws.ocp.edex.plugin.odim;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -44,6 +51,7 @@ import ucar.nc2.Variable;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
+ * Dec 21, 2023 DR 2036723 dfriedman   Skip over header in SBN data
  * </pre>
  *
  * @author dfriedman
@@ -124,11 +132,56 @@ public class ODIMDecoder {
 
     private static final String POLAR_WHERE_RANGE_START = "rstart";
 
+    private static final String HDF5_SIGNATURE = "\211HDF\r\n\032\n";
+
     private static CARadarElevations caElevs;
 
     public PluginDataObject[] decode(File f)
             throws BadDataException, IOException {
-        return readODIMRecords(NetcdfFile.open(f.getPath()));
+        File noHeaderFile = getNoHeaderFile(f);
+        try {
+            return readODIMRecords(NetcdfFile.open(noHeaderFile.getPath()));
+        } finally {
+            if (!noHeaderFile.equals(f)) {
+                try {
+                    Files.delete(noHeaderFile.toPath());
+                } catch (Exception e) {
+                    logger.error(String.format(
+                            "Unable to remove temporary file %s: %s",
+                            noHeaderFile, e), e);
+                }
+            }
+        }
+    }
+
+    private File getNoHeaderFile(File inputFile) throws IOException {
+        /*
+         * GetFileWithWmoHeader does not remove the second header line. Instead
+         * of trying to parse headers, this routine just looks for the HDF5
+         * signature.
+         */
+        try (FileInputStream fin = new FileInputStream(inputFile)) {
+            FileChannel cin = fin.getChannel();
+            ByteBuffer buf = ByteBuffer.allocate(128);
+            cin.read(buf);
+            String bufString = new String(buf.array(), 0, buf.position(),
+                    StandardCharsets.ISO_8859_1);
+            int offset = bufString.indexOf(HDF5_SIGNATURE);
+            if (offset > 0) {
+                Path outputPath = Files.createTempFile(
+                        inputFile.toPath().getParent(),
+                        inputFile.getName() + "-", ".nohdr");
+                File outputFile = outputPath.toFile();
+                try (FileOutputStream fout = new FileOutputStream(outputFile)) {
+                    FileChannel cout = fout.getChannel();
+                    cin.transferTo(offset, cin.size() - offset, cout);
+                }
+                return outputFile;
+            } else {
+                return inputFile;
+            }
+        }
+
     }
 
     private ODIMRecord[] readODIMRecords(NetcdfFile f) throws BadDataException {
