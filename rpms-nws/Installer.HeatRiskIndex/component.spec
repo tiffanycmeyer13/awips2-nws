@@ -60,7 +60,6 @@ mkdir --parents ${COMMON_DIR}/scripts
 mkdir --parents ${COMMON_DIR}/scripts/PrismHiRes
 mkdir --parents ${COMMON_DIR}/scripts/HeatRisk
 cp ${APP_DIR}/install/PrismHiRes/install/makeYearClimoTemps.sh ${COMMON_DIR}/scripts/PrismHiRes/.
-cp ${APP_DIR}/install/HeatRisk/install/installGrids.sh ${COMMON_DIR}/scripts/HeatRisk/.
 
 %clean
 rm --recursive --force %{_build_root}

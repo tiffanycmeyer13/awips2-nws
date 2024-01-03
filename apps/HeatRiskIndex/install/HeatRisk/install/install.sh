@@ -185,6 +185,19 @@ done
 
 logecho "Done installing scripts."
 
+GFEUser="SITE"
+BASEConfig="gfeConfig"
+
+PROC=$GFEDIR/runProcedure
+
+logecho "Creating HeatRisk grids. Monitor the log file ${logFile} if desired."
+logecho "tail -f ${logFile}"
+$PROC -site $uppersite -u $GFEUser -n HeatRisk_install -c $BASEConfig -m _Climo >> ${logFile} 2>&1
+
+$PROC -site $uppersite -u $GFEUser -n HeatRisk_daily -c $BASEConfig -m _Climo >> ${logFile} 2>&1
+
+$PROC -site $uppersite -u $GFEUser -n HeatRisk_calculate -c $BASEConfig -m _Fcst >> ${logFile} 2>&1
+
 logecho ""
 logecho "HeatRisk installation complete!"
 logecho ""
