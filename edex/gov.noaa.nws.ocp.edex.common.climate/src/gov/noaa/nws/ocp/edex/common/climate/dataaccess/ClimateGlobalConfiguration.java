@@ -67,6 +67,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 09 JUN 2021  DCS 22324  wpaintsil   Refine saveGlobal() so that globalDay.properties formatting 
  *                                     and default comments are preserved.
  * 04 DEC 2023  DR 2036600 pwang       Fix moderate precip
+ * 22 DEC 2023  DR 2036755 wkwock      Added check for missing climate.valid.rmk.wx and climate.include.rmk.wx
  * </pre>
  * 
  * @author xzhang
@@ -105,6 +106,11 @@ public class ClimateGlobalConfiguration {
      * Name of placeholder property for site time zone in Spring XML files.
      */
     private static final String CPG_CRON_TIMEZONE_SPRING_PROPERTY = "climate.cpg.cron.timezone";
+
+    /**
+     * default list for climate.valid.rmk.wx
+     */
+    private static final String VALID_RMK_WX = "RA SHRA SN SHSN GS DZ PL FZRA FZDZ";
 
     /**
      * @return global configuration values from SITE-REGION-BASE in that
@@ -199,8 +205,13 @@ public class ClimateGlobalConfiguration {
                         .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
                         .equalsIgnoreCase("true") ? true : false);
-                resGlobal.setIncludeRemarkWx("true".equalsIgnoreCase(
-                        prop.getProperty("climate.include.rmk.wx")));
+                if (prop.getProperty("climate.include.rmk.wx") == null) {
+                    logger.warn("Field climate.include.rmk.wx not found in "
+                            + GLOBAL_DAY_PATH + ". Default to false.");
+                } else {
+                    resGlobal.setIncludeRemarkWx("true".equalsIgnoreCase(
+                            prop.getProperty("climate.include.rmk.wx")));
+                }
                 resGlobal.setStationDesignatorOverrides(
                         parseStationDesignatorOverrides(prop.getProperty(
                                 "climate.stationDesignatorOverrides")));
@@ -208,8 +219,15 @@ public class ClimateGlobalConfiguration {
                         prop.getProperty("climate.snowReportingStations")));
                 resGlobal.setAllowDisseminate("true".equalsIgnoreCase(
                         prop.getProperty("climate.allowDisseminate")));
-                resGlobal.setValidRmkWxList(
-                        prop.getProperty("climate.valid.rmk.wx"));
+                if (prop.getProperty("climate.valid.rmk.wx") == null) {
+                    resGlobal.setValidRmkWxList(VALID_RMK_WX);
+                    logger.warn("Field climate.valid.rmk.wx not found in "
+                            + GLOBAL_DAY_PATH + ". Default to '" + VALID_RMK_WX
+                            + "'.");
+                } else {
+                    resGlobal.setValidRmkWxList(
+                            prop.getProperty("climate.valid.rmk.wx"));
+                }
 
                 // got to end without error; use this globalDay file
                 success = true;
