@@ -204,7 +204,7 @@
                                 <constraint constraintType="EQUALS" constraintValue="ML Hail Growth CAPE"/>
                             </mapping>
                             <mapping key="info.level.leveltwovalue">
-                                <constraint constraintType="EQUALS" constraintValue="243.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="243.15"/>
                             </mapping>
                             <mapping key="pluginName">
                                 <constraint constraintType="EQUALS" constraintValue="grid"/>
@@ -297,7 +297,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="253.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="253.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>
@@ -332,7 +332,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="243.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="243.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>

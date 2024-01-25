@@ -28,7 +28,7 @@
                                 <constraint constraintType="EQUALS" constraintValue="ML Hail Growth CAPE"/>
                             </mapping>
                             <mapping key="info.level.leveltwovalue">
-                                <constraint constraintType="EQUALS" constraintValue="243.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="243.15"/>
                             </mapping>
                             <mapping key="pluginName">
                                 <constraint constraintType="EQUALS" constraintValue="grid"/>

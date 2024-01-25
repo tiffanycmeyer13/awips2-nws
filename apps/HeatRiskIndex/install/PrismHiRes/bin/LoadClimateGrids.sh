@@ -25,14 +25,11 @@ NOTTY=`tty | grep -ci not`
 
 echo "Starting  at: `date +"%Y%m%d-%T"` UTC" 
 
-#
 #  Setup environment for DEFAULT_HOST
-#
-scriptPath=`readlink -f $0`
-BINDIR=`dirname $scriptPath`
-
 source /awips2/GFESuite/bin/setup.env
-source $BINDIR/../env.sh
+
+# Default to GFE AWIPS install
+GFEDIR=/awips2/GFESuite/bin
 
 if [ -d $GFEDIR ]
 then
@@ -40,14 +37,26 @@ then
   if [ ! -f $GFEDIR/runProcedure ]
   then
     echo "runProcedure was not found in $GFEDIR."
-    echo "Enter the correct path for runProcedure in env.sh and try again."
+    echo "Execution STOPPED! Exiting..."
    exit 1
   fi
 else
   echo "Directory $GFEDIR does not exist."
-  echo "Enter the correct path for runProcedure in env.sh and try again."
+  echo "Execution STOPPED! Exiting..."
   exit 1
 fi
+
+# Set SITE ID
+GFESUITE_SITEID=`echo ${SITE_IDENTIFIER} | tr a-z A-Z`
+
+SITEID=$GFESUITE_SITEID
+echo ""
+echo "Using $GFESUITE_SITEID for site ID"
+if [[ $SITEID == "" ]]; then
+   echo "site ID not defined. make sure the site ID is provided."
+   exit 1
+fi
+
 #
 GFEUser="SITE"             # user installed under
 #
@@ -58,21 +67,15 @@ BASEConfig="gfeConfig"     # normal config file to use
 #
 #  Setup logfile for this run
 #
+logDir="/awips2/edex/data/share/HeatRiskIndex/scripts/logs"
 DATECODE=`date -u +"%Y%m%d"`
-LOGDIR=$LOGHOME/$DATECODE
+LOGDIR=$logDir/$DATECODE
 if [[ ! -d $LOGDIR ]]
 then
    mkdir -m 777 -p $LOGDIR
 fi
 DAY=`date +"%Y%m%d"`
 #
-
-site=`echo ${SITEID} | tr a-z A-Z`
-
-if [[ $site == "" ]]; then
-   echo "site not defined. make sure the site id is provided."
-   exit 1
-fi
 
 STAMP=`date +"%Y%m%d"`
 LOG="LoadClimoTemps_${STAMP}.log"

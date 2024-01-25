@@ -16,7 +16,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="255.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="255.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>

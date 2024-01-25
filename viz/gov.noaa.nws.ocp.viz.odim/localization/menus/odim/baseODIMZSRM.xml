@@ -19,7 +19,7 @@
         <substitute key="elevation" value="0.4--0.4" />
     </contribute>
     <contribute xsi:type="bundleItem"
-        file="bundles/DefaultODIMBlended.xml" menuText="1.0 Z+SRM"
+        file="bundles/DefaultODIMBlended.xml" menuText="0.8 Z+SRM"
         id="${node}10ZSRM">
         <substitute key="node" value="${node}" />
         <substitute key="quantity1" value="DBZH" />
@@ -40,7 +40,7 @@
     </contribute>
     <contribute xsi:type="bundleItem"
         file="bundles/DefaultODIMBlended.xml" menuText="All Tilts Z+SRM"
-        id="${node}AllTiltsZSRM">
+        id="${node}00-3600ZSRM">
         <substitute key="node" value="${node}" />
         <substitute key="quantity1" value="DBZH" />
         <substitute key="mode1" value="" />
@@ -70,7 +70,7 @@
             <substitute key="elevation" value="1.2--1.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="2.0 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="2.1 Z+SRM"
             id="${node}20ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -80,7 +80,7 @@
             <substitute key="elevation" value="2.0--2.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="2.8 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="2.7 Z+SRM"
             id="${node}28ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -90,7 +90,7 @@
             <substitute key="elevation" value="2.8--2.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="3.6 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="3.5 Z+SRM"
             id="${node}36ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -110,7 +110,7 @@
             <substitute key="elevation" value="4.4--4.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="5.2 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="5.3 Z+SRM"
             id="${node}52ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -120,7 +120,7 @@
             <substitute key="elevation" value="5.2--5.2" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="6.8 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="6.4 Z+SRM"
             id="${node}68ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -130,7 +130,7 @@
             <substitute key="elevation" value="6.8--6.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="8.4 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="7.7 Z+SRM"
             id="${node}84ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -140,7 +140,7 @@
             <substitute key="elevation" value="8.4--8.4" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="10.0 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="9.4 Z+SRM"
             id="${node}100ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -150,7 +150,7 @@
             <substitute key="elevation" value="10.0--10.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="11.6 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="11.3 Z+SRM"
             id="${node}116ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -160,7 +160,7 @@
             <substitute key="elevation" value="11.6--11.6" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="14.8 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="13.7 Z+SRM"
             id="${node}148ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -170,7 +170,7 @@
             <substitute key="elevation" value="14.8--14.8" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="18.0 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="16.6 Z+SRM"
             id="${node}180ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />
@@ -180,7 +180,7 @@
             <substitute key="elevation" value="18.0--18.0" />
         </contribute>
         <contribute xsi:type="bundleItem"
-            file="bundles/DefaultODIMBlended.xml" menuText="21.2 Z+SRM"
+            file="bundles/DefaultODIMBlended.xml" menuText="20.2 Z+SRM"
             id="${node}212ZSRM">
             <substitute key="node" value="${node}" />
             <substitute key="quantity1" value="DBZH" />

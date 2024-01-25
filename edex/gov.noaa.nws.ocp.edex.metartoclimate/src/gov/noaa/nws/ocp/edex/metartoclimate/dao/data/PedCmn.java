@@ -3,6 +3,9 @@
  **/
 package gov.noaa.nws.ocp.edex.metartoclimate.dao.data;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Decoded METAR data PED Common variables, from METAR report text. From
  * hmPED_cmn.h#PedCmnStruct
@@ -15,6 +18,7 @@ package gov.noaa.nws.ocp.edex.metartoclimate.dao.data;
  * ------------ ---------- ----------- --------------------------
  * 01 FEB 2017  28609      amoore      Initial creation
  * 22 APR 2022  21456      pwang       Fix missing wx from RMK
+ * 04 DEC 2023  2036600    pwang       Fix moderate precip
  * </pre>
  *
  * @author amoore
@@ -109,15 +113,34 @@ public class PedCmn {
     }
 
     /**
+     * setOneWxObstruct: this method will be used for add a wx from METAR RMK
+     * section The logic will be: if the current Obstruct (10 elements array)
+     * doesn't contain same type of wx, add it in, otherwise, ignore it.
      * 
      * @param wx
      */
     public void setOneWxObstruct(String wx) {
-        for (int i = 0; i < this.wxObstruct.length; i++) {
-            if (this.wxObstruct[i] == null || this.wxObstruct[i].isEmpty()) {
-                this.wxObstruct[i] = wx;
-                break;
+        int index = 0;
+        // build a unique wx type set to avoid duplication
+        Set<String> addedWxSet = new HashSet<>();
+        for (String currWx : wxObstruct) {
+            if (!currWx.isBlank()) {
+                if (currWx.startsWith("-") || currWx.startsWith("+")) {
+                    addedWxSet.add(currWx.substring(1));
+                } else {
+                    addedWxSet.add(currWx);
+                }
+                index++;
             }
+        }
+        // input wx may have intensity, "-" or "+"
+        String intensity = "";
+        if (wx.startsWith("-") || wx.startsWith("+")) {
+            intensity = wx.substring(0, 1);
+            wx = wx.substring(1);
+        }
+        if (!addedWxSet.contains(wx)) {
+            this.wxObstruct[index] = intensity + wx;
         }
     }
 

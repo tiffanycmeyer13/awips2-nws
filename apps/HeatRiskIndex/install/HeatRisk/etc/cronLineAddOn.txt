@@ -1,3 +1,3 @@
 # Feel free to change the run times. Best to run late at night or very early morning.
 
-8 12 * * * gfecron /awips2/apps/HeatRiskIndex/runtime/HeatRisk/bin/LoadHeatRisk.sh 2>&1
+8 12 * * * gfecron /awips2/edex/data/share/HeatRiskIndex/scripts/HeatRisk/LoadHeatRisk.sh 2>&1

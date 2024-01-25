@@ -6,14 +6,15 @@
 -->
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
-        menuText="0.5 Reflectivity" id="Radar05Reflectivity">
+        menuText="0.4 Reflectivity" id="caRadar04Reflectivity">
         <substitute key="quantity" value="DBZH" />
         <substitute key="elevation" value="0.4" />
         <substitute key="name" value="0.4 Reflectivity" />
     </contribute>
     <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
-        menuText="0.5 Long Range Refl" id="longRang05Reflectivity">
+        menuText="0.3 Long Range Refl" id="caLongRang03Reflectivity">
         <substitute key="quantity" value="DBZH" />
+        <substitute key="elevationAngleKey" value="trueElevationAngle" />
         <substitute key="elevation" value="0.3" />
         <substitute key="name" value="0.3 Long Range Refl" />
     </contribute>

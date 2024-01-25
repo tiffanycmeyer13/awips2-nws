@@ -51,7 +51,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="261.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="261.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>
@@ -86,7 +86,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="255.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="255.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>
@@ -156,7 +156,7 @@
                     <resourceData xsi:type="gridResourceData" retrieveData="true" isUpdatingOnMetadataOnly="false" isRequeryNecessaryOnTimeMatch="true" sampling="true" spatial="true">
                         <metadataMap>
                             <mapping key="info.level.levelonevalue">
-                                <constraint constraintType="EQUALS" constraintValue="261.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="261.15"/>
                             </mapping>
                             <mapping key="info.level.masterLevel.name">
                                 <constraint constraintType="EQUALS" constraintValue="TEMP"/>
@@ -168,7 +168,7 @@
                                 <constraint constraintType="EQUALS" constraintValue="-12 to -18C Omega"/>
                             </mapping>
                             <mapping key="info.level.leveltwovalue">
-                                <constraint constraintType="EQUALS" constraintValue="255.149"/>
+                                <constraint constraintType="EQUALS" constraintValue="255.15"/>
                             </mapping>
                             <mapping key="pluginName">
                                 <constraint constraintType="EQUALS" constraintValue="grid"/>

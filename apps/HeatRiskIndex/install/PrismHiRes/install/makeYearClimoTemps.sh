@@ -14,7 +14,7 @@ NOTTY=`tty | grep -ci not`
 start=`date +%s`
 
 . /awips2/GFESuite/bin/setup.env
-. /awips2/apps/HeatRiskIndex/runtime/PrismHiRes/env.sh
+
 unset DISPLAY
 
 scriptPath=`readlink -f $0`
@@ -22,34 +22,42 @@ scriptPath=`readlink -f $0`
 #Set Directories
 export INSTALLDir=`dirname $scriptPath`
 export BASEDir=`dirname $INSTALLDir`
-export binDir=$BASEDir/bin
-export gfeDir=$BASEDir/gfe
+
 export logDir=$BASEDir/logs
+if [[ ! -d $logDir ]]; then
+   logecho ""
+   logecho "Created $logDir"
+   mkdir -p $logDir
+fi
 rundate=`date +%Y%m%d%H%M`
 logFile="$logDir/install_${rundate}.log"
-
-
 echo "Watch the log file for progress $logFile"
 echo "tail -f $logFile"
 
-#
-#  Setup environment for DEFAULT_HOST
-#
-#source $runDir/env.sh
+# Default to GFE AWIPS install
+GFEDIR=/awips2/GFESuite/bin
+
 if [ -d $GFEDIR ]
 then
   echo "Directory $GFEDIR exists."
   if [ ! -f $GFEDIR/runProcedure ]
   then
     echo "runProcedure was not found in $GFEDIR."
-    echo "Enter the correct path for runProcedure in env.sh and try again."
+    echo "Execution STOPPED! Exiting..."
    exit 1
   fi
 else
   echo "Directory $GFEDIR does not exist."
-  echo "Enter the correct path for runProcedure in env.sh and try again."
+  echo "Execution STOPPED! Exiting..."
   exit 1
 fi
+
+# Set SITE ID
+GFESUITE_SITEID=`echo ${SITE_IDENTIFIER} | tr a-z A-Z`
+
+SITEID=$GFESUITE_SITEID
+echo ""
+echo "Using $GFESUITE_SITEID for site ID"
 
 cd $GFEDIR
 PROC=${GFEDIR}/runProcedure
