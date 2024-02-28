@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="subinclude" subMenu="Canadian Mosaic"
+        id="caMosaicMenu" fileName="menus/odim/caMosaicProductMenu.xml">
+        <substitute key="mosaicNodeList"
+            value="casag,casbe,casbi,casbv,cascl,cascm,cascv,casdr,caset,casfm,casft,casfw,casgo,cashp,cashr,caskr,casla,casma,casmb,casmm,casmr,caspg,casra,casrf,cassf,cassm,cassn,cassr,casss,cassu,casts,casvd,caswl" />
+    </contribute>
+</menuTemplate>

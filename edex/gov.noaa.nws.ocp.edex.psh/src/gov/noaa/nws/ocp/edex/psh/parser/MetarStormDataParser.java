@@ -27,6 +27,8 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.MetarDataEntry;
  * Sep 14, 2017 #37917     wpaintsil   Tweaked METAR_EXP regex. 
  *                                     Added some logging for when products aren't matched.
  * Oct 05, 2017 #37917     wpaintsil   Revise time range algorithm.
+ * Oct 20, 2020 DR22159    dhaines     Changed sorting to use reftime
+ * Jan 19  2020 DR22159    jrohwien    Changed break conditions to use reftime
  *
  * </pre>
  *
@@ -93,7 +95,7 @@ public class MetarStormDataParser {
      * @return
      */
     public MetarDataEntry parse(List<StdTextProduct> metarProducts,
-            String station, float lat, float lon, int period) {
+            String station, float lat, float lon, int period) { 	
         MetarDataEntry osd = new MetarDataEntry();
         // osd.setCategory(PshDataCategory.METAR);
         osd.setSite(station);
@@ -104,13 +106,15 @@ public class MetarStormDataParser {
         List<MetarTextLine> windLines = new ArrayList<>();
 
         int stop = periodToStopNumber(period);
+        long stopReftime = 86400000 * stop; //  86400000 milliseconds in a day
+        long latestReftime = metarProducts.get(0).getRefTime();
 
         int startTime = -1;
         int startDay = -1;
-
+        
         // each product
         for (StdTextProduct stp : metarProducts) {
-
+        	
             String[] lineArray = stp.getProduct().split(NEW_LINE);
 
             // each line of text product
@@ -118,8 +122,7 @@ public class MetarStormDataParser {
             for (int i = 0; i < lineArray.length; i++) {
 
                 if (METAR_SPECI_EXP.matcher(lineArray[i]).find()) {
-                    mline = new MetarTextLine(lineArray[i]);
-
+                    mline = new MetarTextLine(lineArray[i], stp.getRefTime());
                     // Get the start time. Assumes the latest entry has the
                     // latest date-time.
                     if (startTime == -1 || startDay == -1) {
@@ -155,10 +158,10 @@ public class MetarStormDataParser {
         // parse only if a start time was found
         if (startTime != -1 && startDay != -1) {
             // Parse SLP
-            parseSLP(osd, slpLines, stop, startDay, startTime);
+            parseSLP(osd, slpLines, stop, startDay, startTime, latestReftime, stopReftime);
 
             // Parse Wind
-            parseWind(osd, windLines, stop, startDay, startTime);
+            parseWind(osd, windLines, stop, startDay, startTime, latestReftime, stopReftime);
         }
 
         return osd;
@@ -173,8 +176,7 @@ public class MetarStormDataParser {
      */
     private void parseSLP(MetarDataEntry osd,
             final List<MetarTextLine> sortedSLPList, int stop, int startDay,
-            int startTime) {
-
+            int startTime,long latestReftime, long stopReftime) {
         int length = sortedSLPList.size();
         float slpValue = 0;
         float slpMin = 9999;
@@ -187,6 +189,14 @@ public class MetarStormDataParser {
             MetarTextLine mtl = sortedSLPList.get(i);
             String[] elems = mtl.getTextLine().split("\\s+");
             boolean updateSLP = false;
+            
+            /*
+             * Stop searching after reaching an entry with a date and time more
+             * than 24/48/72 hours after the date/time of the latest entry.
+             */
+            if( mtl.getReftime() <=  (latestReftime - stopReftime)   ) {
+                  break;
+            }
 
             // Extract the SLP value
             for (String e : elems) {
@@ -209,17 +219,7 @@ public class MetarStormDataParser {
                 slpDay = mtl.getDay();
                 updateSLP = false;
             }
-
-            /*
-             * Stop searching after reaching an entry with a date and time more
-             * than 24/48/72 hours after the date/time of the latest entry.
-             */
-            if (mtl.getHhmm() == startTime && mtl.getDay() != startDay) {
-                stopLine++;
-                if (stopLine >= stop) {
-                    break;
-                }
-            }
+            
         }
 
         // Set SLP data
@@ -238,9 +238,9 @@ public class MetarStormDataParser {
      */
     private void parseWind(MetarDataEntry osd,
             final List<MetarTextLine> sortedWindList, int stop, int startDay,
-            int startTime) {
+            int startTime, long latestReftime, long stopReftime) {
         int length = sortedWindList.size();
-
+        
         // Local variables
         int sustWindMax = 0;
         String sustWindDir = "";
@@ -261,7 +261,7 @@ public class MetarStormDataParser {
         boolean peakWindFlag = false;
 
         int stopLine = 0;
-
+        
         // For each Wind line
         for (int i = 0; i < length; i++) {
 
@@ -288,9 +288,20 @@ public class MetarStormDataParser {
 
             MetarTextLine mtl = sortedWindList.get(i);
             String[] elems = mtl.getTextLine().split("\\s+");
+            
+            /*
+             * Stop searching after reaching an entry with a date and time more
+             * than 24/48/72 hours after the date/time of the latest entry.
+             */
+            if( mtl.getReftime() <=  (latestReftime - stopReftime)   ) {
+                break;
+            }
+          
+          
 
             // Extract the wind values
             for (int j = 0; j < elems.length; j++) {
+            	
                 if (MetarStormDataParser.WIND_GUST_KT.matcher(elems[j])
                         .find()) {
                     // Wind with GUST dddddGddKT / ddddddGdddKT
@@ -316,7 +327,6 @@ public class MetarStormDataParser {
                     // Get day and hhmm for the Wind
                     windDay = mtl.getDay();
                     windHHMM = mtl.getHhmm();
-
                     gustWindFlag = true;
 
                 } else if (MetarStormDataParser.WIND_SUST_KT.matcher(elems[j])
@@ -334,7 +344,6 @@ public class MetarStormDataParser {
                     // Get day and hhmm for the Wind
                     windDay = mtl.getDay();
                     windHHMM = mtl.getHhmm();
-
                 }
 
                 // Check if contains PK WIND
@@ -353,6 +362,7 @@ public class MetarStormDataParser {
                             pkWindDay = mtl.getDay();
                             pkWindHHMM = Integer
                                     .parseInt(elems[j + 2].substring(6, 10));
+       
                         } else if ((j + 2) < elems.length
                                 && elems[j + 2].length() == 11) {
                             peakWindFlag = true;
@@ -362,6 +372,7 @@ public class MetarStormDataParser {
                             pkWindDay = mtl.getDay();
                             pkWindHHMM = Integer
                                     .parseInt(elems[j + 2].substring(7, 11));
+                            
                         }
                     }
                 }
@@ -397,16 +408,6 @@ public class MetarStormDataParser {
                 peakWindTime = pkWindHHMM;
             }
 
-            /*
-             * Stop searching after reaching an entry with a date and time more
-             * than 24/48/72 hours after the date/time of the latest entry.
-             */
-            if (mtl.getHhmm() == startTime && mtl.getDay() != startDay) {
-                stopLine++;
-                if (stopLine >= stop) {
-                    break;
-                }
-            }
         }
 
         // Set extracted Wind data
@@ -474,3 +475,4 @@ public class MetarStormDataParser {
     }
 
 }
+

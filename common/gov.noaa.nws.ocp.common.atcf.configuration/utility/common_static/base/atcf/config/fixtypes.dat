@@ -1,0 +1,37 @@
+
+This file contains fix types used for displaying fixes and computing error statistics.
+
+The file format is as follows:
+fix type - 4 digit fix type
+retired/developmental flag - 1 means don't use the fix type in normal operations.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+#TYPE RETIRED
+DVTS    0
+DVTO    0
+SSMI    0
+SSMS    0
+QSCT    1
+ASCT    0
+RSCT    0 
+OSCT    0 
+WSAT    0
+ERS2    1
+SEAW    1
+TRMM    0
+GPM     0 
+ALTG    0
+AMSU    0
+AMSR    0
+RDRC    0
+RDRD    0
+RDRT    0
+SYNP    0
+AIRC    0
+ANAL    0
+DRPS    0
+ADOS    1
+MMHS    0
+UNKN    1

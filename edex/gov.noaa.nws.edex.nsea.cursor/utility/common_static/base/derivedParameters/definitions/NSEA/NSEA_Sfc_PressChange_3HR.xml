@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="hPa" name="3hr MSL Press Change" abbreviation="3 Hr Sfc Press Change" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="SFC" abbreviation="dP3hr"/>
+    </Method>
+</DerivedParameter>

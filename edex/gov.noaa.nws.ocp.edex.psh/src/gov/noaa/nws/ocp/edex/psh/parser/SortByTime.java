@@ -12,6 +12,7 @@ import java.util.Comparator;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jul 21, 2017            pwang     Initial creation
+ * Oct 20, 2020 DR22159    dhaines	 Changed compare to use reftime
  *
  * </pre>
  *
@@ -22,8 +23,14 @@ public class SortByTime implements Comparator<MetarTextLine> {
 
     @Override
     public int compare(MetarTextLine a, MetarTextLine b) {
-        return ((b.getDay() * 100000) + b.getHhmm())
-                - ((a.getDay() * 100000) + a.getHhmm());
+    	long result = b.getReftime() - a.getReftime();
+    	if (result == 0) {
+    		return 0;
+    	} else if (result > 0) {
+    		return 1;
+    	} else {
+    		return -1;
+    	}
     }
 
 }

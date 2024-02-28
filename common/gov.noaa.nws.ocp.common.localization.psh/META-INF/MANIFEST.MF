@@ -10,4 +10,5 @@ Require-Bundle: com.raytheon.uf.common.time,
  com.raytheon.uf.common.monitor,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.status,
- javax.xml.bind
+ javax.xml.bind,
+ com.raytheon.uf.common.python

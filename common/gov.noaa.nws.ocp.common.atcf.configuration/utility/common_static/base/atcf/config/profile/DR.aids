@@ -1,0 +1,37 @@
+
+This file contains data to be used by the atcf application.
+This file defines parameters to be used for displaying objective aids.
+The first field is the technique name.
+The second field is the technique description.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+OFCI  NHC official forecast (Interpolated 06 hours)
+XTRP  Extrapolation using past 12-hr motion
+TCLP  Trajectory CLIPER model 7-day
+TABD  Trajectory and Beta Model from GFS, deep (NHC)
+TABM  Trajectory and Beta Model from GFS, medium (NHC)
+TABS  Trajectory and Beta Model from GFS, shallow (NHC)
+HWFI  HWRF model (Interpolated 06 hrs) - variable offse
+HMNI  HMON model (Interpolated 06 hours)
+AVNI  GFS Model (Interpolated 06 hours)
+AEMI  GFS Ensemble Mean (Interpolated 06 hours)
+EGR2  UKMET model GTS (Official - Interpolated 12 hours
+UKX2  UKMET [GFS tracker] (Interpolated 12 hours)
+NVGI  NAVGEM model (Interpolated 06 hours)
+CMC2  Canadian Model (Interpolated 12 hours)
+CEM2  Canadian model Ensemble Mean (Interpolated 12 hou
+EMX2  ECMWF model [NCEP tracker] (Interpolated 12 hrs)
+EMN2  ECMWF model Ensemble Mean [NCEP tracker] (Interpo
+TCON  Consensus of all: AVNI/EGRI/HWFI (2017 version)
+TCOE  Consensus of all: AVNI/EGRI/HWFI (2017 version)
+TCOA  Consensus of all: AVNI/EGRI/HWFI (2017 version)
+TVCN  Consensus of >=2: AVNI/EGRI/HWFI/EMXI/CTCI (2017
+TVCE  Consensus of >=2: AVNI/EGRI/HWFI/EMXI/CTCI (2017
+TVCA  Consensus of >=2: AVNI/EGRI/HWFI/EMXI/CTCI (2017
+GFEX  Consensus of AVNI and EMXI
+TVCX  Consensus of >=2: AVNI/EGRI/HWFI/EMXIx2/CTCI (201
+TVCY  Consensus of >=2: AVNIx2/EGRI/HWFI/EMXIx2/CTCI (2
+CTCI  NRL COAMPS-TC expt (Interpolated 06 hours)
+UEMI  UKMET MOGREPS-G Ensemble Mean (Interpolated 06 ho

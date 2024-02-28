@@ -1,0 +1,6 @@
+# Tsunami EAS GUI appLauncher
+START_RECORD
+name = Tsunami Watch / Warning / Advisory Formatter
+exec = xterm -hold export LD_LIBRARY_PATH=/awips2/python/lib; /localapps/runtime/TsunamiEasGui/bin/nwr_tsu.py
+icon = /localapps/icons/warn.jpg
+END_RECORD

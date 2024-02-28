@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import com.raytheon.uf.common.units.UnitConv;
 
-import tec.uom.se.format.SimpleUnitFormat;
+import tech.units.indriya.format.SimpleUnitFormat;
 
 /**
  * GenericGeometryAttribute

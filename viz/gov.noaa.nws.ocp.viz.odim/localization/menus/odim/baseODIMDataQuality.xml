@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <contribute xsi:type="titleItem"
+          titleText="------ Signal Quality ------" id="${node}SignalQuality" />
+    <contribute xsi:type="subMenu" menuText="${node} SQIH"
+        id="${node}_baseSQIH res">
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.3 SQIH"
+            id="${node}_ODIM_03SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="0.3--0.3" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.4 SQIH"
+            id="${node}_ODIM_04SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="0.4--0.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.8 SQIH"
+            id="${node}_ODIM_10SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="1.0--1.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.2 SQIH"
+            id="${node}_ODIM_12SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="1.2--1.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.6 SQIH"
+            id="${node}_ODIM_16SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="1.6--1.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.1 SQIH"
+            id="${node}_ODIM_20SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="2.0--2.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.7 SQIH"
+            id="${node}_ODIM_28SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="2.8--2.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="3.5 SQIH"
+            id="${node}_ODIM_36SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="3.6--3.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="4.4 SQIH"
+            id="${node}_ODIM_44SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="4.4--4.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="5.3 SQIH"
+            id="${node}_ODIM_52SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="5.2--5.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="6.4 SQIH"
+            id="${node}_ODIM_68SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="6.8--6.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="7.7 SQIH"
+            id="${node}_ODIM_84SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="8.4--8.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="9.4 SQIH"
+            id="${node}_ODIM_100SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="10.0--10.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="11.3 SQIH"
+            id="${node}_ODIM_116SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="11.6--11.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="13.7 SQIH"
+            id="${node}_ODIM_148SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="14.8--14.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="16.6 SQIH"
+            id="${node}_ODIM_180SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="18.0--18.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="20.2 SQIH"
+            id="${node}_ODIM_212SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="21.2--21.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="24.4 SQIH"
+            id="${node}_ODIM_244SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="24.4--24.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="SQIH (All)"
+            id="${node}_ODIM_00-3600SQIH">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="SQIH" />
+            <substitute key="elevation" value="0.0--360.0" />
+        </contribute>
+    </contribute>
+      <contribute xsi:type="titleItem"
+          titleText="------ Dual Pol Raw Products ------" id="${node}DualPolRawProducts" />
+    <contribute xsi:type="subMenu" menuText="${node} Raw PHIDP"
+        id="${node}_baseSDP res">
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.3 SDP"
+            id="${node}_ODIM_03SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="0.3--0.3" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.4 SDP"
+            id="${node}_ODIM_04SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="0.4--0.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.8 SDP"
+            id="${node}_ODIM_10SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="1.0--1.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.2 SDP"
+            id="${node}_ODIM_12SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="1.2--1.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.6 SDP"
+            id="${node}_ODIM_16SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="1.6--1.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.1 SDP"
+            id="${node}_ODIM_20SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="2.0--2.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.7 SDP"
+            id="${node}_ODIM_28SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="2.8--2.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="3.5 SDP"
+            id="${node}_ODIM_36SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="3.6--3.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="4.4 SDP"
+            id="${node}_ODIM_44SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="4.4--4.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="5.3 SDP"
+            id="${node}_ODIM_52SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="5.2--5.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="6.4 SDP"
+            id="${node}_ODIM_68SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="6.8--6.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="7.7 SDP"
+            id="${node}_ODIM_84SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="8.4--8.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="9.4 SDP"
+            id="${node}_ODIM_100SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="10.0--10.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="11.3 SDP"
+            id="${node}_ODIM_116SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="11.6--11.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="13.7 SDP"
+            id="${node}_ODIM_148SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="14.8--14.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="16.6 SDP"
+            id="${node}_ODIM_180SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="18.0--18.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="20.2 SDP"
+            id="${node}_ODIM_212SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="21.2--21.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="24.4 SDP"
+            id="${node}_ODIM_244SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="24.4--24.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="SDP (All)"
+            id="${node}_ODIM_00-3600SDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="PHIDP" />
+            <substitute key="elevation" value="0.0--360.0" />
+        </contribute>
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="${node} Raw PHIDP Unfiltered"
+        id="${node}_baseUSDP res">
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.3 USDP"
+            id="${node}_ODIM_03USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="0.3--0.3" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.4 USDP"
+            id="${node}_ODIM_04USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="0.4--0.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="0.8 USDP"
+            id="${node}_ODIM_10USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="1.0--1.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.2 USDP"
+            id="${node}_ODIM_12USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="1.2--1.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="1.6 USDP"
+            id="${node}_ODIM_16USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="1.6--1.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.1 USDP"
+            id="${node}_ODIM_20USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="2.0--2.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="2.7 USDP"
+            id="${node}_ODIM_28USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="2.8--2.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="3.5 USDP"
+            id="${node}_ODIM_36USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="3.6--3.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="4.4 USDP"
+            id="${node}_ODIM_44USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="4.4--4.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="5.3 USDP"
+            id="${node}_ODIM_52USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="5.2--5.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="6.4 USDP"
+            id="${node}_ODIM_68USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="6.8--6.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="7.7 USDP"
+            id="${node}_ODIM_84USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="8.4--8.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="9.4 USDP"
+            id="${node}_ODIM_100USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="10.0--10.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="11.3 USDP"
+            id="${node}_ODIM_116USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="11.6--11.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="13.7 USDP"
+            id="${node}_ODIM_148USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="14.8--14.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="16.6 USDP"
+            id="${node}_ODIM_180USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="18.0--18.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="20.2 USDP"
+            id="${node}_ODIM_212USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="21.2--21.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="24.4 USDP"
+            id="${node}_ODIM_244USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="24.4--24.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIM.xml" menuText="USDP (All)"
+            id="${node}_ODIM_00-3600USDP">
+            <substitute key="node" value="${node}" />
+            <substitute key="mode" value="" />
+            <substitute key="quantity" value="UPHIDP" />
+            <substitute key="elevation" value="0.0--360.0" />
+        </contribute>
+    </contribute>
+</menuTemplate>

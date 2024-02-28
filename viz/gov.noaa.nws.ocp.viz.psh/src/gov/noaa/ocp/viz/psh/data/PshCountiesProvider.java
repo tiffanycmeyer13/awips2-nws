@@ -29,6 +29,7 @@ import gov.noaa.nws.ocp.viz.psh.PshUtil;
  * ------------ ---------- ----------- --------------------------
  * Aug 09, 2017 #35737     astrakovsky  Initial creation.
  * Sep 06, 2017 #36923     astrakovsky  Added methods for loading county geometry data.
+ * Dec 21, 2020 #21179     J. Rohwein   update method signatures  AsBinary -> ST_AsBinary 
  * 
  * </pre>
  * 
@@ -48,7 +49,7 @@ public class PshCountiesProvider {
     /**
      * SQL Queries
      */
-    private static String COUNTIES_QUERY = "SELECT countyname, lat, lon, AsBinary(the_geom) FROM mapdata.county";
+    private static String COUNTIES_QUERY = "SELECT countyname, lat, lon, ST_AsBinary(the_geom) FROM mapdata.county";
 
     private static String COUNTIES_STRINGS_QUERY = "SELECT countyname FROM mapdata.county";
 

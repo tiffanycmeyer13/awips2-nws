@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPart;
+import org.locationtech.jts.geom.Coordinate;
 
 import com.raytheon.uf.common.dataplugin.bufrua.UAObs;
 import com.raytheon.uf.common.dataquery.requests.RequestConstraint;
@@ -25,11 +26,11 @@ import com.raytheon.uf.viz.core.procedures.Bundle;
 import com.raytheon.uf.viz.core.rsc.LoadProperties;
 import com.raytheon.uf.viz.d2d.nsharp.rsc.BufruaNSharpResourceData;
 import com.raytheon.viz.ui.BundleProductLoader;
+import com.raytheon.viz.ui.EditorTypeInfo;
 import com.raytheon.viz.ui.UiUtil;
 import com.raytheon.viz.ui.VizWorkbenchManager;
 import com.raytheon.viz.ui.editor.AbstractEditor;
 import com.raytheon.viz.ui.input.InputAdapter;
-import org.locationtech.jts.geom.Coordinate;
 
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDescriptor;
 import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDisplay;
@@ -37,25 +38,26 @@ import gov.noaa.nws.ncep.ui.nsharp.display.NsharpSkewTPaneDisplay;
 /**
  * Input handler for Firewx resource. This class loads the sounding resource and
  * open the NSHARP display.
- * 
+ *
  * <pre>
- * 
+ *
  * SOFTWARE HISTORY
- * 
+ *
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
- * FEB 07, 2017 18784      wkwock     Initial creation
- * 
+ * Feb 07, 2017 18784      wkwock      Initial creation
+ * Apr 25, 2022 8791       mapeters    Update determination of editor type to load to
+ * Oct 19, 2022 8956       mapeters    Handle UiUtil.createOrOpenEditor signature
+ *                                     change
+ *
  * </pre>
- * 
+ *
  * @author wkwock
- * @version 1.0
  */
-
 public class FirewxInputHandler extends InputAdapter {
 
     /** firewx resource */
-    private FirewxResource resource;
+    private final FirewxResource resource;
 
     /** closest station */
     private UAObs closestRecord = null;
@@ -65,7 +67,7 @@ public class FirewxInputHandler extends InputAdapter {
 
     /**
      * constructor
-     * 
+     *
      * @param resource
      */
     public FirewxInputHandler(FirewxResource resource) {
@@ -135,7 +137,7 @@ public class FirewxInputHandler extends InputAdapter {
 
     /**
      * Loading sounding resource
-     * 
+     *
      * @param stationName
      */
     private void loadSoundingResource(String stationName) {
@@ -160,9 +162,9 @@ public class FirewxInputHandler extends InputAdapter {
         NsharpSkewTPaneDisplay display = new NsharpSkewTPaneDisplay();
         display.setDescriptor(new NsharpSkewTPaneDescriptor());
         display.getDescriptor().getResourceList().add(pair);
-        String editorId = DescriptorMap
-                .getEditorId(display.getDescriptor().getClass().getName());
-        AbstractEditor editor = UiUtil.createOrOpenEditor(editorId,
+        String editorId = DescriptorMap.getEditorId(display);
+        EditorTypeInfo editorTypeInfo = new EditorTypeInfo(editorId, false);
+        AbstractEditor editor = UiUtil.createOrOpenEditor(editorTypeInfo, true,
                 display.cloneDisplay());
         Bundle b = new Bundle();
         b.setDisplays(new AbstractRenderableDisplay[] { display });
@@ -178,7 +180,7 @@ public class FirewxInputHandler extends InputAdapter {
 
     /**
      * get shell
-     * 
+     *
      * @return shell
      */
     private Shell getShell() {
@@ -192,7 +194,7 @@ public class FirewxInputHandler extends InputAdapter {
 
     /**
      * get closest record to the mouse pointer
-     * 
+     *
      * @return
      */
     protected UAObs getClosestRecord() {

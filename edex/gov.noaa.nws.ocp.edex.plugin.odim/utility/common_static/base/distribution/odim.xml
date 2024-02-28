@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<requestPatterns>
+    <regex>^.*ODIMH5_PVOL.*</regex>
+    <regex>^SDCN01 CWAO.*</regex>
+</requestPatterns>

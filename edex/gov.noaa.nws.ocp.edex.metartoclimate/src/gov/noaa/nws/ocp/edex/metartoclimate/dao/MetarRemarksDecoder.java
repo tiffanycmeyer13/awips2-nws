@@ -4,6 +4,7 @@
 package gov.noaa.nws.ocp.edex.metartoclimate.dao;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +15,8 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateMetarDecoding
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.DecodedMetar;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.RecentWx;
 import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SignificantCloud;
+import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
+import gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration;
 
 /**
  * Decode remarks of METAR report.
@@ -48,6 +51,8 @@ import gov.noaa.nws.ocp.edex.metartoclimate.dao.data.SignificantCloud;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 07 SEP 2017  37754      amoore      Initial creation.
+ * 22 APR 2022  21456      pwang       Fix missing Wx from RMK
+ * 04 DEC 2023  2036600    pwang       Fix moderate precip
  * </pre>
  * 
  * @author amoore
@@ -60,6 +65,8 @@ public final class MetarRemarksDecoder {
      */
     private static final IUFStatusHandler logger = UFStatus
             .getHandler(MetarRemarksDecoder.class);
+
+    private static ClimateGlobal globalConfig = null;
 
     /**
      * Decode the remarks section of a METAR report. Based on
@@ -80,9 +87,13 @@ public final class MetarRemarksDecoder {
      */
     protected static void decodeMetarRemarks(DecodedMetar decodedMetar,
             String[] reportArray, int startIndex)
-                    throws ArrayIndexOutOfBoundsException,
-                    NumberFormatException, ClimateMetarDecodingException {
+            throws ArrayIndexOutOfBoundsException, NumberFormatException,
+            ClimateMetarDecodingException {
         logger.debug("Decoding METAR remarks section.");
+
+        if (globalConfig == null) {
+            globalConfig = ClimateGlobalConfiguration.getGlobal();
+        }
         /*
          * Loop through remaining report portions. If a valid section is found,
          * move to next portion. If any invalid portions are found, log return
@@ -91,7 +102,6 @@ public final class MetarRemarksDecoder {
         for (int reportIndex = startIndex; reportIndex < reportArray.length; reportIndex++) {
             // current report section
             String currReportSection = reportArray[reportIndex];
-
             // check for simple flags first
             if (currReportSection
                     .equalsIgnoreCase(MetarDecoderUtil.FIRST_INDICATOR)) {
@@ -1840,10 +1850,8 @@ public final class MetarRemarksDecoder {
                 } else if (currReportSection
                         .matches(MetarDecoderUtil.FRACTION_REGEX)) {
                     /* check for a fraction for hail diameter */
-                    decodedMetar
-                            .setHailSize(Float
-                                    .parseFloat(currReportSection.substring(0,
-                                            slashIndex))
+                    decodedMetar.setHailSize(Float.parseFloat(
+                            currReportSection.substring(0, slashIndex))
                             / Float.parseFloat(currReportSection
                                     .substring(slashIndex + 1)));
                     decodedMetar.setHail(true);
@@ -2167,6 +2175,8 @@ public final class MetarRemarksDecoder {
             }
 
             logger.debug("Got weather type: [" + weatherType + "]");
+
+            includeRemarkWx(decodedMetar, weatherType);
 
             /*
              * now handle all times for this weather type. Track the index of
@@ -3631,5 +3641,36 @@ public final class MetarRemarksDecoder {
         }
 
         return reportIndex;
+    }
+
+    /**
+     * includeRemarkWx: add RMK wx into presentWx if site enable include.rmk.wx
+     * The logic required: 1) only defined wx types from RMK section will be
+     * included 2) if the wx type decoded from the RMK section without
+     * intensity, assume it is "-"
+     * 
+     * @param decodedMetar
+     * @param weatherType
+     */
+    private static void includeRemarkWx(DecodedMetar decodedMetar,
+            String weatherType) {
+        if (globalConfig.isIncludeRemarkWx()) {
+            List<String> validWxList = globalConfig.getValidRmkWxList();
+
+            String bareWxType = weatherType;
+            boolean withIntensity = false;
+
+            if (weatherType.startsWith("-") || weatherType.startsWith("+")) {
+                bareWxType = weatherType.substring(1);
+                withIntensity = true;
+            }
+
+            String adjustedWxType = (withIntensity) ? weatherType
+                    : "-" + bareWxType;
+
+            if (validWxList.contains(bareWxType)) {
+                decodedMetar.getCmnData().setOneWxObstruct(adjustedWxType);
+            }
+        }
     }
 }

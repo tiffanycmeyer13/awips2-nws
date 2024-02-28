@@ -3,6 +3,8 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.psh;
 
+import java.time.ZonedDateTime;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -24,6 +26,7 @@ import gov.noaa.nws.ocp.common.localization.psh.PshCity;
  * ------------ ---------- ----------- --------------------------
  * Jun 20, 2017            pwang       Initial creation
  * Jan 11, 2018 DCS19326   jwu         Baseline version.
+ * Jul 27, 2021 DCS22098   mporricelli Add reportDateTime
  *
  * </pre>
  *
@@ -55,6 +58,8 @@ public class RainfallDataEntry extends StormDataEntry {
     @DynamicSerializeElement
     @XmlElement
     private String incomplete;
+
+    private ZonedDateTime reportDateTime = null;
 
     public RainfallDataEntry() {
     }
@@ -132,6 +137,23 @@ public class RainfallDataEntry extends StormDataEntry {
      */
     public void setIncomplete(String incomplete) {
         this.incomplete = incomplete;
+    }
+
+    /**
+     * @return reportDateTime - ZonedDateTime for LSR report
+     */
+    public ZonedDateTime getReportDateTime() {
+        return reportDateTime;
+    }
+
+    /**
+     * Set date/time
+     *
+     * @param reportDateTime
+     *            the LSR report date/time
+     */
+    public void setReportDateTime(ZonedDateTime reportDateTime) {
+        this.reportDateTime = reportDateTime;
     }
 
 }

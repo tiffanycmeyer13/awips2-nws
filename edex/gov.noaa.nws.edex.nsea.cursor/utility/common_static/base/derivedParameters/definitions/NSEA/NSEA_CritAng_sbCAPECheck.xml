@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="" name="Critical Angle SBCAPE Check" abbreviation="NSEA_CritAng_sbCAPECheck" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method levels="Surface" name="NSEA_CritAng.sbCAPECheck">
+    <Field level="Surface" abbreviation="cCape"/>
+    </Method>
+</DerivedParameter>

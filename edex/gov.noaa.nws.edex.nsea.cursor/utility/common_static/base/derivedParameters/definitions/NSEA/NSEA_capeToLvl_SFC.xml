@@ -1,0 +1,10 @@
+<DerivedParameter name="cape up to level" abbreviation="NSEA_capeToLvl_SFC">
+    <Method name="Cape" levels="0C,-5C,-10C,-15C,-20C,-25C,-30C,-35C,-40C" >
+        <Field abbreviation="T" level="3D" />
+        <Field abbreviation="P" level="Surface"/>
+        <Field abbreviation="PoT" level="Surface"/>
+        <Field abbreviation="SHx" level="Surface"/>
+        <ConstantField value="0.0"/>
+        <Field abbreviation="P"/>
+    </Method>
+</DerivedParameter>

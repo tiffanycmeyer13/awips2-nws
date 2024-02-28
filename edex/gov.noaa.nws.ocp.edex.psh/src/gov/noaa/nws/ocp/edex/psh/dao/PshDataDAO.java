@@ -21,13 +21,15 @@ import gov.noaa.nws.ocp.common.dataplugin.psh.StormDataRecord;
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Aug 12, 2017            pwang       Initial creation
- * Jan 25, 2018 #45125     wpaintsil   Use path keys xml file instead
- *                                     of overriding persistToHDF5().
- * Sep 23, 2021 8608       mapeters    Pass metadata ids to datastore
- * Jun 22, 2022 8865       mapeters    Update populateDataStore to return boolean
+ * Date          Ticket#  Engineer   Description
+ * ------------- -------- ---------- -------------------------------------------
+ * Aug 12, 2017           pwang      Initial creation
+ * Jan 25, 2018  45125    wpaintsil  Use path keys xml file instead of
+ *                                   overriding persistToHDF5().
+ * Apr 05, 2021  8374     randerso   Renamed IDataRecord.get/setProperties to
+ *                                   get/setProps
+ * Sep 23, 2021  8608     mapeters   Pass metadata ids to datastore
+ * Jun 22, 2022  8865     mapeters   Update populateDataStore to return boolean
  *
  * </pre>
  *
@@ -51,7 +53,7 @@ public class PshDataDAO extends PluginDao {
 
         StorageProperties props = new StorageProperties();
 
-        storageRecord.setProperties(props);
+        storageRecord.setProps(props);
         storageRecord.setCorrelationObject(record);
         dataStore.addDataRecord(storageRecord,
                 new DataUriMetadataIdentifier(record));

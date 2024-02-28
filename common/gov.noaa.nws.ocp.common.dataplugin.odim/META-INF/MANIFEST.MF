@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OPERA Data Information Model Radar Data
+Bundle-SymbolicName: gov.noaa.nws.ocp.common.dataplugin.odim
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: NWS
+Automatic-Module-Name: gov.noaa.nws.ocp.common.dataplugin.odim
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: javax.xml.bind,
+ org.apache.commons.lang3,
+ com.raytheon.uf.common.dataplugin,
+ com.raytheon.uf.common.serialization,
+ com.raytheon.uf.common.datastorage,
+ com.raytheon.uf.common.localization,
+ com.raytheon.uf.common.status
+Export-Package: gov.noaa.nws.ocp.common.dataplugin.odim,
+ gov.noaa.nws.ocp.common.dataplugin.odim.util

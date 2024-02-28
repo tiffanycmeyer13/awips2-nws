@@ -13,6 +13,7 @@ import com.raytheon.uf.common.status.UFStatus;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jul 21, 2017            pwang     Initial creation
+ * Oct 20, 2020 DR22159    dhaines   Added reftime property
  *
  * </pre>
  *
@@ -30,6 +31,8 @@ public class MetarTextLine {
 
     private int hhmm;
 
+    private long reftime;
+    
     private boolean containSLP = false;
 
     private boolean containWind = false;
@@ -45,9 +48,10 @@ public class MetarTextLine {
     public MetarTextLine() {
 
     }
-
-    public MetarTextLine(String mtrLine) {
-        populate(mtrLine);
+    
+    public MetarTextLine (String mtrLine, long reftime) {
+    	populate(mtrLine);
+    	setReftime(reftime);
     }
 
     /**
@@ -134,6 +138,21 @@ public class MetarTextLine {
         this.hhmm = hhmm;
     }
 
+    /**
+     * @return the reftime
+     */
+    public long getReftime() {
+        return reftime;
+    }
+
+    /**
+     * @param reftime
+     *            the reftime to set
+     */
+    public void setReftime(long reftime) {
+        this.reftime = reftime;
+    }
+    
     /**
      * @return the containSLP
      */

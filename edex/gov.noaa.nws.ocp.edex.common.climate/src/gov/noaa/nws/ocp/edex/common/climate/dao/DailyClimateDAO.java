@@ -99,6 +99,8 @@ import gov.noaa.nws.ocp.edex.common.climate.util.ClimateDAOUtils;
  *                                     be cast to a float (retrieveDailySummary()).
  * 30 APR 2019  DR21261    wpaintsil   num_wind_obs column missing from queries.
  * 10 MAY 2019  DR21285    wpaintsil   Last Year MTD/STD Precip and Snowfall listed as missing.
+ * 09 FEB 2021  DR22432    wpaintsil   Ensure Trace values are returned for precip/snow queries
+ *                                     when appropriate.
  * </pre>
  * 
  * @author amoore
@@ -756,6 +758,8 @@ public class DailyClimateDAO extends ClimateDAO {
             if (sumPrecip == ParameterFormatClimate.MISSING_PRECIP
                     && originalSum == 0) {
                 sumPrecip = originalSum;
+            } else {
+                sumPrecip = ParameterFormatClimate.TRACE;
             }
         }
 
@@ -832,6 +836,8 @@ public class DailyClimateDAO extends ClimateDAO {
             if (sumSnow == ParameterFormatClimate.MISSING_PRECIP
                     && originalSum == 0) {
                 sumSnow = originalSum;
+            } else {
+                sumSnow = ParameterFormatClimate.TRACE;
             }
         }
 

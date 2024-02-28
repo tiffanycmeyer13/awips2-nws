@@ -58,7 +58,9 @@ import gov.noaa.ocp.viz.psh.data.PshStationsProvider;
  * Dec 08, 2017 #41955     astrakovsky  Added call to clear county geometry data when saving cities.
  * Dec 11, 2017 #41998     jwu          Use localization access control file in base/roles.
  * Feb 15, 2018 #46354     wpaintsil   Various refactorings.
- * 
+ * May 27, 2021 DCS22095   mporricelli  Add some qc checks
+ * Jul 19, 2021 DCS22178   mporricelli  Verify PSH Lock owner before saving
+ *
  * </pre>
  * 
  * @author astrakovsky
@@ -79,6 +81,23 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
     private static final int CODE_FIELD_WIDTH = 105;
 
     private static final int GAUGE_FIELD_WIDTH = 60;
+
+    /**
+     * Column positions
+     */
+    private static final int CITY_COLUMN = 1;
+
+    private static final int COUNTY_COLUMN = 2;
+
+    private static final int STATE_COLUMN = 3;
+
+    private static final int LATITUDE_COLUMN = 4;
+
+    private static final int LONGITUDE_COLUMN = 5;
+
+    private static final int CODE_COLUMN = 6;
+
+    private static final int GAUGE_COLUMN = 7;
 
     /**
      * Strings for missing data.
@@ -104,6 +123,11 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
     private static final String CODE_FIELD_TOOLTIP = "Please type a station code if applicable";
 
     private static final String GAUGE_FIELD_TOOLTIP = "Please check if an official tide gauge is present, otherwise leave unchecked.";
+
+    /**
+     * Message dialog title
+     */
+    private static final String MESSAGE_TITLE = "Save Cities";
 
     /**
      * Arrays created from sets for passing autocomplete suggestions.
@@ -260,7 +284,6 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
                 "Save current cities to localization", new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-
                         // save all entries
                         saveItems(true);
                     }
@@ -416,6 +439,9 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
     @Override
     protected final void saveItems(boolean displayMessage) {
 
+        if (!PshUtil.checkLockStatusOk(getShell())) {
+            return;
+        }
         // save current row before saving all
         saveRow();
 
@@ -423,29 +449,46 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
         fTable.deselectAll();
 
         // Retrieve from GUI
-        PshCities cities = new PshCities(new ArrayList<>());
+        cities = new PshCities(new ArrayList<>());
+
+        StringBuilder errMsg = new StringBuilder();
+
+        float latitude = 0;
+        float longitude = 0;
 
         String cityKey;
         for (int ii = 0; ii < fTable.getItemCount(); ii++) {
 
             // read station info
-            String city = fTable.getItem(ii).getText(1);
-            String county = fTable.getItem(ii).getText(2);
-            String state = fTable.getItem(ii).getText(3);
-            String code = fTable.getItem(ii).getText(6);
-            String gauge = fTable.getItem(ii).getText(7);
-            float latitude = 0;
-            float longitude = 0;
-            try {
-                latitude = Float.parseFloat(fTable.getItem(ii).getText(4));
-                longitude = Float.parseFloat(fTable.getItem(ii).getText(5));
-            } catch (NumberFormatException e) {
-                // ignore entry if coordinates invalid
-                continue;
+            TableItem currItem = fTable.getItem(ii);
+
+            int lineNum = ii + 1;
+
+            String city = currItem.getText(CITY_COLUMN);
+            String county = currItem.getText(COUNTY_COLUMN);
+            String state = currItem.getText(STATE_COLUMN);
+            String code = currItem.getText(CODE_COLUMN);
+            String gauge = currItem.getText(GAUGE_COLUMN);
+            String latText = currItem.getText(LATITUDE_COLUMN);
+            String lonText = currItem.getText(LONGITUDE_COLUMN);
+
+            // Verify lat/lon fields; notify user to make change if not valid
+            if (PshUtil.verifyLatField(latText, currItem, LATITUDE_COLUMN)) {
+                latitude = Float.parseFloat(latText);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Invalid latitude entered: ").append(latText);
+            }
+            if (PshUtil.verifyLonField(lonText, currItem, LONGITUDE_COLUMN)) {
+                longitude = Float.parseFloat(lonText);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Invalid longitude entered: ")
+                        .append(lonText);
             }
 
-            // check that city name is filled in, ignore entry if not
-            if (!city.isEmpty()) {
+            // check that city name is filled in
+            if (PshUtil.verifyFieldFilled(city, currItem, CITY_COLUMN)) {
 
                 // build city key to get CWA
                 cityKey = city;
@@ -472,8 +515,19 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
                             longitude, code, "", gauge);
                 }
                 cities.getCities().add(pshCity);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": City is blank");
             }
 
+        }
+
+        // Inform user of any problems found
+        if (errMsg.length() > 0) {
+            MessageDialog.openWarning(getShell(), MESSAGE_TITLE,
+                    "Changes have not been saved.\nPlease correct the following issue(s) before saving:\n"
+                            + errMsg);
+            return;
         }
 
         // Save to cities.xml in localization SITE level
@@ -488,13 +542,13 @@ public class PshCitiesSetupDialog extends PshMultiFieldSetupDialog {
             PshUtil.clearCountyGeodata();
 
             String message = "Cities/Water Level Stations have been saved into Localization store.";
-            MessageDialog infoDlg = new MessageDialog(getShell(), "Save Cities",
+            MessageDialog infoDlg = new MessageDialog(getShell(), MESSAGE_TITLE,
                     null, message, MessageDialog.INFORMATION,
                     new String[] { "Ok" }, 0);
 
             infoDlg.open();
         } else {
-            new MessageDialog(getShell(), "Save Cities", null,
+            new MessageDialog(getShell(), MESSAGE_TITLE, null,
                     "Couldn't save configuration file.", MessageDialog.ERROR,
                     new String[] { "Ok" }, 0).open();
         }

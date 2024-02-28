@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="6hr Height Change" abbreviation="NSEA_dGH6" xmlns:ns2="group">
+    <Method name="Difference" levels="MB" dtime="true">
+        <Field abbreviation="GH" timeShift="0"/>
+        <Field abbreviation="GH" timeShift="-21600"/>
+    </Method>
+</DerivedParameter>

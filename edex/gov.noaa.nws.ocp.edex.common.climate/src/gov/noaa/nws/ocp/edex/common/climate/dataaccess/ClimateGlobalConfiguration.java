@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
+
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext;
@@ -63,6 +65,10 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  * 13 MAY 2019  DR 21151   dfriedman   Do not cause EDEX to fail to start if Climate config is bad.
  * 23 MAY 2019  DR 20199   wpaintsil   Add snow-reporting stations property.
  * 12 SEP 2022           srcarter@ucar Remove REGION level.
+ * 09 JUN 2021  DCS 22324  wpaintsil   Refine saveGlobal() so that globalDay.properties formatting 
+ *                                     and default comments are preserved.
+ * 04 DEC 2023  DR 2036600 pwang       Fix moderate precip
+ * 22 DEC 2023  DR 2036755 wkwock      Added check for missing climate.valid.rmk.wx and climate.include.rmk.wx
  * </pre>
  * 
  * @author xzhang
@@ -102,6 +108,11 @@ public class ClimateGlobalConfiguration {
     private static final String CPG_CRON_TIMEZONE_SPRING_PROPERTY = "climate.cpg.cron.timezone";
 
     /**
+     * default list for climate.valid.rmk.wx
+     */
+    private static final String VALID_RMK_WX = "RA SHRA SN SHSN GS DZ PL FZRA FZDZ";
+
+    /**
      * @return global configuration values from SITE-BASE in that
      *         preference order; can be null on error.
      */
@@ -126,13 +137,16 @@ public class ClimateGlobalConfiguration {
 
                 resGlobal.setUseValidIm(
                         "T".equals(prop.getProperty("climate.useValidIm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setUseValidPm(
                         "T".equals(prop.getProperty("climate.useValidPm"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoAsterisk(
                         "T".equals(prop.getProperty("climate.noAsterisk"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setNoColon(
                         "T".equals(prop.getProperty("climate.noColon")) ? true
                                 : false);
@@ -141,7 +155,8 @@ public class ClimateGlobalConfiguration {
                                 : false);
                 resGlobal.setNoSmallLetters(
                         "T".equals(prop.getProperty("climate.noSmallLetters"))
-                                ? true : false);
+                                ? true
+                                : false);
                 resGlobal.setValidIm(prop.getProperty("climate.intermediate"));
                 resGlobal.setValidPm(prop.getProperty("climate.evening"));
                 resGlobal.setT1(
@@ -171,9 +186,7 @@ public class ClimateGlobalConfiguration {
                         prop.getProperty("climate.allowAutoSend")
                                 .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setCopyNWRTo(prop.getProperty("climate.copyNWRTo"));
-                resGlobal.setAllowDisseminate(
-                        prop.getProperty("climate.allowDisseminate")
-                                .equalsIgnoreCase("true") ? true : false);
+
                 resGlobal.setOfficeName(
                         prop.getProperty("climate.siteofficename"));
                 resGlobal.setTimezone(prop.getProperty("climate.sitetimezone"));
@@ -192,11 +205,29 @@ public class ClimateGlobalConfiguration {
                         .equalsIgnoreCase("true") ? true : false);
                 resGlobal.setAutoCLA(prop.getProperty("climate.autoCLA")
                         .equalsIgnoreCase("true") ? true : false);
+                if (prop.getProperty("climate.include.rmk.wx") == null) {
+                    logger.warn("Field climate.include.rmk.wx not found in "
+                            + GLOBAL_DAY_PATH + ". Default to false.");
+                } else {
+                    resGlobal.setIncludeRemarkWx("true".equalsIgnoreCase(
+                            prop.getProperty("climate.include.rmk.wx")));
+                }
                 resGlobal.setStationDesignatorOverrides(
                         parseStationDesignatorOverrides(prop.getProperty(
                                 "climate.stationDesignatorOverrides")));
                 resGlobal.setSnowReportingStations(parseSnowReportingStations(
                         prop.getProperty("climate.snowReportingStations")));
+                resGlobal.setAllowDisseminate("true".equalsIgnoreCase(
+                        prop.getProperty("climate.allowDisseminate")));
+                if (prop.getProperty("climate.valid.rmk.wx") == null) {
+                    resGlobal.setValidRmkWxList(VALID_RMK_WX);
+                    logger.warn("Field climate.valid.rmk.wx not found in "
+                            + GLOBAL_DAY_PATH + ". Default to '" + VALID_RMK_WX
+                            + "'.");
+                } else {
+                    resGlobal.setValidRmkWxList(
+                            prop.getProperty("climate.valid.rmk.wx"));
+                }
 
                 // got to end without error; use this globalDay file
                 success = true;
@@ -214,7 +245,8 @@ public class ClimateGlobalConfiguration {
                 return null;
             } catch (NullPointerException e) {
                 logger.error(
-                        "Failed to parse globals file due to some missing property. Returning null.");
+                        "Failed to parse globals file due to some missing property. Returning null.",
+                        e);
                 return null;
             }
         }
@@ -238,16 +270,20 @@ public class ClimateGlobalConfiguration {
      */
     public static int saveGlobal(ClimateGlobal global) {
         int status = 0;
-        Properties prop = new Properties();
-
         IPathManager pm = PathManagerFactory.getPathManager();
 
         LocalizationContext lc = pm.getContext(LocalizationType.COMMON_STATIC,
                 LocalizationLevel.SITE);
 
+        // Get the site-level file for editing.
         ILocalizationFile lf = pm.getLocalizationFile(lc, GLOBAL_DAY_PATH);
+        File globalFile = pm.getFile(lc, GLOBAL_DAY_PATH);
 
-        try (SaveableOutputStream output = lf.openOutputStream()) {
+        SaveableOutputStream output = null;
+        try {
+            PropertiesConfiguration prop = new PropertiesConfiguration(
+                    globalFile);
+
             // set the properties value
             prop.setProperty("climate.T1", String.valueOf(global.getT1()));
             prop.setProperty("climate.T2", String.valueOf(global.getT2()));
@@ -306,11 +342,21 @@ public class ClimateGlobalConfiguration {
                             global.getSnowReportingStations()));
 
             // save properties
-            prop.store(output, null);
+            output = lf.openOutputStream();
+            prop.save(output);
             output.save();
         } catch (Exception e) {
-            logger.error("Error saving global day properties.", e);
+            logger.error("Error saving global day properties to localization.",
+                    e);
             status = -1;
+        } finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException e) {
+                logger.error("Error saving output.", e);
+            }
         }
 
         return status;
@@ -388,7 +434,8 @@ public class ClimateGlobalConfiguration {
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY,
                     globalConfig.getTimezone());
         } else {
-            logger.error("Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
+            logger.error(
+                    "Unable to get Climate configuration for CPG configuration. CPG crons will use GMT time zone.");
             props.setProperty(CPG_CRON_TIMEZONE_SPRING_PROPERTY, "GMT");
         }
         return props;

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="Computed CAPE" abbreviation="SBCAPE" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="Surface" abbreviation="cCape"/>
+    </Method>
+</DerivedParameter>

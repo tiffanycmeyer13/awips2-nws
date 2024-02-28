@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter name="Dew Point Depression Stack" abbreviation="NSEA_DpDstk" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method levels="MB,C" name="Union">
+        <Field abbreviation="DpD"/>
+    </Method>
+    <Method levels="FHAG,C" name="Union">
+        <Field abbreviation="DpD"/>
+    </Method>
+</DerivedParameter>

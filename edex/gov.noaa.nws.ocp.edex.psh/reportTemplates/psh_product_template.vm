@@ -31,34 +31,34 @@ $blankLine
 
 A. Lowest Sea Level Pressure/Maximum Sustained Winds and Peak Gusts
 ---------------------------------------------------------------------
-Metar Observations...
+METAR Observations...
 Note: Anemometer height is 10 meters and wind averaging is 2 minutes
 ---------------------------------------------------------------------
-Location  ID    Min    Date/     Max      Date/     Peak    Date/
-Lat  Lon        Pres   Time      Sust     Time      Gust    Time
-Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+Lat     Lon      Location  ID
+Min Pres Date/Time Max Sust  Date/Time Peak Gust Date/Time
+  (mb)     (UTC)   (deg/kt)     (UTC)   (deg/kt)    (UTC)
 ---------------------------------------------------------------------
 #foreach ($d in $metarList)
-$d.station
-$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
-$blankLine
+$d.latlon $d.station
+$d.mslp  $d.mslpDat $d.mslpInp $d.sustWnd  $d.sustWndDat $d.sustWndInp $d.pkWnd   $d.pkWndDat $d.pkWndInp
 #end
 #if ( !($metarRmk.equals($no_remarks)) )
 Remarks: $metarRmk
 #end
 
 
-Non-metar Observations...
+Non-METAR Observations...
 Note: Anemometer height in meters and wind averaging period in
 minutes indicated under maximum sustained wind if known
 ---------------------------------------------------------------------
-Location  ID    Min    Date/     Max      Date/     Peak    Date/
-Lat  Lon        Pres   Time      Sust     Time      Gust    Time
-Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
+Lat      Lon      Location  ID
+Min Pres Date/Time Max Sust  Date/Time Peak Gust Date/Time
+  (mb)     (UTC)   (deg/kt)     (UTC)   (deg/kt)    (UTC)
+                                   AnGht
 ---------------------------------------------------------------------
 #foreach ($d in $nonMetarList)
-$d.station
-$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+$d.latlon $d.station
+$d.mslp $d.mslpDat $d.mslpInp  $d.sustWnd $d.sustWndDat $d.sustWndInp  $d.pkWnd  $d.pkWndDat $d.pkWndInp
 #if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
 $d.anemHgmt
 #end
@@ -73,13 +73,14 @@ B. Marine Observations...
 Note: Anemometer height in meters and wind averaging period in
 minutes indicated under maximum sustained wind if known
 ---------------------------------------------------------------------
-Location  ID    Min    Date/     Max      Date/     Peak    Date/
-Lat  Lon        Pres   Time      Sust     Time      Gust    Time
-Deg Decimal     (mb)   (UTC)     (kt)     (UTC)     (kt)    (UTC)
----------------------------------------------------------------------
+Lat      Lon      Location  ID
+Min Pres Date/Time Max Sust  Date/Time Peak Gust Date/Time
+  (mb)     (UTC)   (deg/kt)     (UTC)   (deg/kt)    (UTC)
+                                   AnGht
+-------------------------------------------------------------------------
 #foreach ($d in $marineList)
-$d.station
-$d.latlon $d.mslp $d.mslpDat $d.mslpInp $d.sustWnd $d.sustWndDat $d.sustWndInp $d.pkWnd $d.pkWndDat $d.pkWndInp
+$d.latlon $d.station
+$d.mslp $d.mslpDat $d.mslpInp $d.sustWnd   $d.sustWndDat $d.sustWndInp $d.pkWnd   $d.pkWndDat $d.pkWndInp
 #if ( $!d.anemHgmt && $d.anemHgmt.length() > 0 )
 $d.anemHgmt
 #end
@@ -92,12 +93,12 @@ Remarks: $marineRmk
 
 C. Storm Total Rainfall from $rainStart until $rainEnd
 ---------------------------------------------------------------------
-City/Town                    County               ID         Rainfall
+City/Town                 $rainCounty             ID         Rainfall
 Lat Lon                                                       (in)   
 Deg Decimal
 ---------------------------------------------------------------------
 #foreach ($d in $rainfallList)
-$d.cityInfo $d.county $d.id $d.rainfall $d.inp
+$d.cityInfo $d.county  $d.id $d.rainfall $d.inp
 $d.lat $d.lon
 $blankLine
 #end
@@ -116,7 +117,7 @@ $blankLine
 
 E. Maximum Observed Water Level (WL)...
 ---------------------------------------------------------------------
-ID     City/Town       County     State  WL  Datum  Date/   Source        
+ID     City/Town       $wlCounty     State  WL  Datum  Date/   Source        
        or Location                      (ft)        Time
 ---------------------------------------------------------------------
 #foreach ($d in $wlList)
@@ -131,7 +132,7 @@ Remarks: $wlRmk
 
 F. Tornadoes...
 ---------------------------------------------------------------------
-(Dist)City/Town              County           Date/         EF Scale
+(Dist)City/Town          $tCounty         Date/         EF Scale
 Lat Lon (Deg Decimal)                         Time(UTC)    (If known)
 Description
 ---------------------------------------------------------------------

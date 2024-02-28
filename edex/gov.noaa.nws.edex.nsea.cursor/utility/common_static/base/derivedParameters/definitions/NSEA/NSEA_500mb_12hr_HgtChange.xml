@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="m" name="12hr Height Change" abbreviation="500mb 12hr Hgt Change" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="500MB" abbreviation="dGH12"/>
+    </Method>
+</DerivedParameter>

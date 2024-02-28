@@ -1,0 +1,183 @@
+K51 PAAQ 081819
+TSUAK1
+
+BULLETIN
+Public Tsunami Message Number 2
+NWS National Tsunami Warning Center Palmer AK
+1119 AM PDT Fri Jul 8 2016
+
+UPDATES
+-------
+ * A tsunami has been confirmed and some impacts are expected
+ * Updated observations
+ * Revised alert areas
+ * Revised forecast information
+
+
+...THE TSUNAMI ADVISORY REMAINS IN EFFECT...
+
+
+
+Tsunami Advisory in Effect for;
+
+ * CALIFORNIA - The coast from Gualala River, California (80
+   miles NW of San Francisco) to The Oregon/Cal. Border 
+
+ * OREGON - The coast from The Oregon/Cal. Border  to
+   Douglas/Lane Line, Oregon (10 miles SW of Florence)
+
+ * ALEUTIAN ISLANDS - Unimak Pass, Alaska (80 miles NE of
+   Unalaska) to Samalga Pass, Alaska (30 miles SW of Nikolski)
+
+ * ALEUTIAN ISLANDS - Samalga Pass, Alaska (30 miles SW of
+   Nikolski) to Attu, Alaska Including the Pribilof Islands
+
+
+For other US and Canadian Pacific coasts in North America -
+there is no tsunami threat.
+
+
+PRELIMINARY EARTHQUAKE PARAMETERS
+---------------------------------
+ * The following parameters are based on a rapid preliminary
+   assessment and changes may occur.
+
+ * Magnitude      8.2
+ * Origin Time    1009 AKDT Jul 08 2016
+                  1109  PDT Jul 08 2016
+                  1809  UTC Jul 08 2016
+ * Coordinates    52.0 North 160.0 East
+ * Depth          21 miles
+ * Location       325 miles SW of Bering I., Komandorski
+                  90 miles SE of Petropavlovsk, Kamchatka
+
+
+FORECASTS OF TSUNAMI ACTIVITY
+-----------------------------
+ * A tsunami has been generated.  The first waves are forecasted to
+   arrive at the following locations and specified times.
+
+ * Forecast tsunami duration is the approximate length of time which
+   the tsunami may produce dangerous currents and waves.
+
+ * Forecast max tsunami height is the highest expected water level
+   above the tide.
+
+ * Forecasts are not provided for sites which have been impacted
+   more than an hour prior to the time of this message.
+
+                 Forecast         Forecast  Forecast
+                 start            tsunami   max tsunami
+Site             of tsunami       duration  height
+----             ----------       --------  -------------
+
+ * Alaska
+Shemya           1130 AKDT Jul  8  20 HRS    1.4- 2.6ft   
+Adak             1230 AKDT Jul  8           less than 1ft 
+Unalaska         1335 AKDT Jul  8           less than 1ft 
+Saint Paul       1345 AKDT Jul  8           less than 1ft 
+
+ * Oregon
+Port Orford      1825  PDT Jul  8           less than 1ft 
+Charleston       1835  PDT Jul  8           less than 1ft 
+Brookings        1840  PDT Jul  8           less than 1ft 
+
+ * California
+Fort Bragg       1840  PDT Jul  8           less than 1ft 
+Crescent City    1840  PDT Jul  8   9 HRS    0.9- 1.7ft   
+
+
+OBSERVATIONS OF TSUNAMI ACTIVITY - UPDATED
+------------------------------------------
+ * Observed max tsunami height is the highest recorded water level
+   above the tide level up to the time of this message.
+
+                                  TIME               OBSERVED MAX
+ SITE                         OF MEASUREMENT         TSUNAMI HEIGHT
+ ---------------------------- ----------------       --------------
+ Shemya  Alaska               1230  PDT JUL  8           1.6ft
+
+
+RECOMMENDED ACTIONS
+-------------------
+Actions to protect human life and property will
+vary within tsunami advisory areas.
+
+If you are in a tsunami advisory area;
+
+ * Move out of the water, off the beach, and away from
+   harbors, marinas, breakwaters, bays and inlets.
+
+ * Be alert to and follow instructions from your local
+   emergency officials because they may have more detailed or
+   specific information for your location.
+
+ * If you feel a strong earthquake or extended ground rolling
+   take immediate protective actions such as moving inland
+   and/or uphill preferably by foot.
+
+ * Boat operators,
+     * Where time and conditions permit move your boat out to
+       sea to a depth of at least 180 feet.
+
+     * If at sea avoid entering shallow water, harbors,
+       marinas, bays, and inlets to avoid floating and
+       submerged debris and strong currents.
+
+ * Do not go to the shore to observe the tsunami.
+
+ * Do not return to the coast until local emergency officials
+   indicate it is safe to do so.
+
+
+IMPACTS
+-------
+Impacts will vary at different locations in the advisory
+areas.
+
+If you are in a tsunami advisory area;
+
+ * A tsunami with strong waves and currents is possible.
+
+ * waves and currents can drown or injure people who are
+   in the water.
+
+ * Currents at beaches and in harbors, marinas,
+   bays, and inlets may be especially dangerous.
+
+ * Some impacts may continue for many hours to days after
+   arrival of the first wave.
+
+ * The first wave may not be the largest so later waves may
+   be larger.
+
+ * Each wave may last 5 to 45 minutes as a wave encroaches
+   and recedes.
+
+ * Coasts facing all directions are threatened because the
+   waves can wrap around islands and headlands and into bays.
+
+ * Strong shaking or rolling of the ground indicates an
+   earthquake has occurred and a tsunami may be imminent.
+
+ * A rapidly receding or receded shoreline, unusual waves and
+   sounds, and strong currents are signs of a tsunami.
+
+ * The tsunami may appear as water moving rapidly out to sea,
+   a gentle rising tide like flood with no breaking wave,
+   as a series of breaking waves, or a frothy wall of water.
+
+
+ADDITIONAL INFORMATION AND NEXT UPDATE
+--------------------------------------
+ * Refer to the internet site ntwc.arh.noaa.gov for more
+   information.
+
+ * Pacific coastal residents outside California, Oregon,
+   Washington, British Columbia and Alaska should refer to the
+   Pacific Tsunami Warning Center messages at ptwc.weather.gov.
+
+ * This message will be updated within 60 minutes.
+
+$$
+

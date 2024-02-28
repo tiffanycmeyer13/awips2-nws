@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="C" name="Max DpD in Layer" abbreviation="NSEA_DpDMax" xmlns:ns2="group" xmlns:ns3="http://www.example.org/productType">
+    <Method name="Max">
+        <Field abbreviation="NSEA_DpDstk"/>
+    </Method>
+</DerivedParameter>

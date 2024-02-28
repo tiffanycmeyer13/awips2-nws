@@ -1,0 +1,118 @@
+# SVN: $Revision: 32188 $  $Date: 2022-05-09 21:51:40 +0000 (Mon, 09 May 2022) $
+# URL: $URL: https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/latest_stable/gfe/HeatRisk_daily.Procedure $
+#
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+#
+# HeatRisk_daily Version:  2.0 05/09/2022
+#
+# Authors:
+#    Paul Iniguez, PSR SOO
+#    Mark Loeffelbein, WR/STID
+#
+# v2.0   - Coincident with Major HeatRisk update.
+#
+# v1.7   - Python 3 conversion
+#
+# v1.6.2 - Added code to deal with areas with NaN in the numpy grid.
+#
+#
+# This script populates the Climo database with HeatRisk grids. Run once per day via cron.
+#
+# ----------------------------------------------------------------------------
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+##
+
+MenuItems = [None]
+import SmartScript
+import datetime, sys
+import numpy as np
+import pickle
+import numpy as np
+
+class Procedure (SmartScript.SmartScript):
+    def __init__(self, dbss):
+        SmartScript.SmartScript.__init__(self, dbss)
+
+    def execute(self):
+        DATA_DIR='/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/levels/'
+        varNames = {}
+        varNames['MaxT'] = 'Tmax'
+        varNames['MinT'] = 'Tmin'
+
+        ######################################################################################
+        #
+        # Make sure there are no NaN in .npy files as GFE no longer supports NaN.
+        #
+        ######################################################################################
+        lineLimits = {}
+        lineLimits['yellowLineMaxT'] = 60
+        lineLimits['yellowLineMinT'] = 50
+        lineLimits['orangeLineMaxT'] = 72
+        lineLimits['orangeLineMinT'] = 60
+        lineLimits['redLineMaxT'] = 90
+        lineLimits['redLineMinT'] = 83
+
+        for parm in ['MaxT', 'MinT']:
+
+            # Generate HeatRisk levels in GFE from npy files for next ten days
+            now = datetime.datetime.now()-datetime.timedelta(days=1)
+
+            # Obtain start time and duration of parm grid...
+            fcstID = self.findDatabase('Fcst')
+            tr = self.createTimeRange(0, 240, fcstID)
+            times = self.getGridInfo('Fcst', parm, 'SFC', tr)
+            startTime = times[0].gridTime().startTime().hour
+            duration = times[0].gridTime().duration()/60./60.
+
+            # Loop through the next 10 days...
+            for d in range(-1, 10):
+
+                # Create timerange...
+                tr = self.createTimeRange(startTime+24*d, startTime+24*d+duration, 'Climo')
+
+                # Loop through red/orange levels...
+                for L in ['orange', 'red']:
+
+                    # load data
+                    if parm == 'MaxT':
+                        fn = DATA_DIR+L+'LineTmax'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                    if parm == 'MinT':
+                        fn = DATA_DIR+L+'LineTmin'+str(now.month).rjust(2, '0')+str(now.day).rjust(2, '0')+'.npy'
+                    tmp = np.load(fn,allow_pickle=True,fix_imports=True,encoding='latin1')
+                    heatName = L+'Line'+parm
+                    lineLimit = lineLimits[heatName]
+                    tmp[np.isnan(tmp)] = lineLimit
+
+                    # Create Grid
+                    print(parm, d, L)
+                    self.createGrid("Climo", 'Heat'+L.capitalize()+parm, "SCALAR", tmp.astype('float32'), tr)
+
+                # Create flat yellow level
+                varName = varNames[parm]
+                fn = DATA_DIR+'yellowLine'+varName+'.npy'
+                tmp = np.load(fn,allow_pickle=True,fix_imports=True,encoding='latin1')
+                heatName = 'yellowLine'+parm
+                lineLimit = lineLimits[heatName]
+                tmp[np.isnan(tmp)] = lineLimit
+
+                if parm == 'MaxT':
+                    self.createGrid("Climo", 'HeatYellowMaxT', "SCALAR", tmp.astype('float32'), tr)
+                if parm == 'MinT':
+                    self.createGrid("Climo", 'HeatYellowMinT', "SCALAR", tmp.astype('float32'), tr)
+
+                # Move date Forward
+                now += datetime.timedelta(days=1)
+
+        # Save grids
+        self.saveElements(['HeatYellowMaxT', 'HeatOrangeMaxT', 'HeatRedMaxT', 'HeatYellowMinT', 'HeatOrangeMinT', 'HeatRedMinT'])
+
+

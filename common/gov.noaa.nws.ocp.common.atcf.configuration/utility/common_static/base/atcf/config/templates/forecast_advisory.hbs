@@ -1,0 +1,173 @@
+{{!--
+    Variables:
+        header.wmoId           - TTAAii part of WMO heading
+        header.category        - Product category, i.e., TCA
+        header.basin           - 2-character product basin, AT/EP/CP
+        header.binNummber      - AWIPS bin number, 1 to 5
+        header.wfo             - WFO id of primary office, i.e., KNHC/PHFO/KWNH 
+        header.advClass        - Storm category, i.e, Hurricane
+        header.advName         - Storm name for this advisory, i.e., IRMA
+        header.advNumber       - Advisory number
+        header.advNumPhrase    - Combined phrase based on advisory type, length of advisory class & name, 
+                                 and if this is a special advisory.
+        header.backup          - Flag to indicate if an backup office is issuing the advisory
+        header.issuedBy        - Primary office's address
+        header.stormId         - Storm ID, i.e., AL112017
+        header.issusedByBackup - Backup office's address
+        header.potentialTC     - Flag for Potential Tropical Cyclone
+        header.finalAdv        - Flag to indicate this is the last advisory
+        header.pubFreqEd3      - Flag to if public advisory frequency is 3.
+        header.forecaster      - Forester's full first name
+
+        watchWarn              - Watch and warning message        
+        accuracy               - Forecast position accuracy in nautical miles
+        eyeSize                - Cyclone eye diameter in nautical miles
+        direction              - Cyclone direction string, i.e, "NORTH-NORTHEAST"
+        degrees                - Cyclone direction in degrees, i.e, "245"
+        movementKt             - Cyclone speed in knots
+        pressureMb             - Minimum sea level pressure in MB.
+
+        tau0                   - ForecastData at TAU 0.
+        tau3                   - ForecastData at TAU 3 (or the special TAU):
+        forecast               - List of ForecastData from TAU 12 to TAU 72.
+        outlook                - List of ForecastData from TAU 96 to TAU 168.
+
+          --- Each ForecastData has the following fields ------
+            times              - ForecastTime at TAU 3, UTC.
+            localTimes         - ForecastTime at TAU 3, in local time zone.
+               tau             - TAU, i.e., 3
+               fcstHour        - TAU formatted as 3-Digit hour, i.e., "  3"
+               plusHour        - Hours away from TAU 3, 2-Digit, i.e., "06"
+               amPm            - AM or PM
+               hour            - hour, i.e., "9", "15"
+               hour2           - 2-Digit hour, i.e., "09"
+               minute          - 2-digit minutes usually 00 (00 or 30 for special advisory)
+               timeZone        - Time zone, UTC for TCM.
+               weekDay         - Day in the week, i.e, "MON"
+               mon             - Month, 2-Digit, i.e., "09".
+               month           - Month, i.e. "AUG"
+               day             - 2-Digit day, i.e., "05"
+               year            - 4-digit year, i.e., "2021"
+               hhmmaz          - "200 AM EDT"
+               ddHH            - 4-digit year, i.e., "2021"
+               hhmm            - 4-digit year, i.e., "2021"
+               ymdh            - 4-digit year, i.e., "2021"
+               advTime         - Advisory time.
+                                 For UTC time (TCM/PWS/TCA), i.e., "2100 UTC SAT MAY 16 2020"
+                                 For local time (TCP/TCD), i.e., "500 PM EDT Sat May 16 2020"                                     
+            lat                - Latitude,  i.e, "35.2N"
+            lon                - Longitude, i.e, "82.5W"
+            state              - Storm state
+            dissipated         - Flag to show if storm dissipated (DD) 
+            windData           - Wind data include maximum wind, gust, wind & wave radii
+                - maxWind      - maximum wind
+                - gust         - gust
+                - windRadii    - List of wind radii for 34/50/64 kt
+                - waveRadii    - 12 ft seas wave radii
+                    - rad      - Radii (34/50/64 kt or 12 ft)
+                    - quad[]   - Wind or wave radii in each quadrant.
+
+        intermPubHeader        - Intermediate TCP header, i.e., "WTNT32 KNHC/MIATCPAT2".
+        nextIntermTime         - ForecastTime to issue next intermediate advisory.
+        nextAdvTime            - ForecastTime to issue next routine advisory.
+
+    Handlebars helpers:
+       ~       - Remove up to the first handlebar's expression or non-whitespace character on a side.
+       right   - Justify text to the right
+                 The 'pad' parameter specifies a character that will pad the justified text on the left
+       if/else - Present the context if the condition is true. It leaves a blank line if condition
+                 is false and no "else" clause.
+       each    - Loop
+       with    - Present the context if the context is defined (non-empty, not 0, not false, not null).
+       unless  - Reverse of if.
+       blank   - A custom empty string for indentation, no real meaning.       
+--}}
+{{header.wmoId}} {{header.wfo}} 000000
+{{header.category}}{{header.basin}}{{header.binNumber}}
+
+{{header.advClass}} {{header.advName}} {{header.advNumPhrase}} {{right header.advNumber size=3 pad=" "}}
+{{header.issuedBy}}       {{header.stormId}}
+{{#if header.issuedByBackup}}
+    {{~break}}{{header.issuedByBackup}}
+{{/if}}
+{{#with tau3.times}}{{advTime}}{{/with}}
+
+{{watchWarn}}
+
+{{#if header.potentialTC}}
+    {{~blank}}POTENTIAL TROP CYCLONE CENTER LOCATED NEAR {{tau3.lat}} {{tau3.lon}} AT {{tau3.times.ddHH}}{{tau3.times.minute}}Z
+{{else}}
+    {{~header.advClass}} CENTER LOCATED NEAR {{tau3.lat}} {{tau3.lon}} AT {{tau3.times.ddHH}}{{tau3.times.minute}}Z
+{{/if}}
+POSITION ACCURATE WITHIN {{accuracy}} NM
+
+PRESENT MOVEMENT TOWARD THE {{direction}} OR {{degrees}} DEGREES AT {{movementKt}} KT
+
+ESTIMATED MINIMUM CENTRAL PRESSURE {{pressureMb}} MB
+{{#if eyeSize}}
+EYE DIAMETER {{eyeSize}} NM
+{{/if}}
+{{#with tau3.windData}}
+    {{~blank}}MAX SUSTAINED WINDS {{maxWind}} KT WITH GUSTS TO {{gust}} KT.
+    {{#each windRadii}}
+        {{~rad}} KT.......{{quad.[0]}}NE {{quad.[1]}}SE {{quad.[2]}}SW {{quad.[3]}}NW.
+    {{/each}}
+    {{#with waveRadii }}
+        {{~rad}} FT SEAS..{{quad.[0]}}NE {{quad.[1]}}SE {{quad.[2]}}SW {{quad.[3]}}NW.    
+    {{/with}}
+{{/with}}
+WINDS AND SEAS VARY GREATLY IN EACH QUADRANT.  RADII IN NAUTICAL
+MILES ARE THE LARGEST RADII EXPECTED ANYWHERE IN THAT QUADRANT.
+
+{{#with tau3}}REPEAT...CENTER LOCATED NEAR {{lat}} {{lon}} AT {{times.ddHH}}{{times.minute}}Z{{/with}}
+{{#with tau0}}AT {{times.ddHH}}00Z CENTER WAS LOCATED NEAR {{lat}} {{lon}}{{/with}}
+
+{{#each forecast}}
+    {{#if dissipated}}
+       {{~blank}}FORECAST VALID {{times.ddHH}}00Z{{state}}
+    {{else}}
+        {{~blank}}FORECAST VALID {{times.ddHH}}00Z {{lat}} {{lon}}{{state}}
+        {{#with windData}}
+            {{~blank}}MAX WIND {{maxWind}} KT...GUSTS {{gust}} KT.
+            {{#each windRadii}}
+                {{~rad}} KT...{{quad.[0]}}NE {{quad.[1]}}SE {{quad.[2]}}SW {{quad.[3]}}NW.
+            {{/each}}
+            {{~blank}}
+        {{/with}}
+    {{/if}}
+{{/each~}}
+
+{{#if outlook}}
+EXTENDED OUTLOOK. NOTE...ERRORS FOR TRACK HAVE AVERAGED NEAR {{avgTrkErr4Day}} NM
+ON DAY 4 AND {{avgTrkErr5Day}} NM ON DAY 5...AND FOR INTENSITY NEAR {{avgIntensityErr}} KT EACH DAY
+{{blank}}
+    {{#each outlook}}
+        {{#if dissipated}}
+           {{~blank}}OUTLOOK VALID {{times.ddHH}}00Z{{state}}
+        {{else}}
+            {{~blank}}OUTLOOK VALID {{times.ddHH}}00Z {{lat}} {{lon}}{{state}}
+            {{#with windData}}
+                {{~blank}}MAX WIND {{maxWind}} KT...GUSTS {{gust}} KT.
+           {{/with}}
+           {{~blank}}
+        {{/if}}
+    {{/each}}
+{{/if~}}
+
+REQUEST FOR 3 HOURLY SHIP REPORTS WITHIN 300 MILES OF {{tau3.lat}} {{tau3.lon}}
+
+{{#if header.finalAdv}}
+THIS IS THE LAST FORECAST/ADVISORY ISSUED BY THE{{newLine}}{{header.lastAdvFrom}} ON THIS SYSTEM
+{{else}}
+    {{#if header.pubFreqEq3}}
+        {{~break}}INTERMEDIATE PUBLIC ADVISORY...{{intermPubHeader}}...AT {{nextIntermTime.ddHH}}00Z
+        {{break}}
+    {{/if}}
+    {{~break}}NEXT ADVISORY AT {{nextAdvTime.ddHH}}00Z
+{{/if}}
+
+$$
+FORECASTER {{header.forecaster}}
+
+
+NNNN

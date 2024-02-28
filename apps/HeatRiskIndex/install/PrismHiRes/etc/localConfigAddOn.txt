@@ -1,0 +1,34 @@
+# Remove the line below if it appears in your localConfig. It will be replaced by PrismHiRes.
+serverConfig.NETCDFDIRS.append(('/awips2/apps/HeatRiskIndex/data/PRISM800m'))
+
+# Add these definitions
+HeatRiskKeys = [("None", "0"), ("Consider", "1"), ("Advisory", "2"), ("Warning", "3")]
+HeatRiskWWA = ("HeatRiskWWA", DISCRETE, "wwa", "HeatRisk WWA", NO, HeatRiskKeys)
+HeatRiskWWAbyZone = ('HeatRiskWWAbyZone', DISCRETE, 'wwa', 'HeatRisk WWA By Zone', NO, HeatRiskKeys)
+
+parms.append(([HeatRiskWWA,HeatRiskWWAbyZone], HILTC))
+
+HeatRisk = ('HeatRisk',SCALAR,'none','Heat Risk', 4.0, 0.0, 0, NO)
+
+parms.append(([HeatRisk], HILTC))
+parms.append(([HeatImpactLevelsMaxT], MaxTTC))
+parms.append(([HeatImpactLevelsMinT], MinTTC))
+
+# Add Climo db to your local model definitions.
+# Make sure you don't have a Climo database already defined.
+serverConfig.modelDict['Climo'] = {
+            'DB': ('Climo', 'GRID', '', 1, 0, 1, 72),
+            'Parms': [([MaxT, HeatRedMaxT, HeatOrangeMaxT, HeatYellowMaxT], MaxTTC),
+                     ([MinT, HeatRedMinT, HeatOrangeMinT, HeatYellowMinT], MinTTC),
+                     ]
+            }
+
+# Add PrismHiRes db to your D2D model definitions.
+serverConfig.modelDict['PrismHiRes'] ={
+            'DB': ('PrismHiRes', GRID, '', NO, NO, 1, 0),
+            'D2DMODELS':'PrismHiRes'
+            }
+
+# Add to ISC parms - uncomment if needed
+#parmsISC.append(([HeatRisk], HILTC))
+#serverConfig.REQUESTED_ISC_PARMS.append('HeatRisk')

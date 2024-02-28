@@ -47,6 +47,8 @@ import gov.noaa.ocp.viz.psh.data.PshStationsProvider;
  * Nov 14, 2017 #40296     astrakovsky  Removed save message following delete.
  * Dec 11, 2017 #41998     jwu          Use localization access control file in base/roles.
  * Feb 15, 2018 #46354     wpaintsil   Various refactorings.
+ * May 27, 2021 DCS22095   mporricelli  Add some qc checks
+ * Jul 19, 2021 DCS22178   mporricelli  Verify PSH Lock owner before saving
  *
  * </pre>
  *
@@ -68,14 +70,28 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
 
     private static final int COORDINATE_FIELD_WIDTH = 85;
 
+    /*
+     * Column positions
+     */
+    private static final int STATION_COLUMN = 1;
+
+    private static final int LATITUDE_COLUMN = 2;
+
+    private static final int LONGITUDE_COLUMN = 3;
+
     /**
      * Tooltips for empty fields.
      */
-    private String stationFieldTooltip = "Please type a station name";
+    private static final String STATION_FIELD_TOOLTIP = "Please type a station name";
 
-    private String latitudeFieldTooltip = "Please type a latitude value";
+    private static final String LATITUDE_FIELD_TOOLTIP = "Please type a latitude value";
 
-    private String longitudeFieldTooltip = "Please type a longitude value";
+    private static final String LONGITUDE_FIELD_TOOLTIP = "Please type a longitude value";
+
+    /**
+     * Message dialog title
+     */
+    private static final String MESSAGE_TITLE = "Save Marine Stations";
 
     /**
      * array created from sets for passing autocomplete suggestions
@@ -198,7 +214,6 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
                 COMMON_BUTTON_HEIGHT, new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent e) {
-
                         // save all entries
                         saveItems(true);
                     }
@@ -320,6 +335,9 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
     @Override
     protected final void saveItems(boolean displayMessage) {
 
+        if (!PshUtil.checkLockStatusOk(getShell())) {
+            return;
+        }
         // save current row before saving all
         saveRow();
 
@@ -330,27 +348,55 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
         // Retrieve from GUI
         PshStations stations = new PshStations();
 
+        StringBuilder errMsg = new StringBuilder();
+
+        double latitude = 0;
+        double longitude = 0;
+
         for (int ii = 0; ii < fTable.getItemCount(); ii++) {
 
             // read station info
-            String station = fTable.getItem(ii).getText(1);
-            double latitude = 0;
-            double longitude = 0;
-            try {
-                latitude = Double.parseDouble(fTable.getItem(ii).getText(2));
-                longitude = Double.parseDouble(fTable.getItem(ii).getText(3));
-            } catch (NumberFormatException e) {
-                // ignore entry if coordinates invalid
-                continue;
+            TableItem currItem = fTable.getItem(ii);
+
+            int lineNum = ii + 1;
+
+            String station = currItem.getText(STATION_COLUMN);
+            String latText = currItem.getText(LATITUDE_COLUMN);
+            String lonText = currItem.getText(LONGITUDE_COLUMN);
+
+            // Verify lat/lon fields
+            if (PshUtil.verifyLatField(latText, currItem, LATITUDE_COLUMN)) {
+                latitude = Double.parseDouble(latText);
+            } else {
+                errMsg.append("\nLine ");
+                errMsg.append(lineNum).append(": Invalid latitude entered: ")
+                        .append(latText);
+            }
+            if (PshUtil.verifyLonField(lonText, currItem, LONGITUDE_COLUMN)) {
+                longitude = Double.parseDouble(lonText);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Invalid longitude entered: ")
+                        .append(lonText);
             }
 
-            // check that everything is filled in, ignore entry if not
-            if (!station.isEmpty()) {
+            // check that everything is filled in
+            if (PshUtil.verifyFieldFilled(station, currItem, STATION_COLUMN)) {
                 PshStation pshStation = new PshStation("", latitude, longitude,
                         "", station, "");
                 stations.getStations().add(pshStation);
+            } else {
+                errMsg.append("\nLine ").append(lineNum)
+                        .append(": Station name is blank.");
             }
 
+        }
+        // Inform user of any problems found
+        if (errMsg.length() > 0) {
+            MessageDialog.openWarning(getShell(), MESSAGE_TITLE,
+                    "Changes have not been saved.\nPlease correct the following issue(s) before saving:\n"
+                            + errMsg);
+            return;
         }
 
         // Save to marine_stationinfo.xml in localization SITE level
@@ -363,12 +409,12 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
 
             String message = "Marine Stations have been saved into Localization store.";
             MessageDialog infoDlg = new MessageDialog(getShell(),
-                    "Save Marine Stations", null, message,
+                    MESSAGE_TITLE, null, message,
                     MessageDialog.INFORMATION, new String[] { "Ok" }, 0);
 
             infoDlg.open();
         } else {
-            new MessageDialog(getShell(), "Save Marine Stations", null,
+            new MessageDialog(getShell(), MESSAGE_TITLE, null,
                     "Couldn't save configuration file.", MessageDialog.ERROR,
                     new String[] { "Ok" }, 0).open();
         }
@@ -390,12 +436,12 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
         Table fTable = getFieldsTable();
 
         getRowEditorList().add(PshUtil.createAutoCompleteTableField(fTable,
-                item, 1, item.getText(1), stationFieldTooltip,
+                item, 1, item.getText(1), STATION_FIELD_TOOLTIP,
                 stationAutocompleteArray, this));
         getRowEditorList().add(PshUtil.createTableField(fTable, item, 2,
-                item.getText(2), latitudeFieldTooltip, this));
+                item.getText(2), LATITUDE_FIELD_TOOLTIP, this));
         getRowEditorList().add(PshUtil.createTableField(fTable, item, 3,
-                item.getText(3), longitudeFieldTooltip, this));
+                item.getText(3), LONGITUDE_FIELD_TOOLTIP, this));
 
         // add modify listener for multi-field autocomplete
         Text textField = (Text) getRowEditorList().get(0).getEditor();
@@ -404,7 +450,7 @@ public class PshMarineSetupDialog extends PshMultiFieldSetupDialog {
             @Override
             public void modifyText(ModifyEvent e) {
                 if (textField.getText().isEmpty()) {
-                    textField.setToolTipText(stationFieldTooltip);
+                    textField.setToolTipText(STATION_FIELD_TOOLTIP);
                 } else {
                     textField.setToolTipText("");
 

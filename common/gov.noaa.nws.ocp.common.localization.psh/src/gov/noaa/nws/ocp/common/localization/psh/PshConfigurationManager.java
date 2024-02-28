@@ -4,12 +4,12 @@
 package gov.noaa.nws.ocp.common.localization.psh;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -22,13 +22,16 @@ import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationLevel;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
+import com.raytheon.uf.common.python.PythonEval;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.localization.SaveableOutputStream;
-import com.raytheon.uf.common.monitor.events.MonitorConfigListener;
 import com.raytheon.uf.common.serialization.JAXBManager;
 import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
+
+import jep.JepConfig;
+import jep.JepException;
 
 /**
  * PshConfigurationManager enables user to set up PSH via Localization.
@@ -56,6 +59,8 @@ import com.raytheon.uf.common.status.UFStatus;
  *                                     boolean indicating last load source.
  * 11 DEC 2017  #41998     jwu         Use access control file in base/roles.
  * 11 JAN,2018  DCS19326   jwu         Baseline version.
+ * 09 JUN,2021  DCS21225   wkwock      Read storm names from StormNames.py
+ * 
  * </pre>
  *
  * @author jwu
@@ -70,11 +75,6 @@ public class PshConfigurationManager {
 
     private static final String SETUP_ROOT = PSH_ROOT + "setup"
             + IPathManager.SEPARATOR;
-
-    /**
-     * MonitorConfigListener.
-     */
-    private Set<MonitorConfigListener> listeners = new CopyOnWriteArraySet<>();
 
     /**
      * Logger.
@@ -147,6 +147,8 @@ public class PshConfigurationManager {
     private static final String CITY_XML_FILE = "cities.xml";
 
     private static final String CITY_TXT_FILE = "cities_pipe.txt";
+
+    private static final String STORM_NAME_FILE = "StormNames.py";
 
     /**
      * File name for PSH water level stations - will be appended into PSH
@@ -1023,79 +1025,32 @@ public class PshConfigurationManager {
     }
 
     /**
-     * Get a list of storm names for a given basin/year.
-     *
-     * @param basin
-     *            PSH basin.
-     * @param year
-     *            a four digit year.
-     *
-     * @return PshStormNames.
+     * read NameDict from StormNames.py
+     * 
+     * @return all storm names for basins
      */
-    public PshStormNames getStormNames(PshBasin basin, String year) {
+    public Map<String, Map<Long, List<String>>> readStormNames() {
+        LocalizationContext baseContext = pm.getContext(
+                LocalizationType.CAVE_STATIC, LocalizationLevel.BASE);
+        File baseFile = pm.getFile(baseContext,
+                "gfe" + IPathManager.SEPARATOR + "userPython" + IPathManager.SEPARATOR
+                        + "utilities" + IPathManager.SEPARATOR + STORM_NAME_FILE);
+        JepConfig jepConfig = new JepConfig();
+        jepConfig.addIncludePaths(baseFile.getParent())
+                .setClassLoader(getClass().getClassLoader());
 
-        PshStormNames storms = PshStormNames.getDefault();
-        storms.setBasin(basin);
-        storms.setYear(year);
+        Map<String, Map<Long, List<String>>> stormNames = null;
+        List<String> preEvals = new ArrayList<>();
+        preEvals.add("import StormNames");
 
-        /*
-         * First try to load from XML. If not find, try to load from the legacy
-         * text file stored as like "atlantic/2012/storm12.txt".
-         */
-        String stormFile = getStormFileName(basin, year);
-
-        Object stormNameObj = getXmlObject(stormFile + ".xml");
-        if (stormNameObj != null) {
-            storms = (PshStormNames) stormNameObj;
-            loadedFromXml = true;
-        } else {
-            if (year.length() > 3) {
-                String stormNameFile = stormFile + ".txt";
-
-                List<String> names = readFileAsList(stormNameFile);
-
-                // Add names to the list - the first one is year, skip it.
-                int len = names.size();
-                if (len > 1) {
-                    List<String> sname = names.subList(1, len);
-                    for (String str : sname) {
-                        storms.getStorms().add(str);
-                    }
-                }
-
-                loadedFromXml = false;
-            }
+        try (PythonEval python = new PythonEval(jepConfig, preEvals)) {
+            stormNames = (Map<String, Map<Long, List<String>>>) python
+                    .getValue("StormNames.NameDict");
+        } catch (JepException e) {
+            logger.error("Failed to get storm names from " + STORM_NAME_FILE,
+                    e);
         }
-
-        return storms;
-    }
-
-    /**
-     * Saves PSH storm names to localization (SITE level).
-     *
-     * @param stormName
-     *            PshStormNames
-     * @return
-     */
-    public boolean saveStormNames(PshStormNames stormName) {
-
-        String stormFile = getStormFileName(stormName.getBasin(),
-                stormName.getYear()) + ".xml";
-
-        ILocalizationFile locFile = getSiteLocalizationFile(stormFile);
-
-        return save(locFile, stormName);
-    }
-
-    /**
-     * Gets storm file name for a basin and year, no file name extension.
-     *
-     * @return String
-     *
-     */
-    private static String getStormFileName(PshBasin basin, String year) {
-        return basin.getDirName() + IPathManager.SEPARATOR + "storm"
-                + year.substring(2, 4);
+        return stormNames;
     }
 
     /**

@@ -1,0 +1,18 @@
+
+This file contains data to be used by the atcf application.
+This file defines parameters to be used for displaying objective aids.
+The first field is an index (starting at 0) to $ATCFINC/techlist.dat.
+The second field is the technique name.
+The third field is the technique description.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+NGPI  NOGAPS tc vortex tracker intermediate posits
+EGRI  Bracknell intermediate posits
+UKMI  Bracknell intermediate posits
+AVNI  AVN interpolated
+GFDI  GFDL model - intermediate positions
+HWFI  GFDN model - intermediate positions
+EMXI  ECMWF model
+TVCN  Consensus 

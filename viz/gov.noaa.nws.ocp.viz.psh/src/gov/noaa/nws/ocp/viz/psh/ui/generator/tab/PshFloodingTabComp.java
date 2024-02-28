@@ -38,6 +38,8 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTableColumn;
  * Date         Ticket#     Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 21, 2017 #34810      wpaintsil   Initial creation.
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
  * 
  * </pre>
  * 
@@ -162,7 +164,7 @@ public class PshFloodingTabComp extends PshTabComp {
             pshData.getFlooding().setData(floodDataList);
 
             saveAlert(PshUtil.savePshData(pshData));
-
+            table.setUnsavedChanges(false);
             pshGeneratorData.setPshData(pshData);
         }
     }

@@ -1,0 +1,6 @@
+<DerivedParameter unit="J/kg" name="Computed CAPE" abbreviation="NSEA_cCape" xmlns:ns2="group">
+    <Method name="Difference" levels="C,TEMP">
+        <Field abbreviation="NSEA_capeToLvl" level="upper"/>
+        <Field abbreviation="NSEA_capeToLvl" level="lower"/>
+    </Method>
+</DerivedParameter>

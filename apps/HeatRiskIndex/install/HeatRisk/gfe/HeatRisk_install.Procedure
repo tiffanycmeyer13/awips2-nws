@@ -1,0 +1,605 @@
+# SVN: $Rev: 32621 $  $Date: 2022-06-24 19:04:36 +0000 (Fri, 24 Jun 2022) $
+# URL: $URL: https://vlab.noaa.gov/svn/nwsscp/Gfe/Apps/HeatRisk/tags/latest_stable/gfe/HeatRisk_install.Procedure $
+#
+# ----------------------------------------------------------------------------
+# This software is in the public domain, furnished "as is", without technical
+# support, and with no warranty, express or implied, as to its usefulness for
+# any purpose.
+#
+# HeatRisk_install Version: 2.11 06/24/2022
+#
+# Authors:
+#   Paul Iniguez (PSR SOO)
+#   Mark Loeffelbien (WR STID)
+#
+# v2.11 - Added some sites to exclude in the eastern portion of US.
+# v2.1 - Added sites to badSites.
+# v2.0   - Major upgrade to include CDC data fields.
+# v1.6.2 - Added code to deal with areas with NaN in the numpy grid.
+# v1.5.3 - Added alternative method to load YellowLevels if pandas can't find it.
+# v1.5.1 - Added how='left' to pd.merge to account for offices that have domains
+# off the YellowLevel.npy domain.
+# v1.5 -
+#      - Yellow levels are no longer static.
+# ----------------------------------------------------------------------------
+#
+#  SOFTWARE HISTORY
+#
+# Date          Ticket#  Engineer       Description
+# ------------- -------- ---------      --------------------------------------
+# Sep 08, 2022  23085    mgamazaychikov Baselined for awips2 
+#
+##
+
+#########################################################################################
+###
+###    Configuration
+###
+###
+###    !!! NOTE !!! HeatRisk requires install of 2022 version of climo grids.
+ClimoDirectory = "/awips2/edex/data/share/HeatRiskIndex/runtime/PrismHiRes/data/"
+HeatRiskDir = "/awips2/edex/data/share/HeatRiskIndex/data/climo/HeatRisk/data/"
+###
+### Change the menu below to run from GFE
+MenuItems = [None]
+###
+### If you want temporary grids populated at the end to see what they look like, set to True.
+### Otherwise set to False.
+badSites = ["USC00268186", "USW00046168", "USW00004134", "USW00093243","USC00202395","USC00416499","USC00046168","USW00093193","USC00040449","USC00040343","USW00093010","USC00246238","USW00012850","USC00087205","USC00098064","USC00417215","USC00446692","USW00004840","USW00092811","USC00165296","USC00411063","USC00415271","USC00410257","USW00013958","USC00344249","USC00386775","USC00466248","USC00333029","USC00158551","USC00134561","USC00369933","USC00305426","USC00200925","USC00202015"]
+
+generateTempGrids = False
+verboseOutput = True
+#########################################################################################
+
+import LogStream, time, AbsTime, SmartScript, numpy as np, datetime, ObjAnal
+from scipy.spatial import cKDTree
+from math import *
+
+class Procedure (SmartScript.SmartScript):
+    def __init__(self, dbss):
+        SmartScript.SmartScript.__init__(self, dbss)
+        self._dbss=dbss
+
+    def execute(self):
+
+        if verboseOutput: print('\n\n\n...Starting the installation script for NWS HeatRisk...\n\n\n')
+        
+        ################################################################################
+        #
+        # Test for Climate Normals
+        #
+        ################################################################################
+        try:
+            np.load('{}dailyMaxT0101.npy'.format(ClimoDirectory), allow_pickle=True)            
+        except:
+            self.statusBarMsg('No Normals found! MakeClimoTemps v4 installation required for HeatRisk. This installation was terminated.', "U")
+            if verboseOutput: print('No Normals found! MakeClimoTemps2017 installation required for HeatRisk.\n\n...Installation Terminated...')
+            return
+        
+        ################################################################################
+        #
+        # Generate 95th Percentile Gridded Data
+        #
+        ################################################################################
+        #
+        # Initialize OA for serping
+        #
+        self.OA = ObjAnal.ObjAnal(self._dbss)
+        elevFactor = 36
+         #
+        # Get GFE domain lat,lons to cross reference with conus domain.
+        wfoLats, wfoLons = self.getLatLonGrids()
+
+        # Initialize holding arrays.
+        grids = []
+        nearest = {}
+        #
+        # Start on Jan 1
+        d = datetime.datetime(2020, 1, 1)
+        #
+        # Loop through the entire year, loading each day into the holding arrays.
+        while d <= datetime.datetime(2020, 12, 31):
+            filename = "{}daily{}{:02d}{:02d}.npy".format(ClimoDirectory,'MaxT',d.month,d.day)
+            grid = np.load(filename, allow_pickle=True)
+            grids.append(grid)
+            d += datetime.timedelta(days=1)
+        tmp = np.array(grids)
+        # This gets the max of the years worth of data and places it in a single 2D grid.
+        nearest['MaxT'] = tmp.max(axis=0)
+        
+        d = datetime.datetime(2020, 1, 1)
+
+        while d <= datetime.datetime(2020, 12, 31):
+            filename = "{}daily{}{:02d}{:02d}.npy".format(ClimoDirectory,'MinT',d.month,d.day)
+            grid = np.load(filename, allow_pickle=True)
+            grids.append(grid)
+            d += datetime.timedelta(days=1)
+        tmp = np.array(grids)
+        # This gets the min of the years worth of data and places it in a single 2D grid. We want the max of that value.
+        nearest['MinT'] = tmp.max(axis=0)
+
+        y, x = wfoLats.shape
+        P99 = np.zeros((2,y,x))
+         
+        p99CSVData = '{}P9999.txt'.format(HeatRiskDir)
+         
+        valuelist = self.getDataLocationsPd(p99CSVData,"MaxT", 140,-100)
+        wfoP99MaxT = self.OA.ObjectiveAnalysis(valuelist, nearest["MaxT"], "serp", elevfactor=elevFactor)
+        wfoP99MaxT = wfoP99MaxT.clip(80,140)
+        P99[0] = np.rint(wfoP99MaxT)
+        
+        valuelist = self.getDataLocationsPd(p99CSVData,"MinT", 140,-100)
+        wfoP99MinT = self.OA.ObjectiveAnalysis(valuelist, nearest["MinT"], "serp", elevfactor=elevFactor)
+        wfoP99MinT = wfoP99MinT.clip(-100,140)
+        P99[1] = np.rint(wfoP99MinT)
+        
+        tmp = P99.astype(np.int16)
+        
+        tmp.dump(('{}p9999.npy').format(HeatRiskDir))
+        #
+        # Initialize some variables
+        #
+        count = 0 # Used for timerange when generating output GFE grids, if desired
+        nTmax, nTmin, curveTmax, curveTmin = [], [], [], []
+        # Need to store delta point values to reset grid points after smoothing. Format is...
+        # {'SID': {'LOC': [x,y], 'MaxT': [], 'MinT': []}
+        deltas = {} 
+        parm = self.getParm("Fcst", 'MaxT', "SFC")
+        gridParmInfo = parm.getGridInfo()
+        maxLimit = gridParmInfo.getMaxValue()
+        minLimit = gridParmInfo.getMinValue()
+        #
+        # If temp grids are generated, make an array of timeranges to populate the grids
+        #
+        if generateTempGrids:
+            #
+            # Initialize empty dictionary/arrays to hold timerange objects
+            #
+            gridTimes = {'MaxT': [], 'MinT': []}
+            #
+            # Now figure out the TRs relative to today for each parm
+            #
+            for parmName in ['MaxT','MinT']:
+                #
+                tr = self.createTimeRange(0, 240, 'Fcst')
+                tmp = self.getGridInfo('Fcst', parmName, 'SFC', tr)
+                startHour = tmp[0].gridTime().startTime().hour
+                duration = tmp[0].gridTime().duration()/60./60.
+                del tmp
+                now = datetime.datetime.now()
+                hoursBack = (datetime.datetime.now()-datetime.datetime(2020,1,1)).days * 24
+                for x in range(366):
+
+                    tr = self.createTimeRange(-hoursBack+x*24+startHour, -hoursBack+x*24+startHour+duration, 'Fcst')
+                    gridTimes[parmName].append(tr)
+        #        
+        # Loop through all days days in a year
+        #
+        day = datetime.datetime(2020,1,1)
+        #
+        while day <= datetime.datetime(2020,12,31):
+
+            #
+            # Loop through Tmin and Tmax
+            #
+            for parm in ['tmax','tmin']:
+                #
+                if verboseOutput: print('Opening data for',parm,day)
+                #
+                # Format strings...
+                #
+                fn = str(day.month).rjust(2,'0')+str(day.day).rjust(2,'0')
+                #
+                # Get point data...
+                #
+                pointData = open('{}/deltas/Deltas.{:02d}.{:02d}.txt'.format(HeatRiskDir,day.month,day.day)).readlines()
+                valuelist = self.getDataLocationsByVar(pointData, parm)
+                #
+                # Store point values
+                for line in valuelist:
+                    if day == datetime.datetime(2020,1,1) and parm is 'tmax':
+                        deltas[line[0]] = {'LOC': [int(line[1]), int(line[2])], 'tmax': [], 'tmin': []}
+                    deltas[line[0]][parm].append(float(line[4]))
+                #
+                # Load normal grid...
+                #
+                if parm == 'tmax':
+                    normal = np.load('%sdailyMaxT%s.npy'%(ClimoDirectory,fn), allow_pickle=True)
+                    normal = np.round(normal+0.005,0)
+                    nTmax.append(normal)
+                else:
+                    normal = np.load('%sdailyMinT%s.npy'%(ClimoDirectory,fn), allow_pickle=True)
+                    normal = np.round(normal+0.005,0)
+                    nTmin.append(normal)
+                #
+                # Initialize a first guess grid, which is a blank zero
+                #
+                firstGuess = normal*0
+                #
+                # Generate SERP grid, clip for really outlandish values...
+                #
+                delta = self.OA.ObjectiveAnalysis(valuelist, firstGuess, "serp", elevfactor=elevFactor)
+                delta = np.clip(delta,0,100)
+                #
+                # Add them for p95 grid, clip if anything is outside of defined temperature ranges...
+                #
+                p95 = normal + delta
+                p95 = np.clip(p95,minLimit,maxLimit)
+                #
+                if parm =='tmax':
+                    curveTmax.append(p95)
+                else:
+                    curveTmin.append(p95)
+                #
+                # Load all into grids...
+                #
+                if generateTempGrids:
+                    if parm == 'tmax':
+                        tr = gridTimes['MaxT'][day.timetuple().tm_yday-1]
+                    if parm == 'tmin':
+                        tr = gridTimes['MinT'][day.timetuple().tm_yday-1]
+            #
+            # Advance time
+            #
+            day += datetime.timedelta(days=1)
+            count += 1           
+        #
+        # Convert arrays to numpy arrays
+        #
+        nTmax = np.array(nTmax)
+        nTmin = np.array(nTmin)
+        curveTmax = np.array(curveTmax)
+        curveTmin = np.array(curveTmin)
+        #
+        # Dump out highest MaxT for the year
+        MaxMaxT = nTmax.max(axis=0)
+        MaxMaxT.dump('%sMaxMaxT.npy'%HeatRiskDir)
+        #
+        # Determine where the Diurnal Range Modifier applies, and save it out
+        # Anything West of -104 is assumed to not be affected by humidity.
+        #
+        DRM = np.where((np.max(nTmax,axis=0)-np.max(nTmin,axis=0)) < 23, True, False)
+        DRMMask = wfoLons<=-104
+        DRM[DRMMask]=False        
+        DRM.dump('%sDRM.npy'%HeatRiskDir)
+        #
+        # Extend six months on either side and smooth using hamming technique. Round.
+        #
+        curveTmax = np.round(self.extendAndSmooth(curveTmax)+0.005, 0)
+        curveTmin = np.round(self.extendAndSmooth(curveTmin)+0.005, 0)
+        #
+        # Re-assign point values
+        #
+        for k in deltas.keys():
+            curveTmax[:, deltas[k]['LOC'][1], deltas[k]['LOC'][0]] = deltas[k]['tmax'] + nTmax[:, deltas[k]['LOC'][1], deltas[k]['LOC'][0]]
+            curveTmin[:, deltas[k]['LOC'][1], deltas[k]['LOC'][0]] = deltas[k]['tmin'] + nTmin[:, deltas[k]['LOC'][1], deltas[k]['LOC'][0]]
+        #
+        ################################################################################
+        #
+        # Set some variables
+        #
+        ################################################################################
+        #       
+        # Get grid shape and make other variables...
+        #
+        y, x = nTmax[0].shape
+        yy, xx = np.arange(y), np.arange(x)
+        yy, xx = np.meshgrid(yy,xx)
+        #        
+        ################################################################################
+        #
+        # Generate Heat Impact Levels - MaxT
+        #
+        ################################################################################
+        #        
+        # Create the YELLOW line
+        #
+        if verboseOutput: print('Creating the yellow levels')
+        #
+        tmp = np.load('{}HeatRiskLevels.npz'.format(HeatRiskDir))
+        conusLats = tmp['lat']
+        conusLons = tmp['lon']
+        conusYellowMaxT = np.clip(tmp['yellowmaxt'],minLimit,maxLimit)
+        conusYellowMaxT = np.clip(conusYellowMaxT, 65,80) # Clip per development 
+        conusOrangeMaxT = np.clip(tmp['orangemaxt'],minLimit,maxLimit)
+        conusRedMaxT = np.clip(tmp['redmaxt'],minLimit,maxLimit)
+        conusYellowMinT = np.clip(tmp['yellowmint'],minLimit,maxLimit)
+        #
+        locs = np.maximum(np.abs(conusLons-wfoLons[0, 0]), np.abs(conusLats-wfoLats[0, 0]))
+        x, y = np.where(locs == np.min(locs))
+        x, y = x[0], y[0]
+        #
+        wfoYellowMaxT = self.extractWFOfromConus(x, y, wfoLons.shape[0], wfoLons.shape[1], conusYellowMaxT)
+        wfoOrangeMaxT = self.extractWFOfromConus(x, y, wfoLons.shape[0], wfoLons.shape[1], conusOrangeMaxT)
+        wfoRedMaxT = self.extractWFOfromConus(x, y, wfoLons.shape[0], wfoLons.shape[1], conusRedMaxT)
+        wfoYellowMinT = self.extractWFOfromConus(x, y, wfoLons.shape[0], wfoLons.shape[1], conusYellowMinT)
+        #
+        # Expand yellow out to 366 daily grids
+        #
+        yellowLineTmax = np.array([wfoYellowMaxT for x in range(366)])
+        yellowLineTmin = np.array([wfoYellowMinT for x in range(366)])
+        #
+        # Create the RED line
+        #
+        if verboseOutput: print('Creating the Tmax red levels')
+        #
+        # Assign Red Based from CDC-derived data (rounded)
+        #
+        redLineBaseTmax = np.round(wfoRedMaxT + 0.005, 0)
+        #
+        # Create Red MaxT slices, adjust daily based on the P95 curve
+        #
+        redLineTmax = np.array([self.empty() for x in range(366)])
+        for slice in range(366):
+            redLineTmax[slice] = np.where(curveTmax[slice]<=redLineBaseTmax, redLineBaseTmax, curveTmax[slice])
+        #
+        # Create the ORANGE line
+        #
+        if verboseOutput: print('Creating the Tmax orange levels')
+        #
+        # First, find the hottest day of the year as defined by the greatest normal MaxT.
+        # To speed this up, find the first instance of the highest value going forward, then
+        # going backwards, and average the positions. May not be *completely* accurate but
+        # works now for speed.
+        #
+        normal_middle = ((np.argmax(nTmax, axis=0)+(366-np.argmax(nTmax[::-1], axis=0)))/2).astype(int)
+        #
+        # Now initialize it
+        #
+        orangeLineTmax = np.array([self.empty() for x in range(366)])
+        #
+        # Next calculate needed splits...
+        #
+        redAndNormalTmax12 = np.round((redLineTmax-nTmax)*(1./2)+nTmax+0.005,0)
+        redAndNormalTmax23 = np.round((redLineTmax-nTmax)*(2./3)+nTmax+0.005,0)
+        redAndYellowTmax23 = np.round((redLineTmax-yellowLineTmax)*(2./3)+yellowLineTmax+0.005,0)[0]
+        #springOrangeBase = np.round((redLineTmax-yellowLineTmax)*(2./3)+yellowLineTmax+0.005,0)[0]
+        #
+        # In the spring, take the highest of redAndNormalTmax12 and redAndYellow23
+        # In the fall, take the highest of redAndNormalTmax23 and redAndYellow23
+        #
+        for j,i in zip(yy.ravel(),xx.ravel()):
+            orangeLineTmax[:normal_middle[j,i],j,i] = np.maximum(redAndNormalTmax12[:normal_middle[j,i],j,i],
+                                                    redAndYellowTmax23[j,i])
+            orangeLineTmax[normal_middle[j,i]:,j,i] = np.maximum(redAndNormalTmax23[normal_middle[j,i]:,j,i],
+                                                    redAndYellowTmax23[j,i]) 
+        #
+        # Check if orange in the fall is below the average of the Jan 1 and CDC value, if so elevate
+        orangeFallBaseTmax = np.round((orangeLineTmax[0] + wfoOrangeMaxT)/2.0 + 0.005, 0)
+        for j,i in zip(yy.ravel(),xx.ravel()):
+            orangeLineTmax[normal_middle[j,i]:,j,i] = np.maximum(orangeLineTmax[normal_middle[j,i]:,j,i],
+                                                    orangeFallBaseTmax[j,i])
+        #
+        # Make sure that values do not fall values do not drop below initial spring values
+        for slice in range(366):
+            orangeLineTmax[slice] = np.maximum(orangeLineTmax[slice], orangeLineTmax[0])
+        #
+        # Now make sure orange doesn't climb higher than the red base
+        for slice in range(366):
+            orangeLineTmax[slice] = np.minimum(orangeLineTmax[slice], wfoRedMaxT)
+        #
+        ######################################################################################
+        #
+        # Generate Heat Impact Levels - MinT
+        #
+        ######################################################################################
+        #
+        # Create the RED line base
+        #
+        if verboseOutput: print('Creating the Tmin red levels')
+        #
+        redLineBaseTmin = np.where(np.max(nTmin,axis=0)<54, 67,
+                                   np.where(np.max(nTmin,axis=0)>85, 83,
+                                            np.round(83.5-(87.0-np.max(nTmin,axis=0))/2.+0.005)))
+        #
+        # Make sure it doesn't go above the base threshold
+        #
+        redLineBaseTmin = np.where(redLineBaseTmin<=67, 67, redLineBaseTmin)
+        #
+        # Apply Diurnal Range Modifier
+        redLineBaseTmin = np.where( (np.max(nTmax, axis=0) - np.max(nTmin, axis=0)) <= 21, redLineBaseTmin-1,
+                                np.where( (np.max(nTmax, axis=0) - np.max(nTmin, axis=0)) <= 28, redLineBaseTmin-0,
+                                          np.where( (np.max(nTmax, axis=0) - np.max(nTmin, axis=0)) <= 34, redLineBaseTmin+1, redLineBaseTmin+2)))
+        #
+        # Cap Red MinT to 66-85F (inclusive) Range
+        redLineBaseTmin = np.clip(redLineBaseTmin, 66, 85)
+        #
+        # Now create RED lines
+        #
+        redLineTmin = np.array([self.empty() for x in range(366)])
+        for slice in range(366):
+            redLineTmin[slice] = np.where(curveTmin[slice]<=redLineBaseTmin, redLineBaseTmin, curveTmin[slice])
+        #
+        # Create the ORANGE line
+        if verboseOutput: print('Creating the Tmin orange levels')
+        #
+        # Now initialize it
+        #
+        orangeLineTmin = np.array([self.empty() for x in range(366)])
+        #
+        # Next calculate needed splits...
+        #
+        redAndYellowTmin23 = np.round((redLineTmin-yellowLineTmin)*(2./3)+yellowLineTmin+0.005,0)
+        redAndNormalTmin23 = np.round((redLineTmin-nTmin)*(2./3)+nTmin+0.005,0)
+        #
+        # Now make sure orange doesn't climb higher than the highest orangeLineTmax12
+        #
+        for slice in range(366):
+            orangeLineTmin[slice] = np.where(nTmin[slice]<=yellowLineTmin[slice], redAndYellowTmin23[slice], redAndNormalTmin23[slice])
+            orangeLineTmin[slice] = np.where(orangeLineTmin[slice]>=np.min(redLineTmin,axis=0), np.min(redLineTmin,axis=0), orangeLineTmin[slice])
+        #
+        ######################################################################################
+        #
+        # Make sure there are no NaN in .npy files as GFE no longer supports NaN.
+        #
+        ######################################################################################
+        yellowLineTmax[np.isnan(yellowLineTmax)] = 60
+        yellowLineTmin[np.isnan(yellowLineTmin)] = 50
+        orangeLineTmax[np.isnan(orangeLineTmax)] = 72
+        orangeLineTmin[np.isnan(orangeLineTmin)] = 60
+        redLineTmax[np.isnan(redLineTmax)] = 90
+        redLineTmin[np.isnan(redLineTmin)] = 83
+        #
+        ######################################################################################
+        #
+        # Output Grids to Files
+        #
+        ######################################################################################
+        if verboseOutput: print('Storing npy arrays')
+        #
+        # Yellow is just one file to store...
+        #
+        yellowLineTmax[0].dump('%slevels/yellowLineTmax.npy'%HeatRiskDir)
+        yellowLineTmin[0].dump('%slevels/yellowLineTmin.npy'%HeatRiskDir)
+        #
+        # Red and orange change daily, dump individual days (as int16)...
+        #
+        for x in range(366):
+            fn = (datetime.datetime(2020,1,1)+datetime.timedelta(days=x)).strftime('%m%d')
+            np.round(redLineTmax[x]+0.005).astype(np.int16).dump('%slevels/redLineTmax%s.npy'%(HeatRiskDir,fn))
+            np.round(orangeLineTmax[x]+0.005).astype(np.int16).dump('%slevels/orangeLineTmax%s.npy'%(HeatRiskDir,fn))
+            np.round(redLineTmin[x]+0.005).astype(np.int16).dump('%slevels/redLineTmin%s.npy'%(HeatRiskDir,fn))
+            np.round(orangeLineTmin[x]+0.005).astype(np.int16).dump('%slevels/orangeLineTmin%s.npy'%(HeatRiskDir,fn))
+        #
+        #####################################################################################
+        #
+        # Display Grids, only for interpretive purposes during install.
+        #
+        #####################################################################################
+        #
+        if generateTempGrids:
+            #
+            if verboseOutput: print('Creating grids, as requested!')
+            #
+            for z in range(366):
+                #
+                tr = gridTimes['MaxT'][z]
+                #
+                self.createGrid("Fcst", "normalTmax", "SCALAR", nTmax[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "redLevelTmax", "SCALAR", redLineTmax[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "orangeLevelTmax", "SCALAR", orangeLineTmax[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "yellowLevelTmax", "SCALAR", yellowLineTmax[0], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                #
+                tr = gridTimes['MinT'][z]
+                #
+                self.createGrid("Fcst", "redLevelTmin", "SCALAR", redLineTmin[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "orangeLevelTmin", "SCALAR", orangeLineTmin[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "yellowLevelTmin", "SCALAR", yellowLineTmin[0], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+                self.createGrid("Fcst", "normalTmin", "SCALAR", nTmin[z], tr,
+                                minAllowedValue=minLimit, maxAllowedValue=maxLimit,
+                                defaultColorTable='GFE/Mid Range Enhanced')
+        #
+        if verboseOutput: print('Done installing NWS HeatRisk!')
+        #
+        #####################################################################################
+
+    def extractWFOfromConus(self, x, y, xshape, yshape, conusData):
+        wfoData = conusData[x:x+int(xshape), y:y+int(yshape)]
+        return conusData[x:x+int(xshape), y:y+int(yshape)]
+
+    #####################################################################################
+    def getDataLocations(self,datalines):
+
+        Topo = self.getTopo()
+        valuelist=[]
+
+        for line in datalines:
+
+            id,lat,lon,value = line.strip().split(",")
+            
+            latf, lonf, valuef = float(lat), float(lon), float(value)
+            x,y = self.getGridCell(latf,lonf)
+            if x != None and y != None and id not in badSites:
+                valuelist.append((id,x,y,Topo[y,x],valuef))
+
+        return valuelist
+    #####################################################################################
+    def getDataLocationsByVar(self,datalines,varName):
+
+        Topo = self.getTopo()
+        valuelist=[]
+        completedSites = []
+
+        for line in datalines:
+
+            id,lat,lon,maxv,minv = line.strip().split(",")
+            latf, lonf, maxvf, minvf = float(lat), float(lon), float(maxv),float(minv)
+            
+            if varName == "tmax":
+                valuef = maxvf
+            else:
+                valuef = minvf
+            
+            
+            x,y = self.getGridCell(latf,lonf)
+            if x != None and y != None and id not in badSites and id not in completedSites:
+                valuelist.append((id,x,y,Topo[y,x],valuef))
+                completedSites.append(id)
+
+        return valuelist
+        
+    def getDataLocationsPd(self,pointFile,parm,maxv,minv):
+
+        Topo = self.getTopo()
+        valuelist=[]
+
+        with open(pointFile) as f:
+            lines = f.read().splitlines()
+        line = lines[0].split(",")
+        
+        idx_lat = line.index("Lat")
+        idx_lon = line.index("Lon")
+        idx_var = line.index(parm)
+        
+        datas = lines[1:]
+        
+        for i in range(len(datas)):
+            data = datas[i].split(",")
+            id = data[0]
+            latf = float(data[idx_lat])
+            lonf = float(data[idx_lon])
+            x,y = self.getGridCell(latf,lonf)
+            if x != None and y != None:
+                valuef = float(data[idx_var])
+                if valuef > maxv:
+                    valuef = maxv
+                if valuef < minv:
+                    valuef = minv
+                valuelist.append((id,x,y,Topo[y,x],valuef))
+
+        return valuelist
+
+
+    def extendAndSmooth(self,ingrids,weight=30):
+        firstdate = datetime.date(2020,1,1)
+        middate = datetime.date(2020,6,30)
+        lastdate = datetime.date(2020,12,31)
+        midindex = (middate - firstdate).days
+        lastindex = (lastdate-firstdate).days + midindex
+        # Pad each side of the array with dates.
+        grids =  np.append(np.append(ingrids[midindex:],ingrids,axis=0),ingrids[:midindex],axis=0)      
+        # Obtain shape, make indicies
+        y, x = grids[0].shape
+        yy, xx = np.arange(y), np.arange(x)
+        yy, xx = np.meshgrid(yy, xx)
+        # Loop through each grid point and filter it
+        weights = np.hamming(weight) # Weights for a 7-day smoothing window
+        for j, i in zip(yy.ravel(), xx.ravel()):
+            grids[:, j, i] = np.convolve(weights/weights.sum(), grids[:, j, i], mode='same')
+        return grids[midindex-1:lastindex]
+
+

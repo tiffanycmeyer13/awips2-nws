@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="J/kg" name="Computed CIN" abbreviation="600mb CIN" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field level="600MB" abbreviation="cCin"/>
+    </Method>
+</DerivedParameter>

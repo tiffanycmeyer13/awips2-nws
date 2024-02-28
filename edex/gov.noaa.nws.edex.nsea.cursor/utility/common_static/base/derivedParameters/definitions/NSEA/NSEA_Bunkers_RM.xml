@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<DerivedParameter unit="kts" name="Bunkers Right-Moving Supercell" abbreviation="Bunkers Right-Moving Supercell Vectors" xmlns:ns2="group">
+    <Method name="Alias">
+        <Field abbreviation="RM5"/>
+    </Method>
+</DerivedParameter>

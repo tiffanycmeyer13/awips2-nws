@@ -1,0 +1,21 @@
+
+This file contains data to be used by the atcf application.
+This file defines parameters to be used for displaying objective aids.
+The first field is the technique name.
+The second field is the technique description.
+
+DO NOT DELETE THE NEXT TWO LINES -- ATCF depends on them.
+START_OF_DATA:
+
+FSSE  FSU Superensemble
+HWRF  HWRF model
+HWFI  HWRF model (Interpolated 06 hrs) - variable offse
+HMNI  HMON model (Interpolated 06 hours)
+AVNO  GFS Model
+AVNI  GFS Model (Interpolated 06 hours)
+CMC2  Canadian Model (Interpolated 12 hours)
+EMX2  ECMWF model [NCEP tracker] (Interpolated 12 hrs)
+HCCA  HFIP Corrected Consensus Approach model
+TVCN  Consensus of >=2: AVNI/EGRI/HWFI/EMXI/CTCI (2017 version)
+TVCX  Consensus of >=2: AVNI/EGRI/HWFI/EMXIx2/CTCI (2017 version)
+GPCE  Goer Prediction Climate Consensus

@@ -1,0 +1,26 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="odimPathProvider"
+        class="gov.noaa.nws.ocp.common.dataplugin.odim.ODIMPathProvider" />
+
+    <bean id="odimProperties" class="com.raytheon.uf.common.dataplugin.PluginProperties">
+        <property name="pluginName" value="odim" />
+        <property name="pluginFQN" value="gov.noaa.nws.ocp.common.dataplugin.odim" />
+        <property name="dao" value="gov.noaa.nws.ocp.edex.plugin.odim.ODIMDao" />
+        <property name="record" value="gov.noaa.nws.ocp.common.dataplugin.odim.ODIMRecord" />
+        <property name="pathProvider">
+            <ref bean="odimPathProvider" />
+        </property>
+        <property name="compression" value="GZIP"/>
+    </bean>
+
+    <bean id="odimRegistered" factory-bean="pluginRegistry"
+        factory-method="register">
+        <constructor-arg value="odim" />
+        <constructor-arg ref="odimProperties" />
+    </bean>
+
+</beans>

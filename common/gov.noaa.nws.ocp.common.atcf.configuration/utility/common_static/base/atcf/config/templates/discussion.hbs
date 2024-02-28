@@ -1,0 +1,99 @@
+{{!--
+    Variables:
+        header.wmoId           - TTAAii part of WMO heading
+        header.category        - Product category, i.e., TCA
+        header.basin           - 2-character product basin, AT/EP/CP
+        header.binNummber      - AWIPS bin number, 1 to 5
+        header.wfo             - WFO id of primary office, i.e., KNHC/PHFO/KWNH 
+        header.advClass        - Storm category, i.e, Hurricane
+        header.advName         - Storm name for this advisory, i.e., IRMA
+        header.advNumber       - Advisory number
+        header.advNumPhrase    - Combined phrase based on advisory type, length of advisory class & name, 
+                                 and if this is a special advisory.
+        header.backup          - Flag to indicate if an backup office is issuing the advisory
+        header.issuedBy        - Primary office's address
+        header.stormId         - Storm ID, i.e., AL112017
+        header.issusedByBackup - Backup office's address
+        header.potentialTC     - Flag for Potential Tropical Cyclone
+        header.finalAdv        - Flag to indicate this is the last advisory
+        header.forecaster      - Forester's full first name
+
+        tau3                   - Forecast data at TAU 3 (or the special TAU):
+        tau0                   - Forecast data at TAU 0.
+        forecast               - List of forecast data from TAU 12 to TAU 72.
+        outlook                - List of forecast data from TAU 96 to TAU 168.
+
+          --- Each forecast data has the following fields ------
+              hour2            - 2-Digit hour, i.e., "09"
+              minute           - 2-digit minutes usually 00 (00 or 30 for special advisory)
+              timeZone         - Time zone, UTC for TCM.
+              weekDay          - Day in the week, i.e, "MON"
+              month            - Month, i.e. "AUG"
+              day              - 2-Digit day, i.e., "05"
+              year             - 4-digit year, i.e., "2021"
+              lat              - Latitude,  i.e, "35.2N"
+              lon              - Longitude, i.e, "82.5W"
+              windData         - Wind data include maximum wind, gust, wind & wave radii
+                - maxWind      - maximum wind
+                - gust         - gust
+                - windRadii    - List of wind radii for 34/50/64 kt
+                - waveRadii    - 12 ft seas wave radii
+                    - rad      - Radii (34/50/64 kt or 12 ft)
+                    - quad[]   - Wind or wave radii in each quadrant.
+
+        prevTCD                - TCD issued for last cycle
+
+    Handlebars helpers:
+       ~        - Remove up to the first handlebar's expression or non-whitespace character on a side.
+       right    - Justify text to the right
+                 The 'pad' parameter specifies a character that will pad the justified text on the left
+       if/else  - Present the context if the condition is true. It leaves a blank line if condition
+                 is false and no "else" clause.
+       each     - Loop
+       with     - Present the context if the context is defined (non-empty, not 0, not false, not null).
+       unless   - Reverse of if.
+       blank    - A custom empty string for indentation, no real meaning.
+       nextLine - Force a new line
+--}}
+{{header.wmoId}} {{header.wfo}} 000000
+{{header.category}}{{header.basin}}{{header.binNumber}}
+
+BULLETIN
+{{header.advClass}} {{header.advName}} {{header.advNumPhrase}} {{right header.advNumber size=3 pad=" "}}
+{{header.issuedBy}}       {{header.stormId}}
+{{#if header.issuedByBackup}}
+{{header.issuedByBackup}}
+{{/if}}
+{{#with tau3.localTimes}}{{advTime}}{{/with}}
+
+{{#with prevTCD as | tcd |}}
+{{tcd}}
+{{/with}}
+FORECAST POSITIONS AND MAX WINDS
+
+{{#with tau3}}
+    {{~break}}INIT {{times.ddHH}}{{times.minute}}Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+{{/with}}
+{{#each forecast}}
+    {{#if windData}}
+         {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+    {{else}}
+        {{#if state}}
+            {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z{{state}}
+        {{/if}}
+    {{/if}}
+{{/each~}}
+{{#each outlook}}
+    {{#if windData}}
+         {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z {{lat}} {{lon}} {{windData.maxWind}} KT {{windData.maxWindMph}} MPH{{state}}
+    {{else}}
+        {{#if state}}
+            {{~blank}}{{times.fcstHour}}H {{times.ddHH}}00Z{{state}}
+        {{/if}}
+    {{/if}}
+{{/each~}}
+{{break}}
+$$
+Forecaster {{header.forecaster}}
+
+NNNN

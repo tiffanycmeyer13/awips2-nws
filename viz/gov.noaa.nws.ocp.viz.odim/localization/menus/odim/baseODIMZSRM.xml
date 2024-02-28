@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- This software was developed and / or modified by NOAA/NWS/OCP/ASDT -->
+<!--
+    This is an absolute override file, indicating that a higher priority
+    version of the file will completely replace a lower priority version
+    of the file.
+-->
+<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <contribute xsi:type="titleItem"
+        titleText="------ Z+SRM combo ------" id="${node}ZSRM" />
+    <contribute xsi:type="bundleItem"
+        file="bundles/DefaultODIMBlended.xml" menuText="0.4 Z+SRM"
+        id="${node}04ZSRM">
+        <substitute key="node" value="${node}" />
+        <substitute key="quantity1" value="DBZH" />
+        <substitute key="mode1" value="" />
+        <substitute key="quantity2" value="VRADH" />
+        <substitute key="mode2" value="SRM" />
+        <substitute key="elevation" value="0.4--0.4" />
+    </contribute>
+    <contribute xsi:type="bundleItem"
+        file="bundles/DefaultODIMBlended.xml" menuText="0.8 Z+SRM"
+        id="${node}10ZSRM">
+        <substitute key="node" value="${node}" />
+        <substitute key="quantity1" value="DBZH" />
+        <substitute key="mode1" value="" />
+        <substitute key="quantity2" value="VRADH" />
+        <substitute key="mode2" value="SRM" />
+        <substitute key="elevation" value="1.0--1.0" />
+    </contribute>
+    <contribute xsi:type="bundleItem"
+        file="bundles/DefaultODIMBlended.xml" menuText="1.6 Z+SRM"
+        id="${node}16ZSRM">
+        <substitute key="node" value="${node}" />
+        <substitute key="quantity1" value="DBZH" />
+        <substitute key="mode1" value="" />
+        <substitute key="quantity2" value="VRADH" />
+        <substitute key="mode2" value="SRM" />
+        <substitute key="elevation" value="1.6--1.6" />
+    </contribute>
+    <contribute xsi:type="bundleItem"
+        file="bundles/DefaultODIMBlended.xml" menuText="All Tilts Z+SRM"
+        id="${node}00-3600ZSRM">
+        <substitute key="node" value="${node}" />
+        <substitute key="quantity1" value="DBZH" />
+        <substitute key="mode1" value="" />
+        <substitute key="quantity2" value="VRADH" />
+        <substitute key="mode2" value="SRM" />
+        <substitute key="elevation" value="0.0--360.0" />
+    </contribute>
+    <contribute xsi:type="subMenu" menuText="${node} Hi Z+SRM tilts">
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="0.3 Z+SRM"
+            id="${node}03ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="0.3--0.3" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="1.2 Z+SRM"
+            id="${node}12ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="1.2--1.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="2.1 Z+SRM"
+            id="${node}20ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="2.0--2.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="2.7 Z+SRM"
+            id="${node}28ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="2.8--2.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="3.5 Z+SRM"
+            id="${node}36ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="3.6--3.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="4.4 Z+SRM"
+            id="${node}44ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="4.4--4.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="5.3 Z+SRM"
+            id="${node}52ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="5.2--5.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="6.4 Z+SRM"
+            id="${node}68ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="6.8--6.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="7.7 Z+SRM"
+            id="${node}84ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="8.4--8.4" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="9.4 Z+SRM"
+            id="${node}100ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="10.0--10.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="11.3 Z+SRM"
+            id="${node}116ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="11.6--11.6" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="13.7 Z+SRM"
+            id="${node}148ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="14.8--14.8" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="16.6 Z+SRM"
+            id="${node}180ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="18.0--18.0" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="20.2 Z+SRM"
+            id="${node}212ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="21.2--21.2" />
+        </contribute>
+        <contribute xsi:type="bundleItem"
+            file="bundles/DefaultODIMBlended.xml" menuText="24.4 Z+SRM"
+            id="${node}244ZSRM">
+            <substitute key="node" value="${node}" />
+            <substitute key="quantity1" value="DBZH" />
+            <substitute key="mode1" value="" />
+            <substitute key="quantity2" value="VRADH" />
+            <substitute key="mode2" value="SRM" />
+            <substitute key="elevation" value="24.4--24.4" />
+        </contribute>
+    </contribute>
+</menuTemplate>

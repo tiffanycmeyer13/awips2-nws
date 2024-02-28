@@ -3,6 +3,7 @@
  */
 package gov.noaa.nws.ocp.viz.psh.ui.generator.tab;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +61,13 @@ import gov.noaa.nws.ocp.viz.psh.ui.generator.tab.table.PshTable;
  * Nov 20, 2017 #39868      wpaintsil   Don't call save method if there is no 
  *                                      table data added and the tab began 
  *                                      with no table data.
- * 
+ * May 24, 2021 20652       wkwock      Add load user files button.
+ * Jun 18, 2021 DCS22100    mporricelli Add checks to alert user that their
+ *                                      changes have not been saved
+ * Jul 27, 2021 DCS22098    mporricelli Update Rainfall tab start and end times from
+ *                                      data when available
+ * Jul 30, 2021 DCS22178    mporricelli Verify PSH Lock owner before saving
+ *
  * </pre>
  * 
  * @author wpaintsil
@@ -350,8 +357,8 @@ public abstract class PshTabComp extends Composite {
      * @param saveEdit
      *            add the "Edit Final Remarks" button if true; false otherwise
      */
-    protected void createRemarksArea(Composite parent, boolean loadExternal,
-            boolean saveEdit, String labelString) {
+    protected void createRemarksArea(Composite parent, boolean loadLsr,
+            boolean loadUser, boolean saveEdit, String labelString) {
 
         Composite remarksAreaComp = new Composite(parent, SWT.NONE);
         GridLayout remarksLayout = new GridLayout(1, false);
@@ -378,7 +385,7 @@ public abstract class PshTabComp extends Composite {
         horizontalSashForm.setWeights(new int[] { 40, 60 });
 
         // "Load External Files" button
-        if (loadExternal) {
+        if (loadLsr || loadUser) {
 
             loadExternalComp = new Composite(remarksAreaComp, SWT.NONE);
             GridLayout loadExternalLayout = new GridLayout(2, true);
@@ -387,17 +394,32 @@ public abstract class PshTabComp extends Composite {
             loadExternalComp.setLayoutData(
                     new GridData(SWT.LEFT, SWT.FILL, false, false));
 
-            Button loadLSRButton = new Button(loadExternalComp, SWT.PUSH);
+            if (loadLsr) {
+                Button loadLSRButton = new Button(loadExternalComp, SWT.PUSH);
 
-            loadLSRButton.setText("Load LSR\nFiles");
-            loadLSRButton.addSelectionListener(new SelectionAdapter() {
+                loadLSRButton.setText("Load LSR\nFiles");
+                loadLSRButton.addSelectionListener(new SelectionAdapter() {
 
-                @Override
-                public void widgetSelected(SelectionEvent e) {
-                    new PshLSRDialog(getShell(), PshTabComp.this).open();
-                }
-            });
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        new PshLSRDialog(getShell(), PshTabComp.this).open();
+                    }
+                });
+            }
 
+            if (loadUser) {
+                Button loadUserButton = new Button(loadExternalComp, SWT.PUSH);
+
+                loadUserButton.setText("Load User\nFiles");
+                loadUserButton.addSelectionListener(new SelectionAdapter() {
+
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        // load a user file
+                        loadUserFile();
+                    }
+                });
+            }
         }
     }
 
@@ -603,8 +625,63 @@ public abstract class PshTabComp extends Composite {
         setRemarksText("");
     }
 
+    /**
+     * Checks the status of the user's editing on the current tab. If user has
+     * made an entry, but has not clicked the OK button, pop up dialog asking
+     * whether to discard the entry or let them continue to edit it. If user has
+     * made an entry and clicked 'OK', but has not saved, pop up dialog asking
+     * whether to discard, save, or let them continue to edit it
+     * 
+     * @return true if entry should be handled by software per user's response,
+     *         false if user will continue editing themselves
+     */
+    public boolean checkEditStatusOk() {
+        int response;
+        if (table.isEditing()) {
+            response = new MessageDialog(getShell(), "Unsaved Data", null,
+                    "Editing of " + tabType
+                            + " in progress. Please complete or discard entry.",
+                    MessageDialog.QUESTION,
+                    new String[] { "Discard " + tabType + " Entry",
+                            "Continue Editing " + tabType },
+                    1).open();
+            if (response == 0) {
+                cancelEditing();
+                return true;
+            } else {
+                return false;
+            }
+
+        } else if (table.isUnsavedChanges()) {
+            response = new MessageDialog(getShell(), "Unsaved Data", null,
+                    "There are unsaved " + tabType
+                            + " changes. Would you like to save your changes?",
+                    MessageDialog.QUESTION, new String[] { "Discard Changes",
+                            "Save Changes", "Continue Editing " + tabType },
+                    1).open();
+            if (response == 0) {
+                table.setEditing(true);
+                table.setNewEntry(true);
+                cancelEditing();
+                updatePreviewArea();
+                return true;
+            } else if (response == 1) {
+                if (PshUtil.checkLockStatusOk(getShell())) {
+                    savePshData(new ArrayList<>(
+                            table.getTableData(StormDataEntry.class)));
+                    cancelEditing();
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void cancelEditing() {
         setRemarksTextEditable(false);
+        table.setUnsavedChanges(false);
         table.cancelEditing();
     }
 
@@ -654,4 +731,14 @@ public abstract class PshTabComp extends Composite {
      * Save Final Remarks separately in tabs that have Final Remarks.
      */
     public abstract void saveFinalRemarks();
+
+    /** Load user file */
+    protected void loadUserFile() {
+    }
+
+    /**
+     * Update Rain Start and Rain End times
+     */
+    public void updateStartEndTimes() {
+    }
 }

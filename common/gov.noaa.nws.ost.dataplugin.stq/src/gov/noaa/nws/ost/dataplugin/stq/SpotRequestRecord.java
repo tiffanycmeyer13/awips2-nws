@@ -40,6 +40,7 @@ import com.raytheon.uf.common.serialization.annotations.DynamicSerializeElement;
  * Jan  21, 2016  18524      pwang       Added the setter to avoid Archiver error
  * Aug 08, 2022   8892       tjensen     Update indexes for Hibernate 5
  *
+ * Nov 22, 2021   22245      jrohwein    change projectname column length to 120
  * </pre>
  *
  * @author pwang
@@ -94,7 +95,7 @@ public class SpotRequestRecord extends PersistablePluginDataObject
     private PointDataView pointDataView;
 
     // Project Name
-    @Column(length = 32)
+    @Column(length = 120)
     @DynamicSerializeElement
     @XmlAttribute
     private String projectName;
@@ -548,3 +549,4 @@ public class SpotRequestRecord extends PersistablePluginDataObject
     }
 
 }
+

@@ -19,6 +19,7 @@ Require-Bundle: com.raytheon.edex.common,
  org.apache.commons.lang,
  org.apache.velocity,
  com.raytheon.uf.common.time,
+ com.raytheon.uf.common.message,
  javax.xml.bind
 Export-Package: gov.noaa.nws.ocp.edex.psh.dao,
  gov.noaa.nws.ocp.edex.psh.handler

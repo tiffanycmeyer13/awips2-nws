@@ -15,7 +15,6 @@ import java.util.Map;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager;
 import com.raytheon.uf.common.serialization.DynamicSerializationManager.SerializationType;
 import com.raytheon.uf.common.serialization.SerializationException;
-import com.raytheon.uf.common.status.UFStatus.Priority;
 import com.raytheon.uf.edex.database.dao.CoreDao;
 import com.raytheon.uf.edex.database.dao.DaoConfig;
 
@@ -29,23 +28,23 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.exception.ClimateQueryExceptio
 
 /**
  * ClimateProdGenerateSessionDAO
- * 
+ *
  * <pre>
  *
  * SOFTWARE HISTORY
  *
- * Date         Ticket#    Engineer    Description
- * ------------ ---------- ----------- --------------------------
- * Feb 7, 2017  20637     pwang     Initial creation
- * Jun 7, 2017  34790     pwang     Simplified CPG purge call
- * Sep 8, 2017  37809     amoore    For queries, cast to Number rather than specific number type.
- * Nov 3, 2017  36749     amoore    Address review comments.
+ * Date          Ticket#  Engineer  Description
+ * ------------- -------- --------- --------------------------------------------------------------
+ * Feb 07, 2017  20637    pwang     Initial creation
+ * Jun 07, 2017  34790    pwang     Simplified CPG purge call
+ * Sep 08, 2017  37809    amoore    For queries, cast to Number rather than specific number type.
+ * Nov 03, 2017  36749    amoore    Address review comments.
+ * May 03, 2021  7849     mapeters  Switch from UFStatus to slf4j logging
+ *
  * </pre>
  *
  * @author pwang
- * @version 1.0
  */
-
 public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     public static final String CPG_SESSION_TABLE_NAME = "cpg_session";
@@ -78,13 +77,13 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Save a new session's data.
-     * 
+     *
      * @param sessionData
      * @return
      */
     public boolean saveNewCPGSessionData(
             ClimateProdGenerateSessionData sessionData)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         boolean status = true;
         synchronized (LOCK) {
 
@@ -92,7 +91,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
             String sql = getInsertStatement(CPG_SESSION_TABLE_NAME,
                     parameters.keySet());
-            if (logger.isPriorityEnabled(Priority.DEBUG)) {
+            if (logger.isDebugEnabled()) {
                 /* avoid formatting parameters if not in debug */
                 logger.debug("SQL = " + sql + " PARAMETERS = " + parameters);
             }
@@ -111,7 +110,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get all CPG sessions' data.
-     * 
+     *
      * @return
      * @throws Exception
      */
@@ -155,7 +154,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get all CPG sessions' limited set of data for GUI view.
-     * 
+     *
      * @return
      * @throws ClimateQueryException
      */
@@ -197,7 +196,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get a CPG session's data by ID.
-     * 
+     *
      * @param cpgSessionId
      * @return
      * @throws Exception
@@ -242,7 +241,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get a CPG session's limited data by ID for GUI.
-     * 
+     *
      * @param cpgSessionId
      * @return
      * @throws ClimateQueryException
@@ -285,7 +284,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * update one or more columns of session data.
-     * 
+     *
      * @param cpgSessionId
      * @param updateCols
      * @return
@@ -311,7 +310,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Update a CPG session with a new state/status.
-     * 
+     *
      * @param cpgSessionId
      * @param newState
      * @param status
@@ -350,7 +349,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Update a CPG session with new state.
-     * 
+     *
      * @param cpgSessionId
      * @param newState
      * @param lastUpdateDT
@@ -382,7 +381,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Update a CPG session with new status.
-     * 
+     *
      * @param cpgSessionId
      * @param status
      * @param statusDesc
@@ -392,7 +391,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
      */
     public int updateCPGSessionStatus(String cpgSessionId, int status,
             String statusDesc, LocalDateTime lastUpdateDT)
-                    throws ClimateQueryException {
+            throws ClimateQueryException {
         List<String> columns = new ArrayList<>();
         columns.add(STATUS_COLUMN);
         columns.add(STATUS_DESC_COLUMN);
@@ -418,7 +417,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Update the product report data for a session.
-     * 
+     *
      * @param cpgSessionId
      * @param reportData
      * @return
@@ -447,7 +446,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Update product data for a session.
-     * 
+     *
      * @param cpgSessionId
      * @param prodData
      * @return
@@ -479,7 +478,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
     /**
      * retrieve current Session State value from Database by given CPG Session
      * ID
-     * 
+     *
      * @param cpgSessionId
      * @return
      * @throws Exception
@@ -511,7 +510,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
     /**
      * retrieve current Session status object from Database by given CPG Session
      * ID
-     * 
+     *
      * @param cpgSessionId
      * @return
      * @throws ClimateQueryException
@@ -547,13 +546,12 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Remove a terminated session.
-     * 
+     *
      * @param purgeThreshold
      * @return
      * @throws ClimateQueryException
      */
-    public int purgeTerminatedCPGSession(LocalDateTime purgeThreshold)
-            throws ClimateQueryException {
+    public int purgeTerminatedCPGSession(LocalDateTime purgeThreshold) {
         String sql = getPurgeTerminatedCPGSessionStatement(
                 CPG_SESSION_TABLE_NAME);
 
@@ -569,7 +567,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
     /**
      * Create a parameterized insert statement that can be passed to
      * {@link CoreDao#executeSQLUpdate(String, Map)}
-     * 
+     *
      * @param table
      * @param columns
      * @return
@@ -600,7 +598,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get query for all CPG sessions.
-     * 
+     *
      * @param table
      * @param columns
      * @return
@@ -623,7 +621,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get query for session by ID.
-     * 
+     *
      * @param table
      * @param columns
      * @return
@@ -648,7 +646,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get query to update CPG session.
-     * 
+     *
      * @param table
      * @param columns
      * @return
@@ -676,7 +674,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Get query for purging a CPG session.
-     * 
+     *
      * @param table
      * @return
      */
@@ -696,7 +694,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * getPeriodTypeFromValue
-     * 
+     *
      * @param value
      * @return
      */
@@ -712,7 +710,7 @@ public class ClimateProdGenerateSessionDAO extends CoreDao {
 
     /**
      * Convert bytes to CPG products.
-     * 
+     *
      * @param cpBytes
      * @return
      * @throws ClimateQueryException
