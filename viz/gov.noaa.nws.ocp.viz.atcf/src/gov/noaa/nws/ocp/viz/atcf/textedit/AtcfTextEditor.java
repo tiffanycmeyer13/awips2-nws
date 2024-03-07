@@ -108,7 +108,7 @@ public class AtcfTextEditor extends TextEditorDialog {
     /**
      * Set of localization directory paths to watch for changes to snippets. Set
      * to null when the dialog is disposed to indicate no new directories should
-     * be watched.  Synchronized on {@code observer}.
+     * be watched. Synchronized on {@code observer}.
      */
     private HashSet<String> watchedSnippetPaths = new HashSet<>();
 
@@ -184,11 +184,13 @@ public class AtcfTextEditor extends TextEditorDialog {
                 if (watchedSnippetPaths != null) {
                     newPaths.removeAll(watchedSnippetPaths);
                     for (String path : newPaths) {
-                        pm.addLocalizationPathObserver(path, snippetsPathsObserver);
+                        pm.addLocalizationPathObserver(path,
+                                snippetsPathsObserver);
                     }
                     watchedSnippetPaths.removeAll(newWatchedSnippetPaths);
                     for (String path : watchedSnippetPaths) {
-                        pm.removeLocalizationPathObserver(path, snippetsPathsObserver);
+                        pm.removeLocalizationPathObserver(path,
+                                snippetsPathsObserver);
                     }
                     watchedSnippetPaths = newWatchedSnippetPaths;
                 }
@@ -468,7 +470,7 @@ public class AtcfTextEditor extends TextEditorDialog {
     protected void editorButtonMenuStates(boolean inEditMode) {
         super.editorButtonMenuStates(inEditMode);
         if (!editType.isFullProduct()) {
-            enableSend(false);
+//            enableSend(false);
         }
     }
 
