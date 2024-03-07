@@ -639,8 +639,7 @@ public class CWAProductDlg extends CaveSWTDialog {
      */
     private void getCWAConfigs() {
         LocalizationLevel[] levels = { LocalizationLevel.USER,
-                LocalizationLevel.SITE, LocalizationLevel.REGION,
-                LocalizationLevel.BASE };
+                LocalizationLevel.SITE, LocalizationLevel.BASE };
 
         IPathManager pm = PathManagerFactory.getPathManager();
         LocalizationFile configFile = null;
