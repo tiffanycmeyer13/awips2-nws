@@ -1,0 +1,21 @@
+HeatRisk_defaultColorTable="HeatRisk"
+HeatImpactLevelsMaxT_defaultColorTable="HeatRisk"
+HeatImpactLevelsMinT_defaultColorTable="HeatRisk"
+HeatRiskWWA_defaultColorTable="HeatRiskWWA"
+HeatRiskWWAbyZone_defaultColorTable="HeatRiskWWA"
+# Substitute these color table settings for sites using Recommended:
+#
+#HeatRiskWWA_defaultColorTable="HeatRiskWWA_Rec"
+#HeatRiskWWAbyZone_defaultColorTable="HeatRiskWWA_Rec"
+#
+#  ABR, AKQ, ALY, APX, ARX, BGM, BIS, BMX, 
+#  BOX, BRO, BTV, BUF, CAE, CAR, CHS, CLE, 
+#  CRP, CTP, DLH, DMX, DTX, DVN, EAX, EWX, 
+#  FFC, FGF, FSD, FWD, GID, GRB, GRR, GSP, 
+#  GYX, HGX, HUN, ICT, ILM, ILN, ILX, IND, 
+#  IWX, JAN, JAX, JKL, KEY, LCH, LIX, LMK, 
+#  LOT, LSX, LUB, LWX, LZK, MEG, MFL, MHX, 
+#  MKX, MLB, MOB, MPX, MQT, MRX, OAX, OHX, 
+#  OKX, OUN, PAH, PBZ, PHI, RAH, RLX, RNK, 
+#  SGF, SHV, SJT, SJU, TAE, TBW, TOP, TSA
+#
