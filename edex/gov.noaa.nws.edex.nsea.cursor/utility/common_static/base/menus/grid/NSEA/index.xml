@@ -20,8 +20,8 @@
     -->
 <menuContributionFile>
     <substitute key="RAP13model" value="RUC130" />
-    <include subMenu="NSEA Digital Cursor Readouts" installTo="menu:volume"
-             fileName="menus/volume/NSEA/NSEA_Base.xml">
+    <include subMenu="NSEA Digital Cursor Readouts" installTo="menu:grid"
+             fileName="menus/grid/NSEA/NSEA_Base.xml">
     </include>
 </menuContributionFile>
 
