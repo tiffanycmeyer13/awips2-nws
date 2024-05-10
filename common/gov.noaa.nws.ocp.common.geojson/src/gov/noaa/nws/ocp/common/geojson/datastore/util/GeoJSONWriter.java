@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeature;
 
 /**
  * GeoJSONWriter, a Writer for GeoJSON Features

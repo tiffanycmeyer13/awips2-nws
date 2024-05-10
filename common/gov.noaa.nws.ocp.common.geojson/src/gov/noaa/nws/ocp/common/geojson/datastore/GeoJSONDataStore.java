@@ -6,19 +6,19 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
-import org.geotools.data.FeatureReader;
-import org.geotools.data.FeatureWriter;
-import org.geotools.data.Query;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.Transaction;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.data.FeatureWriter;
+import org.geotools.api.data.FileDataStore;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.Transaction;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.filter.Filter;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.NameImpl;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;

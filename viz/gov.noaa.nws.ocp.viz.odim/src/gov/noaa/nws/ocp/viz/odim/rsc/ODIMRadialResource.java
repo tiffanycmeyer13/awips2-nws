@@ -29,11 +29,11 @@ import javax.measure.quantity.Length;
 
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.ProjectedCRS;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.ProjectedCRS;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.referencing.operation.TransformException;
 
 import com.raytheon.uf.common.colormap.ColorMapException;
 import com.raytheon.uf.common.colormap.ColorMapLoader;

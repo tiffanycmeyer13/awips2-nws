@@ -12,19 +12,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.geotools.data.DataStore;
-import org.geotools.data.FileDataStore;
-import org.geotools.data.FileDataStoreFactorySpi;
-import org.geotools.data.Query;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.FileDataStore;
+import org.geotools.api.data.FileDataStoreFactorySpi;
+import org.geotools.api.data.FileStoreFactory;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.type.Name;
 import org.geotools.data.directory.DirectoryDataStore;
-import org.geotools.data.directory.FileStoreFactory;
 import org.geotools.data.store.ContentDataStore;
 import org.geotools.data.store.ContentEntry;
 import org.geotools.data.store.ContentFeatureSource;
 import org.geotools.feature.NameImpl;
 import org.geotools.util.KVP;
 import org.geotools.util.URLs;
-import org.opengis.feature.type.Name;
 
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
