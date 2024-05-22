@@ -6,7 +6,7 @@ Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Require-Bundle: javax.xml.bind,
+Require-Bundle: jakarta.xml.bind,
  org.geotools;bundle-version="16.4.0",
  com.raytheon.uf.viz.core;bundle-version="1.16.1",
  org.eclipse.swt;bundle-version="3.105.1",

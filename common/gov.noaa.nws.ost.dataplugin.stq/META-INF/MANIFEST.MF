@@ -12,5 +12,5 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  org.geotools,
  jakarta.persistence,
  javax.measure,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ost.dataplugin.stq

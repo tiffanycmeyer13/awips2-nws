@@ -9,7 +9,7 @@ import java.util.Calendar;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;

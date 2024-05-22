@@ -19,4 +19,4 @@ Require-Bundle: org.eclipse.core.runtime,
  org.apache.commons.lang,
  com.raytheon.uf.viz.d2d.core,
  com.raytheon.uf.viz.d2d.ui,
- javax.xml.bind
+ jakarta.xml.bind

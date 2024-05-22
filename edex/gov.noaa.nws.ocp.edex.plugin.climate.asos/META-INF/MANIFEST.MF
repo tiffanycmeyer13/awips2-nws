@@ -20,6 +20,6 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.monitor,
  com.raytheon.uf.common.dataplugin.obs,
  com.raytheon.uf.common.wmo,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ocp.edex.plugin.climate.asos, 
  gov.noaa.nws.ocp.edex.plugin.climate.asos.dao

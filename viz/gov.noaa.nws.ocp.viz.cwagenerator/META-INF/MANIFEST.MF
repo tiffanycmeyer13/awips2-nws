@@ -26,5 +26,5 @@ Require-Bundle: org.eclipse.core.commands,
  org.geotools,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.json,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.viz.core

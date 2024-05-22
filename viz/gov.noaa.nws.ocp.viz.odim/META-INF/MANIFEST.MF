@@ -4,7 +4,7 @@ Bundle-Name: ODIM Visualization
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.odim;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NWS
-Require-Bundle: javax.xml.bind,
+Require-Bundle: jakarta.xml.bind,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.uf.common.util,

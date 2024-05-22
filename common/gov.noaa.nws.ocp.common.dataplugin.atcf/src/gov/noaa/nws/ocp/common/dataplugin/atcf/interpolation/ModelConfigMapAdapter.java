@@ -6,7 +6,7 @@ package gov.noaa.nws.ocp.common.dataplugin.atcf.interpolation;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
  * XML adapter for {@code Configuration.modelConfiguration}

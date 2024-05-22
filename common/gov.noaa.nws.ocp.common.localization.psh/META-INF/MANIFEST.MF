@@ -10,5 +10,5 @@ Require-Bundle: com.raytheon.uf.common.time,
  com.raytheon.uf.common.monitor,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.status,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.common.python

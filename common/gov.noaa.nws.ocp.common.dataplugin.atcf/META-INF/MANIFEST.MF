@@ -12,7 +12,7 @@ Export-Package: gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.dataplugin.atcf.request,
  gov.noaa.nws.ocp.common.dataplugin.atcf.templateobject,
  gov.noaa.nws.ocp.common.dataplugin.atcf.util
-Require-Bundle: javax.xml.bind,
+Require-Bundle: jakarta.xml.bind,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.localization,
  com.raytheon.uf.common.serialization,

@@ -12,7 +12,7 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.datastorage,
  com.raytheon.uf.common.status,
  javax.measure,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.obs.common.dataplugin.geodata
 Bundle-Vendor: NWS
 

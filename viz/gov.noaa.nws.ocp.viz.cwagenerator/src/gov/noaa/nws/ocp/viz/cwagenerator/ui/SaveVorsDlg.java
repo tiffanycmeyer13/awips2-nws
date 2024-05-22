@@ -7,7 +7,7 @@ package gov.noaa.nws.ocp.viz.cwagenerator.ui;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;

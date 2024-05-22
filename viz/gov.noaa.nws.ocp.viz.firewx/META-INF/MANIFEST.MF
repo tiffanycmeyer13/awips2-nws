@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.geospatial,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.dataquery,
- javax.xml.bind
+ jakarta.xml.bind
 Export-Package: gov.noaa.nws.ocp.viz.firewx.rsc
 Bundle-ClassPath: gov.noaa.nws.ocp.viz.firewx.jar
 Import-Package: com.raytheon.uf.common.dataplugin.bufrua,

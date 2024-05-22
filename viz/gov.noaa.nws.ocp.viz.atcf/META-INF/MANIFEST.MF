@@ -33,7 +33,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.topo;bundle-version="1.14.0",
  com.raytheon.uf.common.colormap,
  org.eclipse.core.databinding.observable,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.common.util,
  org.eclipse.ui.forms;bundle-version="3.7.0",
  gov.noaa.nws.ocp.common.drawing;bundle-version="1.0.0"
