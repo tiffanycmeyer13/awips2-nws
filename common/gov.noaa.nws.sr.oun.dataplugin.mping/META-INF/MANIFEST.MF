@@ -7,7 +7,7 @@ Bundle-Vendor: NWS OUN
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.serialization,
- javax.persistence,
+ jakarta.persistence,
  javax.measure,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,

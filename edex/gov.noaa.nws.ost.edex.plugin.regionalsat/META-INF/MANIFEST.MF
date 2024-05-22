@@ -9,7 +9,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  org.geotools,
  javax.measure,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.edex.plugin.satellite,
  ucar.nc2,
  javax.xml.bind

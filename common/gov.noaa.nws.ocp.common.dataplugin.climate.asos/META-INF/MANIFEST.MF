@@ -11,7 +11,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.pointdata,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure,
  gov.noaa.nws.ocp.common.dataplugin.climate
 Export-Package: gov.noaa.nws.ocp.common.dataplugin.climate.asos

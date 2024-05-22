@@ -7,7 +7,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  javax.measure,
- javax.persistence,
+ jakarta.persistence,
  org.dom4j,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.pointdata,

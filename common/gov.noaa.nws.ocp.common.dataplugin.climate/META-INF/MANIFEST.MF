@@ -22,7 +22,7 @@ Export-Package: gov.noaa.nws.ocp.common.dataplugin.climate,
  gov.noaa.nws.ocp.common.dataplugin.climate.util
 Require-Bundle: com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.serialization.comm;visibility:=reexport,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.time;visibility:=reexport,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.dataplugin;visibility:=reexport,

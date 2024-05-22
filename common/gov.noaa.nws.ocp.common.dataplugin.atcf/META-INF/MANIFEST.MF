@@ -23,5 +23,5 @@ Require-Bundle: javax.xml.bind,
  com.raytheon.uf.common.util,
  gov.noaa.nws.ocp.common.atcf.configuration,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure
