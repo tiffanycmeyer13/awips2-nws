@@ -27,6 +27,7 @@ import org.apache.camel.support.ExchangeHelper;
 * ------------- --------  --------- -----------------
 * Oct 20, 2018  DCS-18691 jburks    Initial creation
 * Mar  3, 2021  8326      tgurney   Camel 3 fixes
+* Jul 15, 2024  2037227   tgurney   Camel 4 fixes
 *
 * </pre>
 *
@@ -163,7 +164,7 @@ public class TimeBasedAggregationStrategy
         String listOfFiles = String.join(",", filePaths);
         if (filePaths.size() > 0) {
             Exchange exchangeToBeEmitted = ExchangeHelper
-                    .copyExchangeAndSetCamelContext(aggregateExchange,
+                    .copyExchangeWithProperties(aggregateExchange,
                             camelContext);
             exchangeToBeEmitted.getOut().setBody(listOfFiles);
             exchangeToBeEmitted.getOut().setHeader("enqueueTime",
