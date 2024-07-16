@@ -5,7 +5,6 @@ import java.io.File;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.spi.Synchronization;
-import org.apache.camel.support.DefaultExchange;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
  * ------------- --------  --------- -----------------
  * Oct 24, 2018  DCS-18691 jburks    Initial creation
  * Mar  3, 2021  8326      tgurney   Camel 3 fixes
+ * Jul 15, 2024  2037227   tgurney   Camel 4 fixes
  *
  * </pre>
  *
@@ -39,16 +39,10 @@ public class AddDeleteOnCompletion implements Processor {
             if (filesAsString != null) {
                 String[] filePathsAsString = filesAsString.split(",");
                 for (String fileString : filePathsAsString) {
-                    if (exchange instanceof DefaultExchange) {
-                        DefaultExchange defaultExchange = (DefaultExchange) exchange;
-                        defaultExchange
-                                .addOnCompletion(new DeleteFileOnCompletion(
-                                        new File(fileString)));
-                    } else {
+
                         exchange.getUnitOfWork()
                                 .addSynchronization(new DeleteFileOnCompletion(
                                         new File(fileString)));
-                    }
                 }
             }
         } else {
