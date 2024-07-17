@@ -6,33 +6,14 @@
     <bean id="atcfSandboxPurger"
         class="gov.noaa.nws.ocp.edex.plugin.atcf.purge.SandboxPurger">
     </bean>
-
-    <camelContext id="a2atcf-handler"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-
-        <endpoint id="sboxPurgeCron"
-            uri="clusteredquartz://a2atcf/sboxPurger/?cron=${atcf.sbox.purge.cron}" />
-
-        <!-- purge sandbox tables -->
-        <route id="sboxPurgeWork">
-            <from uri="sboxPurgeCron" />
-            <doTry>
-                <bean ref="atcfSandboxPurger" method="purgeSandbox" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:atcfSandboxPurger?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <!-- Route to send alerts to ATCF -->
-        <route id="a2atcfNotify">
-            <from uri="vm:edex.atcfNotification" />
-            <bean ref="serializationUtil" method="transformToThrift" />
-            <to uri="jms-generic:topic:edex.a2atcf.msg" />
-        </route>
-
-    </camelContext>
+    
+    <bean id="a2atcf-handler" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.A2atcfHandlerRoutes">
+                <constructor-arg name="atcfSboxPurgeCron" value="${atcf.sbox.purge.cron}" />
+            </bean>
+        </constructor-arg>
+    </bean>
 
     <!-- Register Requests and Handlers -->
 

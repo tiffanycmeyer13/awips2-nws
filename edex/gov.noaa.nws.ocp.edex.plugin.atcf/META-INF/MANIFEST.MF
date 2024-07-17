@@ -16,4 +16,5 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.atcf.configuration,
  org.apache.commons.beanutils,
- org.springframework
+ org.springframework,
+ com.raytheon.uf.edex.esb.camel
