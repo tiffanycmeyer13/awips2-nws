@@ -4,7 +4,44 @@
         version of the file will completely replace a lower priority version
         of the file.
     -->
+<!-- L. Byerle 9/7/2023 add two SPoRT Snowfall Rate entries. Sourced regional LDM,
+     sample file name is 20230913_1550_sport_nesdis_conus_msfr.gz. Add'l patterns
+     from SPoRT are commented
+     12/7/2023 Added LDAD-REGIONALSAT, -GEODATA (WR use)  for DAM  -->
 <requestPatterns xmlns:ns2="group">
     <regex>^Alaska*</regex>
     <regex>^GOESR-PG*</regex>
+    <regex>LDAD-REGIONALSAT</regex>
+    <regex>LDAD-GEODATA</regex>
+        <!--               -->
+        <!-- SPoRT Entries -->
+        <!--               -->
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_nesdis_conus_msfr*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_nesdis_conus_sfr*</regex>
+<!--
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_avhrr_wrn_ntmicro*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_11um*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_39um*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_airmass*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_color*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_dust*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_false*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_fog*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_ntmicro*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_vis*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_modis_wrn_wv*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_11um*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_39um*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_color*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_dnbrad*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_dnbradrgb*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_dnbref*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_dnbrefrgb*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_dust*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_false*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_fog*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_ntmicro*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_viirs_wrn_vis*</regex>
+    <regex>^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9]_sport_wconus_uahci*</regex> 
+-->
 </requestPatterns>

@@ -79,22 +79,30 @@
 
     -->
     <!-- TOWRdocs Status
-        This file will be new in the baseline 16.4.1
+        Changes to match new groups and field names for JA3 expected in Fall 2020. This modifies baseline xml of the same name.
+        Use mission_name ("Jason-3") from product as new source (was radar altimeter). Jason menu and styleRules source must be updated 
+        correspondingly to Jason-3
+        other changes from the 2Pd to 2Pf (new GDR-F) formats are (from to):
+        lat to  data_01/latitude
+        lon to  data_01/longitude
+        swh_ku to data_01/ku/swh_ocean
+        ssha to data_01/ku/ssha 
+        time to data_01/time
     -->
     <!-- TOWRdocs POC
-        Matt Comerford
+        Lee Byerle 11/5/2020
     -->
 <geodataProductDescriptions>
     <description name="JASON Altimetry">
-        <debug>true</debug>
+        <debug>false</debug>
         <source>
-            <attribute name="source" />
+            <attribute name="mission_name" />
         </source>
         <product>
             <value value="JASON Altimetry" />
         </product>
-        <lat name="lat" />
-        <lon name="lon" />
+        <lat name="data_01/latitude" />
+        <lon name="data_01/longitude" />
         <geomType>
             <value value="0" />
         </geomType>
@@ -106,15 +114,15 @@
         </geomNels>
         <atts>
             <geomAtt>
-                <variable name="swh_ku" />
+                <variable name="data_01/ku/swh_ocean" />
             </geomAtt>
             <geomAtt>
-                <variable name="ssha" />
+                <variable name="data_01/ku/ssha" />
             </geomAtt>
         </atts>
         <dataTime>
             <epochOffsetRefTime epoch="2000-01-01 00:00:00" units="SECONDS">
-                <variable name="time" />
+                <variable name="data_01/time" />
             </epochOffsetRefTime>
         </dataTime>
     </description>
