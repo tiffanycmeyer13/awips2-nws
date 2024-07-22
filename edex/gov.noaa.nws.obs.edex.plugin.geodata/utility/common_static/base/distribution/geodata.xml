@@ -10,15 +10,17 @@
         the DBGeo/GeoData Decoder.
     -->
     <!-- TOWRdocs Status
-        This file will be new in the AWIPS II 16.4.1 baseline.
+         Update the Jason wave altim pattern for OGDR-F products, and for account for Jason-3. No change to WMO header entry for SBN flow.
     -->
     <!-- TOWRdocs POC
-        Matt Comerford
+        Lee Byerle 10/30/2020
     -->
 
 <requestPatterns xmlns:ns2="group">
     <!-- JASON Wave Altimetry -->
-    <regex>^JA2_OPN_2PdS\d{3}_\d{3}_\d{8}_\d{6}_\d{8}_\d{6}.nc$</regex>
+    <!--<regex>^JA2_OPN_2PdS\d{3}_\d{3}_\d{8}_\d{6}_\d{8}_\d{6}.nc$</regex> -->
+    <regex>^JA3_OPN_2P[df]S\d{3}_\d{3}_\d{8}_\d{6}_\d{8}_\d{6}.nc$</regex>
+ <!--       JA3_OPN_2PfS086_132_20180614_090759_20180614_110415.nc -->
 
     <!-- JASON-3 Wave Altimetry WMO Header -->
     <regex>^TIQB00 KNES</regex>

@@ -1,40 +1,309 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<!-- 
- * gov.noaa.nws.ost.edex.plugin.alaskasat.util.RegionalSatLookups
- * 
- * 12-01-11
- * 
- * This code has been developed by the NWS/OST/SEC for use in the AWIPS2 system.
- -->
+<!-- L. Byerle 4/16/2024 Merge of content from DAM and TOWR-S added NESDIS Snowfall rate from SpORT -->
 <physicalElements>
-	<map>
-		<entry><key channel="0.58 - 0.68 micron VISL" satName="HRPT"/><value name="0.58 - 0.68 micron VISL" /></entry>
-		<entry><key channel="3 Channel Differencing" satName="HRPT"/><value name="3 Channel Differencing" /></entry>
-		<entry><key channel="3.55-3.93 micron IRUL" satName="HRPT"/><value name="3.55-3.93 micron IRUL" units="IRPixel" /></entry>
-		<entry><key channel="10.5 - 11.5 micron IRUL" satName="HRPT"/><value name="10.5 - 11.5 micron IRUL" units="IRPixel" /></entry>
-		<entry><key channel="Channel 4-5 IR" satName="HRPT"/><value name="Channel 4-5 IR" /></entry>
-		<entry><key channel="0.7 micron visible" satName="MTSAT"/><value name="0.7 micron visibl" /></entry>
-		<entry><key channel="10 micron IR" satName="MTSAT"/><value name="10 micron IR" units="IRPixel"/></entry>
-		<entry><key channel="Channel 4-5 IR" satName="MTSAT"/><value name="Channel 4-5 IR" /></entry>
-		<entry><key channel="0.40 - 1.10 micron VISL" satName="DMSP"/><value name="0.40 - 1.10 micron VISL" /></entry>
-		<entry><key channel="10.0 - 12.0 micron IRUL" satName="DMSP"/><value name="10.0 - 12.0 micron IRUL" units="IRPixel"/></entry>
-		<entry><key channel="0.55-0.75 micron VISL" satName="GVAR"/><value name="0.55-0.75 micron VISL" /></entry>
-		<entry><key channel="3.80-4.00 micron IRUL" satName="GVAR"/><value name="3.80-4.00 micron IRUL" units="IRPixel"/></entry>
-		<entry><key channel="6.50-7.00 micron IRUL" satName="GVAR"/><value name="6.50-7.00 micron IRUL" /></entry>
-		<entry><key channel="10.20-11.20 micron IRUL" satName="GVAR"/><value name="10.20-11.20 micron IRUL" units="IRPixel"/></entry>
-		<entry><key channel="0.58 - 0.68 micron VISL" satName="FY1C"/><value name="0.58 - 0.68 micron VISL" /></entry>
-		<entry><key channel="10.5 - 11.5 micron IRUL" satName="FY1C"/><value name="10.5 - 11.5 micron IRUL" units="IRPixel" /></entry>
-		<entry><key channel="3.55-3.93 micron IRUL" satName="FY1C"/><value name="3.55-3.93 micron IRUL" units="IRPixel" /></entry>
-		<entry><key channel="3 Channel Differencing" satName="FY1C"/><value name="3 Channel Differencing" /></entry>
-		<entry><key channel="Channel 4-5 IR" satName="FY1C"/><value name="Channel 4-5 IR" /></entry>
-		<entry><key channel="0.58 - 0.68 micron VISL" satName="FY3C"/><value name="0.58 - 0.68 micron VISL" /></entry>
-		<entry><key channel="3.55-3.93 micron IRUL" satName="FY3C"/><value name="3.55-3.93 micron IRUL" units="IRPixel" /></entry>		
-		<entry><key channel="10.5 - 11.5 micron IRUL" satName="FY3C"/><value name="10.5 - 11.5 micron IRUL" units="IRPixel" /></entry>
-		<entry><key channel="3 Channel Differencing" satName="FY3C"/><value name="3 Channel Differencing" /></entry>
-		<entry><key channel="Channel 4-5 IR" satName="FY3C"/><value name="Channel 4-5 IR" /></entry>
-		<entry><key channel="AIRS" satName="GOESR-PG"/><value name="Imager Based Derived Precipitable Water (PW)" /></entry>
-		<entry><key channel="ABI" satName="GOESR-PG"/><value name="Imager 6.7-6.5 micron IR (WV)" /></entry>
-		<entry><key channel="AVHRR" satName="GOESR-PG"/><value name="Imager Visible" /></entry>
-		<entry><key channel="MIMTPW" satName="Blended2"/><value name="Imager Based Derived Precipitable Water (PW)" /></entry>
-	</map>
+    <map>
+        <entry>
+            <key channel="0.58 - 0.68 micron VISL" satName="HRPT"/>
+            <value name="0.58 - 0.68 micron VISL"/>
+        </entry>
+        <entry>
+            <key channel="3 Channel Differencing" satName="HRPT"/>
+            <value name="3 Channel Differencing"/>
+        </entry>
+        <entry>
+            <key channel="3.55-3.93 micron IRUL" satName="HRPT"/>
+            <value name="3.55-3.93 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="10.5 - 11.5 micron IRUL" satName="HRPT"/>
+            <value name="10.5 - 11.5 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="Channel 4-5 IR" satName="HRPT"/>
+            <value name="Channel 4-5 IR"/>
+        </entry>
+        <entry>
+            <key channel="0.7 micron visible" satName="MTSAT"/>
+            <value name="0.7 micron visibl"/>
+        </entry>
+        <entry>
+            <key channel="10 micron IR" satName="MTSAT"/>
+            <value name="10 micron IR" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="Channel 4-5 IR" satName="MTSAT"/>
+            <value name="Channel 4-5 IR"/>
+        </entry>
+        <entry>
+            <key channel="0.40 - 1.10 micron VISL" satName="DMSP"/>
+            <value name="0.40 - 1.10 micron VISL"/>
+        </entry>
+        <entry>
+            <key channel="10.0 - 12.0 micron IRUL" satName="DMSP"/>
+            <value name="10.0 - 12.0 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="0.55-0.75 micron VISL" satName="GVAR"/>
+            <value name="0.55-0.75 micron VISL"/>
+        </entry>
+        <entry>
+            <key channel="3.80-4.00 micron IRUL" satName="GVAR"/>
+            <value name="3.80-4.00 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="6.50-7.00 micron IRUL" satName="GVAR"/>
+            <value name="6.50-7.00 micron IRUL"/>
+        </entry>
+        <entry>
+            <key channel="10.20-11.20 micron IRUL" satName="GVAR"/>
+            <value name="10.20-11.20 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="0.58 - 0.68 micron VISL" satName="FY1C"/>
+            <value name="0.58 - 0.68 micron VISL"/>
+        </entry>
+        <entry>
+            <key channel="10.5 - 11.5 micron IRUL" satName="FY1C"/>
+            <value name="10.5 - 11.5 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="3.55-3.93 micron IRUL" satName="FY1C"/>
+            <value name="3.55-3.93 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="3 Channel Differencing" satName="FY1C"/>
+            <value name="3 Channel Differencing"/>
+        </entry>
+        <entry>
+            <key channel="Channel 4-5 IR" satName="FY1C"/>
+            <value name="Channel 4-5 IR"/>
+        </entry>
+        <entry>
+            <key channel="0.58 - 0.68 micron VISL" satName="FY3C"/>
+            <value name="0.58 - 0.68 micron VISL"/>
+        </entry>
+        <entry>
+            <key channel="3.55-3.93 micron IRUL" satName="FY3C"/>
+            <value name="3.55-3.93 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="10.5 - 11.5 micron IRUL" satName="FY3C"/>
+            <value name="10.5 - 11.5 micron IRUL" units="IRPixel"/>
+        </entry>
+        <entry>
+            <key channel="3 Channel Differencing" satName="FY3C"/>
+            <value name="3 Channel Differencing"/>
+        </entry>
+        <entry>
+            <key channel="Channel 4-5 IR" satName="FY3C"/>
+            <value name="Channel 4-5 IR"/>
+        </entry>
+        <entry>
+            <key channel="AIRS" satName="GOESR-PG"/>
+            <value name="Imager Based Derived Precipitable Water (PW)"/>
+        </entry>
+        <entry>
+            <key channel="ABI" satName="GOESR-PG"/>
+            <value name="Imager 6.7-6.5 micron IR (WV)"/>
+        </entry>
+        <entry>
+            <key channel="AVHRR" satName="GOESR-PG"/>
+            <value name="Imager Visible"/>
+        </entry>
+        <entry>
+            <key channel="MIMTPW" satName="Blended2"/>
+            <value name="Imager Based Derived Precipitable Water (PW)"/>
+        </entry>
+        <entry>
+            <key channel="Visible" satName="MODIS"/>
+            <value name="MODIS Visible 1km - Band 1"/>
+        </entry>
+        <entry>
+            <key channel="SnowIce" satName="MODIS"/>
+            <value name="MODIS Snow/Ice 1km - Band 7"/>
+        </entry>
+        <entry>
+            <key channel="Cirrus" satName="MODIS"/>
+            <value name="MODIS Cirrus 1km - Band 26"/>
+        </entry>
+        <entry>
+            <key channel="4um" satName="MODIS"/>
+            <value name="MODIS 3.7um 1km - Band 20 (C)"/>
+        </entry>
+        <entry>
+            <key channel="IR" satName="MODIS"/>
+            <value name="MODIS IR Window - Band 31 (C)"/>
+        </entry>
+        <entry>
+            <key channel="LST" satName="MODIS"/>
+            <value name="MODIS Land Sfc Temperature 1km (F)"/>
+        </entry>
+        <entry>
+            <key channel="NDVI" satName="MODIS"/>
+            <value name="MODIS Norm Diff Vegetation Idx 1km"/>
+        </entry>
+        <entry>
+            <key channel="LSTSUM" satName="MODIS"/>
+            <value name="MODIS Land Sfc Temperature Sum 1km (F)"/>
+        </entry>
+        <entry>
+            <key channel="SST" satName="MODIS"/>
+            <value name="MODIS Sea Sfc Temperature Sum 1km (F)"/>
+        </entry>
+        <entry>
+            <key channel="TPW" satName="MODIS"/>
+            <value name="MODIS TPW 4km (mm)"/>
+        </entry>
+        <entry>
+            <key channel="CPI" satName="MODIS"/>
+            <value name="MODIS Cloud Phase 4km"/>
+        </entry>
+        <entry>
+            <key channel="CTT" satName="MODIS"/>
+            <value name="MODIS Cloud Top Temperature 4km (C)"/>
+        </entry>
+        <entry>
+            <key channel="LI" satName="MODIS"/>
+            <value name="MODIS Lifted Index 4km (C)"/>
+        </entry>
+        <entry>
+            <key channel="TT" satName="MODIS"/>
+            <value name="MODIS Total Totals 4km (C)"/>
+        </entry>
+        <entry>
+            <key channel="KI" satName="MODIS"/>
+            <value name="MODIS K Index 4km (C)"/>
+        </entry>
+        <!--               -->
+        <!-- SPoRT Entries -->
+        <!--               -->
+        <entry>
+            <key channel="NESDIS mSFR10" satName="NESDIS POES"/>
+            <value name="Merged Snowfall Rate (10:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS mSFR18" satName="NESDIS POES"/>
+            <value name="Merged Snowfall Rate (18:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS mSFR35" satName="NESDIS POES"/>
+            <value name="Merged Snowfall Rate (35:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS mSFR" satName="NESDIS POES"/>
+            <value name="Merged Snowfall Rate, Liq. Equiv." />
+        </entry>
+        <entry>
+            <key channel="NESDIS SFR10" satName="NESDIS POES"/>
+            <value name="Snowfall Rate (10:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS SFR18" satName="NESDIS POES"/>
+            <value name="Snowfall Rate (18:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS SFR35" satName="NESDIS POES"/>
+            <value name="Snowfall Rate (35:1)" />
+        </entry>
+        <entry>
+            <key channel="NESDIS SFR" satName="NESDIS POES"/>
+            <value name="Snowfall Rate, Liq. Equiv." />
+        </entry>
+        <entry>
+            <key channel="Air Mass RGB" satName="MODIS"/>
+            <value name="[SPoRT] LEO Air Mass RGB" />
+        </entry>
+        <entry>
+            <key channel="DNB Radiance" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO DNB Radiance" />
+        </entry>
+        <entry>
+            <key channel="DNB Radiance RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO DNB Radiance RGB" />
+        </entry>
+        <entry>
+            <key channel="DNB Reflectance" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO DNB Reflectance" />
+        </entry>
+        <entry>
+            <key channel="DNB Reflectance RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO DNB Reflectance RGB" />
+        </entry>
+        <entry>
+            <key channel="Dust RGB" satName="MODIS"/>
+            <value name="[SPoRT] LEO Dust RGB" />
+        </entry>
+        <entry>
+            <key channel="Dust RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Dust RGB" />
+        </entry>
+        <entry>
+            <key channel="Fog" satName="MODIS"/>
+            <value name="[SPoRT] LEO Fog" />
+        </entry>
+        <entry>
+            <key channel="Fog" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Fog" />
+        </entry>
+        <entry>
+            <key channel="LWIR" satName="MODIS"/>
+            <value name="[SPoRT] LEO Longwave IR" />
+        </entry>
+        <entry>
+            <key channel="LWIR" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Longwave IR" />
+        </entry>
+        <entry>
+            <key channel="Nighttime Microphysics RGB" satName="SPoRT AVHRR"/>
+            <value name="[SPoRT] LEO Nighttime Microphysics RGB" />
+        </entry>
+        <entry>
+            <key channel="NtMicro RGB" satName="MODIS"/>
+            <value name="[SPoRT] LEO Nighttime Microphysics RGB" />
+        </entry>
+        <entry>
+            <key channel="NtMicro RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Nighttime Microphysics RGB" />
+        </entry>
+        <entry>
+            <key channel="SWIR" satName="MODIS"/>
+            <value name="[SPoRT] LEO Shortwave IR" />
+        </entry>
+        <entry>
+            <key channel="SWIR" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Shortwave IR" />
+        </entry>
+        <entry>
+            <key channel="Snow/Cloud RGB" satName="MODIS"/>
+            <value name="[SPoRT] LEO Snow, Cloud RGB" />
+        </entry>
+        <entry>
+            <key channel="Snow/Cloud RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Snow, Cloud RGB" />
+        </entry>
+        <entry>
+            <key channel="True Color RGB" satName="MODIS"/>
+            <value name="[SPoRT] LEO True Color RGB" />
+        </entry>
+        <entry>
+            <key channel="True Color RGB" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO True Color RGB" />
+        </entry>
+        <entry>
+            <key channel="WV" satName="MODIS"/>
+            <value name="[SPoRT] LEO Upper-Level Water Vapor" units="IRPixel" />
+        </entry>
+        <entry>
+            <key channel="Vis" satName="MODIS"/>
+            <value name="[SPoRT] LEO Visible" />
+        </entry>
+        <entry>
+            <key channel="Vis" satName="NPP-VIIRS"/>
+            <value name="[SPoRT] LEO Visible" />
+        </entry>
+        <entry>
+            <key channel="GOES-R CI" satName="GOES-West Imager"/>
+            <value name="[UAH] GOES-R (West) CI Probability" />
+        </entry>
+    </map>
 </physicalElements>
