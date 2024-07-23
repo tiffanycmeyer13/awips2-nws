@@ -99,21 +99,26 @@
                     </colorbarLabeling>
 
                     <!- SamplePreferences ->
-                    <numericFormat>
-                        <minValue></minValue>     The minimum value to allow for data sampling
-                        <maxValue></maxValue>     The maximum value to allow for data sampling
-                        <pattern>0.000</pattern>  The DecimalFormat pattern used to display values during sampling
-                    </numericFormat>
+                    <samplePrefs>
+                        <minValue></minValue>             The minimum value to allow for data sampling
+                        <maxValue></maxValue>             The maximum value to allow for data sampling
+                        <formatString>%.3f</formatString> The number of decimal places to display for values during sampling
+                    </samplePrefs>
 
                 </geometryStyle>
             </styleRule>  
 
     -->
     <!-- TOWRdocs Status
-        This file is new to the 16.4.1 baseline.
+        11/5/2020
+        Updates for new file names in Jason-3 files for GDF-F format
+        Changes are source is no longer radar altimeter, but becomes Jason-3 (the global attr of source in the new files).
+        Product does not change. The attributes change to match that of the description file (see /dbgeo/descriptions/JASON_Waveheight.xml).
+        The menu item must also be updated to reflect new source of Jason-3.
+         
     -->
     <!-- TOWRdocs POC
-        Matt Comerford
+        Lee Byerle 11/5/2020
     -->
 
 <styleRuleset>
@@ -123,10 +128,15 @@
 
         <!-- MatchCriteria (paramLevelMatches extends MatchCriteria) -->
         <geoDataMatches>
-            <source>radar altimeter</source>
+            <source>Jason-3</source>
+            <!--<source>Processing Baseline F v1.0</source> -->
+            <product>JASON Altimetry</product>
+            <attribute>data_01/ku/swh_ocean</attribute>
+            <attribute>data_01/ku/ssha</attribute>
+            <!--<source>radar altimeter</source>
             <product>JASON Altimetry</product>
             <attribute>swh_ku</attribute>
-            <attribute>ssha</attribute>
+            <attribute>ssha</attribute> -->
         </geoDataMatches>
 
         <!-- ImagePreferences -->
@@ -134,27 +144,27 @@
 
             <!-- GeometryPreferences -->
             <lineWidthFloatAtt>
-                <name>swh_ku</name>
+                <name>data_01/ku/swh_ocean</name>
             </lineWidthFloatAtt>
             <sampleCutoffFloatAtt>
-                <name>swh_ku</name>
+                <name>data_01/ku/swh_ocean</name>
             </sampleCutoffFloatAtt>
             <lineColorFloatAtt>
-                <name>swh_ku</name>
+                <name>data_01/ku/swh_ocean</name>
             </lineColorFloatAtt>
             <minPointMag>1.0</minPointMag>
             <maxPointMag>2.5</maxPointMag>
             <pointDisplay>DISC</pointDisplay>
 
             <attributeConvert>
-                <dataName>swh_ku</dataName>
+                <dataName>data_01/ku/swh_ocean</dataName>
                 <dataUnits>m</dataUnits>
                 <displayName>KU Band Significant Waveheight
                 </displayName>
                 <displayUnits>ft</displayUnits>
             </attributeConvert>
             <attributeConvert>
-                <dataName>ssha</dataName>
+                <dataName>data_01/ku/ssha</dataName>
                 <dataUnits>m</dataUnits>
                 <displayName>Sea Surface Height Anomaly</displayName>
                 <displayUnits>ft</displayUnits>
@@ -177,9 +187,9 @@
             </colorbarLabeling>
 
             <!-- SamplePreferences -->
-            <numericFormat>
-                <pattern>0.000</pattern>
-            </numericFormat>
+            <samplePrefs>
+                <formatString>%.3f</formatString>
+            </samplePrefs>
 
             <displayLegend>JASON Waveheight - color/scale: (KU Band
                 Waveheight)

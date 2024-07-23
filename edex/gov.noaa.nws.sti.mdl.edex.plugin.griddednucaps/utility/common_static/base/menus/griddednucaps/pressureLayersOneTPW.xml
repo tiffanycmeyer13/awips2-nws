@@ -1,4 +1,5 @@
 <menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<contribute xsi:type="titleItem" id="GNSLPTitle" titleText="------ Pressure Layers ------"/>
 <contribute xsi:type="bundleItem" file="bundles/griddednucaps/griddednucaps.xml"
         menuText="Total Atmosphere" id="TotAtmos">
         <substitute key="level" value="EA" />
