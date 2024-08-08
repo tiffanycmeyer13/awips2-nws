@@ -16,4 +16,5 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  org.apache.camel,
  com.raytheon.uf.common.wmo,
  ucar.nc2,
- org.slf4j
+ org.slf4j,
+ com.raytheon.uf.edex.esb.camel

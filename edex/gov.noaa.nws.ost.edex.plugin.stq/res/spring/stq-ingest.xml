@@ -18,27 +18,10 @@
         <constructor-arg ref="stqPluginName" />
         <constructor-arg value="jms-durable:queue:Ingest.Stq" />
     </bean>
-    <camelContext id="stq-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-        <!-- Begin STQ routes -->
-        <route id="stqIngestRoute">
-            <from uri="jms-durable:queue:Ingest.Stq" />
-            <setHeader name="pluginName">
-                <constant>stq</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <pipeline>
-                        <bean ref="stqDecoder" method="decodeFile" />
-                        <to uri="direct-vm:persistIndexAlert" />
-                    </pipeline>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:stq?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    
+    <bean id="stq-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ost.edex.plugin.stq.StqCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

@@ -22,30 +22,12 @@
     </bean>
 
     <!--  <constructor-arg value="jms-durable:queue:Ingest.Satellite" />  -->
-
-    <camelContext id="regionalSat-camel"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-
-        <!-- Begin regionalsat routes -->
-        <route id="regionalSatIngestRoute">
-            <from uri="jms-durable:queue:Ingest.regionalsat"/>
-            <setHeader name="pluginName">
-                <constant>regionalsat</constant>
-            </setHeader>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <bean ref="regionalSatDecoder" method="decode"/>
-                    <to uri="direct-vm:persistIndexAlert" />
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:regionalsat?level=ERROR"/>
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    
+    <bean id="regionalSat-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ost.edex.plugin.regionalsat.RegionalSatCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>
 
 

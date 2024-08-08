@@ -12,7 +12,8 @@ Require-Bundle: com.raytheon.edex.common,
  org.geotools,
  org.dom4j,
  jakarta.persistence,
- javax.measure
+ javax.measure,
+ com.raytheon.uf.edex.esb.camel
 Export-Package: gov.noaa.nws.ost.edex.plugin.stq
 Import-Package: com.raytheon.uf.common.status,
  com.raytheon.uf.common.wmo,
