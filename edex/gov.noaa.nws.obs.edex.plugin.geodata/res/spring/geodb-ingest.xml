@@ -52,36 +52,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.GeoData" />
     </bean>
 
-    <camelContext id="geodata-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-
-        <endpoint id="geodataJmsEndpoint" uri="jms-durable:queue:Ingest.GeoData" />
-        <endpoint id="geodataDirectEndpoint" uri="direct-vm:geodata-decode" />
-
-        <route id="geodataIngestRoute">
-            <from uri="geodataJmsEndpoint"/>
-            <doTry>
-                <to uri="geodataDirectEndpoint" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:geodata?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="geodataIngestDecode">
-          <from uri="geodataDirectEndpoint" />
-            <setHeader name="pluginName">
-                <constant>geodata</constant>
-            </setHeader>
-            <pipeline>
-                <bean ref="stringToFile" />
-                <bean ref="getFileWithoutWmoHeader" />
-                <bean ref="geoDataDecoder" method="decode" />
-                <to uri="direct-vm:persistIndexAlert" />
-            </pipeline>
-        </route>
-
-    </camelContext>
-
+    <bean id="geodata-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.obs.edex.plugin.geodata.GeodataCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

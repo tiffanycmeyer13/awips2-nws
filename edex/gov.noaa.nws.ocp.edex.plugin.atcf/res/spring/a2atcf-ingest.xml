@@ -20,38 +20,12 @@
         <constructor-arg value="a2atcf" />
         <constructor-arg value="jms-durable:queue:Ingest.a2atcf" />
     </bean>
-
-    <camelContext id="a2atcf-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-        <endpoint id="a2atcfFileEndpoint" uri="file:${edex.home}/data/sbn/a2atcf?noop=true&amp;idempotent=false" />
-
-        <!-- Begin Atcf routes -->
-        <route id="a2atcfFileConsumerRoute">
-            <from uri="a2atcfFileEndpoint" />
-            <bean ref="fileToString" />
-            <setHeader name="pluginName">
-                <constant>a2atcf</constant>
-            </setHeader>
-            <to uri="jms-durable:queue:Ingest.a2atcf" />
-        </route>
-
-        <route id="a2atcfIngestRoute">
-            <from uri="jms-durable:queue:Ingest.a2atcf" />
-            <setHeader name="pluginName">
-                <constant>a2atcf</constant>
-            </setHeader>
-
-            <doTry>
-                <bean ref="stringToFile" />
-                <pipeline>
-                    <bean ref="a2atcfDeckProcessor" method="decode" />
-                    <to uri="log:a2atcf?level=INFO" />
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:a2atcf?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    
+    <bean id="a2atcf-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.plugin.atcf.handler.A2atcfCamelRoutes">
+                <constructor-arg name="edexHome" value="${edex.home}" />
+            </bean>
+        </constructor-arg>
+    </bean>
 </beans>

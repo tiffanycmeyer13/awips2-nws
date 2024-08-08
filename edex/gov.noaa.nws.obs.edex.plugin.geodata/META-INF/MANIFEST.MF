@@ -14,5 +14,6 @@ Require-Bundle: com.raytheon.uf.edex.database,
  org.geotools,
  com.raytheon.uf.common.serialization,
  gov.noaa.nws.obs.common.dataplugin.geodata,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.edex.esb.camel
 Import-Package: org.locationtech.jts.geom

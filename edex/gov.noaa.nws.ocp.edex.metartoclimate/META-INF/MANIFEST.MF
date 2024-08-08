@@ -12,7 +12,8 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.status,
  org.slf4j,
  gov.noaa.nws.ocp.edex.common.climate,
- jakarta.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.edex.esb.camel
 Import-Package: com.raytheon.edex.plugin.obs.metar,
  com.raytheon.uf.common.dataplugin.obs.metar,
  com.raytheon.uf.common.wmo
