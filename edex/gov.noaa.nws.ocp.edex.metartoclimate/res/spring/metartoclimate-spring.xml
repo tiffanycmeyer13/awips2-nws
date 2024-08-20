@@ -23,27 +23,12 @@
         <constructor-arg ref="climateMetarReportDAO" />
         <property name="purgeHours" value="48" />
     </bean>
-
-    <camelContext id="metarToClimateSvr-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-
-        <endpoint id="metarClimatePurgeCron"
-            uri="quartz://metartoclimate/climatepurge/?cron=${metartoclimatepurge.cron}" />
-
-        <!-- purge climate DB rpt table -->
-        <route id="metarClimatePurgeWork">
-            <from uri="metarClimatePurgeCron" />
-            <doTry>
-                <bean ref="metarToClimatePurger" method="purgeClimateReport" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:metartoclimate?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
     
-    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
-        <constructor-arg ref="metarToClimateSvr-camel" />
+    <bean id="metarToClimateSvr-camel" factory-bean="routeContextFactory" factory-method="createClustered">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.metartoclimate.MetarToClimateSvrCamelRoutes">
+                <constructor-arg name="metartoclimatepurgeCron" value="${metartoclimatepurge.cron}" />
+            </bean>
+        </constructor-arg>
     </bean>
 </beans>

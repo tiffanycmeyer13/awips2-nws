@@ -22,24 +22,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.cliasos" />
     </bean>
     
-    <camelContext id="cliasos-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-        <!-- Begin CLI-ASOS routes -->
-        <route id="cliasosIngestRoute">
-            <from uri="jms-durable:queue:Ingest.cliasos" />
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <pipeline>
-                        <bean ref="cliasosDecoder" method="decode" />
-                        <to uri="log:cliasos?level=INFO" />
-                    </pipeline>
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cliasos?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
+    <bean id="cliasos-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.plugin.climate.asos.CliasosCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>
