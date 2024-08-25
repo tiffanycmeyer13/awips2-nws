@@ -13,7 +13,7 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.edex.plugin.satellite,
  ucar.nc2,
  jakarta.xml.bind,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: 
  com.raytheon.edex.util.satellite,

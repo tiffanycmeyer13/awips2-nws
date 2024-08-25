@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ocp.edex.plugin.odim;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "odim-ingest.xml", context "odim-camel"

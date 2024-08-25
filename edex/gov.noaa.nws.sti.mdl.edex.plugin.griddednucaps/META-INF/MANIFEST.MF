@@ -17,4 +17,4 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.wmo,
  ucar.nc2,
  org.slf4j,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
