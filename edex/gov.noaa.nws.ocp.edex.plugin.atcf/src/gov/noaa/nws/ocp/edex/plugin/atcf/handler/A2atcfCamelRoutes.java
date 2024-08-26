@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ocp.edex.plugin.atcf.handler;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "a2atcf-ingest.xml", context "a2atcf-camel"

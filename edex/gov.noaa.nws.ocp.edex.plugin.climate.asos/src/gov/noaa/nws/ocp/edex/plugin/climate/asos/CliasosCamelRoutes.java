@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ocp.edex.plugin.climate.asos;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "cliasos-ingest.xml", context

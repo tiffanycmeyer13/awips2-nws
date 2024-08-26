@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.obs.edex.plugin.geodata;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "geodb-ingest.xml", context "geodata-camel"

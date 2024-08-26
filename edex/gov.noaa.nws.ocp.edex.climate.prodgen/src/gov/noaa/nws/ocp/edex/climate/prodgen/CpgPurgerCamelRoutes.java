@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ocp.edex.climate.prodgen;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "cpg-spring.xml", context "cpg_purger-camel"

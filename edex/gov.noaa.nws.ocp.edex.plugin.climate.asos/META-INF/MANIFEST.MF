@@ -21,6 +21,6 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.dataplugin.obs,
  com.raytheon.uf.common.wmo,
  jakarta.xml.bind,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ocp.edex.plugin.climate.asos, 
  gov.noaa.nws.ocp.edex.plugin.climate.asos.dao
