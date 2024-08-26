@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ost.edex.plugin.regionalsat;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "regionalsat-ingest.xml", context

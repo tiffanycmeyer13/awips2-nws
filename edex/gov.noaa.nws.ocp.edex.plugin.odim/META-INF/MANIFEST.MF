@@ -12,6 +12,6 @@ Require-Bundle: ucar.nc2,
  com.raytheon.edex.common,
  com.raytheon.uf.edex.menus,
  gov.noaa.nws.ocp.common.dataplugin.odim,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ocp.edex.plugin.odim,
  gov.noaa.nws.ocp.edex.plugin.odim.menus

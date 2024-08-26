@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.sr.oun.edex.plugin.mping;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "mping-ingest.xml", context "mping-camel"

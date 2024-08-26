@@ -13,4 +13,4 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.pointdata,
  com.raytheon.uf.edex.pointdata,
  gov.noaa.nws.sr.oun.dataplugin.mping,
- com.raytheon.uf.edex.esb.camel
+ com.raytheon.uf.edex.routes

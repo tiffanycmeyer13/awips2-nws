@@ -20,7 +20,7 @@
 
 package gov.noaa.nws.ost.edex.plugin.stq;
 
-import com.raytheon.uf.edex.esb.camel.EDEXRouteBuilder;
+import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
  * Camel routes converted from file "stq-ingest.xml", context "stq-camel"
