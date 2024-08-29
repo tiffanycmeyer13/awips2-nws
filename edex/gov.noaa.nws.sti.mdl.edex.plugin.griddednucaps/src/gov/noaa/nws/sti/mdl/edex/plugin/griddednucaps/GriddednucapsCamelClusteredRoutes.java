@@ -35,6 +35,7 @@ import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * 2024-07-11   2037701    aford       Initial creation (from auto-generated)
+ * 2024-08-29   2037700    tgurney     Add missing .end() to fix route creation
  *
  * </pre>
  */
@@ -72,6 +73,7 @@ public class GriddednucapsCamelClusteredRoutes extends EDEXRouteBuilder {
                                         .id(this.aggregateProcessorId)
                                         .completionSize(5)
                                         .to("direct:griddedNucaps2")
+                                        .end()
                 .endDoTry()
                 .doCatch(Throwable.class)
                         .to("log:griddednucaps?level=ERROR")
