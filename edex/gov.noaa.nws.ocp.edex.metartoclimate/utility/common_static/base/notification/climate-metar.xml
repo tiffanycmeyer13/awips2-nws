@@ -9,7 +9,7 @@
     <pluginNotification>
         <endpointName>metarToClimate</endpointName>
         <format>PDO</format>
-        <endpointType>DIRECTVM</endpointType>
+        <endpointType>DIRECT</endpointType>
         <metadataMap>
             <mapping key="pluginName">
                 <constraint constraintValue="obs" constraintType="EQUALS"/>
