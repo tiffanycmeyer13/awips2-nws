@@ -10,7 +10,6 @@ Require-Bundle: com.raytheon.uf.common.dataplugin,
  jakarta.persistence,
  javax.measure,
  com.raytheon.uf.common.pointdata,
- com.raytheon.uf.edex.pointdata,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.geospatial
 Export-Package: gov.noaa.nws.sr.oun.dataplugin.mping
