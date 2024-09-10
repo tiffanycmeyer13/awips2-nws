@@ -2,9 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-http://www.springframework.org/schema/beans/spring-beans.xsd
-http://camel.apache.org/schema/spring
-http://camel.apache.org/schema/spring/camel-spring.xsd">
+http://www.springframework.org/schema/beans/spring-beans.xsd">
     <!-- Class to aggregate files into a bunch of files to be decoded at the same time. 
     The amount of files to be processed at one time needs to be around 5 in order to keep the horizontal
     interpolation from consuming too much memory. This strategy also takes into consideration the satellite-->
