@@ -4,7 +4,7 @@ Bundle-Name: ATCF Configuration
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.atcf.configuration
 Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: jakarta.xml.bind,
  com.raytheon.uf.common.localization,
  com.raytheon.uf.common.status,

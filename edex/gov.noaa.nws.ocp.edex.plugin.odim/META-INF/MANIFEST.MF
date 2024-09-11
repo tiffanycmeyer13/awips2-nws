@@ -5,7 +5,7 @@ Bundle-SymbolicName: gov.noaa.nws.ocp.edex.plugin.odim
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NWS
 Automatic-Module-Name: gov.noaa.nws.ocp.edex.plugin.odim
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: ucar.nc2,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.localization,

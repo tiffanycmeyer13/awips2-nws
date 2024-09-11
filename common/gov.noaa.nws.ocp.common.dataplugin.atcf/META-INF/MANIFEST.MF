@@ -4,7 +4,7 @@ Bundle-Name: Atcf
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.dataplugin.atcf
 Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.dataplugin.atcf.exception,
  gov.noaa.nws.ocp.common.dataplugin.atcf.interpolation,

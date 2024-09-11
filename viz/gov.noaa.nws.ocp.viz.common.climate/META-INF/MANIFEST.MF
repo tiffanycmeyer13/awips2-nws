@@ -4,7 +4,7 @@ Bundle-Name: Climate Viz Common
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.common.climate;singleton:=true
 Bundle-Version: 1.16.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.eclipse.ui;visibility:=reexport,
  gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
  com.raytheon.uf.common.status;visibility:=reexport,

@@ -4,7 +4,7 @@ Bundle-Name: Climate Product Generator
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.climate.prodgen
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.dataplugin,

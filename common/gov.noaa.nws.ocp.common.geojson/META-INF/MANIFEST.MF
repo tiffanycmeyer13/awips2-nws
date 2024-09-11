@@ -4,7 +4,7 @@ Bundle-Name: Geojson
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.geojson
 Bundle-Version: 1.16.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.geotools,
  com.raytheon.uf.common.json,
  com.raytheon.uf.common.status

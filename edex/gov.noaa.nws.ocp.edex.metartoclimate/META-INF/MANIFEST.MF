@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Metartoclimatesvr Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.metartoclimate
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  org.geotools,

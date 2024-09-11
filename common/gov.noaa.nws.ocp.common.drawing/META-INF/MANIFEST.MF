@@ -4,7 +4,7 @@ Bundle-Name: Drawing
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.drawing
 Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: jakarta.xml.bind,
  org.geotools;bundle-version="16.4.0",
  com.raytheon.uf.common.geospatial;bundle-version="1.15.1",

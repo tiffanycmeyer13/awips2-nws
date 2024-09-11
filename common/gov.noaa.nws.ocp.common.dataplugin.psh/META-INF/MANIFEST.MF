@@ -4,7 +4,7 @@ Bundle-Name: PSH Common
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.dataplugin.psh
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.common.serialization,
  com.raytheon.uf.common.serialization.comm;visibility:=reexport,
  com.raytheon.uf.common.dataplugin,

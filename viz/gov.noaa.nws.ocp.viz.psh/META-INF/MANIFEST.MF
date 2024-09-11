@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: PSH Plug-in
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.psh;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.psh,
  com.raytheon.viz.core,
  com.raytheon.uf.common.auth,

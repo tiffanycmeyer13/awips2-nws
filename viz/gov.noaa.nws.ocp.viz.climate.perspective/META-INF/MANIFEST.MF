@@ -25,5 +25,5 @@ Require-Bundle: org.eclipse.core.runtime,
  jakarta.jms,
  org.eclipse.core.expressions,
  org.slf4j
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy

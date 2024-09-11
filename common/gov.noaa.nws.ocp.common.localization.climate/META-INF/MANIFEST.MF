@@ -4,7 +4,7 @@ Bundle-Name: Climate
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.localization.climate
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.climate;visibility:=reexport,
  jakarta.xml.bind
 Import-Package: com.raytheon.uf.common.localization,

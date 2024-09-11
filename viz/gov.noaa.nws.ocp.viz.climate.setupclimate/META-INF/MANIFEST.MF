@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Setupclimate
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.climate.setupclimate;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: org.eclipse.ui,
  gov.noaa.nws.ocp.viz.climate.configparams,
  gov.noaa.nws.ocp.common.localization.climate,
