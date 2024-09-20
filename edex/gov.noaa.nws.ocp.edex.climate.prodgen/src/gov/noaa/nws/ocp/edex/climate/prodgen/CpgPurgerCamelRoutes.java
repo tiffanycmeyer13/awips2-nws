@@ -52,7 +52,7 @@ public class CpgPurgerCamelRoutes extends EDEXRouteBuilder {
         // @formatter:off
 
         // purge CPG sessions table
-        from("quartz://cpg/cpgSessionPurger/?cron=" + this.cpgPurgerCron)
+        from("cron:cpg/cpgSessionPurger?schedule=" + this.cpgPurgerCron)
                 .doTry()
                         .bean("climateCPGSessionPurger", "purgeTerminatedCPGSession")
                 .doCatch(Throwable.class)
@@ -62,7 +62,7 @@ public class CpgPurgerCamelRoutes extends EDEXRouteBuilder {
                 .setId("climateCPGPurgeWork");
 
         // purge sent_prod_record table
-        from("quartz://cpg/sentRecordPurger/?cron=" + this.recordPurgerCron)
+        from("cron:cpg/sentRecordPurger?schedule=" + this.recordPurgerCron)
                 .doTry()
                         .bean("climateSentRecordPurger", "purgeSentProductRecords")
                 .doCatch(Throwable.class)

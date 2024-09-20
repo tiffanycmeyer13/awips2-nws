@@ -50,7 +50,7 @@ public class MetarToClimateSvrCamelRoutes extends EDEXRouteBuilder {
         // @formatter:off
 
         // purge climate DB rpt table
-        from("quartz://metartoclimate/climatepurge/?cron=" + this.metartoclimatepurgeCron)
+        from("cron:metartoclimate/climatepurge/?schedule=" + this.metartoclimatepurgeCron)
                 .doTry()
                         .bean("metarToClimatePurger", "purgeClimateReport")
                 .doCatch(Throwable.class)
