@@ -23,7 +23,8 @@ package gov.noaa.nws.ocp.edex.climate.prodgen;
 import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
- * Camel routes converted from file "cpg-request.xml", context "cpg-request-camel"
+ * Camel routes converted from file "cpg-request.xml", context
+ * "cpg-request-camel"
  *
  * <pre>
  *
@@ -35,7 +36,6 @@ import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
  *
  * </pre>
  */
-
 
 public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
 
@@ -53,7 +53,9 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
 
     private final String cpgF6Cron;
 
-    public CpgRequestCamelRoutes(String cpgAmCron, String cpgPmCron, String cpgImCron, String cpgMonCron, String cpgSeaCron, String cpgAnnCron, String cpgF6Cron) {
+    public CpgRequestCamelRoutes(String cpgAmCron, String cpgPmCron,
+            String cpgImCron, String cpgMonCron, String cpgSeaCron,
+            String cpgAnnCron, String cpgF6Cron) {
         this.cpgAmCron = cpgAmCron;
         this.cpgPmCron = cpgPmCron;
         this.cpgImCron = cpgImCron;
@@ -65,10 +67,12 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        
-        getCamelContext().getPropertiesComponent().addLocation("ref:climateGlobalDayProperties");
-        
-        from("clusteredquartz://cpg/autocreateclimeAM/?cron=" + this.cpgAmCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+
+        getCamelContext().getPropertiesComponent()
+                .addLocation("ref:climateGlobalDayProperties");
+
+        //@formatter:off        
+        from("clusteredcron://cpg/autocreateclimeAM/?schedule=" + this.cpgAmCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdAM", "generateClimate")
           .doCatch(Throwable.class)
@@ -76,7 +80,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgAMWork");
-        from("clusteredquartz://cpg/autocreateclimePM/?cron=" + this.cpgPmCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimePM/?schedule=" + this.cpgPmCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdPM", "generateClimate")
           .doCatch(Throwable.class)
@@ -84,7 +88,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgPMWork");
-        from("clusteredquartz://cpg/autocreateclimeIM/?cron=" + this.cpgImCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimeIM/?schedule=" + this.cpgImCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdIM", "generateClimate")
           .doCatch(Throwable.class)
@@ -92,7 +96,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgIMWork");
-        from("clusteredquartz://cpg/autocreateclimeMon/?cron=" + this.cpgMonCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimeMon/?schedule=" + this.cpgMonCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdMonthly", "generateClimate")
           .doCatch(Throwable.class)
@@ -100,7 +104,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgMonWork");
-        from("clusteredquartz://cpg/autocreateclimeSea/?cron=" + this.cpgSeaCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimeSea/?schedule=" + this.cpgSeaCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdSeasonal", "generateClimate")
           .doCatch(Throwable.class)
@@ -108,7 +112,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgSeaWork");
-        from("clusteredquartz://cpg/autocreateclimeAnn/?cron=" + this.cpgAnnCron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimeAnn/?schedule=" + this.cpgAnnCron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdAnnual", "generateClimate")
           .doCatch(Throwable.class)
@@ -116,7 +120,7 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgAnnWork");
-        from("clusteredquartz://cpg/autocreateclimeF6/?cron=" + this.cpgF6Cron + "&trigger.timeZone={{climate.cpg.cron.timezone}}")
+        from("clusteredcron://cpg/autocreateclimeF6/?schedule=" + this.cpgF6Cron + "&timeZone={{climate.cpg.cron.timezone}}")
           .doTry()
               .bean("autoGenerateClimateProdF6", "generateClimate")
           .doCatch(Throwable.class)
@@ -124,5 +128,6 @@ public class CpgRequestCamelRoutes extends EDEXRouteBuilder {
           .endDoTry()
           .end()
           .setId("cpgF6Work");
+        //@formatter:on
     }
 }

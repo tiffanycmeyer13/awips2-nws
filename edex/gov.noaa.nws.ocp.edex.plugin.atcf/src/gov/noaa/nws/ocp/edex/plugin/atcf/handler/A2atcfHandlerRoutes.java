@@ -23,7 +23,8 @@ package gov.noaa.nws.ocp.edex.plugin.atcf.handler;
 import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
 
 /**
- * Camel routes converted from file "a2atcf-request.xml", context "a2atcf-handler"
+ * Camel routes converted from file "a2atcf-request.xml", context
+ * "a2atcf-handler"
  *
  * <pre>
  *
@@ -36,7 +37,6 @@ import com.raytheon.uf.edex.routes.EDEXRouteBuilder;
  * </pre>
  */
 
-
 public class A2atcfHandlerRoutes extends EDEXRouteBuilder {
 
     private final String atcfSboxPurgeCron;
@@ -47,7 +47,8 @@ public class A2atcfHandlerRoutes extends EDEXRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from("clusteredquartz://a2atcf/sboxPurger/?cron=" + this.atcfSboxPurgeCron + "")
+        //@formatter:off
+        from("clusteredcron://a2atcf/sboxPurger/?schedule=" + this.atcfSboxPurgeCron + "")
           .doTry()
               .bean("atcfSandboxPurger", "purgeSandbox")
           .doCatch(Throwable.class)
@@ -59,5 +60,6 @@ public class A2atcfHandlerRoutes extends EDEXRouteBuilder {
           .bean("serializationUtil", "transformToThrift")
           .to("jms-generic:topic:edex.a2atcf.msg")
           .setId("a2atcfNotify");
+        //@formatter:on
     }
 }
