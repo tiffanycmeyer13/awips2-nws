@@ -26,7 +26,6 @@ import com.raytheon.uf.common.python.PythonEval;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.serialization.JAXBManager;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
@@ -60,6 +59,8 @@ import jep.JepException;
  * 11 DEC 2017  #41998     jwu         Use access control file in base/roles.
  * 11 JAN,2018  DCS19326   jwu         Baseline version.
  * 09 JUN,2021  DCS21225   wkwock      Read storm names from StormNames.py
+ * Oct 25, 2024 2037223    aford       JAXB upgrade - Configure JAXB Manager to
+ *                                     Use Custom JAXB Context Factory
  * 
  * </pre>
  *
@@ -202,14 +203,18 @@ public class PshConfigurationManager {
         /**
          * JAXB manager for marshal/unmarshal.
          */
-        Class<?>[] clzz = { JaxbDummyObject.class, PshConfigHeader.class,
-                PshForecasters.class, PshCounties.class, PshStations.class,
-                PshCwas.class, PshCities.class, PshStormNames.class };
+        Class<?>[] clzz = { PshConfigHeader.class, PshForecasters.class,
+                PshCounties.class, PshStations.class, PshCwas.class,
+                PshCities.class, PshStormNames.class };
 
         JAXBManager jaxb = null;
 
         try {
-            jaxb = new JAXBManager(clzz);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    clzz);
         } catch (JAXBException e) {
             logger.error(
                     "PshConfigurationManager: Error initializing JaxbManager due to ",
