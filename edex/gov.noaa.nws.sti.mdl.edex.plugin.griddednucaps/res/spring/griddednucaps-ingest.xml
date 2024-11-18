@@ -44,7 +44,7 @@ http://camel.apache.org/schema/spring/camel-spring.xsd">
                     <bean ref="stringToFile" />
                     <bean ref="getFileWithoutWmoHeader"/>
                     <bean ref="decodeNUCAPSSatelliteInformation"/>
-                    <aggregate id="aggStrata" strategyRef="aggStra" completionSize="5" >
+                    <aggregate id="aggStrata" aggregationStrategy="aggStra" completionSize="5" >
                         <correlationExpression>      
                             <simple>header</simple>
                          </correlationExpression>

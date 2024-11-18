@@ -1,9 +1,8 @@
 #!/bin/bash 
 #######################################################################
 #
-#  Script to Create Climate Grids from 800m PRISM data.
-#  Runs GFE Procedure makeClimoTempsProc
-#
+#  Script to load heat risk grids and calculates HeatRisk.
+#  Runs GFE Procedure HeatRisk_daily and HeatRisk_calculate
 #
 #
 #  SOFTWARE HISTORY
@@ -20,10 +19,10 @@
 #  Get script name and whether it is running from a tty
 #
 PROG=`basename $0`
-NOTTY=`tty | grep -ci not`
 
+unset DISPLAY
 
-echo "Starting  at: `date +"%Y%m%d-%T"` UTC" 
+echo "Starting  at: `date +"%Y%m%d-%T"` UTC"
 
 #  Setup environment for DEFAULT_HOST
 source /awips2/GFESuite/bin/setup.env
@@ -58,38 +57,23 @@ if [[ $SITEID == "" ]]; then
 fi
 
 #
-GFEUser="SITE"             # user installed under
-#
-# BASEConfig is the normal configuration file to run GFE with - typically this
-#         is just gfeConfig
-#
-BASEConfig="gfeConfig"     # normal config file to use
-#
 #  Setup logfile for this run
 #
-logDir="/awips2/edex/data/share/HeatRiskIndex/scripts/logs"
+Logtime() {
+  ctime=`date -u "+%Y/%m/%d %H:%M:%S"`
+  echo "$ctime:$1" >>$LOGFILE
+}
+
+LOGHOME=/awips2/GFESuite/logs/${SITEID}
 DATECODE=`date -u +"%Y%m%d"`
-LOGDIR=$logDir/$DATECODE
+LOGDIR=$LOGHOME/$DATECODE
+
 if [[ ! -d $LOGDIR ]]
 then
    mkdir -m 777 -p $LOGDIR
 fi
-DAY=`date +"%Y%m%d"`
-#
-
-STAMP=`date +"%Y%m%d"`
-LOG="LoadClimoTemps_${STAMP}.log"
-LOGFILE="${LOGDIR}/${LOG}"
-
-Logtime() {
-  ctime=`date -u "+%Y/%m/%d %H:%M:%S"`
-  if [ $NOTTY -gt 0 ]
-  then
-     echo "$ctime:$1" >>$LOGFILE
-  else
-     echo "$ctime:$1" | tee -a $LOGFILE
-  fi
-}
+h=`date +%-k`
+LOGFILE="${LOGDIR}/Run_LoadHeatRisk_${h}Z.log"
 
 Logtime "$PROG started."
 Logtime "HOST: `hostname` "
@@ -101,12 +85,10 @@ echo ${LOGFile}
 
 PROC=$GFEDIR/runProcedure
 
-if [ $NOTTY -gt 0 ]
-then
-  $PROC -site $SITEID -n LoadClimoTemps -c gfeConfig -m _Climo >> $LOGFILE 2>&1
-else
-  $PROC -site $SITEID -n LoadClimoTemps -c gfeConfig -m _Climo 2>&1 | tee -a $LOGFILE
-fi
+$PROC -site $SITEID -n HeatRisk_daily -c gfeConfig -m _Climo >> $LOGFILE 2>&1
+sleep 2
+$PROC -site $SITEID -n HeatRisk_calculate -c gfeConfig -m _Fcst >> $LOGFILE 2>&1
+
 
 Logtime "$PROG exiting."
 
