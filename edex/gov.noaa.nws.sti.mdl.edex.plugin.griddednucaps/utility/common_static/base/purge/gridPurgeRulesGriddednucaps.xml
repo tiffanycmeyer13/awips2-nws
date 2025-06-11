@@ -44,12 +44,13 @@
     -->
     <!-- TOWRdocs Status
          Add for griddednucaps, set for a period of time
+         1/11/2025 from 3 days to 1 day 12 hr 
     -->
     <!-- TOWRdocs POC
-        Lee Byerle 10/22/2020
+        Lee Byerle 1/11/2025
     -->
 	<rule>
 		<keyValue>griddednucaps</keyValue>
-		<period>03-00:00:00</period>
+		<period>01-12:00:00</period>
 	</rule>
 </purgeRuleSet>
