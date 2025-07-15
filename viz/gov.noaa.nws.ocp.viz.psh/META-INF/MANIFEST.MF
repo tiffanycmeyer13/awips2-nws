@@ -11,6 +11,7 @@ Require-Bundle: gov.noaa.nws.ocp.common.dataplugin.psh,
  com.raytheon.uf.viz.spellchecker,
  com.raytheon.viz.ui,
  gov.noaa.nws.ocp.common.localization.psh,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.apache.commons.lang
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: gov.noaa.nws.ocp.viz.psh.Activator
