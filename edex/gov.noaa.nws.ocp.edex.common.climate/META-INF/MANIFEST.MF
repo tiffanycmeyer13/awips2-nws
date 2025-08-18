@@ -11,7 +11,7 @@ Require-Bundle: com.raytheon.uf.common.status;visibility:=reexport,
  com.raytheon.uf.common.localization,
  com.raytheon.uf.edex.database,
  gov.noaa.nws.ocp.common.localization.climate,
- org.apache.commons.configuration
+ org.apache.commons.configuration2
 Export-Package: gov.noaa.nws.ocp.edex.common.climate.dao,
  gov.noaa.nws.ocp.edex.common.climate.dataaccess,
  gov.noaa.nws.ocp.edex.common.climate.util
