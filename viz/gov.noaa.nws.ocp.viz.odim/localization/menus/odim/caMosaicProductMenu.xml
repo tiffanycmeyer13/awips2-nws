@@ -4,18 +4,46 @@
     version of the file will completely replace a lower priority version
     of the file.
 -->
-<menuTemplate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
-        menuText="0.4 Reflectivity" id="caRadar04Reflectivity">
-        <substitute key="quantity" value="DBZH" />
-        <substitute key="elevation" value="0.4" />
-        <substitute key="name" value="0.4 Reflectivity" />
-    </contribute>
+<menuTemplate>
+    <contribute xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:type="subMenu" menuText="Canadian Radar Mosaics">
     <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
         menuText="0.3 Long Range Refl" id="caLongRang03Reflectivity">
         <substitute key="quantity" value="DBZH" />
         <substitute key="elevationAngleKey" value="trueElevationAngle" />
         <substitute key="elevation" value="0.3" />
         <substitute key="name" value="0.3 Long Range Refl" />
+        <substitute key="mosaicNodeList" value="casss,casag,casfm,cassm,cassu,casbe,casfw,caswl,casdr,casmr,caset,casbi,caskr,casft,cassn,casbv,cassf,casma,casvd,cascm,casgo,casmb,casmm,cashr" />
     </contribute>
+
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.4 Reflectivity" id="caRadar04Reflectivity">
+        <substitute key="quantity" value="DBZH" />
+        <substitute key="elevation" value="0.4" />
+	<substitute key="name" value="0.4 Reflectivity" />
+        <substitute key="mosaicNodeList" value="casss,casag,casfm,cassm,cassu,casbe,casfw,caswl,casdr,casmr,caset,casbi,caskr,casft,cassn,casbv,cassf,casma,casvd,cascm,casgo,casmb,casmm,cashr" />
+
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.4 Differential Reflectivity (ZDR)" id="ZDRMosaic">
+        <substitute key="quantity" value="ZDR" />
+        <substitute key="elevation" value="0.4" />
+        <substitute key="name" value="0.4 ZDR" />
+        <substitute key="mosaicNodeList" value="casss,casag,casfm,cassm,cassu,casbe,casfw,caswl,casdr,casmr,caset,casbi,caskr,casft,cassn,casbv,cassf,casma,casvd,cascm,casgo,casmb,casmm,cashr" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.4 Specific Diff Phase (KDP)" id="KDPMosaic">
+        <substitute key="quantity" value="KDP" />
+        <substitute key="elevation" value="0.4" />
+        <substitute key="name" value="0.4 KDP" />
+        <substitute key="mosaicNodeList" value="casss,casag,casfm,cassm,cassu,casbe,casfw,caswl,casdr,casmr,caset,casbi,caskr,casft,cassn,casbv,cassf,casma,casvd,cascm,casgo,casmb,casmm,cashr" />
+    </contribute>
+    <contribute xsi:type="bundleItem" file="bundles/DefaultODIMMosaic.xml"
+        menuText="0.4 Corelation Coeff (CC)" id="CCMosaic">
+        <substitute key="quantity" value="RHOHV" />
+        <substitute key="elevation" value="0.4" />
+        <substitute key="name" value="0.4 CC" />
+        <substitute key="mosaicNodeList" value="casss,casag,casfm,cassm,cassu,casbe,casfw,caswl,casdr,casmr,caset,casbi,caskr,casft,cassn,casbv,cassf,casma,casvd,cascm,casgo,casmb,casmm,cashr" />
+    </contribute>
+</contribute>
 </menuTemplate>
