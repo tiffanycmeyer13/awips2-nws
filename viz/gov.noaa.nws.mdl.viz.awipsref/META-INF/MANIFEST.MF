@@ -17,7 +17,7 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.viz.core.rsc,
  com.raytheon.uf.viz.core.maps,
  com.raytheon.viz.ui,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  com.raytheon.uf.viz.d2d.core,
  com.raytheon.uf.viz.d2d.ui,
  jakarta.xml.bind
