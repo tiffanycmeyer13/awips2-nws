@@ -38,6 +38,6 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.common.util,
  org.eclipse.ui.forms;bundle-version="3.7.0",
  gov.noaa.nws.ocp.common.drawing;bundle-version="1.0.0",
- org.apache.commons.lang
+ org.apache.commons.lang3
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy
