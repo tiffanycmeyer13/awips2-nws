@@ -4,9 +4,9 @@ Bundle-Name: Atcf
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.plugin.atcf
 Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
- javax.persistence,
+ jakarta.persistence,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.localization,
  com.raytheon.uf.common.python,
@@ -16,4 +16,5 @@ Require-Bundle: com.raytheon.edex.common,
  gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.atcf.configuration,
  org.apache.commons.beanutils,
- org.springframework
+ org.springframework,
+ com.raytheon.uf.edex.routes

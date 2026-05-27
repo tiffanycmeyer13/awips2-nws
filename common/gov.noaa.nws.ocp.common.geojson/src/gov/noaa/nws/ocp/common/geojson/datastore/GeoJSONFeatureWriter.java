@@ -1,20 +1,20 @@
 package gov.noaa.nws.ocp.common.geojson.datastore;
 
-import gov.noaa.nws.ocp.common.geojson.datastore.util.GeoJSONWriter;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
+import org.geotools.api.data.FeatureWriter;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureWriter;
-import org.geotools.data.Query;
 import org.geotools.data.store.ContentState;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
+
+import gov.noaa.nws.ocp.common.geojson.datastore.util.GeoJSONWriter;
 
 /**
  * GeoJSONFeatureWriter

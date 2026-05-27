@@ -5,12 +5,13 @@ Bundle-SymbolicName: gov.noaa.nws.ocp.edex.plugin.odim
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: NWS
 Automatic-Module-Name: gov.noaa.nws.ocp.edex.plugin.odim
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: ucar.nc2,
  com.raytheon.uf.common.status,
  com.raytheon.uf.common.localization,
  com.raytheon.edex.common,
  com.raytheon.uf.edex.menus,
- gov.noaa.nws.ocp.common.dataplugin.odim
+ gov.noaa.nws.ocp.common.dataplugin.odim,
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ocp.edex.plugin.odim,
  gov.noaa.nws.ocp.edex.plugin.odim.menus

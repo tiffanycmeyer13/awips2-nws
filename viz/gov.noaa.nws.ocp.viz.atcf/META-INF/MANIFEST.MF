@@ -3,6 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: ATCF
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.atcf;singleton:=true
 Bundle-Version: 1.21.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Activator: gov.noaa.nws.ocp.viz.atcf.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -22,7 +23,7 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.core.maps,
  com.raytheon.uf.common.message,
  com.raytheon.uf.viz.alertviz,
- javax.jms,
+ jakarta.jms,
  org.jfreechart,
  com.fasterxml.jackson,
  gov.noaa.nws.ocp.common.product.build,
@@ -33,9 +34,10 @@ Require-Bundle: org.eclipse.ui,
  com.raytheon.uf.viz.topo;bundle-version="1.14.0",
  com.raytheon.uf.common.colormap,
  org.eclipse.core.databinding.observable,
- javax.xml.bind,
+ jakarta.xml.bind,
  com.raytheon.uf.common.util,
  org.eclipse.ui.forms;bundle-version="3.7.0",
- gov.noaa.nws.ocp.common.drawing;bundle-version="1.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+ gov.noaa.nws.ocp.common.drawing;bundle-version="1.0.0",
+ org.apache.commons.lang3
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy

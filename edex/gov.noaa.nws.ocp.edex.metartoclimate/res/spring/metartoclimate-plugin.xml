@@ -1,7 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-  http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="climateMetarReportDAO"
         class="gov.noaa.nws.ocp.edex.metartoclimate.dao.ClimateReportDAO"/>
@@ -14,13 +13,10 @@
         <constructor-arg ref="climateMetarReportDAO"/>
         <constructor-arg ref="climateMetarInsertionDAO"/>    
     </bean>
-
-    <camelContext id="metarToClimate-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-
-        <route id="metarToClimateRoute">
-            <from uri="direct-vm:metarToClimate" />
-            <bean ref="metarToClimate" method="process" />
-        </route>
-    </camelContext>
+    
+    <bean id="metarToClimate-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.metartoclimate.MetarToClimateCamelRoutes" />
+        </constructor-arg>
+    </bean>
 </beans>

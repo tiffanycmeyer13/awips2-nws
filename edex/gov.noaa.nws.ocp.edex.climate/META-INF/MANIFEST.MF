@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: EDEX General Climate
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.climate
 Bundle-Version: 1.16.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
  org.eclipse.core.runtime,
  com.raytheon.uf.edex.core,
@@ -16,7 +16,7 @@ Require-Bundle: gov.noaa.nws.ocp.edex.common.climate;visibility:=reexport,
  gov.noaa.nws.ocp.common.localization.climate,
  com.raytheon.uf.common.message,
  com.raytheon.uf.common.site,
- org.apache.commons.lang,
+ org.apache.commons.lang3,
  com.raytheon.uf.common.auth,
  com.raytheon.uf.common.dissemination,
  org.apache.velocity

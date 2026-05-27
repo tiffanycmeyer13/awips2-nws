@@ -1,16 +1,12 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
-
-    <camelContext id="climate_cpg" xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-        <!-- Route to send alerts to climate view -->
-		<route id="climateNotify">
-			<from uri="vm:edex.climateNotification" />
-			<bean ref="serializationUtil" method="transformToThrift" />
-			<to uri="jms-generic:topic:edex.climate.msg" />
-		</route>
-    </camelContext>
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+    
+    <bean id="climate_cpg" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateCpgRoutes" />
+        </constructor-arg>
+    </bean>
     
     <!-- Register Requests and Handlers -->
 
@@ -94,104 +90,18 @@
         class="gov.noaa.nws.ocp.edex.common.climate.dataaccess.ClimateGlobalConfiguration"
         factory-method="getSpringProperties" />
 
-    <camelContext id="cpg-request-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
+    <bean id="cpg-request-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.climate.prodgen.CpgRequestCamelRoutes">
+                <constructor-arg name="cpgAmCron" value="${cpg.am.cron}" />
+                <constructor-arg name="cpgPmCron" value="${cpg.pm.cron}" />
+                <constructor-arg name="cpgImCron" value="${cpg.im.cron}" />
+                <constructor-arg name="cpgMonCron" value="${cpg.mon.cron}" />
+                <constructor-arg name="cpgSeaCron" value="${cpg.sea.cron}" />
+                <constructor-arg name="cpgAnnCron" value="${cpg.ann.cron}" />
+                <constructor-arg name="cpgF6Cron" value="${cpg.f6.cron}" />
+            </bean>
+        </constructor-arg>
+    </bean>
 
-        <propertyPlaceholder id="climateGlobalDayPropertiesPlaceholder"
-            location="ref:climateGlobalDayProperties" />
-
-        <endpoint id="autoCpgAMCron"
-            uri="clusteredquartz://cpg/autocreateclimeAM/?cron=${cpg.am.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-        <endpoint id="autoCpgPMCron"
-            uri="clusteredquartz://cpg/autocreateclimePM/?cron=${cpg.pm.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-        <endpoint id="autoCpgIMCron"
-            uri="clusteredquartz://cpg/autocreateclimeIM/?cron=${cpg.im.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-
-        <endpoint id="autoCpgMonCron"
-            uri="clusteredquartz://cpg/autocreateclimeMon/?cron=${cpg.mon.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-        <endpoint id="autoCpgSeaCron"
-            uri="clusteredquartz://cpg/autocreateclimeSea/?cron=${cpg.sea.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-        <endpoint id="autoCpgAnnCron"
-            uri="clusteredquartz://cpg/autocreateclimeAnn/?cron=${cpg.ann.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-
-        <endpoint id="autoCpgF6Cron"
-            uri="clusteredquartz://cpg/autocreateclimeF6/?cron=${cpg.f6.cron}&amp;trigger.timeZone={{climate.cpg.cron.timezone}}" />
-
-        <route id="cpgAMWork">
-            <from uri="autoCpgAMCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdAM" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgPMWork">
-            <from uri="autoCpgPMCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdPM" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgIMWork">
-            <from uri="autoCpgIMCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdIM" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgMonWork">
-            <from uri="autoCpgMonCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdMonthly" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgSeaWork">
-            <from uri="autoCpgSeaCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdSeasonal" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgAnnWork">
-            <from uri="autoCpgAnnCron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdAnnual" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-
-        <route id="cpgF6Work">
-            <from uri="autoCpgF6Cron" />
-            <doTry>
-                <bean ref="autoGenerateClimateProdF6" method="generateClimate" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgCronJob?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
 </beans>

@@ -3,8 +3,9 @@ Bundle-ManifestVersion: 2
 Bundle-Name: ODIM Visualization
 Bundle-SymbolicName: gov.noaa.nws.ocp.viz.odim;singleton:=true
 Bundle-Version: 1.0.0.qualifier
+Eclipse-BundleShape: dir
 Bundle-Vendor: NWS
-Require-Bundle: javax.xml.bind,
+Require-Bundle: jakarta.xml.bind,
  org.eclipse.ui,
  org.eclipse.core.runtime,
  com.raytheon.uf.common.util,
@@ -27,7 +28,7 @@ Require-Bundle: javax.xml.bind,
  com.raytheon.uf.common.style,
  com.raytheon.uf.viz.d2d.core,
  com.raytheon.viz.awipstools
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: gov.noaa.nws.ocp.viz.odim
 Bundle-ActivationPolicy: lazy
 Export-Package: gov.noaa.nws.ocp.viz.odim,

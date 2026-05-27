@@ -3,10 +3,10 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.atcf;
 
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 

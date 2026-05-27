@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Geodata
 Bundle-SymbolicName: gov.noaa.nws.obs.edex.plugin.geodata
 Bundle-Version: 1.19.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.uf.edex.database,
  com.raytheon.uf.common.datastorage,
  com.raytheon.uf.common.dataplugin,
@@ -14,5 +14,6 @@ Require-Bundle: com.raytheon.uf.edex.database,
  org.geotools,
  com.raytheon.uf.common.serialization,
  gov.noaa.nws.obs.common.dataplugin.geodata,
- javax.xml.bind
+ jakarta.xml.bind,
+ com.raytheon.uf.edex.routes
 Import-Package: org.locationtech.jts.geom

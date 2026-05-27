@@ -1,7 +1,6 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-  http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="climateCPGSessionPurger"
         class="gov.noaa.nws.ocp.edex.climate.prodgen.ClimateProdGenerateSessionPurger">
@@ -12,42 +11,13 @@
         class="gov.noaa.nws.ocp.edex.climate.prodgen.SentClimateProductRecordPurger">
         <property name="retentionHours" value="168" />
     </bean>
-
-    <camelContext id="cpg_purger-camel"
-        xmlns="http://camel.apache.org/schema/spring" errorHandlerRef="errorHandler">
-
-        <endpoint id="climateCPGPurgeCron"
-            uri="quartz://cpg/cpgSessionPurger/?cron=${cpg.purger.cron}"/>
-            
-        <endpoint id="climateSendRecordPurgeCron"
-            uri="quartz://cpg/sentRecordPurger/?cron=${record.purger.cron}" />
-
-        <!-- purge CPG sessions table -->
-        <route id="climateCPGPurgeWork">
-            <from uri="climateCPGPurgeCron" />
-            <doTry>
-                <bean ref="climateCPGSessionPurger" method="purgeTerminatedCPGSession" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgSessionPurger?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-        
-        <!-- purge sent_prod_record table -->
-        <route id="climateSentRecordPurgeWork">
-            <from uri="climateSendRecordPurgeCron" />
-            <doTry>
-                <bean ref="climateSentRecordPurger" method="purgeSentProductRecords" />
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:cpgSessionPurger?level=ERROR" />
-                </doCatch>
-            </doTry>
-        </route>
-    </camelContext>
     
-    <bean factory-bean="contextManager" factory-method="registerClusteredContext">
-        <constructor-arg ref="cpg_purger-camel" />
+    <bean id="cpg_purger-camel" factory-bean="routeContextFactory" factory-method="createClustered">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.climate.prodgen.CpgPurgerCamelRoutes">
+                <constructor-arg name="cpgPurgerCron" value="${cpg.purger.cron}" />
+                <constructor-arg name="recordPurgerCron" value="${record.purger.cron}" />
+            </bean>
+        </constructor-arg>
     </bean>
 </beans>

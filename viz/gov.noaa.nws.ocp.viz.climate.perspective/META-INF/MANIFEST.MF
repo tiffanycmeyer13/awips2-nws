@@ -22,8 +22,8 @@ Require-Bundle: org.eclipse.core.runtime,
  com.raytheon.uf.common.dataplugin,
  gov.noaa.nws.ocp.viz.common.climate,
  com.raytheon.viz.core,
- javax.jms,
+ jakarta.jms,
  org.eclipse.core.expressions,
  org.slf4j
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ActivationPolicy: lazy

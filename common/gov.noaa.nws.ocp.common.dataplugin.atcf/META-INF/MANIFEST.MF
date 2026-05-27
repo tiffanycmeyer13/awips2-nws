@@ -4,7 +4,7 @@ Bundle-Name: Atcf
 Bundle-SymbolicName: gov.noaa.nws.ocp.common.dataplugin.atcf
 Bundle-Version: 1.21.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.dataplugin.atcf.exception,
  gov.noaa.nws.ocp.common.dataplugin.atcf.interpolation,
@@ -12,7 +12,7 @@ Export-Package: gov.noaa.nws.ocp.common.dataplugin.atcf,
  gov.noaa.nws.ocp.common.dataplugin.atcf.request,
  gov.noaa.nws.ocp.common.dataplugin.atcf.templateobject,
  gov.noaa.nws.ocp.common.dataplugin.atcf.util
-Require-Bundle: javax.xml.bind,
+Require-Bundle: jakarta.xml.bind,
  com.raytheon.uf.common.dataplugin,
  com.raytheon.uf.common.localization,
  com.raytheon.uf.common.serialization,
@@ -23,5 +23,5 @@ Require-Bundle: javax.xml.bind,
  com.raytheon.uf.common.util,
  gov.noaa.nws.ocp.common.atcf.configuration,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure

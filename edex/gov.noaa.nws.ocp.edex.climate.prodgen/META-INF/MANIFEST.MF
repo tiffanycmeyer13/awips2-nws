@@ -4,7 +4,7 @@ Bundle-Name: Climate Product Generator
 Bundle-SymbolicName: gov.noaa.nws.ocp.edex.climate.prodgen
 Bundle-Version: 1.19.0.qualifier
 Bundle-Vendor: NWS
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.edex.decodertools,
  com.raytheon.uf.common.dataplugin,
@@ -13,14 +13,15 @@ Require-Bundle: com.raytheon.edex.common,
  com.raytheon.uf.common.wmo,
  com.raytheon.uf.common.dataplugin.text,
  org.geotools,
- javax.persistence,
+ jakarta.persistence,
  javax.measure,
  gov.noaa.nws.ocp.common.dataplugin.climate,
  gov.noaa.nws.ocp.edex.common.climate,
  gov.noaa.nws.ocp.edex.climate,
  com.raytheon.uf.common.dissemination,
- javax.xml.bind,
- org.slf4j
+ jakarta.xml.bind,
+ org.slf4j,
+ com.raytheon.uf.edex.routes
 Export-Package: gov.noaa.nws.ocp.edex.climate.prodgen
 Import-Package: com.raytheon.uf.common.auth.resp,
  com.raytheon.uf.common.auth.user,

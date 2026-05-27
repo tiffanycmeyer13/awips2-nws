@@ -11,14 +11,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
 import com.raytheon.uf.common.localization.LocalizationContext.LocalizationType;
 import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.serialization.JAXBManager;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
@@ -36,6 +35,8 @@ import gov.noaa.nws.ocp.common.drawing.symbolpattern.SymbolPatternList;
  * Date         Ticket#    Engineer    Description
  * ------------ ---------- ----------- --------------------------
  * Jun 05, 2018 #48178     jwu         created.
+ * Oct 25, 2024 2037223    aford       JAXB upgrade - Configure JAXB Manager to
+ *                                     Use Custom JAXB Context Factory
  *
  * </pre>
  *
@@ -114,14 +115,18 @@ public class DrawingConfigManager {
         /**
          * JAXB manager for marshal/unmarshal.
          */
-        Class<?>[] clzz = { JaxbDummyObject.class, CoastBreakpointList.class,
+        Class<?>[] clzz = { CoastBreakpointList.class,
                 IslandBreakpointList.class, WaterBreakpointList.class,
                 LinePatternList.class, SymbolPatternList.class };
 
         JAXBManager jaxb = null;
 
         try {
-            jaxb = new JAXBManager(clzz);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    clzz);
         } catch (JAXBException e) {
             logger.error(
                     "DrawingConfigManager: Error initializing JaxbManager due to ",

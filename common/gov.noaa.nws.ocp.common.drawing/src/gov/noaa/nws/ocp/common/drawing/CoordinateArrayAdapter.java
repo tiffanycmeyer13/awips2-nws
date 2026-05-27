@@ -3,7 +3,7 @@
  */
 package gov.noaa.nws.ocp.common.drawing;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.locationtech.jts.geom.Coordinate;
 

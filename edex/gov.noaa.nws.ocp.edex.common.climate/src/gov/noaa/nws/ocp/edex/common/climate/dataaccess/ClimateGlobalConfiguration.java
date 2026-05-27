@@ -16,7 +16,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.io.FileHandler;
 
 import com.raytheon.uf.common.localization.ILocalizationFile;
 import com.raytheon.uf.common.localization.IPathManager;
@@ -69,6 +71,7 @@ import gov.noaa.nws.ocp.common.dataplugin.climate.ClimateGlobal;
  *                                     and default comments are preserved.
  * 04 DEC 2023  DR 2036600 pwang       Fix moderate precip
  * 22 DEC 2023  DR 2036755 wkwock      Added check for missing climate.valid.rmk.wx and climate.include.rmk.wx
+ * 15 JUL 2025  2036453    aford       Commons Configuration 2 Upgrade
  * </pre>
  * 
  * @author xzhang
@@ -277,12 +280,11 @@ public class ClimateGlobalConfiguration {
 
         // Get the site-level file for editing.
         ILocalizationFile lf = pm.getLocalizationFile(lc, GLOBAL_DAY_PATH);
-        File globalFile = pm.getFile(lc, GLOBAL_DAY_PATH);
 
         SaveableOutputStream output = null;
         try {
-            PropertiesConfiguration prop = new PropertiesConfiguration(
-                    globalFile);
+            PropertiesConfiguration prop = new Configurations()
+                    .propertiesBuilder().getConfiguration();
 
             // set the properties value
             prop.setProperty("climate.T1", String.valueOf(global.getT1()));
@@ -343,7 +345,8 @@ public class ClimateGlobalConfiguration {
 
             // save properties
             output = lf.openOutputStream();
-            prop.save(output);
+            FileHandler configFileHandler = new FileHandler(prop);
+            configFileHandler.save(output);
             output.save();
         } catch (Exception e) {
             logger.error("Error saving global day properties to localization.",

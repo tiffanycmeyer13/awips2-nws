@@ -3,7 +3,7 @@
  **/
 package gov.noaa.nws.ocp.common.dataplugin.psh;
 
-import javax.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.XmlTransient;
 
 import com.raytheon.uf.common.serialization.annotations.DynamicSerialize;
 

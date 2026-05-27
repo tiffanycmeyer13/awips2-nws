@@ -11,6 +11,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.swt,
  gov.noaa.nws.ocp.viz.common.climate
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-Vendor: NWS
 Import-Package: gov.noaa.nws.ocp.viz.common.climate.comp

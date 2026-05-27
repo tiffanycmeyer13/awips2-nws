@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="mpingDecoder" class="gov.noaa.nws.sr.oun.edex.plugin.mping.MPingDecoder"/>
 
@@ -12,28 +10,9 @@
         <constructor-arg value="jms-durable:queue:Ingest.Mping" />
     </bean>
 
-      <camelContext id="mping-camel"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-
-        <route id="mpingIngestRoute">
-            <from uri="jms-durable:queue:Ingest.Mping" />
-            <setHeader name="pluginName">
-                <constant>mping</constant>
-            </setHeader>
-            <pipeline>
-            <doTry>
-                <pipeline>
-                    <bean ref="stringToFile" />
-                    <bean ref="mpingDecoder" method="decode" />
-                    <to uri="direct-vm:persistIndexAlert" />
-                </pipeline>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="log:mping?level=ERROR"/>
-                </doCatch>
-            </doTry>
-            </pipeline>
-        </route>
-    </camelContext>
+     <bean id="mping-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.sr.oun.edex.plugin.mping.MpingCamelRoutes" />
+        </constructor-arg>
+      </bean>
 </beans>

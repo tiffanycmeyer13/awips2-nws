@@ -3,7 +3,7 @@
  **/
 package gov.noaa.nws.ocp.viz.cwagenerator.config;
 
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  * class for the turbulence/LLWS configuration.

@@ -11,12 +11,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.Name;
 import org.geotools.data.memory.MemoryFeatureCollection;
 import org.geotools.feature.NameImpl;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.URLs;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.Name;
 
 import com.raytheon.uf.common.json.JsonException;
 import com.raytheon.uf.common.json.geo.IGeoJsonService;

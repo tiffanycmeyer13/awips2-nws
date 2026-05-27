@@ -52,6 +52,7 @@ import ucar.nc2.Variable;
  * ------------ ---------- ----------- --------------------------
  * Sep 12, 2022 DCS 21569  dfriedman   Initial creation
  * Dec 21, 2023 DR 2036723 dfriedman   Skip over header in SBN data
+ * May 11, 2026 2041388    tgurney     Fixes for netcdf-java 5.9.1
  * </pre>
  *
  * @author dfriedman
@@ -429,7 +430,7 @@ public class ODIMDecoder {
 
         Variable v = g.findVariable("data");
         DataType dt = v.getDataType();
-        if (dt == DataType.BYTE) {
+        if (dt == DataType.BYTE || dt == DataType.UBYTE) {
             byte[] input;
             try {
                 input = (byte[]) v.read().get1DJavaArray(Byte.TYPE);
@@ -438,7 +439,7 @@ public class ODIMDecoder {
             }
             rec.setRawData(input);
             rec.setNumLevels(256);
-        } else if (dt == DataType.SHORT) {
+        } else if (dt == DataType.SHORT || dt == DataType.USHORT) {
             short[] input;
             try {
                 input = (short[]) v.read().get1DJavaArray(Short.TYPE);

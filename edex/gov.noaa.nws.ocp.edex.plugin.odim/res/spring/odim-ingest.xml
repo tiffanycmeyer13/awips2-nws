@@ -1,9 +1,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
-    http://camel.apache.org/schema/spring
-    http://camel.apache.org/schema/spring/camel-spring.xsd">
+    http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean class="com.raytheon.uf.common.logback.appender.ThreadBasedAppender" factory-method="registerThreadPattern">
         <constructor-arg value="odim" />
@@ -18,38 +16,11 @@
         <constructor-arg value="jms-durable:queue:Ingest.ODIM" />
         <constructor-arg value="true" /> <!-- require valid distribution file for startup -->
     </bean>
-
-    <camelContext id="odim-camel"
-        xmlns="http://camel.apache.org/schema/spring"
-        errorHandlerRef="errorHandler">
-
-        <endpoint id="odimJmsEndpoint" uri="jms-durable:queue:Ingest.ODIM?concurrentConsumers=1"/>
-
-        <!-- Begin Radar routes -->
-        <route id="odimIngestRoute">
-            <from uri="odimJmsEndpoint"/>
-             <setHeader name="dataType">
-                 <constant>odim</constant>
-             </setHeader>
-             <doTry>
-                <multicast>
-                    <pipeline>
-                        <bean ref="stringToFile" />
-                        <bean ref="odimDecoder" method="decode" />
-                        <to uri="direct-vm:persistIndexAlert" />
-                    </pipeline>
-                </multicast>
-                <doCatch>
-                    <exception>com.raytheon.uf.common.dataplugin.exception.MalformedDataException</exception>
-                    <to uri="direct-vm:logFailureAsInfo" />
-                </doCatch>
-                <doCatch>
-                    <exception>java.lang.Throwable</exception>
-                    <to uri="direct-vm:logFailedData" />
-                </doCatch>
-            </doTry>
-        </route>
-
-    </camelContext>
+    
+    <bean id="odim-camel" factory-bean="routeContextFactory" factory-method="create">
+        <constructor-arg>
+            <bean class="gov.noaa.nws.ocp.edex.plugin.odim.OdimCamelRoutes" />
+        </constructor-arg>
+    </bean>
 
 </beans>

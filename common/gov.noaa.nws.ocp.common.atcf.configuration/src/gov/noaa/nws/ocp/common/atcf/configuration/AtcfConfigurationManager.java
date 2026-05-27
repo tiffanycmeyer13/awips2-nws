@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +36,6 @@ import com.raytheon.uf.common.localization.PathManagerFactory;
 import com.raytheon.uf.common.localization.SaveableOutputStream;
 import com.raytheon.uf.common.localization.exception.LocalizationException;
 import com.raytheon.uf.common.serialization.JAXBManager;
-import com.raytheon.uf.common.serialization.jaxb.JaxbDummyObject;
 import com.raytheon.uf.common.status.IUFStatusHandler;
 import com.raytheon.uf.common.status.UFStatus;
 
@@ -69,6 +68,8 @@ import gov.noaa.nws.ocp.common.atcf.configuration.AtcfSitePreferences.Preference
  * Oct 27, 2020 82623      jwu         Add master storm.table.
  * Jan 22, 2021 86476      jwu         Add ATCF offices & full initials.
  * Feb 22, 2021 87890      dfriedman   Add color change notification.
+ * Oct 25, 2024 2037223    aford       JAXB upgrade - Configure JAXB Manager to
+ *                                     Use Custom JAXB Context Factory
  *
  * </pre>
  *
@@ -259,11 +260,11 @@ public class AtcfConfigurationManager {
         /**
          * JAXB manager for marshal/unmarshal.
          */
-        Class<?>[] clzz = { JaxbDummyObject.class, FixSites.class,
-                FixTypes.class, ObjectiveAidTechniques.class,
-                DefaultObjAidTechniques.class, AtcfSitePreferences.class,
-                AtcfColorSelections.class, AtcfCustomColors.class,
-                CpaLocations.class, SidebarMenuSelection.class, FixError.class,
+        Class<?>[] clzz = { FixSites.class, FixTypes.class,
+                ObjectiveAidTechniques.class, DefaultObjAidTechniques.class,
+                AtcfSitePreferences.class, AtcfColorSelections.class,
+                AtcfCustomColors.class, CpaLocations.class,
+                SidebarMenuSelection.class, FixError.class,
                 FixMicrowaveSatelliteTypes.class, FixScatSatTypes.class,
                 MaxWindGustPairs.class, GeographyPoints.class,
                 ForecasterInitials.class, StormStates.class, AtcfSites.class,
@@ -272,7 +273,11 @@ public class AtcfConfigurationManager {
         JAXBManager jaxb = null;
 
         try {
-            jaxb = new JAXBManager(clzz);
+            // configure to use a custom JAXB Context Factory
+            boolean pooling = false;
+            boolean useCustomJaxbContextFactory = true;
+            jaxb = new JAXBManager(pooling, useCustomJaxbContextFactory,
+                    clzz);
         } catch (JAXBException e) {
             logger.error(
                     "AtcfConfigurationManager: Error initializing JaxbManager due to ",
