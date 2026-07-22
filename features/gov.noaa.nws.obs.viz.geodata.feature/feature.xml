@@ -28,6 +28,7 @@
          id="gov.noaa.nws.obs.viz.geodata"
          download-size="0"
          install-size="0"
-         version="0.0.0"/>
+         version="0.0.0"
+         unpack="true"/>
 
 </feature>
