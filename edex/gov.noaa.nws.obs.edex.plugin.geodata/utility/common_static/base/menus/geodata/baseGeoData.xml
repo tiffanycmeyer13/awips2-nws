@@ -22,7 +22,7 @@
 
     <!--  JASON Altimetry -->
     <contribute xsi:type="bundleItem" file="bundles/DefaultGeoData.xml" menuText="JASON Waveheight" id="jasonwaveheight.resource">
-        <substitute key="source" value="radar altimeter" />
+        <substitute key="source" value="Jason-3" />
         <substitute key="product" value="JASON Altimetry" />
     </contribute>
     <!-- Active Fires -->
