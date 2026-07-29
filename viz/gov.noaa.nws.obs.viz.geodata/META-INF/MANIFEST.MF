@@ -23,4 +23,3 @@ Require-Bundle: com.raytheon.uf.viz.core.rsc,
  jakarta.xml.bind
 Export-Package: gov.noaa.nws.obs.viz.geodata.rsc,
  gov.noaa.nws.obs.viz.geodata.style
-Bundle-ClassPath: gov.noaa.nws.obs.viz.geodata.jar
